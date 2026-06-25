@@ -2,9 +2,9 @@
 
 ## Statut
 
-Version 1.1 — schéma relationnel candidat pour le MVP.
+Version 1.2 — alignement avec l'architecture domaine et l'API.
 
-Ce document définit le premier modèle de base de données de Ranti.
+Ce document définit le modèle de base de données de Ranti.
 
 Il ne s'agit pas encore d'une migration SQL définitive. Il s'agit d'un modèle de référence pour valider les tables, les relations, les contraintes, les statuts et les règles d'intégrité avant implémentation.
 
@@ -26,7 +26,7 @@ Le schéma doit rester simple, relationnel, sécurisé et fidèle au domaine mé
 
 Ranti doit utiliser une base de données relationnelle.
 
-Le domaine contient des relations fortes : propriétaire, propriété, logement, locataire, bail, échéance, encaissement, preuve, reçu, relance.
+Le domaine contient des relations fortes : propriétaire, propriété, logement, locataire, bail, échéance, réception de loyer, preuve, reçu, relance.
 
 Ces relations doivent être protégées par des clés étrangères, des contraintes et des transactions.
 
@@ -50,13 +50,13 @@ La table `rent_dues` est centrale dans le MVP.
 
 Elle représente l'obligation de paiement attendue pour une période donnée.
 
-Les encaissements, preuves, reçus et relances doivent pouvoir être reliés à une échéance.
+Les réceptions de loyer, preuves, reçus et relances doivent pouvoir être reliés à une échéance.
 
-### 4. Encaissement différent du paiement provider
+### 4. Réception de loyer indépendante du paiement provider
 
-Ranti enregistre d'abord ce que le propriétaire a encaissé.
+Ranti enregistre d'abord ce que le propriétaire a reçu.
 
-Un encaissement peut venir de :
+Une réception de loyer peut venir de :
 
 - cash ;
 - Mobile Money ;
@@ -83,7 +83,9 @@ Les statuts doivent être explicites.
 
 Éviter les booléens ambigus comme `is_paid`, `is_late`, `is_validated`.
 
-Préférer des statuts métier contrôlés : `upcoming`, `due`, `overdue`, `confirmed`, `cancelled`, etc.
+Préférer des statuts métier contrôlés : `expected`, `overdue`, `paid`, `confirmed`, `cancelled`, etc.
+
+Un paiement partiel est représenté par les allocations dans `rent_reception_allocations`, pas par un statut intermédiaire visible sur l'échéance.
 
 ### 7. Argent en entiers
 
@@ -97,9 +99,9 @@ Exemple : `50000` pour 50 000 FCFA.
 
 ### 8. Données dérivées contrôlées
 
-Certaines données peuvent être stockées pour simplifier les affichages, par exemple `amount_collected` ou `balance_due` sur une échéance.
+Certaines données peuvent être stockées pour simplifier les affichages, par exemple `amount_received` ou `balance_due` sur une échéance.
 
-Mais la source de vérité reste l'ensemble des encaissements et allocations reliés à l'échéance.
+Mais la source de vérité reste l'ensemble des réceptions et allocations reliées à l'échéance.
 
 Si une donnée dérivée est stockée, elle doit être mise à jour uniquement par le serveur ou par une transaction contrôlée.
 
@@ -226,8 +228,6 @@ Contraintes :
 
 Représente un locataire connu du propriétaire.
 
-Le locataire est secondaire dans le MVP, mais il doit être correctement représenté pour éviter les conflits.
-
 Champs candidats :
 
 - `id`
@@ -301,6 +301,8 @@ C'est la table centrale du MVP.
 
 Une échéance existe même si le paiement n'a pas encore été effectué.
 
+Un paiement partiel est visible via les allocations dans `rent_reception_allocations`, pas via un statut intermédiaire.
+
 Champs candidats :
 
 - `id`
@@ -314,7 +316,7 @@ Champs candidats :
 - `due_date`
 - `amount_due`
 - `currency`
-- `amount_collected`
+- `amount_received`
 - `balance_due`
 - `status`
 - `generated_from`
@@ -323,15 +325,12 @@ Champs candidats :
 - `cancelled_at`
 - `deleted_at`
 
-Statuts candidats :
+Statuts visibles :
 
-- `upcoming`
-- `due`
-- `partially_collected`
-- `collected`
-- `overdue`
-- `cancelled`
-- `disputed`
+- `expected` : l'échéance est attendue et pas encore échue ;
+- `overdue` : la date limite est dépassée et le montant n'est pas réglé ;
+- `paid` : le montant attendu est intégralement reçu ;
+- `cancelled` : l'échéance a été annulée avec trace.
 
 Contraintes :
 
@@ -339,8 +338,9 @@ Contraintes :
 - `lease_id` référence `leases.id`.
 - `unit_id`, `tenant_id` et `property_id` doivent correspondre au bail.
 - `amount_due` doit être supérieur ou égal à zéro.
-- `amount_collected` doit être supérieur ou égal à zéro.
+- `amount_received` doit être supérieur ou égal à zéro.
 - `balance_due` doit être supérieur ou égal à zéro.
+- `amount_received` est une donnée dérivée mise à jour par transaction à chaque confirmation de réception.
 - Une même période ne doit pas être générée deux fois pour le même bail.
 
 Contrainte recommandée :
@@ -349,13 +349,15 @@ Contrainte recommandée :
 unique(lease_id, period_start, period_end)
 ```
 
-## 8. `collections`
+## 8. `rent_receptions`
 
-Représente un encaissement du point de vue du propriétaire.
+Représente une réception de loyer du point de vue du propriétaire.
 
-Un encaissement peut régler une ou plusieurs échéances.
+Une réception peut régler une ou plusieurs échéances.
 
-Une échéance peut recevoir plusieurs encaissements.
+Une échéance peut recevoir plusieurs réceptions.
+
+Ce module ne dépend d'aucun prestataire de paiement.
 
 Champs candidats :
 
@@ -366,7 +368,7 @@ Champs candidats :
 - `currency`
 - `method`
 - `status`
-- `collected_at`
+- `received_at`
 - `confirmed_at`
 - `confirmed_by_user_id`
 - `notes`
@@ -395,26 +397,26 @@ Statuts candidats :
 Contraintes :
 
 - `amount` doit être supérieur à zéro.
-- Un encaissement confirmé ne doit pas être supprimé physiquement.
+- Une réception confirmée ne doit pas être supprimée physiquement.
 - Une annulation ou correction doit être auditée.
 - La confirmation MVP reste humaine côté propriétaire.
 
-## 9. `collection_allocations`
+## 9. `rent_reception_allocations`
 
-Relie un encaissement à une ou plusieurs échéances.
+Relie une réception de loyer à une ou plusieurs échéances.
 
 Cette table est nécessaire pour gérer correctement :
 
 - paiement partiel ;
 - paiement en retard ;
 - paiement couvrant plusieurs mois ;
-- plusieurs paiements pour un même mois.
+- plusieurs réceptions pour un même mois.
 
 Champs candidats :
 
 - `id`
 - `landlord_id`
-- `collection_id`
+- `rent_reception_id`
 - `rent_due_id`
 - `amount_allocated`
 - `created_at`
@@ -422,24 +424,24 @@ Champs candidats :
 
 Contraintes :
 
-- `collection_id` référence `collections.id`.
+- `rent_reception_id` référence `rent_receptions.id`.
 - `rent_due_id` référence `rent_dues.id`.
 - `landlord_id` doit correspondre sur les deux côtés.
 - `amount_allocated` doit être supérieur à zéro.
-- La somme des allocations d'un encaissement ne doit pas dépasser le montant de l'encaissement.
-- La somme des allocations confirmées sur une échéance détermine son montant encaissé.
+- La somme des allocations d'une réception ne doit pas dépasser le montant de la réception.
+- La somme des allocations confirmées sur une échéance détermine son `amount_received`.
 
 ## 10. `payment_proofs`
 
-Représente une preuve de paiement ou d'encaissement.
+Représente une preuve de paiement.
 
-Une preuve peut être liée à un encaissement, une échéance, ou les deux selon le moment où elle est ajoutée.
+Une preuve peut être liée à une réception de loyer, une échéance, ou les deux selon le moment où elle est ajoutée.
 
 Champs candidats :
 
 - `id`
 - `landlord_id`
-- `collection_id`
+- `rent_reception_id`
 - `rent_due_id`
 - `uploaded_by_user_id`
 - `uploaded_by_role`
@@ -454,9 +456,9 @@ Champs candidats :
 
 Contraintes :
 
-- Une preuve doit être reliée au minimum à une échéance ou un encaissement.
+- Une preuve doit être reliée au minimum à une échéance ou une réception de loyer.
 - Les fichiers doivent être protégés par des permissions.
-- Une preuve rejetée ou archivée ne doit pas disparaître si elle a servi dans un conflit.
+- Une preuve archivée ne doit pas disparaître si elle a servi dans un conflit.
 
 ## 11. `receipts`
 
@@ -492,7 +494,7 @@ Statuts candidats :
 Contraintes :
 
 - `receipt_number` doit être unique par propriétaire.
-- Un reçu doit être lié à des encaissements confirmés.
+- Un reçu doit être lié à des réceptions de loyer confirmées.
 - Un reçu généré ne doit pas être modifié silencieusement.
 - Les informations importantes doivent être conservées dans `snapshot` pour garder la trace même si le locataire ou le logement change plus tard.
 
@@ -504,13 +506,13 @@ unique(landlord_id, receipt_number)
 
 ## 12. `receipt_items`
 
-Relie un reçu aux échéances et encaissements qu'il couvre.
+Relie un reçu aux échéances et réceptions de loyer qu'il couvre.
 
 Cette table évite de perdre la précision lorsque :
 
 - un reçu couvre plusieurs mois ;
-- un encaissement couvre plusieurs échéances ;
-- plusieurs encaissements règlent une même échéance.
+- une réception couvre plusieurs échéances ;
+- plusieurs réceptions règlent une même échéance.
 
 Champs candidats :
 
@@ -518,7 +520,7 @@ Champs candidats :
 - `landlord_id`
 - `receipt_id`
 - `rent_due_id`
-- `collection_id`
+- `rent_reception_id`
 - `amount`
 - `period_start`
 - `period_end`
@@ -528,7 +530,7 @@ Contraintes :
 
 - `receipt_id` référence `receipts.id`.
 - `rent_due_id` référence `rent_dues.id`.
-- `collection_id` référence `collections.id` si présent.
+- `rent_reception_id` référence `rent_receptions.id` si présent.
 - `amount` doit être supérieur à zéro.
 
 ## 13. `reminders`
@@ -635,9 +637,10 @@ Actions candidates :
 - `lease.ended`
 - `rent_due.generated`
 - `rent_due.status_changed`
-- `collection.created`
-- `collection.confirmed`
-- `collection.cancelled`
+- `rent_due.cancelled`
+- `rent_reception.created`
+- `rent_reception.confirmed`
+- `rent_reception.cancelled`
 - `payment_proof.added`
 - `payment_proof.archived`
 - `receipt.generated`
@@ -693,7 +696,7 @@ landlords
   -> tenants
   -> leases
   -> rent_dues
-  -> collections
+  -> rent_receptions
   -> payment_proofs
   -> receipts
   -> reminders
@@ -712,13 +715,13 @@ leases
   -> rent_dues
 
 rent_dues
-  -> collection_allocations
+  -> rent_reception_allocations
   -> reminders
   -> receipt_items
   -> payment_proofs
 
-collections
-  -> collection_allocations
+rent_receptions
+  -> rent_reception_allocations
   -> payment_proofs
   -> receipt_items
 
@@ -733,7 +736,7 @@ reminders
 
 ### Règle 1 — Tout objet métier appartient à un propriétaire
 
-Chaque propriété, logement, locataire, bail, échéance, encaissement, preuve, reçu et relance doit appartenir à un `landlord_id`.
+Chaque propriété, logement, locataire, bail, échéance, réception de loyer, preuve, reçu et relance doit appartenir à un `landlord_id`.
 
 ### Règle 2 — Un bail relie un logement et un locataire
 
@@ -749,13 +752,13 @@ Un bail actif doit toujours relier :
 
 Une échéance doit être générée à partir d'un bail actif, sauf décision future sur les échéances exceptionnelles.
 
-### Règle 4 — Un encaissement doit être affecté
+### Règle 4 — Une réception de loyer doit être allouée
 
-Un encaissement confirmé doit être affecté à une ou plusieurs échéances via `collection_allocations`.
+Une réception de loyer confirmée doit être allouée à une ou plusieurs échéances via `rent_reception_allocations`.
 
 ### Règle 5 — Un reçu vient après confirmation
 
-Un reçu ne peut être généré que sur la base d'un encaissement confirmé ou d'une échéance réglée.
+Un reçu ne peut être généré que sur la base d'une réception de loyer confirmée.
 
 ### Règle 6 — Une relance doit viser une échéance
 
@@ -767,7 +770,7 @@ Les preuves, reçus et contrats éventuels ne doivent pas être exposés publiqu
 
 ### Règle 8 — Les actions critiques sont auditées
 
-Toute action qui modifie un bail, une échéance, un encaissement, une preuve, un reçu ou une relance doit créer une trace dans `audit_logs`.
+Toute action qui modifie un bail, une échéance, une réception de loyer, une preuve, un reçu ou une relance doit créer une trace dans `audit_logs`.
 
 ## Index recommandés
 
@@ -784,11 +787,11 @@ leases(landlord_id, tenant_id, status)
 rent_dues(landlord_id, status, due_date)
 rent_dues(landlord_id, tenant_id, due_date)
 rent_dues(lease_id, period_start, period_end)
-collections(landlord_id, tenant_id, collected_at)
-collection_allocations(collection_id)
-collection_allocations(rent_due_id)
+rent_receptions(landlord_id, tenant_id, received_at)
+rent_reception_allocations(rent_reception_id)
+rent_reception_allocations(rent_due_id)
 payment_proofs(landlord_id, rent_due_id)
-payment_proofs(landlord_id, collection_id)
+payment_proofs(landlord_id, rent_reception_id)
 receipts(landlord_id, receipt_number)
 receipt_items(receipt_id)
 reminders(landlord_id, rent_due_id, created_at)
@@ -835,8 +838,8 @@ La suppression physique doit être évitée pour :
 
 - baux actifs ou passés ;
 - échéances générées ;
-- encaissements ;
-- allocations d'encaissement ;
+- réceptions de loyer ;
+- allocations de réception ;
 - preuves de paiement ;
 - reçus ;
 - relances envoyées ;
@@ -875,14 +878,13 @@ Les points suivants doivent être confirmés avant migration SQL finale :
 
 1. Le prestataire d'authentification initial.
 2. Le format exact de l'identifiant utilisateur.
-3. Le choix final entre `rent_due` et `rent_installment` dans le code.
-4. Le niveau d'interaction locataire sans compte.
-5. La politique de stockage des preuves.
-6. La durée d'expiration des liens publics.
-7. Le format du numéro de reçu.
-8. La stratégie exacte de génération des échéances.
-9. La gestion des paiements couvrant plusieurs mois.
-10. La stratégie de correction d'un reçu déjà généré.
+3. Le niveau d'interaction locataire sans compte.
+4. La politique de stockage des preuves.
+5. La durée d'expiration des liens publics.
+6. Le format du numéro de reçu.
+7. La stratégie exacte de génération des échéances.
+8. La gestion des réceptions couvrant plusieurs mois.
+9. La stratégie de correction d'un reçu déjà généré.
 
 ## Ordre recommandé des migrations
 
@@ -893,8 +895,8 @@ Les points suivants doivent être confirmés avant migration SQL finale :
 5. `tenants`
 6. `leases`
 7. `rent_dues`
-8. `collections`
-9. `collection_allocations`
+8. `rent_receptions`
+9. `rent_reception_allocations`
 10. `payment_proofs`
 11. `receipts`
 12. `receipt_items`
@@ -903,12 +905,12 @@ Les points suivants doivent être confirmés avant migration SQL finale :
 15. `audit_logs`
 16. `public_links`
 
-L'ordre peut évoluer techniquement, mais il doit respecter la dépendance métier : on ne suit pas une échéance sans bail, on ne confirme pas un encaissement sans obligation, et on ne génère pas de reçu sans encaissement confirmé.
+L'ordre peut évoluer techniquement, mais il doit respecter la dépendance métier : on ne suit pas une échéance sans bail, on ne confirme pas une réception sans obligation, et on ne génère pas de reçu sans réception confirmée.
 
 ## Phrase de contrôle
 
 La base de données de Ranti doit pouvoir raconter l'histoire suivante sans ambiguïté :
 
-> Ce propriétaire a ce logement. Ce locataire l'occupe selon ce bail. Pour ce mois, cette échéance était attendue. Voici ce qui a été encaissé. Voici la preuve. Voici le reçu. Voici la relance si nécessaire. Voici l'historique des actions.
+> Ce propriétaire a ce logement. Ce locataire l'occupe selon ce bail. Pour ce mois, cette échéance était attendue. Voici ce qui a été reçu. Voici la preuve. Voici le reçu. Voici la relance si nécessaire. Voici l'historique des actions.
 
 Si le schéma ne permet plus de raconter cette histoire simplement, il doit être corrigé.
