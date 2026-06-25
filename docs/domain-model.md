@@ -2,7 +2,7 @@
 
 ## Statut
 
-Version 0.1 — document de travail.
+Version 0.2 — document de travail.
 
 Ce document définit les concepts métier centraux de Ranti avant toute conception d'écran, de base de données ou d'API.
 
@@ -63,6 +63,55 @@ Une échéance de loyer est reliée à :
 - une preuve de paiement, qui justifie le paiement ;
 - une quittance ou reçu, qui confirme que le paiement a été accepté ;
 - une relance, si l'échéance n'est pas réglée.
+
+## Décision de domaine 002 — Les échéances naissent automatiquement à partir du bail
+
+### Statut
+
+Hypothèse forte à valider terrain.
+
+### Décision
+
+Dans le MVP, une échéance de loyer naît automatiquement à partir d'un bail ou d'un accord locatif.
+
+Le propriétaire ne doit pas créer manuellement chaque échéance mensuelle.
+
+### Pourquoi
+
+Le propriétaire ne pense généralement pas :
+
+> Je dois créer le loyer du mois prochain.
+
+Il pense plutôt :
+
+> Ce locataire paie chaque mois.
+
+Ranti doit traduire cette réalité métier en échéances suivables.
+
+### Exemple
+
+Si un bail indique :
+
+- locataire : Aline ;
+- loyer mensuel : 50 000 FCFA ;
+- paiement attendu le 5 de chaque mois ;
+- début du bail : 1er janvier 2026.
+
+Alors Ranti doit pouvoir générer les échéances mensuelles correspondantes.
+
+### Conséquences produit
+
+- Le bail devient la source des règles de génération des échéances.
+- Le propriétaire configure une règle une fois, au lieu de répéter la même action chaque mois.
+- Le produit réduit le risque d'oubli.
+- Le système doit gérer les cas où le bail change, se termine ou est suspendu.
+
+### Questions ouvertes
+
+- Faut-il générer toutes les échéances à l'avance ou seulement les prochaines échéances ?
+- Que se passe-t-il si le propriétaire modifie le montant du loyer ?
+- Que se passe-t-il si le locataire quitte le logement ?
+- Que se passe-t-il si le propriétaire veut créer une échéance exceptionnelle ?
 
 ## Concepts candidats du MVP
 
