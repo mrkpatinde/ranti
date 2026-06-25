@@ -2,7 +2,7 @@
 
 ## Statut
 
-Version 1.0 — schéma relationnel candidat pour le MVP.
+Version 1.1 — schéma relationnel candidat pour le MVP.
 
 Ce document définit le premier modèle de base de données de Ranti.
 
@@ -105,120 +105,64 @@ Si une donnée dérivée est stockée, elle doit être mise à jour uniquement p
 
 ## Conventions techniques
 
-### Noms de tables
-
 Les tables utilisent l'anglais simple, au pluriel.
 
-Exemples :
+Chaque table principale utilise `id` comme identifiant primaire, idéalement en UUID.
 
-- `landlords`
-- `properties`
-- `units`
-- `tenants`
-- `leases`
-- `rent_dues`
-- `collections`
-- `payment_proofs`
-- `receipts`
-- `reminders`
-- `audit_logs`
+Les dates techniques utilisent `timestamptz`.
 
-### Identifiants
+Les dates métier simples utilisent `date`.
 
-Chaque table principale utilise :
-
-- `id` comme identifiant primaire ;
-- type recommandé : UUID ;
-- génération côté base ou côté serveur de manière contrôlée.
-
-### Dates
-
-Les dates techniques utilisent des timestamps avec timezone.
-
-Exemples :
-
-- `created_at`
-- `updated_at`
-- `deleted_at`
-- `confirmed_at`
-- `sent_at`
-
-Les dates métier simples utilisent des dates sans heure.
-
-Exemples :
-
-- `period_start`
-- `period_end`
-- `due_date`
-- `lease_start_date`
-- `lease_end_date`
-
-### Devise
-
-Chaque montant financier doit être associé à une devise.
-
-Champ recommandé : `currency`.
+Chaque montant financier doit être associé à une devise via `currency`.
 
 Valeur initiale probable : `XOF`.
 
-Ne pas supposer que Ranti restera seulement dans un pays.
-
-## Tables principales
+## Tables du MVP
 
 ## 1. `app_users`
-
-### Rôle
 
 Représente l'utilisateur applicatif connecté.
 
 Cette table complète le service d'authentification.
 
-Elle ne remplace pas forcément la table interne du prestataire d'authentification.
+Champs candidats :
 
-### Champs candidats
+- `id`
+- `auth_user_id`
+- `full_name`
+- `phone`
+- `email`
+- `status`
+- `created_at`
+- `updated_at`
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant utilisateur applicatif |
-| `auth_user_id` | uuid / text | Identifiant venant du service d'authentification |
-| `full_name` | text | Nom affiché |
-| `phone` | text | Téléphone principal |
-| `email` | text nullable | Email si disponible |
-| `status` | text | `active`, `disabled` |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-
-### Contraintes
+Contraintes :
 
 - `auth_user_id` doit être unique si le prestataire d'authentification le permet.
-- `phone` doit être unique si le téléphone devient l'identifiant principal.
+- `phone` peut devenir unique si le téléphone devient l'identifiant principal.
 - Un utilisateur désactivé ne doit pas pouvoir agir sur les données métier.
 
 ## 2. `landlords`
 
-### Rôle
-
-Représente le propriétaire ou l'espace propriétaire dans Ranti.
+Représente le propriétaire ou l'espace propriétaire.
 
 Dans le MVP, un utilisateur principal correspond généralement à un propriétaire.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant propriétaire |
-| `owner_user_id` | uuid | Utilisateur qui possède l'espace |
-| `display_name` | text | Nom du propriétaire ou de l'espace |
-| `phone` | text nullable | Téléphone propriétaire |
-| `country` | text nullable | Pays principal |
-| `city` | text nullable | Ville principale |
-| `default_currency` | text | Devise par défaut, ex. `XOF` |
-| `status` | text | `active`, `disabled`, `archived` |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `deleted_at` | timestamptz nullable | Suppression logique si nécessaire |
+- `id`
+- `owner_user_id`
+- `display_name`
+- `phone`
+- `country`
+- `city`
+- `default_currency`
+- `status`
+- `created_at`
+- `updated_at`
+- `deleted_at`
 
-### Contraintes
+Contraintes :
 
 - `owner_user_id` référence `app_users.id`.
 - Pour le MVP, un `owner_user_id` peut être limité à un seul `landlord`.
@@ -226,53 +170,52 @@ Dans le MVP, un utilisateur principal correspond généralement à un propriéta
 
 ## 3. `properties`
 
-### Rôle
-
 Représente une propriété physique appartenant au propriétaire.
 
 Une propriété peut contenir un ou plusieurs logements.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant propriété |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `name` | text | Nom simple, ex. `Maison Agla` |
-| `address_text` | text nullable | Adresse ou description simple |
-| `city` | text nullable | Ville |
-| `country` | text nullable | Pays |
-| `status` | text | `active`, `archived` |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `deleted_at` | timestamptz nullable | Suppression logique |
+- `id`
+- `landlord_id`
+- `name`
+- `address_text`
+- `city`
+- `country`
+- `status`
+- `created_at`
+- `updated_at`
+- `deleted_at`
 
-### Contraintes
+Contraintes :
 
 - `landlord_id` référence `landlords.id`.
 - Une propriété archivée ne doit pas supprimer ses logements, baux ou échéances.
 
 ## 4. `units`
 
-### Rôle
-
 Représente un logement ou espace louable situé dans une propriété.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant logement |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `property_id` | uuid | Propriété concernée |
-| `name` | text | Nom simple, ex. `Chambre 1`, `Boutique A` |
-| `unit_type` | text nullable | `room`, `apartment`, `house`, `shop`, `office`, `warehouse`, `other` |
-| `status` | text | `available`, `occupied`, `inactive`, `archived` |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `deleted_at` | timestamptz nullable | Suppression logique |
+- `id`
+- `landlord_id`
+- `property_id`
+- `name`
+- `unit_type`
+- `status`
+- `created_at`
+- `updated_at`
+- `deleted_at`
 
-### Contraintes
+Statuts candidats :
+
+- `available`
+- `occupied`
+- `inactive`
+- `archived`
+
+Contraintes :
 
 - `landlord_id` référence `landlords.id`.
 - `property_id` référence `properties.id`.
@@ -281,28 +224,24 @@ Représente un logement ou espace louable situé dans une propriété.
 
 ## 5. `tenants`
 
-### Rôle
-
 Représente un locataire connu du propriétaire.
 
 Le locataire est secondaire dans le MVP, mais il doit être correctement représenté pour éviter les conflits.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant locataire |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `full_name` | text | Nom du locataire |
-| `phone` | text nullable | Téléphone principal |
-| `email` | text nullable | Email si disponible |
-| `notes` | text nullable | Note simple du propriétaire |
-| `status` | text | `active`, `inactive`, `archived` |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `deleted_at` | timestamptz nullable | Suppression logique |
+- `id`
+- `landlord_id`
+- `full_name`
+- `phone`
+- `email`
+- `notes`
+- `status`
+- `created_at`
+- `updated_at`
+- `deleted_at`
 
-### Contraintes
+Contraintes :
 
 - `landlord_id` référence `landlords.id`.
 - Le même numéro de téléphone peut exister chez plusieurs propriétaires.
@@ -310,35 +249,39 @@ Le locataire est secondaire dans le MVP, mais il doit être correctement représ
 
 ## 6. `leases`
 
-### Rôle
-
 Représente le bail ou accord locatif.
 
 Le bail définit les règles de génération des échéances.
 
 Il ne doit pas être confondu avec un contrat PDF ou papier.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant bail |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `property_id` | uuid | Propriété concernée |
-| `unit_id` | uuid | Logement loué |
-| `tenant_id` | uuid | Locataire concerné |
-| `rent_amount` | integer | Montant attendu par période |
-| `currency` | text | Devise, ex. `XOF` |
-| `billing_period` | text | `monthly` au MVP |
-| `due_day` | integer nullable | Jour attendu du paiement, ex. `5` |
-| `start_date` | date | Début de la relation locative |
-| `end_date` | date nullable | Fin prévue ou réelle |
-| `status` | text | `draft`, `active`, `ended`, `suspended`, `cancelled` |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `deleted_at` | timestamptz nullable | Suppression logique |
+- `id`
+- `landlord_id`
+- `property_id`
+- `unit_id`
+- `tenant_id`
+- `rent_amount`
+- `currency`
+- `billing_period`
+- `due_day`
+- `start_date`
+- `end_date`
+- `status`
+- `created_at`
+- `updated_at`
+- `deleted_at`
 
-### Contraintes
+Statuts candidats :
+
+- `draft`
+- `active`
+- `ended`
+- `suspended`
+- `cancelled`
+
+Contraintes :
 
 - `landlord_id` référence `landlords.id`.
 - `property_id` référence `properties.id`.
@@ -352,49 +295,45 @@ Il ne doit pas être confondu avec un contrat PDF ou papier.
 
 ## 7. `rent_dues`
 
-### Rôle
-
 Représente une échéance de loyer.
 
 C'est la table centrale du MVP.
 
 Une échéance existe même si le paiement n'a pas encore été effectué.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant échéance |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `lease_id` | uuid | Bail source |
-| `property_id` | uuid | Propriété concernée |
-| `unit_id` | uuid | Logement concerné |
-| `tenant_id` | uuid | Locataire concerné |
-| `period_start` | date | Début de période couverte |
-| `period_end` | date | Fin de période couverte |
-| `due_date` | date | Date attendue du paiement |
-| `amount_due` | integer | Montant attendu |
-| `currency` | text | Devise |
-| `amount_collected` | integer | Montant encaissé, dérivé contrôlé |
-| `balance_due` | integer | Reste dû, dérivé contrôlé |
-| `status` | text | Statut de l'échéance |
-| `generated_from` | text | `lease`, `manual_adjustment` plus tard |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `cancelled_at` | timestamptz nullable | Annulation avec trace |
-| `deleted_at` | timestamptz nullable | Suppression logique si nécessaire |
+- `id`
+- `landlord_id`
+- `lease_id`
+- `property_id`
+- `unit_id`
+- `tenant_id`
+- `period_start`
+- `period_end`
+- `due_date`
+- `amount_due`
+- `currency`
+- `amount_collected`
+- `balance_due`
+- `status`
+- `generated_from`
+- `created_at`
+- `updated_at`
+- `cancelled_at`
+- `deleted_at`
 
-### Statuts candidats
+Statuts candidats :
 
-- `upcoming` : l'échéance existe mais n'est pas encore due ;
-- `due` : l'échéance est attendue ;
-- `partially_collected` : une partie a été encaissée ;
-- `collected` : le montant attendu est encaissé ;
-- `overdue` : la date limite est dépassée et le montant n'est pas réglé ;
-- `cancelled` : l'échéance a été annulée avec trace ;
-- `disputed` : l'échéance fait l'objet d'une contestation.
+- `upcoming`
+- `due`
+- `partially_collected`
+- `collected`
+- `overdue`
+- `cancelled`
+- `disputed`
 
-### Contraintes
+Contraintes :
 
 - `landlord_id` référence `landlords.id`.
 - `lease_id` référence `leases.id`.
@@ -412,35 +351,31 @@ unique(lease_id, period_start, period_end)
 
 ## 8. `collections`
 
-### Rôle
-
 Représente un encaissement du point de vue du propriétaire.
 
 Un encaissement peut régler une ou plusieurs échéances.
 
 Une échéance peut recevoir plusieurs encaissements.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant encaissement |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `tenant_id` | uuid | Locataire concerné |
-| `amount` | integer | Montant encaissé |
-| `currency` | text | Devise |
-| `method` | text | Méthode d'encaissement |
-| `status` | text | Statut de l'encaissement |
-| `collected_at` | timestamptz | Date déclarée d'encaissement |
-| `confirmed_at` | timestamptz nullable | Date de confirmation |
-| `confirmed_by_user_id` | uuid nullable | Utilisateur confirmateur |
-| `notes` | text nullable | Note simple |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `cancelled_at` | timestamptz nullable | Date d'annulation |
-| `deleted_at` | timestamptz nullable | Suppression logique si nécessaire |
+- `id`
+- `landlord_id`
+- `tenant_id`
+- `amount`
+- `currency`
+- `method`
+- `status`
+- `collected_at`
+- `confirmed_at`
+- `confirmed_by_user_id`
+- `notes`
+- `created_at`
+- `updated_at`
+- `cancelled_at`
+- `deleted_at`
 
-### Méthodes candidates
+Méthodes candidates :
 
 - `cash`
 - `mobile_money`
@@ -449,15 +384,15 @@ Une échéance peut recevoir plusieurs encaissements.
 - `online_payment`
 - `other`
 
-### Statuts candidats
+Statuts candidats :
 
-- `draft` ;
-- `pending_confirmation` ;
-- `confirmed` ;
-- `cancelled` ;
-- `reversed`.
+- `draft`
+- `pending_confirmation`
+- `confirmed`
+- `cancelled`
+- `reversed`
 
-### Contraintes
+Contraintes :
 
 - `amount` doit être supérieur à zéro.
 - Un encaissement confirmé ne doit pas être supprimé physiquement.
@@ -465,8 +400,6 @@ Une échéance peut recevoir plusieurs encaissements.
 - La confirmation MVP reste humaine côté propriétaire.
 
 ## 9. `collection_allocations`
-
-### Rôle
 
 Relie un encaissement à une ou plusieurs échéances.
 
@@ -477,19 +410,17 @@ Cette table est nécessaire pour gérer correctement :
 - paiement couvrant plusieurs mois ;
 - plusieurs paiements pour un même mois.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant allocation |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `collection_id` | uuid | Encaissement concerné |
-| `rent_due_id` | uuid | Échéance concernée |
-| `amount_allocated` | integer | Montant affecté à cette échéance |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
+- `id`
+- `landlord_id`
+- `collection_id`
+- `rent_due_id`
+- `amount_allocated`
+- `created_at`
+- `updated_at`
 
-### Contraintes
+Contraintes :
 
 - `collection_id` référence `collections.id`.
 - `rent_due_id` référence `rent_dues.id`.
@@ -500,32 +431,28 @@ Cette table est nécessaire pour gérer correctement :
 
 ## 10. `payment_proofs`
 
-### Rôle
-
 Représente une preuve de paiement ou d'encaissement.
 
 Une preuve peut être liée à un encaissement, une échéance, ou les deux selon le moment où elle est ajoutée.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant preuve |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `collection_id` | uuid nullable | Encaissement associé |
-| `rent_due_id` | uuid nullable | Échéance associée |
-| `uploaded_by_user_id` | uuid nullable | Utilisateur ayant ajouté la preuve |
-| `uploaded_by_role` | text | `landlord`, `tenant`, `admin`, `system` |
-| `file_url` | text | Référence interne ou URL protégée |
-| `file_name` | text nullable | Nom du fichier |
-| `mime_type` | text nullable | Type MIME |
-| `file_size_bytes` | integer nullable | Taille |
-| `status` | text | `active`, `rejected`, `archived` |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `deleted_at` | timestamptz nullable | Suppression logique |
+- `id`
+- `landlord_id`
+- `collection_id`
+- `rent_due_id`
+- `uploaded_by_user_id`
+- `uploaded_by_role`
+- `file_url`
+- `file_name`
+- `mime_type`
+- `file_size_bytes`
+- `status`
+- `created_at`
+- `updated_at`
+- `deleted_at`
 
-### Contraintes
+Contraintes :
 
 - Une preuve doit être reliée au minimum à une échéance ou un encaissement.
 - Les fichiers doivent être protégés par des permissions.
@@ -533,34 +460,36 @@ Une preuve peut être liée à un encaissement, une échéance, ou les deux selo
 
 ## 11. `receipts`
 
-### Rôle
-
 Représente une quittance ou un reçu généré par Ranti.
 
 Un reçu doit être déterministe et généré à partir de données confirmées.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant reçu |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `tenant_id` | uuid | Locataire concerné |
-| `lease_id` | uuid | Bail concerné |
-| `unit_id` | uuid | Logement concerné |
-| `receipt_number` | text | Numéro lisible du reçu |
-| `currency` | text | Devise |
-| `total_amount` | integer | Montant total reçu |
-| `issued_at` | timestamptz | Date de génération |
-| `issued_by_user_id` | uuid | Utilisateur ayant généré le reçu |
-| `status` | text | `issued`, `cancelled`, `replaced` |
-| `pdf_file_url` | text nullable | Référence du PDF généré |
-| `snapshot` | jsonb | Données figées utilisées pour générer le reçu |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
-| `cancelled_at` | timestamptz nullable | Annulation avec trace |
+- `id`
+- `landlord_id`
+- `tenant_id`
+- `lease_id`
+- `unit_id`
+- `receipt_number`
+- `currency`
+- `total_amount`
+- `issued_at`
+- `issued_by_user_id`
+- `status`
+- `pdf_file_url`
+- `snapshot`
+- `created_at`
+- `updated_at`
+- `cancelled_at`
 
-### Contraintes
+Statuts candidats :
+
+- `issued`
+- `cancelled`
+- `replaced`
+
+Contraintes :
 
 - `receipt_number` doit être unique par propriétaire.
 - Un reçu doit être lié à des encaissements confirmés.
@@ -575,8 +504,6 @@ unique(landlord_id, receipt_number)
 
 ## 12. `receipt_items`
 
-### Rôle
-
 Relie un reçu aux échéances et encaissements qu'il couvre.
 
 Cette table évite de perdre la précision lorsque :
@@ -585,21 +512,19 @@ Cette table évite de perdre la précision lorsque :
 - un encaissement couvre plusieurs échéances ;
 - plusieurs encaissements règlent une même échéance.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant ligne de reçu |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `receipt_id` | uuid | Reçu concerné |
-| `rent_due_id` | uuid | Échéance couverte |
-| `collection_id` | uuid nullable | Encaissement associé |
-| `amount` | integer | Montant couvert |
-| `period_start` | date | Début de période copiée |
-| `period_end` | date | Fin de période copiée |
-| `created_at` | timestamptz | Date de création |
+- `id`
+- `landlord_id`
+- `receipt_id`
+- `rent_due_id`
+- `collection_id`
+- `amount`
+- `period_start`
+- `period_end`
+- `created_at`
 
-### Contraintes
+Contraintes :
 
 - `receipt_id` référence `receipts.id`.
 - `rent_due_id` référence `rent_dues.id`.
@@ -608,29 +533,40 @@ Cette table évite de perdre la précision lorsque :
 
 ## 13. `reminders`
 
-### Rôle
-
 Représente une relance liée à une échéance.
 
 La relance existe dans Ranti même si l'envoi externe échoue.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant relance |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `rent_due_id` | uuid | Échéance concernée |
-| `tenant_id` | uuid | Locataire concerné |
-| `channel` | text | `whatsapp`, `sms`, `email`, `manual` |
-| `message` | text | Message envoyé ou préparé |
-| `status` | text | `draft`, `queued`, `sent`, `failed`, `cancelled` |
-| `sent_at` | timestamptz nullable | Date d'envoi |
-| `created_by_user_id` | uuid nullable | Utilisateur créateur |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
+- `id`
+- `landlord_id`
+- `rent_due_id`
+- `tenant_id`
+- `channel`
+- `message`
+- `status`
+- `sent_at`
+- `created_by_user_id`
+- `created_at`
+- `updated_at`
 
-### Contraintes
+Canaux candidats :
+
+- `whatsapp`
+- `sms`
+- `email`
+- `manual`
+
+Statuts candidats :
+
+- `draft`
+- `queued`
+- `sent`
+- `failed`
+- `cancelled`
+
+Contraintes :
 
 - Une relance doit être liée à une échéance.
 - Le canal ne doit pas devenir la source de vérité.
@@ -638,62 +574,54 @@ La relance existe dans Ranti même si l'envoi externe échoue.
 
 ## 14. `notification_deliveries`
 
-### Rôle
-
 Trace les tentatives d'envoi via les canaux externes.
 
 Cette table est technique.
 
 Elle ne remplace pas `reminders`.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant tentative |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `reminder_id` | uuid nullable | Relance associée |
-| `channel` | text | Canal utilisé |
-| `recipient` | text | Téléphone ou email destinataire |
-| `provider` | text nullable | Prestataire utilisé |
-| `provider_message_id` | text nullable | Identifiant externe |
-| `status` | text | `queued`, `sent`, `delivered`, `failed` |
-| `error_message` | text nullable | Erreur éventuelle |
-| `sent_at` | timestamptz nullable | Date d'envoi |
-| `delivered_at` | timestamptz nullable | Date de livraison si disponible |
-| `created_at` | timestamptz | Date de création |
-| `updated_at` | timestamptz | Date de modification |
+- `id`
+- `landlord_id`
+- `reminder_id`
+- `channel`
+- `recipient`
+- `provider`
+- `provider_message_id`
+- `status`
+- `error_message`
+- `sent_at`
+- `delivered_at`
+- `created_at`
+- `updated_at`
 
-### Contraintes
+Contraintes :
 
 - Ne pas stocker plus de données personnelles que nécessaire.
 - Les erreurs doivent aider au diagnostic sans exposer inutilement des données sensibles.
 
 ## 15. `audit_logs`
 
-### Rôle
-
 Trace les actions sensibles.
 
 Cette table protège la confiance dans Ranti.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant audit |
-| `landlord_id` | uuid nullable | Propriétaire concerné si applicable |
-| `actor_user_id` | uuid nullable | Utilisateur auteur |
-| `actor_role` | text | `landlord`, `tenant`, `admin`, `system` |
-| `action` | text | Action réalisée |
-| `entity_type` | text | Type d'objet concerné |
-| `entity_id` | uuid nullable | Identifiant de l'objet |
-| `before_data` | jsonb nullable | Ancien état si nécessaire |
-| `after_data` | jsonb nullable | Nouvel état si nécessaire |
-| `metadata` | jsonb nullable | Contexte technique minimal |
-| `created_at` | timestamptz | Date de l'action |
+- `id`
+- `landlord_id`
+- `actor_user_id`
+- `actor_role`
+- `action`
+- `entity_type`
+- `entity_id`
+- `before_data`
+- `after_data`
+- `metadata`
+- `created_at`
 
-### Actions candidates
+Actions candidates :
 
 - `landlord.created`
 - `property.created`
@@ -717,15 +645,13 @@ Cette table protège la confiance dans Ranti.
 - `reminder.created`
 - `reminder.sent`
 
-### Contraintes
+Contraintes :
 
 - Les logs d'audit doivent être append-only autant que possible.
 - Ils ne doivent pas être modifiés par des flux utilisateur standards.
 - Ils ne doivent pas contenir inutilement des fichiers ou données très sensibles en clair.
 
 ## 16. `public_links`
-
-### Rôle
 
 Représente les liens partageables contrôlés.
 
@@ -736,22 +662,20 @@ Ces liens peuvent servir à :
 - consulter une relance ;
 - permettre une action locataire sans compte complet.
 
-### Champs candidats
+Champs candidats :
 
-| Champ | Type | Rôle |
-| --- | --- | --- |
-| `id` | uuid | Identifiant lien |
-| `landlord_id` | uuid | Propriétaire concerné |
-| `token_hash` | text | Hash du token public |
-| `purpose` | text | `view_receipt`, `upload_proof`, `view_rent_due` |
-| `entity_type` | text | Objet lié |
-| `entity_id` | uuid | Identifiant de l'objet lié |
-| `expires_at` | timestamptz nullable | Expiration |
-| `revoked_at` | timestamptz nullable | Révocation |
-| `created_at` | timestamptz | Date de création |
-| `last_used_at` | timestamptz nullable | Dernière utilisation |
+- `id`
+- `landlord_id`
+- `token_hash`
+- `purpose`
+- `entity_type`
+- `entity_id`
+- `expires_at`
+- `revoked_at`
+- `created_at`
+- `last_used_at`
 
-### Contraintes
+Contraintes :
 
 - Le token brut ne doit pas être stocké.
 - Le lien doit pouvoir expirer ou être révoqué.
@@ -781,7 +705,7 @@ properties
 units
   -> leases
 
-te​​nants
+tenants
   -> leases
 
 leases
