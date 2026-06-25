@@ -2,7 +2,7 @@
 
 ## Statut
 
-Version 0.2 — document de travail.
+Version 0.3 — document de travail.
 
 Ce document définit les concepts métier centraux de Ranti avant toute conception d'écran, de base de données ou d'API.
 
@@ -56,9 +56,9 @@ Cette obligation existe même si le paiement n'a pas encore été effectué.
 Une échéance de loyer est reliée à :
 
 - un propriétaire, qui attend le paiement ;
-- un logement ou une unité, qui est concerné par le loyer ;
+- un logement, qui est concerné par le loyer ;
 - un locataire, qui doit payer ;
-- un bail ou accord de location, qui définit le montant et la périodicité ;
+- un bail ou accord locatif, qui définit le montant et la périodicité ;
 - un paiement, qui peut couvrir totalement ou partiellement l'échéance ;
 - une preuve de paiement, qui justifie le paiement ;
 - une quittance ou reçu, qui confirme que le paiement a été accepté ;
@@ -113,15 +113,48 @@ Alors Ranti doit pouvoir générer les échéances mensuelles correspondantes.
 - Que se passe-t-il si le locataire quitte le logement ?
 - Que se passe-t-il si le propriétaire veut créer une échéance exceptionnelle ?
 
+## Décision de domaine 003 — La relation locative est le contexte central
+
+### Statut
+
+Approuvé comme principe de domaine.
+
+### Décision
+
+Ranti ne protège pas seulement le propriétaire ou le locataire.
+
+Ranti protège la relation locative entre eux.
+
+Cette relation est matérialisée par un bail ou accord locatif pour un logement donné.
+
+### Pourquoi
+
+Quand la relation locative est claire, chaque partie est tranquille :
+
+- le propriétaire sait ce qui est dû, payé ou en retard ;
+- le locataire peut prouver ce qu'il a payé ;
+- les obligations sont tracées ;
+- les paiements sont reliés aux bonnes périodes ;
+- les reçus peuvent être générés proprement ;
+- les conflits diminuent.
+
+### Conséquence métier
+
+Le propriétaire est le client commercial principal de Ranti.
+
+Mais dans le modèle de domaine, l'objet à sécuriser est la relation locative.
+
+Sans relation locative, il n'y a pas d'échéance, pas de paiement de loyer, pas de preuve utile et pas de quittance.
+
 ## Concepts candidats du MVP
 
 Les concepts suivants sont candidats pour le MVP :
 
 - Propriétaire
-- Bien
-- Unité
+- Propriété
+- Logement
 - Locataire
-- Bail
+- Bail ou accord locatif
 - Échéance de loyer
 - Paiement
 - Preuve de paiement
