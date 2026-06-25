@@ -16,7 +16,7 @@ Le MVP doit aider un propriétaire à savoir clairement :
 
 1. qui a payé ;
 2. qui est en retard ;
-3. quelle preuve existe pour chaque paiement ou encaissement ;
+3. quelle preuve existe pour chaque loyer reçu, si une preuve existe ;
 4. si une quittance simple peut être générée.
 
 Le modèle de domaine indique que Ranti protège la mémoire fiable des loyers, plus précisément la mémoire des obligations de loyer et des paiements associés.
@@ -33,13 +33,13 @@ Une échéance de loyer représente une obligation de paiement attendue pour une
 
 Exemple : un locataire doit payer 50 000 FCFA pour le loyer de juillet 2026 avant le 5 juillet 2026.
 
-Cette obligation existe même si aucun encaissement n'a encore été enregistré.
+Cette obligation existe même si aucun loyer n'a encore été reçu.
 
 ## Chaîne de domaine acceptée
 
 Le modèle technique doit respecter cette chaîne :
 
-Propriétaire → Propriété → Logement → Bail → Échéance de loyer → Encaissement → Preuve → Quittance → Relance
+Propriétaire → Propriété → Logement → Bail → Échéance de loyer → Réception de loyer → Preuve éventuelle → Quittance → Relance
 
 ## Règles métier obligatoires
 
@@ -56,38 +56,49 @@ Le bail ou accord locatif définit les règles qui permettent de créer les éch
 - date de début ;
 - date de fin éventuelle.
 
+Un logement ne peut pas avoir deux baux actifs au même moment.
+
 ### Échéance de loyer
 
 Une échéance appartient à un bail.
 
 Elle représente ce qui est attendu pour une période donnée.
 
-Elle peut être :
+Les statuts principaux visibles dans le MVP restent simples : attendue, en retard, payée, annulée.
 
-- à venir ;
-- due ;
-- partiellement réglée ;
-- réglée ;
-- en retard ;
-- annulée ou corrigée si nécessaire.
+Le paiement partiel ou multi-mois doit être représenté par les montants et les allocations, pas nécessairement par un statut principal visible.
 
-Les statuts exacts seront définis dans le document de base de données.
+Les statuts techniques exacts seront définis dans le document de base de données.
 
-### Encaissement
+### Réception de loyer
 
-Un encaissement représente ce que le propriétaire déclare avoir reçu.
+Une réception de loyer représente ce que le propriétaire confirme avoir reçu.
 
-Il peut venir d'un paiement fait hors Ranti : cash, Mobile Money, virement ou autre moyen local.
+Elle peut correspondre à un paiement fait hors Ranti : cash, Mobile Money, virement ou autre moyen local.
 
-Un encaissement peut régler une ou plusieurs échéances.
+Une réception de loyer peut régler une ou plusieurs échéances.
 
-Une échéance peut recevoir plusieurs encaissements.
+Une échéance peut être réglée par plusieurs réceptions de loyer.
+
+### Allocation
+
+Une allocation relie une réception de loyer à une échéance précise.
+
+Elle indique quelle part du montant reçu sert à régler quelle échéance.
+
+Elle permet de représenter proprement :
+
+- un paiement partiel ;
+- un paiement couvrant plusieurs mois ;
+- plusieurs paiements pour une même échéance.
 
 ### Preuve
 
-Une preuve justifie un paiement ou un encaissement.
+Une preuve peut justifier une réception de loyer.
 
-Elle doit être reliée à un encaissement.
+Elle est utile, mais elle n'est pas obligatoire dans le MVP.
+
+Lorsqu'elle existe, elle doit être reliée à une réception de loyer ou à un contexte métier clair.
 
 Une preuve ne doit pas exister comme simple fichier sans contexte métier.
 
@@ -95,15 +106,15 @@ Une preuve ne doit pas exister comme simple fichier sans contexte métier.
 
 Ranti ne confirme jamais seul qu'un paiement a été reçu.
 
-Dans le MVP, le propriétaire valide qu'un encaissement a réellement été reçu.
+Dans le MVP, le propriétaire confirme la réception du loyer.
 
 ### Quittance ou reçu
 
-Une quittance ou un reçu est généré après validation d'un encaissement par le propriétaire.
+Une quittance ou un reçu est généré après confirmation d'une réception de loyer par le propriétaire.
 
 La quittance confirme qu'une ou plusieurs échéances sont réglées.
 
-Aucune quittance ne doit être générée pour un encaissement non validé.
+Aucune quittance ne doit être générée pour une réception non confirmée.
 
 ### Relance
 
@@ -111,7 +122,7 @@ Une relance concerne une échéance non réglée ou en retard.
 
 Dans le MVP, la relance doit rester simple et compréhensible.
 
-L'automatisation avancée de relance n'est pas prioritaire tant que la preuve, l'encaissement et la validation humaine ne sont pas solides.
+L'automatisation avancée de relance n'est pas prioritaire tant que la réception de loyer, la preuve éventuelle et la validation humaine ne sont pas solides.
 
 ## Alternatives rejetées
 
@@ -129,29 +140,29 @@ Le locataire est important dans la relation locative, mais il n'est pas le clien
 
 Une architecture centrée sur le locataire risquerait de transformer Ranti en portail locataire avant d'avoir résolu le problème du propriétaire.
 
-### 3. Architecture centrée sur le paiement
+### 3. Architecture centrée sur le paiement ou la réception de loyer
 
 Rejetée.
 
-Un paiement ou encaissement est un événement. Il ne représente pas l'obligation attendue.
+Un paiement ou une réception de loyer est un événement. Il ne représente pas l'obligation attendue.
 
-Si le système commence par les paiements, il peut perdre de vue les mois impayés, les paiements partiels et les échéances sans encaissement.
+Si le système commence par les paiements reçus, il peut perdre de vue les mois impayés, les paiements partiels et les échéances sans réception.
 
 ### 4. Architecture centrée sur le reçu
 
 Rejetée.
 
-Le reçu est une conséquence de la validation, pas le coeur du suivi.
+Le reçu est une conséquence de la confirmation, pas le coeur du suivi.
 
-Ranti doit d'abord savoir ce qui est dû, ce qui est encaissé et ce qui est prouvé.
+Ranti doit d'abord savoir ce qui est dû, ce qui est reçu, ce qui est éventuellement prouvé et ce qui reste en retard.
 
 ## Conséquences techniques
 
 La base de données devra rendre l'échéance explicite.
 
-Les API devront exposer les actions métier autour de l'échéance : récupérer les échéances, enregistrer un encaissement, relier une preuve, valider, générer une quittance, relancer.
+Les API devront exposer les actions métier autour de l'échéance : récupérer les échéances, enregistrer une réception de loyer, allouer les montants, attacher une preuve facultative, confirmer la réception, générer une quittance, relancer.
 
-Les écrans devront aider le propriétaire à comprendre rapidement l'état des échéances : payé, non payé, en retard, preuve disponible.
+Les écrans devront aider le propriétaire à comprendre rapidement l'état des échéances : attendue, payée, en retard ou annulée.
 
 Le système devra préserver l'historique des actions sensibles.
 
@@ -161,29 +172,32 @@ Ces règles ne doivent pas être violées par le code :
 
 1. Une échéance de loyer appartient toujours à un bail.
 2. Un bail relie un propriétaire, un logement et un locataire.
-3. Un encaissement est enregistré du point de vue du propriétaire.
-4. Un encaissement peut couvrir une ou plusieurs échéances.
-5. Une échéance peut être couverte par plusieurs encaissements.
-6. Une preuve appartient à un encaissement.
-7. Une quittance ne peut être générée qu'après validation propriétaire.
-8. Une relance doit être liée à une échéance non réglée ou en retard.
-9. Une action sensible doit être traçable.
-10. Aucune fonctionnalité ne doit rendre l'échéance secondaire.
+3. Un logement ne peut pas avoir deux baux actifs au même moment.
+4. Une réception de loyer est confirmée du point de vue du propriétaire.
+5. Une réception de loyer peut couvrir une ou plusieurs échéances.
+6. Une échéance peut être couverte par plusieurs réceptions de loyer.
+7. Une allocation relie une réception de loyer à une échéance.
+8. Une preuve est facultative dans le MVP.
+9. Une preuve, lorsqu'elle existe, doit être reliée à un contexte métier clair.
+10. Une quittance ne peut être générée qu'après confirmation propriétaire.
+11. Une relance doit être liée à une échéance non réglée ou en retard.
+12. Une action sensible doit être traçable.
+13. Aucune fonctionnalité ne doit rendre l'échéance secondaire.
 
 ## Ce que cette ADR ne décide pas encore
 
 Cette ADR ne définit pas encore :
 
 - les noms exacts des tables ;
-- les statuts définitifs ;
+- les statuts techniques définitifs ;
 - les endpoints API ;
 - le fournisseur d'authentification ;
 - le fournisseur de stockage ;
 - le mécanisme exact de génération des échéances ;
-- les règles détaillées de paiement partiel ou multi-mois.
+- les règles détaillées de correction ou d'annulation après quittance.
 
 Ces sujets seront traités dans des ADR et documents séparés.
 
 ## Prochaine étape
 
-Rédiger `docs/database.md` à partir de cette décision.
+Rédiger `docs/database.md` à partir de cette décision, puis ajuster `docs/api.md` après validation de la structure de données.
