@@ -1,913 +1,610 @@
 # Ranti — API
 
-## Statut
+## Status
 
-Version 1.0 — contrat API candidat pour le MVP.
+Version 2.0 — refactoring autour de l'architecture domaine.
 
-Ce document définit la première architecture API de Ranti.
+Ce document définit l'architecture API de Ranti.
 
-Il ne s'agit pas encore d'une spécification OpenAPI complète, ni d'un engagement définitif sur chaque route.
+Il n'est pas une spécification OpenAPI. Il n'engage pas les détails de payload.
 
-Il sert à définir les use cases serveur, les règles de sécurité, les conventions de réponse, les transitions métier et les endpoints candidats avant implémentation.
+Il définit les use cases serveur, les responsabilités par module, les règles métier applicables et les contraintes techniques transverses.
 
-## Objectif
+## Purpose
 
-L'API de Ranti doit protéger le domaine métier.
-
-Elle doit permettre au produit de répondre simplement à trois questions :
+L'API de Ranti doit permettre au propriétaire de répondre à trois questions :
 
 1. Qui a payé ?
 2. Qui est en retard ?
 3. Quelle preuve existe pour chaque paiement ?
 
-L'API ne doit pas être une simple couche CRUD.
+L'API n'est pas une couche CRUD.
 
-Elle doit appliquer les règles métier, vérifier les permissions, protéger les données sensibles, créer les logs d'audit et empêcher les transitions invalides.
+Elle applique les règles métier, contrôle les permissions, protège les données sensibles, trace les actions sensibles et empêche les transitions invalides.
 
-## Position dans l'architecture
+## API Principles
 
-L'API appartient à la couche Application / Use Cases.
+**Le serveur décide.**
+L'interface peut proposer une action. Le serveur vérifie l'identité, le périmètre, les permissions, la cohérence des objets et les transitions métier.
 
-Elle orchestre :
+**Une action métier = un endpoint.**
+Les transitions importantes ne passent pas par un `PATCH status` libre. Elles passent par un endpoint explicite qui encode l'intention.
 
-- l'identité utilisateur ;
-- les permissions ;
-- les validations ;
-- les appels au domaine ;
-- les transactions ;
-- les adaptateurs externes ;
-- les logs d'audit ;
-- les réponses envoyées à l'interface.
+**Les mutations sensibles sont auditées.**
+Création de bail, génération d'échéances, encaissement, confirmation, reçu, relance — chacune produit un log d'audit.
 
-L'API ne doit pas placer les règles métier critiques uniquement dans l'interface utilisateur.
+**Les lectures sont filtrées par propriétaire.**
+Aucun objet d'un autre propriétaire ne peut être retourné, même si l'identifiant est connu. Une ressource hors périmètre retourne `404`.
 
-## Style API recommandé
+**Les prestataires externes sont des adaptateurs.**
+WhatsApp, SMS, PDF, stockage, paiement — aucun prestataire ne décide du statut métier final.
 
-Pour le MVP, Ranti peut utiliser une API HTTP simple, orientée ressources et use cases.
+**REST pragmatique.**
+`GET` pour lire, `POST` pour créer ou déclencher une action, `PATCH` pour modifier partiellement, `DELETE` uniquement pour les suppressions logiques contrôlées.
 
-Le style recommandé est REST pragmatique :
+---
 
-- `GET` pour lire ;
-- `POST` pour créer ou déclencher une action métier ;
-- `PATCH` pour modifier partiellement ;
-- `DELETE` uniquement pour les suppressions non critiques ou les suppressions logiques contrôlées.
+## Authentication
 
-Les actions métier importantes peuvent utiliser des endpoints explicites.
+### Responsibility
 
-Exemples :
+Identifier les utilisateurs, résoudre le contexte courant et initialiser l'espace propriétaire.
 
-- `POST /api/collections/{id}/confirm`
-- `POST /api/receipts`
-- `POST /api/reminders/{id}/send`
+### Business Use Cases
 
-Ces routes sont préférables à des modifications ambiguës de statut envoyées depuis l'interface.
+- Résoudre l'identité et le contexte courant.
+- Créer l'espace propriétaire initial.
 
-## Principes API
+### Endpoints
 
-### 1. Le serveur décide
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/me` | Résoudre l'utilisateur courant, son propriétaire et ses permissions |
+| `POST` | `/api/onboarding/landlord` | Créer l'espace propriétaire initial |
 
-Le serveur vérifie toujours :
+### Business Rules
 
-- l'identité ;
-- le `landlord_id` ;
-- les permissions ;
-- l'existence des objets ;
-- la cohérence des relations ;
-- les transitions métier ;
-- les règles de sécurité.
+- `GET /api/me` retourne l'identité, le `landlord` courant, le rôle et les permissions.
+- `POST /api/onboarding/landlord` est réservé à un utilisateur sans espace propriétaire existant au MVP.
+- L'onboarding est audité.
 
-L'interface peut proposer une action, mais elle ne décide pas seule.
+### Technical Constraints
 
-### 2. Toutes les mutations sensibles sont auditées
+- Rôle MVP principal : `landlord_owner`.
+- Rôles candidats futurs : `tenant_link_user`, `admin`, `system`.
+- Toute route privée exige une session valide. Absence de session → `401`.
 
-Une mutation sensible doit créer un événement dans `audit_logs`.
+---
 
-Exemples :
+## Landlords
 
-- création d'un bail ;
-- activation d'un bail ;
-- génération d'une échéance ;
-- création d'un encaissement ;
-- confirmation d'un encaissement ;
-- annulation d'un encaissement ;
-- ajout d'une preuve ;
-- génération d'un reçu ;
-- création ou envoi d'une relance.
+### Responsibility
 
-### 3. Les lectures sont filtrées par propriétaire
+Représenter le propriétaire dans Ranti. Toutes les données métier lui sont rattachées.
 
-Toute lecture métier doit être filtrée par le propriétaire courant.
+### Business Use Cases
 
-Un propriétaire ne doit jamais pouvoir lire un objet d'un autre propriétaire, même s'il connaît son identifiant.
+- Consulter et modifier le profil propriétaire.
 
-### 4. Les mutations critiques sont transactionnelles
+### Endpoints
 
-Les actions qui modifient plusieurs tables doivent être transactionnelles.
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/landlords/me` | Consulter le profil du propriétaire courant |
+| `PATCH` | `/api/landlords/me` | Modifier les informations du propriétaire courant |
 
-Exemples :
+### Business Rules
+
+- Un propriétaire ne peut accéder qu'à son propre espace.
+- Les modifications importantes sont auditées.
+
+### Technical Constraints
+
+- Le `landlord_id` est résolu depuis la session, jamais depuis un paramètre URL exposé au MVP.
+
+---
+
+## Properties
+
+### Responsibility
+
+Représenter les lieux physiques appartenant au propriétaire.
+
+### Business Use Cases
+
+- Créer, consulter, modifier et archiver une propriété.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/properties` | Lister les propriétés du propriétaire courant |
+| `POST` | `/api/properties` | Créer une propriété |
+| `GET` | `/api/properties/{id}` | Consulter une propriété |
+| `PATCH` | `/api/properties/{id}` | Modifier une propriété |
+| `POST` | `/api/properties/{id}/archive` | Archiver une propriété |
+
+### Business Rules
+
+- Une propriété est automatiquement rattachée au propriétaire courant à la création.
+- L'archivage ne supprime pas les logements, baux ou historiques associés.
+- Les modifications importantes sont auditées.
+
+### Technical Constraints
+
+- Filtres candidats : `status`, `city`.
+
+---
+
+## Units
+
+### Responsibility
+
+Représenter les espaces louables situés dans une propriété.
+
+### Business Use Cases
+
+- Créer, consulter, modifier et archiver un logement.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/units` | Lister les logements du propriétaire courant |
+| `POST` | `/api/units` | Créer un logement |
+| `GET` | `/api/units/{id}` | Consulter un logement |
+| `PATCH` | `/api/units/{id}` | Modifier un logement |
+| `POST` | `/api/units/{id}/archive` | Archiver un logement |
+
+### Business Rules
+
+- La propriété parente doit appartenir au propriétaire courant.
+- Le logement hérite du `landlord_id`.
+- Un logement avec bail actif ne peut pas être supprimé physiquement.
+- L'archivage est audité.
+
+### Technical Constraints
+
+- Filtres candidats : `property_id`, `status`, `unit_type`.
+
+---
+
+## Tenants
+
+### Responsibility
+
+Représenter les locataires rattachés au propriétaire.
+
+### Business Use Cases
+
+- Créer, consulter, modifier et archiver un locataire.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/tenants` | Lister les locataires du propriétaire courant |
+| `POST` | `/api/tenants` | Créer un locataire |
+| `GET` | `/api/tenants/{id}` | Consulter un locataire |
+| `PATCH` | `/api/tenants/{id}` | Modifier un locataire |
+| `POST` | `/api/tenants/{id}/archive` | Archiver un locataire |
+
+### Business Rules
+
+- L'unicité globale du numéro de téléphone n'est pas imposée au MVP.
+- Le locataire est rattaché au propriétaire courant.
+- L'archivage ne supprime pas l'historique.
+- Les actions sont auditées.
+
+### Technical Constraints
+
+- Filtres candidats : `status`, `search`.
+
+---
+
+## Leases
+
+### Responsibility
+
+Représenter les baux ou accords locatifs. Le bail est la source des règles de génération des échéances.
+
+### Business Use Cases
+
+- Créer un bail.
+- Activer un bail.
+- Terminer un bail.
+- Consulter et modifier un bail.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/leases` | Lister les baux du propriétaire courant |
+| `POST` | `/api/leases` | Créer un bail |
+| `GET` | `/api/leases/{id}` | Consulter un bail |
+| `PATCH` | `/api/leases/{id}` | Modifier un bail |
+| `POST` | `/api/leases/{id}/activate` | Activer un bail |
+| `POST` | `/api/leases/{id}/end` | Terminer un bail |
+
+### Business Rules
+
+- Le logement et le locataire doivent appartenir au propriétaire courant.
+- Deux baux actifs ne peuvent pas couvrir le même logement sur la même période.
+- `rent_amount` doit être positif.
+- `billing_period` est `monthly` au MVP.
+- L'activation peut déclencher la génération initiale des échéances.
+- La terminaison conserve l'historique (échéances, encaissements, preuves, reçus).
+- Les modifications d'un bail avec des échéances existantes sont contraintes.
+- Toute action de transition est transactionnelle et auditée.
+
+### Technical Constraints
+
+- Filtres candidats : `status`, `unit_id`, `tenant_id`.
+
+---
+
+## Rent Schedules
+
+### Responsibility
+
+Représenter les obligations de paiement mensuelles. C'est le module central du MVP.
+
+Une échéance naît d'un bail. Elle trace ce qui est dû, ce qui est encaissé et ce qui reste à régler.
+
+### Business Use Cases
+
+- Générer les échéances d'un bail.
+- Consulter les échéances et leur statut.
+- Obtenir une synthèse du tableau de bord mensuel.
+- Annuler une échéance avec trace.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/rent-dues` | Lister les échéances du propriétaire courant |
+| `GET` | `/api/rent-dues/summary` | Synthèse : dues, en retard, encaissées, restant dû |
+| `GET` | `/api/rent-dues/{id}` | Consulter une échéance avec ses encaissements, preuves et reçus |
+| `POST` | `/api/leases/{id}/rent-dues/generate` | Générer les échéances d'un bail |
+| `POST` | `/api/rent-dues/{id}/cancel` | Annuler une échéance avec trace |
+
+### Business Rules
+
+- Une échéance naît uniquement d'un bail actif ou compatible.
+- L'unicité `(lease_id, period_start, period_end)` est enforced — pas de double génération.
+- L'annulation ne supprime pas physiquement l'échéance.
+- L'annulation est refusée si des encaissements confirmés la rendent incohérente, sauf flux de correction dédié.
+- `GET /api/rent-dues/summary` répond uniquement aux trois questions du MVP (payé, en retard, action requise). Ce n'est pas un dashboard analytique.
+- La génération est transactionnelle et auditée.
+
+**Statuts valides :**
+`upcoming` → `due` → `partially_collected` / `collected` / `overdue` / `cancelled` / `disputed`
+
+### Technical Constraints
+
+- Filtres candidats : `status`, `tenant_id`, `unit_id`, `lease_id`, `from`, `to`.
+
+---
+
+## Rent Receptions
+
+### Responsibility
+
+Représenter les encaissements du point de vue du propriétaire.
+
+Un encaissement peut régler une ou plusieurs échéances. Une échéance peut recevoir plusieurs encaissements.
+
+Le module ne dépend d'aucun prestataire de paiement. Un encaissement peut venir du cash, du Mobile Money, d'un virement ou d'une déclaration manuelle.
+
+### Business Use Cases
+
+- Enregistrer un encaissement avec ses allocations.
+- Confirmer un encaissement (validation humaine).
+- Annuler un encaissement avec trace.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/collections` | Lister les encaissements du propriétaire courant |
+| `POST` | `/api/collections` | Enregistrer un encaissement |
+| `GET` | `/api/collections/{id}` | Consulter un encaissement |
+| `POST` | `/api/collections/{id}/confirm` | Confirmer un encaissement |
+| `POST` | `/api/collections/{id}/cancel` | Annuler un encaissement |
+
+### Business Rules
+
+- Le locataire et chaque échéance allouée doivent appartenir au propriétaire courant.
+- Le montant doit être positif.
+- La somme des allocations ne peut pas dépasser le montant encaissé.
+- La confirmation met à jour les montants dérivés et les statuts des échéances concernées.
+- L'annulation est refusée si un reçu a déjà été généré, sauf flux de correction explicite.
+- L'annulation recalcule les échéances concernées.
+- Toute action est transactionnelle et auditée.
+
+**Statuts valides :**
+`draft` → `pending_confirmation` → `confirmed` / `cancelled` / `reversed`
+
+### Technical Constraints
+
+- Filtres candidats : `tenant_id`, `status`, `method`, `from`, `to`.
+- `Idempotency-Key` recommandé sur `POST /api/collections` et `POST /api/collections/{id}/confirm`.
+
+---
+
+## Proofs
+
+### Responsibility
+
+Conserver les preuves de paiement (captures Mobile Money, reçus bancaires, photos).
+
+Les preuves sont sensibles et ne sont jamais publiques sans contrôle.
+
+### Business Use Cases
+
+- Préparer un upload sécurisé.
+- Attacher une preuve à un encaissement ou une échéance.
+- Consulter les métadonnées d'une preuve.
+- Archiver une preuve.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `POST` | `/api/payment-proofs/upload-url` | Obtenir une URL d'upload sécurisé |
+| `POST` | `/api/payment-proofs` | Attacher une preuve après upload |
+| `GET` | `/api/payment-proofs/{id}` | Consulter les métadonnées d'une preuve |
+| `POST` | `/api/payment-proofs/{id}/archive` | Archiver une preuve |
+
+### Business Rules
+
+- Une preuve doit être liée à une échéance, un encaissement ou les deux.
+- Le type et la taille du fichier sont contrôlés à l'upload.
+- Le fichier n'est pas rendu public sans mécanisme de lien contrôlé.
+- L'ajout et l'archivage sont audités.
+
+### Technical Constraints
+
+- L'URL d'upload est générée côté serveur et liée à un accès vérifié.
+- Le stockage reste derrière un adaptateur.
+
+---
+
+## Receipts
+
+### Responsibility
+
+Générer et conserver les quittances.
+
+Un reçu est déterministe : il est généré à partir de données confirmées et ne peut pas être modifié silencieusement.
+
+### Business Use Cases
+
+- Générer un reçu à partir d'encaissements confirmés.
+- Consulter un reçu.
+- Créer un lien de partage contrôlé.
+- Annuler un reçu avec trace.
+- Révoquer un lien de partage.
+- Résoudre un lien public contrôlé.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/receipts` | Lister les reçus du propriétaire courant |
+| `POST` | `/api/receipts` | Générer un reçu |
+| `GET` | `/api/receipts/{id}` | Consulter un reçu |
+| `POST` | `/api/receipts/{id}/share-link` | Créer un lien de partage contrôlé |
+| `POST` | `/api/receipts/{id}/share-link/{link_id}/revoke` | Révoquer un lien de partage |
+| `POST` | `/api/receipts/{id}/cancel` | Annuler un reçu avec trace |
+| `GET` | `/p/{token}` | Résoudre un lien public contrôlé (lecture seule) |
+
+### Business Rules
+
+- Un reçu ne peut pas être généré sans encaissement confirmé.
+- Les encaissements et échéances référencés doivent appartenir au propriétaire courant.
+- Un numéro de reçu unique par propriétaire est généré.
+- Un snapshot des données utilisées est créé à la génération.
+- Un reçu généré ne peut pas être modifié silencieusement. Toute correction nécessite une trace ou un flux `replaced`.
+- L'annulation ne supprime pas physiquement le reçu.
+- Le lien de partage est limité à la consultation du reçu. Le token est stocké haché, jamais en clair.
+- Le lien public vérifie l'expiration et la révocation avant tout accès.
+- La génération est transactionnelle et auditée.
+
+### Technical Constraints
+
+- Filtres candidats : `tenant_id`, `lease_id`, `from`, `to`, `status`.
+- La génération PDF passe par un adaptateur externe.
+- `Idempotency-Key` recommandé sur `POST /api/receipts`.
+
+---
+
+## Reminders
+
+### Responsibility
+
+Représenter et envoyer les relances pour les échéances impayées ou en retard.
+
+La relance doit exister dans Ranti avant ou pendant l'envoi. Le canal externe est un adaptateur.
+
+### Business Use Cases
+
+- Créer une relance liée à une échéance.
+- Envoyer une relance via un canal externe.
+
+### Endpoints
+
+| Méthode | Path | Use Case |
+|---------|------|----------|
+| `GET` | `/api/reminders` | Lister les relances du propriétaire courant |
+| `POST` | `/api/reminders` | Créer une relance |
+| `POST` | `/api/reminders/{id}/send` | Envoyer une relance via canal externe |
+
+### Business Rules
+
+- Une relance doit être liée à une échéance du propriétaire courant.
+- Une relance sans échéance est refusée.
+- L'envoi crée une tentative dans `notification_deliveries`.
+- L'échec d'envoi ne supprime pas la relance ni son historique.
+- La création et l'envoi sont audités.
+
+### Technical Constraints
+
+- Filtres candidats : `rent_due_id`, `tenant_id`, `channel`, `status`.
+- Le canal (`whatsapp`, `sms`) est résolu par un adaptateur.
+
+---
+
+## Cross-cutting Concerns
+
+### Authentication
+
+Chaque requête authentifiée résout : `current_user`, `current_landlord`, rôle courant, permissions applicables.
+
+Toute route privée sans session valide retourne `401`.
+
+### Authorization
+
+L'autorisation est vérifiée côté serveur sur chaque mutation et chaque lecture.
+
+Un propriétaire ne peut jamais accéder aux données d'un autre propriétaire.
+
+Une ressource hors périmètre retourne `404` (pas `403`) pour éviter les fuites d'information.
+
+### Validation
+
+Chaque endpoint de mutation valide : types et champs requis, longueurs de texte, montants positifs, devises autorisées (`XOF` au MVP), dates cohérentes, statuts valides, appartenance au propriétaire courant, cohérence entre objets liés.
+
+### Transactions
+
+Les actions qui modifient plusieurs tables doivent être transactionnelles :
 
 - créer un bail et générer ses échéances ;
 - confirmer un encaissement et mettre à jour les échéances ;
 - générer un reçu et ses lignes ;
 - créer une relance et enregistrer une tentative de notification.
 
-### 5. Les providers externes restent derrière des adaptateurs
+### Audit
 
-L'API ne doit pas exposer directement les détails d'un prestataire WhatsApp, SMS, PDF, stockage ou paiement.
+Actions qui produisent un log d'audit sans exception :
 
-Les providers externes sont des adaptateurs.
+- création d'un espace propriétaire
+- création ou modification d'une propriété, d'un logement, d'un locataire
+- création, activation ou terminaison d'un bail
+- génération d'une échéance
+- enregistrement, confirmation ou annulation d'un encaissement
+- ajout ou archivage d'une preuve
+- génération ou annulation d'un reçu
+- création ou envoi d'une relance
+- création ou révocation d'un lien de partage
 
-Le domaine Ranti reste propriétaire des règles.
+Le log d'audit est en écriture seule via l'API standard.
 
-### 6. Idempotence sur les actions sensibles
+### Idempotency
 
-Les actions sensibles doivent pouvoir être protégées par une clé d'idempotence.
+Header : `Idempotency-Key`
 
-Recommandé pour :
+Endpoints concernés : `POST /api/collections`, `POST /api/collections/{id}/confirm`, `POST /api/receipts`, `POST /api/reminders/{id}/send`, webhooks futurs de paiement.
 
-- création d'encaissement ;
-- confirmation d'encaissement ;
-- génération de reçu ;
-- envoi de relance ;
-- webhooks futurs de paiement.
+### Pagination
 
-Champ recommandé : header `Idempotency-Key`.
+Les listes supportent une pagination curseur simple.
 
-## Authentification et contexte utilisateur
+Paramètres candidats : `limit`, `cursor`, `sort`.
 
-Chaque requête authentifiée doit résoudre :
+Les recherches complexes et l'analytique avancée sont exclues du MVP.
 
-- `current_user` ;
-- `current_landlord` ;
-- rôle courant ;
-- permissions applicables.
+### Errors
 
-Pour le MVP, le rôle principal est `landlord_owner`.
+**Format réponse réussie :**
+`{ "data": {}, "meta": {} }` — `meta` optionnel (pagination, filtres, avertissements).
 
-Les rôles avancés sont reportés.
+**Format erreur :**
+`{ "error": { "code": "string", "message": "string", "details": {} } }` — pas d'information sensible dans `details`.
 
-Rôles candidats :
+**Codes HTTP :**
 
-- `landlord_owner` ;
-- `tenant_link_user` ;
-- `admin` ;
-- `system`.
+| Code | Signification |
+|------|---------------|
+| `200` | Lecture ou action réussie |
+| `201` | Ressource créée |
+| `400` | Entrée invalide |
+| `401` | Non authentifié |
+| `403` | Authentifié mais non autorisé |
+| `404` | Ressource inexistante ou hors périmètre |
+| `409` | Conflit métier ou transition impossible |
+| `422` | Données valides techniquement mais invalides métier |
+| `429` | Limite de requêtes dépassée |
+| `500` | Erreur serveur inattendue |
 
-## Format de réponse
+**Codes d'erreur métier candidats :**
 
-### Réponse réussie
+`AUTH_REQUIRED` · `ACCESS_DENIED` · `RESOURCE_NOT_FOUND` · `VALIDATION_ERROR` · `INVALID_STATE_TRANSITION` · `LANDLORD_MISMATCH` · `LEASE_ALREADY_ACTIVE` · `UNIT_ALREADY_OCCUPIED` · `RENT_DUE_ALREADY_EXISTS` · `COLLECTION_AMOUNT_INVALID` · `COLLECTION_ALREADY_CONFIRMED` · `COLLECTION_NOT_CONFIRMED` · `ALLOCATION_EXCEEDS_COLLECTION` · `RECEIPT_REQUIRES_CONFIRMED_COLLECTION` · `REMINDER_REQUIRES_RENT_DUE` · `PUBLIC_LINK_EXPIRED` · `PUBLIC_LINK_REVOKED` · `RATE_LIMITED`
 
-Format recommandé :
+---
 
-```json
-{
-  "data": {},
-  "meta": {}
-}
-```
+## MVP Scope
 
-`meta` est optionnel.
+**Périmètre inclus :** tous les modules ci-dessus.
 
-Il peut contenir :
+**Ordre de construction recommandé :**
 
-- pagination ;
-- filtres appliqués ;
-- informations de contexte ;
-- avertissements non bloquants.
+1. `GET /api/me` + `POST /api/onboarding/landlord`
+2. Properties
+3. Units
+4. Tenants
+5. Leases
+6. `POST /api/leases/{id}/rent-dues/generate` + `GET /api/rent-dues`
+7. Rent Receptions (enregistrement + confirmation)
+8. Proofs
+9. Receipts
+10. Reminders
 
-### Réponse d'erreur
+`audit_logs` est pensé dès le début et implémenté progressivement. Les actions critiques ne restent jamais sans trace.
 
-Format recommandé :
+**Invariants non négociables :**
 
-```json
-{
-  "error": {
-    "code": "string",
-    "message": "string",
-    "details": {}
-  }
-}
-```
+1. Aucune route privée ne retourne les données d'un autre propriétaire.
+2. Aucune mutation sensible ne contourne le log d'audit.
+3. Aucun reçu n'est généré sans encaissement confirmé.
+4. Aucune relance n'est créée sans échéance.
+5. Aucun fichier sensible n'est exposé publiquement sans contrôle.
+6. Aucun prestataire externe ne décide du statut métier final.
+7. Aucun changement d'état critique ne passe par un `PATCH status` libre.
+8. Aucune règle métier critique ne vit uniquement côté interface.
 
-Le message doit être compréhensible.
+---
 
-Les détails ne doivent pas exposer d'information sensible.
+## Post-MVP Scope
 
-## Codes HTTP recommandés
+**Fonctionnalités reportées :**
 
-- `200 OK` : lecture ou action réussie ;
-- `201 Created` : ressource créée ;
-- `400 Bad Request` : entrée invalide ;
-- `401 Unauthorized` : utilisateur non authentifié ;
-- `403 Forbidden` : utilisateur authentifié mais non autorisé ;
-- `404 Not Found` : ressource inexistante ou inaccessible ;
-- `409 Conflict` : conflit métier ou transition impossible ;
-- `422 Unprocessable Entity` : données valides techniquement mais invalides métier ;
-- `429 Too Many Requests` : limite dépassée ;
-- `500 Internal Server Error` : erreur serveur inattendue.
+- Gestion complète des agences et équipes
+- Rôles granulaires (`gestionnaire`, `comptable`, `viewer`)
+- Espace locataire (consultation, upload de preuve, signature)
+- Webhooks entrants (paiement Mobile Money, statut SMS/WhatsApp)
+- Rapprochement bancaire automatique
+- Génération PDF asynchrone avancée
+- Scoring locataire
+- Comptabilité et facturation Ranti avancées
+- Analytics et rapports avancés
+- Multi-pays et multi-devises
+- Marketplace
 
-Pour éviter les fuites de données, une ressource appartenant à un autre propriétaire peut être retournée comme `404 Not Found`.
+**Webhooks futurs (règles à respecter lors de l'implémentation) :**
 
-## Codes d'erreur candidats
+- Vérifier la signature du provider.
+- Utiliser l'idempotence.
+- Ne jamais faire confiance au statut du provider sans validation Ranti.
+- Rattacher l'événement à un objet du domaine.
+- Auditer les changements importants.
 
-- `AUTH_REQUIRED`
-- `ACCESS_DENIED`
-- `RESOURCE_NOT_FOUND`
-- `VALIDATION_ERROR`
-- `INVALID_STATE_TRANSITION`
-- `LANDLORD_MISMATCH`
-- `LEASE_ALREADY_ACTIVE`
-- `UNIT_ALREADY_OCCUPIED`
-- `RENT_DUE_ALREADY_EXISTS`
-- `COLLECTION_AMOUNT_INVALID`
-- `COLLECTION_ALREADY_CONFIRMED`
-- `COLLECTION_NOT_CONFIRMED`
-- `ALLOCATION_EXCEEDS_COLLECTION`
-- `RECEIPT_REQUIRES_CONFIRMED_COLLECTION`
-- `REMINDER_REQUIRES_RENT_DUE`
-- `PUBLIC_LINK_EXPIRED`
-- `PUBLIC_LINK_REVOKED`
-- `RATE_LIMITED`
+---
 
-## Endpoints candidats
+## Control Phrase
 
-## 1. Session et utilisateur courant
+L'API de Ranti agit comme le gardien du cahier de loyers.
 
-### `GET /api/me`
-
-Retourne l'utilisateur courant, son propriétaire courant et ses permissions.
-
-Utilisé pour initialiser l'application.
-
-Réponse candidate :
-
-```json
-{
-  "data": {
-    "user": {},
-    "landlord": {},
-    "role": "landlord_owner",
-    "permissions": []
-  }
-}
-```
-
-### `POST /api/onboarding/landlord`
-
-Crée l'espace propriétaire initial pour l'utilisateur courant.
-
-Use case : `createLandlordWorkspace`.
-
-Règles :
-
-- l'utilisateur doit être authentifié ;
-- un utilisateur ne doit pas créer plusieurs espaces propriétaire au MVP, sauf décision future ;
-- l'action doit être auditée.
-
-## 2. Propriétés
-
-### `GET /api/properties`
-
-Liste les propriétés du propriétaire courant.
-
-Filtres candidats :
-
-- `status`
-- `city`
-
-### `POST /api/properties`
-
-Crée une propriété.
-
-Use case : `createProperty`.
-
-Règles :
-
-- rattacher automatiquement au `current_landlord` ;
-- valider les champs simples ;
-- créer un audit log.
-
-### `GET /api/properties/{property_id}`
-
-Retourne une propriété accessible au propriétaire courant.
-
-### `PATCH /api/properties/{property_id}`
-
-Modifie une propriété.
-
-Règles :
-
-- vérifier l'appartenance au propriétaire ;
-- ne pas casser les relations existantes ;
-- auditer les modifications importantes.
-
-### `POST /api/properties/{property_id}/archive`
-
-Archive une propriété.
-
-Cette action ne supprime pas les logements, baux, échéances ou historiques associés.
-
-## 3. Logements
-
-### `GET /api/units`
-
-Liste les logements du propriétaire courant.
-
-Filtres candidats :
-
-- `property_id`
-- `status`
-- `unit_type`
-
-### `POST /api/units`
-
-Crée un logement.
-
-Use case : `createUnit`.
-
-Règles :
-
-- la propriété doit appartenir au propriétaire courant ;
-- le logement hérite du `landlord_id` ;
-- l'action doit être auditée.
-
-### `GET /api/units/{unit_id}`
-
-Retourne un logement accessible au propriétaire courant.
-
-### `PATCH /api/units/{unit_id}`
-
-Modifie un logement.
-
-### `POST /api/units/{unit_id}/archive`
-
-Archive un logement.
-
-Règles :
-
-- un logement avec bail actif ne doit pas être supprimé physiquement ;
-- l'action doit être auditée.
-
-## 4. Locataires
-
-### `GET /api/tenants`
-
-Liste les locataires du propriétaire courant.
-
-Filtres candidats :
-
-- `status`
-- `search`
-
-### `POST /api/tenants`
-
-Crée un locataire.
-
-Use case : `createTenant`.
-
-Règles :
-
-- ne pas imposer d'unicité globale sur le téléphone ;
-- rattacher au propriétaire courant ;
-- auditer l'action.
-
-### `GET /api/tenants/{tenant_id}`
-
-Retourne un locataire accessible au propriétaire courant.
-
-### `PATCH /api/tenants/{tenant_id}`
-
-Modifie un locataire.
-
-### `POST /api/tenants/{tenant_id}/archive`
-
-Archive un locataire sans supprimer l'historique.
-
-## 5. Baux
-
-### `GET /api/leases`
-
-Liste les baux du propriétaire courant.
-
-Filtres candidats :
-
-- `status`
-- `unit_id`
-- `tenant_id`
-
-### `POST /api/leases`
-
-Crée un bail.
-
-Use case : `createLease`.
-
-Règles :
-
-- le logement doit appartenir au propriétaire courant ;
-- le locataire doit appartenir au propriétaire courant ;
-- le logement ne doit pas avoir deux baux actifs sur la même période ;
-- `rent_amount` doit être positif ;
-- `billing_period` est `monthly` au MVP ;
-- l'action doit être auditée.
-
-### `GET /api/leases/{lease_id}`
-
-Retourne un bail accessible au propriétaire courant.
-
-### `PATCH /api/leases/{lease_id}`
-
-Modifie un bail.
-
-Règles :
-
-- certaines modifications peuvent être interdites si des échéances existent déjà ;
-- les changements sensibles doivent être audités ;
-- les impacts sur les échéances doivent être explicites.
-
-### `POST /api/leases/{lease_id}/activate`
-
-Active un bail.
-
-Use case : `activateLease`.
-
-Règles :
-
-- le bail doit être en statut compatible ;
-- le logement doit être disponible ou compatible ;
-- l'activation peut déclencher la génération initiale d'échéances ;
-- l'action doit être transactionnelle ;
-- l'action doit être auditée.
-
-### `POST /api/leases/{lease_id}/end`
-
-Termine un bail.
-
-Règles :
-
-- ne pas supprimer l'historique ;
-- garder les échéances, encaissements, preuves et reçus passés ;
-- auditer l'action.
-
-## 6. Échéances de loyer
-
-### `GET /api/rent-dues`
-
-Liste les échéances du propriétaire courant.
-
-Filtres candidats :
-
-- `status`
-- `tenant_id`
-- `unit_id`
-- `lease_id`
-- `from`
-- `to`
-
-Ce endpoint sert directement le suivi mensuel des loyers.
-
-### `GET /api/rent-dues/summary`
-
-Retourne une synthèse simple pour le propriétaire.
-
-Questions à couvrir :
-
-- combien d'échéances sont dues ;
-- combien sont en retard ;
-- combien a été encaissé ;
-- combien reste dû ;
-- quelles actions sont nécessaires aujourd'hui.
-
-Ce endpoint ne doit pas devenir un dashboard analytique avancé.
-
-### `GET /api/rent-dues/{rent_due_id}`
-
-Retourne une échéance et ses éléments associés :
-
-- bail ;
-- logement ;
-- locataire ;
-- encaissements ;
-- preuves ;
-- reçus ;
-- relances.
-
-### `POST /api/leases/{lease_id}/rent-dues/generate`
-
-Génère les échéances pour un bail.
-
-Use case : `generateRentDuesForLease`.
-
-Règles :
-
-- le bail doit être actif ou compatible ;
-- ne pas générer deux fois la même période ;
-- respecter `unique(lease_id, period_start, period_end)` ;
-- action transactionnelle ;
-- action auditée.
-
-### `POST /api/rent-dues/{rent_due_id}/cancel`
-
-Annule une échéance avec trace.
-
-Règles :
-
-- ne pas supprimer physiquement ;
-- refuser si des encaissements confirmés rendent l'annulation incohérente, sauf flux de correction dédié ;
-- auditer l'action.
-
-## 7. Encaissements
-
-### `GET /api/collections`
-
-Liste les encaissements du propriétaire courant.
-
-Filtres candidats :
-
-- `tenant_id`
-- `status`
-- `method`
-- `from`
-- `to`
-
-### `POST /api/collections`
-
-Crée un encaissement.
-
-Use case : `createCollection`.
-
-Payload candidat :
-
-```json
-{
-  "tenant_id": "uuid",
-  "amount": 50000,
-  "currency": "XOF",
-  "method": "mobile_money",
-  "collected_at": "2026-07-05T10:30:00Z",
-  "allocations": [
-    {
-      "rent_due_id": "uuid",
-      "amount_allocated": 50000
-    }
-  ],
-  "notes": "Capture reçue sur WhatsApp"
-}
-```
-
-Règles :
-
-- le locataire doit appartenir au propriétaire courant ;
-- chaque échéance doit appartenir au propriétaire courant ;
-- le montant doit être positif ;
-- la somme des allocations ne doit pas dépasser le montant ;
-- l'encaissement ne dépend pas d'un prestataire de paiement ;
-- action transactionnelle ;
-- action auditée.
-
-### `GET /api/collections/{collection_id}`
-
-Retourne un encaissement accessible au propriétaire courant.
-
-### `POST /api/collections/{collection_id}/confirm`
-
-Confirme un encaissement.
-
-Use case : `confirmCollection`.
-
-Règles :
-
-- l'encaissement doit appartenir au propriétaire courant ;
-- l'encaissement ne doit pas être déjà confirmé ;
-- les allocations doivent être cohérentes ;
-- mettre à jour les montants dérivés des échéances ;
-- mettre à jour les statuts des échéances ;
-- action transactionnelle ;
-- action auditée.
-
-### `POST /api/collections/{collection_id}/cancel`
-
-Annule un encaissement.
-
-Règles :
-
-- ne pas supprimer physiquement ;
-- si un reçu existe déjà, refuser ou exiger un flux de correction ;
-- recalculer les échéances concernées si nécessaire ;
-- action transactionnelle ;
-- action auditée.
-
-## 8. Preuves de paiement
-
-### `POST /api/payment-proofs/upload-url`
-
-Prépare un upload sécurisé.
-
-Use case : `createPaymentProofUploadUrl`.
-
-Règles :
-
-- vérifier l'accès à l'échéance ou à l'encaissement ;
-- limiter le type et la taille du fichier ;
-- retourner une URL ou un mécanisme d'upload contrôlé ;
-- ne pas rendre le fichier public.
-
-### `POST /api/payment-proofs`
-
-Enregistre une preuve après upload.
-
-Use case : `attachPaymentProof`.
-
-Règles :
-
-- la preuve doit être liée à une échéance, un encaissement, ou les deux ;
-- le fichier doit être protégé ;
-- l'action doit être auditée.
-
-### `GET /api/payment-proofs/{proof_id}`
-
-Retourne les métadonnées d'une preuve accessible.
-
-### `POST /api/payment-proofs/{proof_id}/archive`
-
-Archive une preuve sans supprimer l'historique.
-
-## 9. Reçus et quittances
-
-### `GET /api/receipts`
-
-Liste les reçus du propriétaire courant.
-
-Filtres candidats :
-
-- `tenant_id`
-- `lease_id`
-- `from`
-- `to`
-- `status`
-
-### `POST /api/receipts`
-
-Génère un reçu.
-
-Use case : `generateReceipt`.
-
-Payload candidat :
-
-```json
-{
-  "collection_ids": ["uuid"],
-  "rent_due_ids": ["uuid"]
-}
-```
-
-Règles :
-
-- les encaissements doivent appartenir au propriétaire courant ;
-- les encaissements doivent être confirmés ;
-- les échéances doivent être cohérentes avec les encaissements ;
-- générer un numéro de reçu unique par propriétaire ;
-- créer un `snapshot` des données utilisées ;
-- créer les `receipt_items` ;
-- générer le PDF via adaptateur si disponible ;
-- action transactionnelle ;
-- action auditée.
-
-### `GET /api/receipts/{receipt_id}`
-
-Retourne un reçu accessible au propriétaire courant.
-
-### `POST /api/receipts/{receipt_id}/share-link`
-
-Crée un lien contrôlé pour partager le reçu.
-
-Règles :
-
-- stocker le hash du token, jamais le token brut ;
-- définir une expiration si nécessaire ;
-- limiter le lien à la consultation du reçu.
-
-### `POST /api/receipts/{receipt_id}/cancel`
-
-Annule un reçu avec trace.
-
-Règles :
-
-- ne pas supprimer physiquement ;
-- auditer ;
-- prévoir plus tard un flux `replaced` si un reçu corrigé est généré.
-
-## 10. Relances
-
-### `GET /api/reminders`
-
-Liste les relances du propriétaire courant.
-
-Filtres candidats :
-
-- `rent_due_id`
-- `tenant_id`
-- `channel`
-- `status`
-
-### `POST /api/reminders`
-
-Crée une relance.
-
-Use case : `createReminder`.
-
-Payload candidat :
-
-```json
-{
-  "rent_due_id": "uuid",
-  "channel": "whatsapp",
-  "message": "Bonjour, votre loyer de juillet est en attente."
-}
-```
-
-Règles :
-
-- l'échéance doit appartenir au propriétaire courant ;
-- la relance doit être liée à une échéance ;
-- le message doit être clair et non agressif ;
-- action auditée.
-
-### `POST /api/reminders/{reminder_id}/send`
-
-Envoie une relance via un canal externe.
-
-Use case : `sendReminder`.
-
-Règles :
-
-- la relance doit exister dans Ranti ;
-- le canal externe est un adaptateur ;
-- créer une tentative dans `notification_deliveries` ;
-- mettre à jour le statut ;
-- gérer l'échec sans perdre l'historique ;
-- action auditée.
-
-## 11. Liens publics contrôlés
-
-### `GET /p/{token}`
-
-Résout un lien public contrôlé.
-
-Usages possibles :
-
-- consultation d'un reçu ;
-- upload de preuve ;
-- consultation d'une échéance limitée.
-
-Règles :
-
-- comparer le hash du token ;
-- vérifier l'expiration ;
-- vérifier la révocation ;
-- limiter strictement l'accès au but du lien ;
-- ne pas exposer l'espace propriétaire complet.
-
-### `POST /api/public-links/{link_id}/revoke`
-
-Révoque un lien public.
-
-Règles :
-
-- seul le propriétaire concerné ou un acteur autorisé peut révoquer ;
-- action auditée si le lien concerne une donnée sensible.
-
-## 12. Audit logs
-
-### `GET /api/audit-logs`
-
-Liste les logs d'audit accessibles.
-
-Usage MVP : support interne ou vue propriétaire limitée si nécessaire.
-
-Filtres candidats :
-
-- `entity_type`
-- `entity_id`
-- `action`
-- `from`
-- `to`
-
-Règles :
-
-- ne pas exposer les données sensibles inutilement ;
-- limiter l'accès ;
-- ne pas permettre de modification via API standard.
-
-## Endpoints exclus du MVP
-
-Les endpoints suivants sont exclus au MVP :
-
-- gestion complète des agences ;
-- rôles granulaires d'équipe ;
-- marketplace ;
-- scoring locataire ;
-- comptabilité complète ;
-- facturation avancée Ranti ;
-- rapprochement bancaire automatique ;
-- recouvrement automatisé agressif ;
-- analytics avancés.
-
-## Webhooks futurs
-
-Les webhooks ne sont pas prioritaires dans le MVP si la validation reste humaine.
-
-Ils pourront être ajoutés plus tard pour :
-
-- paiement en ligne ;
-- statut de notification ;
-- génération PDF asynchrone ;
-- stockage ou scan de documents.
-
-Règles webhooks futures :
-
-- vérifier la signature ;
-- utiliser l'idempotence ;
-- ne jamais faire confiance aveuglément au provider ;
-- rattacher l'événement à un objet du domaine ;
-- auditer les changements importants.
-
-## Pagination et filtres
-
-Les listes doivent supporter une pagination simple.
-
-Paramètres candidats :
-
-- `limit`
-- `cursor`
-- `sort`
-
-Éviter les recherches trop puissantes au MVP.
-
-L'objectif est de servir le suivi mensuel des loyers, pas de construire un moteur analytique.
-
-## Validation des entrées
-
-Chaque endpoint de mutation doit valider :
-
-- types ;
-- champs requis ;
-- longueurs de texte ;
-- montants positifs ;
-- devises autorisées ;
-- dates cohérentes ;
-- statuts autorisés ;
-- appartenance au propriétaire courant ;
-- cohérence entre objets liés.
-
-## Sécurité minimale
-
-L'API doit garantir :
-
-- authentification sur toutes les routes privées ;
-- autorisation côté serveur ;
-- filtrage par `landlord_id` ;
-- validation des entrées ;
-- rate limiting sur endpoints sensibles ;
-- protection des fichiers ;
-- liens publics limités ;
-- audit logs sur actions sensibles ;
-- absence de données sensibles dans les erreurs ;
-- absence de secrets dans les réponses.
-
-## Ordre recommandé d'implémentation API
-
-1. `GET /api/me`
-2. `POST /api/onboarding/landlord`
-3. Propriétés
-4. Logements
-5. Locataires
-6. Baux
-7. Génération d'échéances
-8. Liste et détail des échéances
-9. Encaissements
-10. Allocations d'encaissement
-11. Confirmation d'encaissement
-12. Preuves de paiement
-13. Reçus
-14. Relances
-15. Liens publics contrôlés
-16. Audit logs minimum
-
-## Règles non négociables
-
-1. Aucune route privée ne doit retourner les données d'un autre propriétaire.
-2. Aucune mutation sensible ne doit contourner l'audit log.
-3. Aucun reçu ne doit être généré sans encaissement confirmé.
-4. Aucune relance ne doit être créée sans échéance.
-5. Aucun fichier sensible ne doit être exposé publiquement sans contrôle.
-6. Aucun prestataire externe ne doit décider du statut métier final sans validation Ranti.
-7. Aucun changement d'état critique ne doit être fait par simple `PATCH status` non contrôlé.
-8. Aucune règle métier critique ne doit exister uniquement côté interface.
-
-## Phrase de contrôle
-
-L'API de Ranti doit agir comme un gardien du cahier de loyers.
-
-Elle accepte uniquement les actions qui gardent la mémoire des loyers claire, traçable et fiable.
+Elle accepte uniquement les actions qui maintiennent la mémoire des loyers claire, traçable et fiable.
 
 Si une route permet de créer de la confusion sur qui a payé, qui est en retard ou quelle preuve existe, elle doit être corrigée ou supprimée.
