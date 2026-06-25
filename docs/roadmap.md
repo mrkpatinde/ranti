@@ -1,13 +1,76 @@
-# Ranti — Roadmap
+# Ranti Roadmap
 
-## Statut
+Derniere mise a jour : 2026-06-25
 
-À construire progressivement.
+## Phase 0 - Foundation
 
-## Phase 0 — Fondation
+- [x] Vision
+- [x] Personas
+- [x] Domain Model
+- [x] Glossary
+- [x] User Journeys
+- [x] Product Principles
+- [x] Architecture
+- [x] ADR-001
+- [x] API
+- [x] Database
+- [x] Initial Schema Migration
+- [x] Seed Data
+- [x] Row Level Security
 
-Vision, principes, personas, modèle de domaine et parcours utilisateurs.
+## Sprint 2 - Welcome
 
-## Phase 1 — MVP
+Objectif : un proprietaire cree son espace Ranti et accede a son tableau de bord vide en moins de 2 minutes.
 
-À définir après la Phase 0.
+Decisions auth :
+
+- Identifiant principal : telephone.
+- Mot de passe obligatoire.
+- OTP uniquement pour verification initiale, recuperation de compte ou action sensible plus tard.
+- Pas d OTP a chaque connexion.
+- Auth geree par Supabase Auth.
+- Domaine metier dans public.landlords, lie a auth.users.
+
+Livrables :
+
+- [ ] Authentification Supabase par telephone et mot de passe
+- [ ] Verification initiale du numero
+- [ ] Creation du profil proprietaire apres verification
+- [ ] Completer le profil : civilite, prenom, nom
+- [ ] Premiere connexion
+- [ ] Connexion suivante par telephone et mot de passe
+- [ ] Tableau de bord vide
+- [ ] Deconnexion
+- [ ] Tests de bout en bout
+
+## Sprint 3 - Properties
+
+- [ ] Creer une propriete
+- [ ] Modifier une propriete
+- [ ] Archiver une propriete
+
+## Sprint 4 - Units
+
+- [ ] Creer un logement
+- [ ] Modifier un logement
+- [ ] Changer son statut
+- [ ] Archiver un logement
+
+## Sprint 5 - Tenants and Leases
+
+- [ ] Creer un locataire
+- [ ] Creer un bail
+- [ ] Associer un logement
+
+## Sprint 6 - Rent Cycle
+
+- [ ] Generer les echeances
+- [ ] Enregistrer une reception de loyer
+- [ ] Gerer les allocations
+- [ ] Generer une quittance
+
+## Sprint 7 - Beta
+
+- [ ] Tests terrain
+- [ ] Corrections
+- [ ] Premiere beta privee
