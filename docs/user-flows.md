@@ -1,5 +1,179 @@
-# Ranti — Parcours Utilisateurs
+# Ranti — User Journeys
 
 ## Statut
 
-À rédiger après validation des personas et du modèle de domaine.
+Version 1.0 — approuvé.
+
+Ce document décrit l'expérience vécue par un propriétaire lorsqu'il utilise Ranti.
+
+Il ne décrit ni les écrans, ni les API, ni la base de données.
+
+Il décrit les situations réelles que vit un propriétaire et la manière dont Ranti l'accompagne.
+
+## Principe
+
+Chaque parcours doit répondre à une question simple :
+
+> Que cherche réellement à accomplir le propriétaire à ce moment précis ?
+
+Ranti ne guide pas un utilisateur dans un logiciel.
+
+Ranti accompagne un propriétaire dans la gestion de ses relations locatives.
+
+## Journey 1 — Je découvre Ranti
+
+### Situation
+
+Un propriétaire entend parler de Ranti.
+
+Il gère aujourd'hui ses loyers avec sa mémoire, WhatsApp, un cahier, Excel ou plusieurs méthodes en parallèle.
+
+### Ce qu'il cherche
+
+Comprendre immédiatement ce que Ranti peut lui apporter.
+
+### Ce qu'il doit ressentir
+
+"Enfin un outil pensé pour ma façon de gérer."
+
+### Résultat attendu
+
+Le propriétaire décide de commencer.
+
+## Journey 2 — J'ouvre mon espace
+
+### Situation
+
+Le propriétaire décide d'utiliser Ranti.
+
+### Ce qu'il cherche
+
+Créer son espace rapidement, sans avoir l'impression de remplir un formulaire.
+
+### Ce qu'il doit ressentir
+
+"Je commence mon cahier de loyers."
+
+### Résultat attendu
+
+Son espace est prêt.
+
+## Journey 3 — Je crée ma première propriété
+
+### Situation
+
+Le propriétaire ajoute la première propriété qu'il souhaite gérer.
+
+### Ce qu'il cherche
+
+Représenter fidèlement son patrimoine.
+
+### Résultat attendu
+
+La propriété est créée.
+
+## Journey 4 — J'ajoute mes logements
+
+### Situation
+
+Le propriétaire décrit les logements contenus dans sa propriété.
+
+Exemples : chambre, appartement, boutique, magasin.
+
+### Ce qu'il cherche
+
+Retrouver exactement ce qu'il possède.
+
+### Résultat attendu
+
+Tous les logements sont enregistrés.
+
+## Journey 5 — J'indique lesquels sont occupés
+
+### Situation
+
+Certains logements sont disponibles.
+
+D'autres sont déjà occupés.
+
+### Ce qu'il cherche
+
+Identifier rapidement ceux qui génèrent un loyer.
+
+### Résultat attendu
+
+Les logements occupés sont prêts à recevoir un bail.
+
+## Journey 6 — Je crée le premier bail
+
+### Situation
+
+Le propriétaire renseigne les informations de la relation locative.
+
+### Ce qu'il cherche
+
+Définir une seule fois les règles de location.
+
+### Résultat attendu
+
+Les échéances sont générées automatiquement.
+
+## Journey 7 — Je reçois mon premier loyer
+
+### Situation
+
+Le locataire règle son loyer.
+
+### Ce qu'il cherche
+
+Confirmer rapidement la réception.
+
+Une preuve peut être ajoutée si nécessaire, mais elle n'est pas obligatoire dans le MVP.
+
+### Résultat attendu
+
+L'échéance est mise à jour.
+
+Une quittance peut être générée.
+
+## Journey 8 — Je prends des nouvelles de mes loyers
+
+### Situation
+
+Le propriétaire ouvre Ranti quelques jours plus tard.
+
+### Ce qu'il cherche
+
+Répondre en moins de 30 secondes à trois questions :
+
+- Ai-je reçu tous mes loyers ?
+- Qui est en retard ?
+- Dois-je faire quelque chose aujourd'hui ?
+
+### Ce qu'il doit ressentir
+
+"Tout est clair."
+
+## Journey 9 — Je gère un retard
+
+### Situation
+
+Une échéance dépasse sa date limite.
+
+### Ce qu'il cherche
+
+Savoir immédiatement quel logement est concerné et relancer le locataire sereinement.
+
+### Résultat attendu
+
+La relation locative reste claire et documentée.
+
+## Principe fondamental
+
+À chaque étape, le propriétaire doit avoir l'impression d'être chez lui.
+
+Il n'utilise pas un logiciel.
+
+Il ouvre son cahier de loyers.
+
+À chaque visite, Ranti doit lui donner davantage de tranquillité d'esprit qu'à son arrivée.
