@@ -2,7 +2,7 @@
 
 ## Statut
 
-Version 0.1 — document de travail.
+Version 0.2 — document de travail.
 
 Ce glossaire définit les mots importants du domaine Ranti afin que le produit, le design, le code et la documentation utilisent le même langage.
 
@@ -56,7 +56,7 @@ Relation entre un propriétaire et un locataire autour d'un logement donné.
 
 Elle est matérialisée par un bail ou accord locatif.
 
-Ranti protège cette relation en rendant les obligations, paiements, preuves et quittances lisibles.
+Ranti protège cette relation en rendant les obligations, encaissements, preuves et quittances lisibles.
 
 ## Échéance de loyer
 
@@ -66,23 +66,31 @@ Une échéance naît automatiquement à partir du bail.
 
 Exemple : le loyer de juillet 2026 attendu avant le 5 juillet 2026.
 
+## Encaissement
+
+Événement financier enregistré du point de vue du propriétaire lorsqu'il reçoit tout ou partie d'un loyer.
+
+Un encaissement peut régler une ou plusieurs échéances.
+
+Une échéance peut recevoir plusieurs encaissements.
+
+Dans l'interface propriétaire, Ranti privilégie le terme "encaissement" plutôt que "paiement", car le propriétaire pense d'abord à ce qu'il a encaissé.
+
 ## Paiement
 
-Événement financier qui vient régler une ou plusieurs échéances.
+Terme secondaire décrivant l'action du locataire qui paie.
 
-Un paiement peut couvrir plusieurs échéances.
-
-Une échéance peut recevoir plusieurs paiements.
+Dans le domaine Ranti côté propriétaire, le concept principal est l'encaissement.
 
 ## Preuve de paiement
 
-Élément permettant de justifier qu'un paiement a été effectué.
+Élément permettant de justifier qu'un paiement ou encaissement a été effectué.
 
 Exemples : capture Mobile Money, reçu bancaire, photo d'un reçu papier.
 
 ## Quittance ou reçu
 
-Document généré après validation d'un paiement par le propriétaire.
+Document généré après validation d'un encaissement par le propriétaire.
 
 La quittance confirme qu'une ou plusieurs échéances sont réglées.
 
