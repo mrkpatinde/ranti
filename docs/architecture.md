@@ -2,9 +2,27 @@
 
 ## Statut
 
-Version 0.1 — base de travail initiale.
+Version 0.2 — base de travail initiale.
 
-Ce document définit l'architecture technique de départ de Ranti. Il ne remplace pas la Vision, les Personas, le Modèle de Domaine, le Glossaire ou les Principes Produit. Il traduit ces documents en règles techniques simples.
+Ce document définit l'architecture technique de départ de Ranti.
+
+Il ne remplace pas la Vision, les Personas, le Modèle de Domaine, le Glossaire, les User Journeys ou les Product Principles.
+
+Il traduit ces documents en règles techniques simples.
+
+## Rôle de ce document
+
+Ce document vient avant `docs/api.md` et `docs/database.md`.
+
+L'ordre de conception est :
+
+1. Fondation Produit ;
+2. Architecture Technique ;
+3. Base de données ;
+4. API ;
+5. Implémentation.
+
+Une API ou une table ne doit pas introduire une règle métier qui n'existe pas dans l'architecture ou dans le domaine.
 
 ## Objectif technique
 
@@ -14,7 +32,7 @@ L'architecture doit aider le propriétaire à répondre rapidement à trois ques
 
 1. Qui a payé ?
 2. Qui est en retard ?
-3. Quelle preuve existe pour chaque paiement ou encaissement ?
+3. Quelle preuve existe pour chaque loyer reçu, si une preuve existe ?
 
 ## Décision d'architecture principale
 
@@ -38,7 +56,7 @@ Un monolithe modulaire permet de :
 - livrer plus vite sans disperser la logique métier ;
 - garder les transactions simples ;
 - éviter une dette d'infrastructure inutile ;
-- protéger la cohérence entre bail, échéance, encaissement, preuve et reçu ;
+- protéger la cohérence entre bail, échéance, réception de loyer, preuve et reçu ;
 - permettre une future séparation si le produit prouve un besoin réel.
 
 ## Objet central du système
@@ -47,17 +65,31 @@ L'objet central du MVP est l'échéance de loyer.
 
 Le système doit être organisé autour de cette chaîne métier :
 
-Propriétaire → Propriété → Logement → Bail → Échéance de loyer → Encaissement → Preuve → Quittance → Relance
+Propriétaire → Propriété → Logement → Bail → Échéance de loyer → Réception de loyer → Preuve éventuelle → Quittance → Relance
 
 Conséquences :
 
-- une échéance existe même si aucun encaissement n'a encore été enregistré ;
+- une échéance existe même si aucun loyer n'a encore été reçu ;
 - un bail est la source des règles qui créent les échéances ;
-- un encaissement peut régler une ou plusieurs échéances ;
-- une échéance peut recevoir plusieurs encaissements ;
-- une preuve justifie un encaissement ;
+- une réception de loyer peut régler une ou plusieurs échéances ;
+- une échéance peut être réglée par plusieurs réceptions de loyer ;
+- une preuve peut justifier une réception de loyer, mais elle n'est pas obligatoire dans le MVP ;
 - une quittance confirme une ou plusieurs échéances réglées ;
 - une relance concerne une échéance non réglée ou en retard.
+
+## Vocabulaire technique et vocabulaire utilisateur
+
+Le domaine peut utiliser des termes précis comme `paiement`, `réception de loyer`, `allocation` ou `confirmation`.
+
+L'interface propriétaire doit parler plus simplement :
+
+- loyer reçu ;
+- confirmer la réception ;
+- reçu ;
+- retard ;
+- relance.
+
+Le code ne doit pas forcer l'interface à utiliser un vocabulaire technique.
 
 ## Modules métier initiaux
 
@@ -65,7 +97,9 @@ Conséquences :
 
 Responsabilité : gérer les comptes, les sessions, les permissions et l'isolation des données.
 
-Le propriétaire est le client commercial principal. Le locataire peut interagir avec Ranti plus tard, mais il ne pilote pas le MVP.
+Le propriétaire est le client commercial principal.
+
+Le locataire peut interagir avec Ranti plus tard, mais il ne pilote pas le MVP.
 
 ### 2. Contexte locatif
 
@@ -73,7 +107,11 @@ Responsabilité : gérer les concepts qui décrivent la relation locative.
 
 Objets concernés : propriétaire, propriété, logement, locataire, bail ou accord locatif.
 
-Le bail relie un propriétaire, un logement et un locataire. Il définit le montant, la périodicité, la date d'échéance, la date de début et éventuellement la date de fin.
+Le bail relie un propriétaire, un logement et un locataire.
+
+Il définit le montant, la périodicité, la date d'échéance, la date de début et éventuellement la date de fin.
+
+Règle non négociable : un logement ne peut avoir qu'un seul bail actif à un instant donné.
 
 ### 3. Moteur d'échéances
 
@@ -83,35 +121,55 @@ Le propriétaire ne doit pas créer manuellement chaque échéance mensuelle si 
 
 La génération automatique des échéances doit rester simple au départ : elle doit couvrir le cas mensuel standard avant les cas exceptionnels.
 
-### 4. Encaissements
+### 4. Réceptions de loyer
 
-Responsabilité : enregistrer ce que le propriétaire dit avoir reçu.
+Responsabilité : enregistrer ce que le propriétaire confirme avoir reçu.
 
-Un encaissement est toujours enregistré du point de vue du propriétaire. Il peut être lié à un paiement fait hors Ranti : cash, Mobile Money, virement ou autre moyen local.
+Une réception de loyer est enregistrée du point de vue du propriétaire.
 
-Ranti ne confirme jamais seul qu'un paiement a été reçu. La validation humaine par le propriétaire reste obligatoire dans le MVP.
+Elle peut correspondre à un paiement fait hors Ranti : cash, Mobile Money, virement ou autre moyen local.
 
-### 5. Preuves
+Ranti ne confirme jamais seul qu'un paiement a été reçu.
 
-Responsabilité : conserver les éléments qui justifient un paiement ou un encaissement.
+La validation humaine par le propriétaire reste obligatoire dans le MVP.
+
+### 5. Allocations
+
+Responsabilité : relier une réception de loyer aux échéances qu'elle règle.
+
+Une réception de loyer peut couvrir plusieurs échéances.
+
+Une échéance peut être couverte par plusieurs réceptions de loyer.
+
+Le paiement partiel est représenté par les montants alloués, pas forcément par un statut principal visible.
+
+### 6. Preuves
+
+Responsabilité : conserver les éléments qui justifient une réception de loyer lorsque le propriétaire souhaite les ajouter.
 
 Exemples : capture Mobile Money, reçu bancaire, photo d'un reçu papier.
 
-Une preuve doit être reliée à un encaissement. Elle ne doit pas être un fichier isolé sans contexte métier.
+Une preuve est facultative dans le MVP.
 
-### 6. Quittances ou reçus
+Lorsqu'elle existe, elle doit être reliée à une réception de loyer ou à un contexte métier clair.
 
-Responsabilité : générer un document simple après validation d'un encaissement par le propriétaire.
+Elle ne doit jamais être un fichier isolé sans contexte métier.
+
+### 7. Quittances ou reçus
+
+Responsabilité : générer un document simple après confirmation d'une réception de loyer par le propriétaire.
 
 Une quittance confirme qu'une ou plusieurs échéances sont réglées.
 
-Une quittance ne doit pas être générée avant validation de l'encaissement.
+Une quittance ne doit pas être générée avant confirmation par le propriétaire.
 
-### 7. Relances
+### 8. Relances
 
 Responsabilité : aider le propriétaire à rappeler proprement une échéance impayée ou en retard.
 
-Dans le MVP, la relance peut rester manuelle ou semi-manuelle. L'automatisation complète vient après validation terrain.
+Dans le MVP, la relance peut rester manuelle ou semi-manuelle.
+
+L'automatisation complète vient après validation terrain.
 
 ## Principes de données
 
@@ -120,19 +178,24 @@ La base de données doit être relationnelle.
 Les règles suivantes sont obligatoires :
 
 - chaque donnée sensible doit appartenir à un propriétaire ou à un contexte d'accès clair ;
-- une échéance doit être reliée à un bail ;
-- un bail doit être relié à un logement et à un locataire ;
-- un logement doit être relié à une propriété ;
-- un encaissement doit être relié à un propriétaire et, quand il sert à régler un loyer, à une ou plusieurs échéances ;
-- une preuve doit être reliée à un encaissement ;
-- une quittance doit être reliée à l'encaissement validé et aux échéances concernées ;
+- une propriété appartient à un propriétaire ou à un espace propriétaire ;
+- un logement appartient à une propriété ;
+- un bail appartient à un logement, un locataire et un propriétaire ;
+- un logement ne peut pas avoir deux baux actifs sur la même période ;
+- une échéance appartient toujours à un bail ;
+- une réception de loyer appartient au propriétaire qui confirme l'avoir reçue ;
+- une réception de loyer règle une ou plusieurs échéances via des allocations ;
+- une preuve, lorsqu'elle existe, doit être reliée à une réception de loyer ou à un contexte métier clair ;
+- une quittance doit être reliée à une réception confirmée et aux échéances concernées ;
 - les actions sensibles doivent laisser une trace d'audit.
 
-Les suppressions destructives doivent être évitées sur les objets financiers. On privilégie l'archivage, l'annulation ou la correction traçable.
+Les suppressions destructives doivent être évitées sur les objets financiers.
+
+On privilégie l'archivage, l'annulation ou la correction traçable.
 
 ## Principes d'API
 
-Les API doivent refléter les actions métier, pas les écrans.
+Les API doivent refléter les actions métier, pas seulement les écrans et pas seulement du CRUD.
 
 Exemples d'actions métier :
 
@@ -140,13 +203,15 @@ Exemples d'actions métier :
 - créer un logement ;
 - créer un bail ;
 - générer ou récupérer les échéances ;
-- enregistrer un encaissement ;
-- attacher une preuve ;
-- valider un encaissement ;
+- enregistrer une réception de loyer ;
+- confirmer une réception de loyer ;
+- attacher une preuve facultative ;
 - générer une quittance ;
 - préparer une relance.
 
-Une API ne doit pas permettre de contourner les règles du domaine. Par exemple, elle ne doit pas permettre de générer une quittance pour un encaissement non validé.
+Une API ne doit pas permettre de contourner les règles du domaine.
+
+Par exemple, elle ne doit pas permettre de générer une quittance pour une réception non confirmée.
 
 ## Principes de sécurité
 
@@ -155,6 +220,8 @@ Ranti manipule des données sensibles : loyers, identités, preuves de paiement,
 La sécurité minimale doit être présente dès le départ :
 
 - authentification obligatoire pour l'espace propriétaire ;
+- téléphone + mot de passe pour les connexions classiques ;
+- OTP utilisé pour vérifier le numéro, récupérer l'accès ou sécuriser certaines actions, pas comme friction à chaque connexion ;
 - isolation stricte des données par propriétaire ou espace de gestion ;
 - contrôle d'accès sur chaque lecture et écriture ;
 - stockage contrôlé des fichiers de preuve ;
@@ -189,7 +256,8 @@ Ranti ne doit pas introduire maintenant :
 - automatisation de recouvrement agressive ;
 - analytics avancées ;
 - messagerie interne complète ;
-- paiement in-app obligatoire.
+- paiement in-app obligatoire ;
+- portail locataire complet.
 
 Ces sujets peuvent être réévalués plus tard seulement si le terrain les justifie.
 
@@ -214,6 +282,7 @@ Une décision technique crée de la dette si elle :
 - contourne le modèle de domaine ;
 - rend l'échéance secondaire ;
 - confirme un paiement sans validation humaine ;
+- rend la preuve obligatoire sans justification terrain ;
 - stocke une preuve sans contexte métier ;
 - rend le produit difficile à comprendre en moins de cinq secondes ;
 - ajoute une sophistication non validée terrain ;
@@ -225,15 +294,15 @@ Une décision technique crée de la dette si elle :
 Les sujets suivants doivent être tranchés dans les prochains documents :
 
 1. Générer les échéances à l'avance ou seulement les prochaines échéances ?
-2. Comment représenter proprement les paiements partiels ?
-3. Comment représenter un encaissement qui couvre plusieurs mois ?
+2. Comment représenter précisément les paiements partiels dans la base ?
+3. Comment représenter une réception de loyer qui couvre plusieurs mois ?
 4. Le locataire doit-il avoir un compte ou seulement accéder à des liens simples ?
 5. Quel niveau exact d'audit est requis pour le MVP ?
 6. Quel fournisseur utiliser pour l'authentification, la base, le stockage et l'hébergement ?
 
 ## Prochains documents
 
-1. `docs/decisions/adr-001-core-domain-model.md`
-2. `docs/database.md`
-3. `docs/api.md`
-4. `docs/security.md`
+1. `docs/database.md`
+2. `docs/api.md`
+3. `docs/security.md`
+4. ADR sur les choix de stack et fournisseurs
