@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { AUTH_PATHS, signInWithEmailOtp } from "@/lib/auth"
+import { AUTH_PATHS, signInWithPhoneOtp } from "@/lib/auth"
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -8,10 +8,10 @@ type LoginPageProps = {
   }>
 }
 
-async function requestLoginLink(formData: FormData) {
+async function requestLoginCode(formData: FormData) {
   "use server"
 
-  const result = await signInWithEmailOtp(formData)
+  const result = await signInWithPhoneOtp(formData)
 
   if (!result.ok) {
     redirect(`${AUTH_PATHS.signIn}?error=${encodeURIComponent(result.message)}`)
@@ -22,7 +22,7 @@ async function requestLoginLink(formData: FormData) {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams
-  const hasSentLoginLink = params?.sent === "1"
+  const hasSentLoginCode = params?.sent === "1"
   const errorMessage = params?.error
 
   return (
@@ -42,21 +42,22 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
         </div>
 
-        <form action={requestLoginLink} className="space-y-5">
+        <form action={requestLoginCode} className="space-y-5">
           <div className="space-y-2">
             <label
-              htmlFor="email"
+              htmlFor="phone"
               className="block text-sm font-medium text-neutral-800 dark:text-neutral-100"
             >
-              Email
+              Numéro de téléphone
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="phone"
+              name="phone"
+              type="tel"
               required
-              autoComplete="email"
-              placeholder="vous@example.com"
+              autoComplete="tel"
+              inputMode="tel"
+              placeholder="+229..."
               className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
             />
           </div>
@@ -67,9 +68,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </p>
           ) : null}
 
-          {hasSentLoginLink ? (
+          {hasSentLoginCode ? (
             <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-              Lien envoyé. Vérifiez votre boîte mail.
+              Code envoyé. Vérifiez votre téléphone.
             </p>
           ) : null}
 
@@ -77,11 +78,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             type="submit"
             className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
-            Recevoir le lien de connexion
+            Recevoir le code de connexion
           </button>
 
           <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
-            Nous vous enverrons un lien sécurisé par email.
+            Nous vous enverrons un code sécurisé sur votre numéro de téléphone.
           </p>
         </form>
       </section>
