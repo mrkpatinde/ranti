@@ -75,39 +75,6 @@ export async function signUpWithEmailPassword(formData: FormData): Promise<AuthR
   }
 }
 
-export async function signInWithEmailOtp(formData: FormData): Promise<AuthResult> {
-  const email = normalizeEmail(formData.get("email"))
-
-  if (!email) {
-    return {
-      ok: false,
-      message: "Email invalide.",
-      code: "invalid_email_input",
-    }
-  }
-
-  const supabase = await createClient()
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: true,
-    },
-  })
-
-  if (error) {
-    return {
-      ok: false,
-      message: "Impossible d’envoyer le lien de connexion.",
-      code: error.code,
-    }
-  }
-
-  return {
-    ok: true,
-  }
-}
-
 export async function signInWithPhoneOtp(formData: FormData): Promise<AuthResult> {
   const phone = normalizePhone(formData.get("phone"))
 
