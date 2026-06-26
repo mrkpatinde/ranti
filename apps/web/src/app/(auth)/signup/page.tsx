@@ -1,31 +1,37 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { AUTH_PATHS, signInWithPhonePassword } from "@/lib/auth"
+import { AUTH_PATHS, signUpWithPhonePassword } from "@/lib/auth"
 import { normalizePhone } from "@/lib/auth/validation"
 
-type LoginPageProps = {
+type SignupPageProps = {
   searchParams?: Promise<{
     error?: string
     phone?: string
   }>
 }
 
-async function submitLogin(formData: FormData) {
+async function submitSignup(formData: FormData) {
   "use server"
 
   const phone = normalizePhone(formData.get("phone"))
-  const result = await signInWithPhonePassword(formData)
+  const result = await signUpWithPhonePassword(formData)
 
   if (!result.ok) {
+    if (result.code === "user_already_exists" && phone) {
+      redirect(
+        `${AUTH_PATHS.signIn}?phone=${encodeURIComponent(phone)}&error=${encodeURIComponent(result.message)}`
+      )
+    }
+
     const params = new URLSearchParams({ error: result.message })
     if (phone) params.set("phone", phone)
-    redirect(`${AUTH_PATHS.signIn}?${params.toString()}`)
+    redirect(`${AUTH_PATHS.signUp}?${params.toString()}`)
   }
 
-  redirect(AUTH_PATHS.afterSignIn)
+  redirect(`${AUTH_PATHS.signUpVerify}?phone=${encodeURIComponent(phone ?? "")}`)
 }
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+export default async function SignupPage({ searchParams }: SignupPageProps) {
   const params = await searchParams
   const errorMessage = params?.error
   const phone = params?.phone ?? ""
@@ -39,15 +45,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </p>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-              Se connecter
+              Créer votre espace
             </h1>
             <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
-              Accédez au suivi de vos loyers.
+              Votre numéro et un mot de passe suffisent.
             </p>
           </div>
         </div>
 
-        <form action={submitLogin} className="space-y-5">
+        <form action={submitSignup} className="space-y-5">
           <div className="space-y-2">
             <label
               htmlFor="phone"
@@ -80,7 +86,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               name="password"
               type="password"
               required
-              autoComplete="current-password"
+              minLength={8}
+              autoComplete="new-password"
+              placeholder="Au moins 8 caractères"
               className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
             />
           </div>
@@ -95,23 +103,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             type="submit"
             className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
-            Se connecter
+            Continuer
           </button>
 
-          <div className="flex items-center justify-between">
-            <Link
-              href={AUTH_PATHS.recover}
-              className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
-            >
-              Mot de passe oublié
-            </Link>
-            <Link
-              href={AUTH_PATHS.signUp}
-              className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
-            >
-              Créer un espace
-            </Link>
-          </div>
+          <Link
+            href={AUTH_PATHS.signIn}
+            className="block text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+          >
+            J’ai déjà un espace
+          </Link>
         </form>
       </section>
     </main>

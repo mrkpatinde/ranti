@@ -1,61 +1,51 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
-import { AUTH_PATHS } from "@/lib/auth"
+import { AUTH_PATHS, resendSignupCode, verifyPhoneSignup } from "@/lib/auth"
 import { normalizePhone } from "@/lib/auth/validation"
-import { createClient } from "@/lib/supabase/server"
 
-type VerifyLoginPageProps = {
+type VerifySignupPageProps = {
   searchParams?: Promise<{
     phone?: string
     error?: string
+    notice?: string
   }>
 }
 
-function normalizeCode(value: FormDataEntryValue | null) {
-  if (typeof value !== "string") return null
-
-  const code = value.trim().split(" ").join("")
-
-  if (code.length !== 6) return null
-  if ([...code].some((character) => character < "0" || character > "9")) return null
-
-  return code
-}
-
-async function verifyLoginCode(formData: FormData) {
+async function submitVerify(formData: FormData) {
   "use server"
 
   const phone = normalizePhone(formData.get("phone"))
-  const code = normalizeCode(formData.get("code"))
+  const result = await verifyPhoneSignup(formData)
 
-  if (!phone || !code) {
-    redirect(`/login/verify?error=${encodeURIComponent("Numéro ou code de vérification invalide.")}`)
+  if (!result.ok) {
+    redirect(
+      `${AUTH_PATHS.signUpVerify}?phone=${encodeURIComponent(phone ?? "")}&error=${encodeURIComponent(result.message)}`
+    )
   }
 
-  const supabase = await createClient()
-
-  const { error } = await supabase.auth.verifyOtp({
-    phone,
-    token: code,
-    type: "sms",
-  })
-
-  if (error) {
-    redirect(`/login/verify?phone=${encodeURIComponent(phone)}&error=${encodeURIComponent("Code invalide ou expiré.")}`)
-  }
-
-  revalidatePath("/", "layout")
-  redirect(AUTH_PATHS.afterSignIn)
+  redirect(AUTH_PATHS.profile)
 }
 
-export default async function VerifyLoginPage({ searchParams }: VerifyLoginPageProps) {
+async function resendCode(formData: FormData) {
+  "use server"
+
+  const phone = normalizePhone(formData.get("phone"))
+  const result = await resendSignupCode(formData)
+
+  const params = new URLSearchParams()
+  if (phone) params.set("phone", phone)
+  params.set(result.ok ? "notice" : "error", result.ok ? "Nouveau code envoyé." : result.message)
+  redirect(`${AUTH_PATHS.signUpVerify}?${params.toString()}`)
+}
+
+export default async function VerifySignupPage({ searchParams }: VerifySignupPageProps) {
   const params = await searchParams
   const phone = normalizePhone(params?.phone ?? null)
   const errorMessage = params?.error
+  const notice = params?.notice
 
   if (!phone) {
-    redirect(AUTH_PATHS.signIn)
+    redirect(AUTH_PATHS.signUp)
   }
 
   return (
@@ -67,15 +57,15 @@ export default async function VerifyLoginPage({ searchParams }: VerifyLoginPageP
           </p>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-              Vérification
+              Vérifiez votre numéro
             </h1>
             <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
-              Entrez le code reçu sur {phone}.
+              Entrez le code envoyé par SMS au {phone}. Une seule fois, à l’inscription.
             </p>
           </div>
         </div>
 
-        <form action={verifyLoginCode} className="space-y-5">
+        <form action={submitVerify} className="space-y-5">
           <input type="hidden" name="phone" value={phone} />
 
           <div className="space-y-2">
@@ -104,20 +94,36 @@ export default async function VerifyLoginPage({ searchParams }: VerifyLoginPageP
             </p>
           ) : null}
 
+          {notice ? (
+            <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+              {notice}
+            </p>
+          ) : null}
+
           <button
             type="submit"
             className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
-            Vérifier le code
+            Vérifier
           </button>
-
-          <Link
-            href={AUTH_PATHS.signIn}
-            className="block text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
-          >
-            Utiliser un autre numéro
-          </Link>
         </form>
+
+        <form action={resendCode}>
+          <input type="hidden" name="phone" value={phone} />
+          <button
+            type="submit"
+            className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+          >
+            Renvoyer le code
+          </button>
+        </form>
+
+        <Link
+          href={AUTH_PATHS.signUp}
+          className="block text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+        >
+          Utiliser un autre numéro
+        </Link>
       </section>
     </main>
   )
