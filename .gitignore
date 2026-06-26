@@ -1,4 +1,10 @@
 
+# Dependencies (npm workspaces install at the repo root)
+node_modules/
+
+# OS
+.DS_Store
+
 # Supabase local
 supabase/.branches/
 supabase/.temp/
