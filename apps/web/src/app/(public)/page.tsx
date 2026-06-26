@@ -9,10 +9,10 @@ export default function Home() {
             Ranti
           </p>
           <h1 className="text-4xl font-semibold leading-tight tracking-tight text-neutral-950 dark:text-neutral-50">
-            L’espace simple pour suivre vos loyers.
+            Des loyers clairs, des échanges plus simples.
           </h1>
           <p className="text-lg leading-8 text-neutral-600 dark:text-neutral-300">
-            Vos biens, vos locataires, vos paiements et vos preuves réunis au même endroit.
+            Sachez qui a payé, qui est en retard et quelle preuve existe pour garder une relation nette avec vos locataires.
           </p>
         </div>
 
