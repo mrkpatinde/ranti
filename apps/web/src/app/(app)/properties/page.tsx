@@ -60,7 +60,7 @@ export default async function PropertiesPage() {
             {properties.map((property) => (
               <Link
                 key={property.id}
-                href={`/properties/${property.id}`}
+                href={`/properties/detail?id=${property.id}`}
                 className="block rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-950 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-neutral-50"
               >
                 <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
