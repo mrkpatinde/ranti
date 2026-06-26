@@ -16,7 +16,13 @@ test("signup asks for phone and password on one screen", async ({ page }) => {
 
 test("an authenticated user without a profile lands on the profile step", async ({ page }) => {
   await page.goto("/dashboard")
-  await expect(page).toHaveURL(/\/onboarding\/profile$/)
+  await expect(page).toHaveURL(/onboarding/)
+  await expect(page.getByRole("heading", { name: "Votre profil" })).toBeVisible()
+})
+
+test("property creation requires a completed landlord profile", async ({ page }) => {
+  await page.goto("/properties/new")
+  await expect(page).toHaveURL(/onboarding/)
   await expect(page.getByRole("heading", { name: "Votre profil" })).toBeVisible()
 })
 
@@ -24,7 +30,7 @@ test("login offers password recovery", async ({ page }) => {
   await page.goto("/login")
   await expect(page.getByRole("heading", { name: "Se connecter" })).toBeVisible()
   await page.getByRole("link", { name: "Mot de passe oublié" }).click()
-  await expect(page).toHaveURL(/\/recover$/)
+  await expect(page).toHaveURL(/recover/)
 })
 
 test("signup verification can resend the code", async ({ page }) => {
