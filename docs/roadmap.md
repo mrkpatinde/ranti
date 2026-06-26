@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Derniere mise a jour : 2026-06-25
+Derniere mise a jour : 2026-06-26
 
 ## Phase 0 - Foundation
 
@@ -43,15 +43,17 @@ Livrables :
 - [x] Deconnexion
 - [x] Tests de bout en bout
 
-Note : flux code et teste (rendu, routing, gate profil, validation) via Playwright en mode auth
-local. L'envoi reel des OTP par SMS necessite un provider SMS configure dans Supabase Auth
-(action compte, hors code).
+Note : flux code et teste via Playwright en mode auth local. L'envoi reel des OTP par SMS necessite un provider SMS configure dans Supabase Auth.
 
 ## Sprint 3 - Properties
 
-- [ ] Creer une propriete
+Objectif : permettre au proprietaire de creer son premier lieu a suivre.
+
+- [x] Creer une propriete
 - [ ] Modifier une propriete
 - [ ] Archiver une propriete
+
+Note : le Sprint 3 commence par le parcours creer ma premiere propriete. La modification et l'archivage restent a faire plus tard.
 
 ## Sprint 4 - Units
 
