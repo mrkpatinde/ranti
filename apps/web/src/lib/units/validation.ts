@@ -31,3 +31,9 @@ export function normalizeOptionalUnitText(
 ) {
   return normalizeText(value, maxLength)
 }
+
+export type Availability = "available" | "occupied"
+
+export function normalizeAvailability(value: FormDataEntryValue | null): Availability | null {
+  return value === "available" || value === "occupied" ? value : null
+}
