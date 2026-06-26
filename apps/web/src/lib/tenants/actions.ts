@@ -1,0 +1,141 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
+import { requireLandlordProfile } from "@/lib/landlords"
+import { createClient } from "@/lib/supabase/server"
+import { getTenant } from "./queries"
+import {
+  isEmail,
+  normalizeOptionalTenantText,
+  normalizeTenantName,
+  normalizeTenantPhone,
+} from "./validation"
+
+function readTenantId(formData: FormData): string | null {
+  const id = formData.get("id")
+  return typeof id === "string" && id ? id : null
+}
+
+type TenantInput = {
+  firstName: string
+  lastName: string
+  phone: string | null
+  email: string | null
+  notes: string | null
+}
+
+// Reads + validates the shared tenant fields. Redirects to `errorPath` on the
+// first invalid field, otherwise returns the normalized values.
+function readTenantInput(formData: FormData, errorPath: string): TenantInput {
+  const firstName = normalizeTenantName(formData.get("first_name"))
+  const lastName = normalizeTenantName(formData.get("last_name"))
+  const phone = normalizeTenantPhone(formData.get("phone"))
+  const email = normalizeOptionalTenantText(formData.get("email"), 160)
+  const notes = normalizeOptionalTenantText(formData.get("notes"), 500)
+
+  if (!firstName || !lastName) {
+    redirect(`${errorPath}?error=${encodeURIComponent("Indiquez le prénom et le nom du locataire.")}`)
+  }
+
+  if (email && !isEmail(email)) {
+    redirect(`${errorPath}?error=${encodeURIComponent("L'adresse email n'est pas valide.")}`)
+  }
+
+  return { firstName, lastName, phone, email, notes }
+}
+
+export async function createTenant(formData: FormData) {
+  const landlord = await requireLandlordProfile()
+  const input = readTenantInput(formData, "/tenants/new")
+
+  const supabase = await createClient()
+
+  const { error } = await supabase.from("tenants").insert({
+    landlord_id: landlord.id,
+    first_name: input.firstName,
+    last_name: input.lastName,
+    phone: input.phone,
+    email: input.email,
+    notes: input.notes,
+  })
+
+  if (error) {
+    redirect(`/tenants/new?error=${encodeURIComponent("Impossible de créer ce locataire. Réessayez.")}`)
+  }
+
+  revalidatePath("/dashboard")
+  revalidatePath("/tenants")
+  redirect("/dashboard?notice=tenant_created")
+}
+
+export async function updateTenant(formData: FormData) {
+  const landlord = await requireLandlordProfile()
+
+  const id = readTenantId(formData)
+  if (!id) {
+    redirect(`/tenants?error=${encodeURIComponent("Locataire introuvable.")}`)
+  }
+
+  const existing = await getTenant(landlord.id, id)
+  if (!existing) {
+    redirect(`/tenants?error=${encodeURIComponent("Locataire introuvable.")}`)
+  }
+
+  const input = readTenantInput(formData, `/tenants/${id}/edit`)
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("tenants")
+    .update({
+      first_name: input.firstName,
+      last_name: input.lastName,
+      phone: input.phone,
+      email: input.email,
+      notes: input.notes,
+    })
+    .eq("id", id)
+    .eq("landlord_id", landlord.id)
+    .is("deleted_at", null)
+
+  if (error) {
+    redirect(`/tenants/${id}/edit?error=${encodeURIComponent("Impossible d'enregistrer. Réessayez.")}`)
+  }
+
+  revalidatePath("/tenants")
+  revalidatePath(`/tenants/${id}`)
+  redirect(`/tenants/${id}?notice=tenant_updated`)
+}
+
+export async function archiveTenant(formData: FormData) {
+  const landlord = await requireLandlordProfile()
+
+  const id = readTenantId(formData)
+  if (!id) {
+    redirect(`/tenants?error=${encodeURIComponent("Locataire introuvable.")}`)
+  }
+
+  const existing = await getTenant(landlord.id, id)
+  if (!existing) {
+    redirect(`/tenants?error=${encodeURIComponent("Locataire introuvable.")}`)
+  }
+
+  const supabase = await createClient()
+
+  // Soft-delete only; history (leases, dues, receipts) is preserved (api.md Tenants).
+  const { error } = await supabase
+    .from("tenants")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("landlord_id", landlord.id)
+    .is("deleted_at", null)
+
+  if (error) {
+    redirect(`/tenants/${id}?error=${encodeURIComponent("Impossible d'archiver. Réessayez.")}`)
+  }
+
+  revalidatePath("/dashboard")
+  revalidatePath("/tenants")
+  redirect("/tenants?notice=tenant_archived")
+}
