@@ -154,7 +154,7 @@ export default async function DashboardPage() {
                 Vos logements
               </h2>
               <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
-                Le premier logement est pret. La prochaine etape sera d'ajouter un locataire.
+                Le premier logement est pret. La prochaine etape sera d&apos;ajouter un locataire.
               </p>
             </div>
 
