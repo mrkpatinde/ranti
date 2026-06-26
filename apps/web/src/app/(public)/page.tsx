@@ -9,10 +9,10 @@ export default function Home() {
             Ranti
           </p>
           <h1 className="text-4xl font-semibold leading-tight tracking-tight text-neutral-950 dark:text-neutral-50">
-            Suivez vos loyers, sans oublis.
+            L’espace simple pour suivre vos loyers.
           </h1>
           <p className="text-lg leading-8 text-neutral-600 dark:text-neutral-300">
-            Qui a payé, qui est en retard, quelle preuve — en un coup d’œil.
+            Vos biens, vos locataires, vos paiements et vos preuves réunis au même endroit.
           </p>
         </div>
 
@@ -21,7 +21,7 @@ export default function Home() {
             href="/signup"
             className="block w-full rounded-xl bg-neutral-950 px-4 py-3 text-center text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
-            Créer mon espace
+            Créer mon espace propriétaire
           </Link>
           <Link
             href="/login"
