@@ -17,3 +17,17 @@ export async function getLandlordProperties(landlordId: string): Promise<Propert
 
   return (data ?? []) as Property[]
 }
+
+export async function getProperty(landlordId: string, id: string): Promise<Property | null> {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("id", id)
+    .eq("landlord_id", landlordId)
+    .is("deleted_at", null)
+    .maybeSingle()
+
+  return (data as Property | null) ?? null
+}
