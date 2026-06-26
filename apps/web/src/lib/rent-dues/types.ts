@@ -1,0 +1,19 @@
+export type RentDueStatus = "expected" | "overdue" | "paid" | "cancelled"
+
+export type RentDue = {
+  id: string
+  landlord_id: string
+  lease_id: string
+  unit_id: string
+  tenant_id: string
+  period_start: string
+  period_end: string
+  due_date: string
+  amount_due: number
+  currency: string
+  status: RentDueStatus
+  cancelled_reason: string | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
