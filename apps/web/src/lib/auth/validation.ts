@@ -1,15 +1,3 @@
-export function normalizeEmail(value: FormDataEntryValue | null) {
-  if (typeof value !== "string") return null
-
-  const email = value.trim().toLowerCase()
-
-  if (!email) return null
-
-  const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-
-  return isValid ? email : null
-}
-
 export function normalizePassword(value: FormDataEntryValue | null) {
   if (typeof value !== "string") return null
 
@@ -29,4 +17,37 @@ export function normalizePhone(value: FormDataEntryValue | null) {
   if (phone.length < 8) return null
 
   return phone
+}
+
+export function normalizeOtp(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") return null
+
+  const code = value.replace(/\s+/g, "")
+
+  if (!/^\d{6}$/.test(code)) return null
+
+  return code
+}
+
+export function normalizeName(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") return null
+
+  const name = value.trim().replace(/\s+/g, " ")
+
+  if (name.length < 2) return null
+  if (name.length > 80) return null
+
+  return name
+}
+
+export const CIVILITIES = ["mr", "mrs", "miss", "not_specified"] as const
+
+export type Civility = (typeof CIVILITIES)[number]
+
+export function normalizeCivility(value: FormDataEntryValue | null): Civility | null {
+  if (typeof value !== "string") return null
+
+  const civility = value.trim().toLowerCase()
+
+  return (CIVILITIES as readonly string[]).includes(civility) ? (civility as Civility) : null
 }

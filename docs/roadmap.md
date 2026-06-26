@@ -33,15 +33,19 @@ Decisions auth :
 
 Livrables :
 
-- [ ] Authentification Supabase par telephone et mot de passe
-- [ ] Verification initiale du numero
-- [ ] Creation du profil proprietaire apres verification
-- [ ] Completer le profil : civilite, prenom, nom
-- [ ] Premiere connexion
-- [ ] Connexion suivante par telephone et mot de passe
-- [ ] Tableau de bord vide
-- [ ] Deconnexion
-- [ ] Tests de bout en bout
+- [x] Authentification Supabase par telephone et mot de passe
+- [x] Verification initiale du numero
+- [x] Creation du profil proprietaire apres verification
+- [x] Completer le profil : civilite, prenom, nom
+- [x] Premiere connexion
+- [x] Connexion suivante par telephone et mot de passe
+- [x] Tableau de bord vide
+- [x] Deconnexion
+- [x] Tests de bout en bout
+
+Note : flux code et teste (rendu, routing, gate profil, validation) via Playwright en mode auth
+local. L'envoi reel des OTP par SMS necessite un provider SMS configure dans Supabase Auth
+(action compte, hors code).
 
 ## Sprint 3 - Properties
 
