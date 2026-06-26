@@ -105,20 +105,20 @@ export async function activateLease(formData: FormData) {
 
   const supabase = await createClient()
 
-  // Activation enforces the no-overlapping-active-lease exclusion constraint.
-  const { error } = await supabase
-    .from("leases")
-    .update({ status: "active" })
-    .eq("id", id)
-    .eq("landlord_id", landlord.id)
-    .eq("status", "draft")
+  // Atomic: draft -> active (enforces the no-overlap exclusion) + generate the
+  // monthly rent dues, in one transaction (see migration 009).
+  const { error } = await supabase.rpc("activate_lease", { p_lease_id: id })
 
   if (error) {
-    const message = error.code === "23P01" ? OVERLAP : "Activation impossible. Réessayez."
+    if (error.code === "P0002") {
+      redirect(`/leases?error=${encodeURIComponent("Bail introuvable.")}`)
+    }
+    let message = "Activation impossible. Réessayez."
+    if (error.code === "23P01") message = OVERLAP
+    else if (error.code === "P0001") message = "Ce bail n'est pas en brouillon."
     redirect(`/leases/${id}?error=${encodeURIComponent(message)}`)
   }
 
-  // NOTE: rent dues generation on activation is wired in issue #16.
   revalidatePath("/dashboard")
   revalidatePath("/leases")
   revalidatePath(`/leases/${id}`)
