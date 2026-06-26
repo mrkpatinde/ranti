@@ -11,7 +11,7 @@ returns uuid
 language sql
 stable
 security definer
-set search_path = public
+set search_path = ''
 as $$
   select id
   from public.landlords
@@ -236,8 +236,8 @@ with check (landlord_id = public.current_landlord_id());
 -- -----------------------------------------------------------------------------
 -- Audit logs
 -- Authenticated landlords can read their own audit trail.
--- Inserts are allowed only for their own landlord_id. In production, sensitive
--- audit writes should preferably be performed by trusted server code.
+-- Client-side inserts are intentionally forbidden.
+-- Audit writes must happen through trusted server code, DB triggers, or service role.
 -- No update/delete policy is created: audit logs are append-only.
 -- -----------------------------------------------------------------------------
 
@@ -245,13 +245,7 @@ create policy "audit_logs_select_own"
 on public.audit_logs
 for select
 to authenticated
-using (landlord_id = public.current_landlord_id());
-
-create policy "audit_logs_insert_own"
-on public.audit_logs
-for insert
-to authenticated
-with check (
+using (
   landlord_id = public.current_landlord_id()
-  and (actor_landlord_id is null or actor_landlord_id = public.current_landlord_id())
+  or actor_landlord_id = public.current_landlord_id()
 );
