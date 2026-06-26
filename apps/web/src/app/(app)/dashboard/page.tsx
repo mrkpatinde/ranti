@@ -1,16 +1,23 @@
+import Link from "next/link"
 import { isLocalAuthEnabled } from "@/lib/auth"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getLandlordProperties } from "@/lib/properties"
 
-const setupSteps = [
-  { label: "Bien", done: false },
-  { label: "Logement", done: false },
-  { label: "Locataire", done: false },
-  { label: "Bail", done: false },
-  { label: "Loyers", done: false },
-]
+function buildSetupSteps(hasProperties: boolean) {
+  return [
+    { label: "Bien", done: hasProperties },
+    { label: "Logement", done: false },
+    { label: "Locataire", done: false },
+    { label: "Bail", done: false },
+    { label: "Loyers", done: false },
+  ]
+}
 
 export default async function DashboardPage() {
   const landlord = await requireLandlordProfile()
+  const properties = await getLandlordProperties(landlord.id)
+  const hasProperties = properties.length > 0
+  const setupSteps = buildSetupSteps(hasProperties)
   const isLocalMode = isLocalAuthEnabled()
 
   return (
@@ -47,16 +54,22 @@ export default async function DashboardPage() {
             Bonjour {landlord.first_name}.
           </h1>
           <p className="max-w-xl text-base leading-7 text-neutral-600 dark:text-neutral-300">
-            Pour suivre vos loyers, ajoutez un bien, un logement et un locataire,
-            puis créez le bail. Ranti génère ensuite les échéances.
+            Votre cahier de loyers commence par les lieux que vous voulez suivre.
+            Ensuite, vous ajouterez les logements, les locataires et les baux.
           </p>
         </div>
 
         <ol className="flex flex-wrap items-center gap-2 text-sm">
           {setupSteps.map((step, index) => (
             <li key={step.label} className="flex items-center gap-2">
-              <span className="rounded-lg border border-neutral-300 px-3 py-1.5 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300">
-                {step.label}
+              <span
+                className={
+                  step.done
+                    ? "rounded-lg border border-neutral-950 bg-neutral-950 px-3 py-1.5 text-white dark:border-neutral-50 dark:bg-neutral-50 dark:text-neutral-950"
+                    : "rounded-lg border border-neutral-300 px-3 py-1.5 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
+                }
+              >
+                {step.done ? "✓ " : ""}{step.label}
               </span>
               {index < setupSteps.length - 1 ? (
                 <span aria-hidden className="text-neutral-400">→</span>
@@ -65,21 +78,59 @@ export default async function DashboardPage() {
           ))}
         </ol>
 
-        <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-          <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-            Première étape : ajouter un bien
-          </h2>
-          <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
-            Une maison, un immeuble, une cour ou une boutique.
-          </p>
-          <button
-            type="button"
-            disabled
-            className="mt-5 rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white opacity-60 dark:bg-neutral-50 dark:text-neutral-950"
-          >
-            Ajouter un bien (bientôt)
-          </button>
-        </div>
+        {hasProperties ? (
+          <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+                Vos lieux
+              </h2>
+              <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
+                Le premier lieu est prêt. La prochaine étape sera d'ajouter les logements.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {properties.map((property) => (
+                <article
+                  key={property.id}
+                  className="rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800"
+                >
+                  <h3 className="font-medium text-neutral-950 dark:text-neutral-50">
+                    {property.name}
+                  </h3>
+                  {property.city || property.address ? (
+                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                      {[property.city, property.address].filter(Boolean).join(" — ")}
+                    </p>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              disabled
+              className="rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white opacity-60 dark:bg-neutral-50 dark:text-neutral-950"
+            >
+              Ajouter un logement (bientôt)
+            </button>
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
+            <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+              Première étape : ajouter un lieu
+            </h2>
+            <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
+              Une maison, un immeuble, une cour ou une boutique où vous encaissez un loyer.
+            </p>
+            <Link
+              href="/properties/new"
+              className="mt-5 inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+            >
+              Ajouter mon premier lieu
+            </Link>
+          </div>
+        )}
       </section>
     </main>
   )
