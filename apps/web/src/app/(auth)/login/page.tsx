@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation"
 import { AUTH_PATHS, signInWithPhoneOtp } from "@/lib/auth"
+import { normalizePhone } from "@/lib/auth/validation"
 
 type LoginPageProps = {
   searchParams?: Promise<{
-    sent?: string
     error?: string
   }>
 }
@@ -11,18 +11,23 @@ type LoginPageProps = {
 async function requestLoginCode(formData: FormData) {
   "use server"
 
+  const phone = normalizePhone(formData.get("phone"))
+
+  if (!phone) {
+    redirect(`${AUTH_PATHS.signIn}?error=${encodeURIComponent("Numéro de téléphone invalide. Utilise le format international, par exemple +229...")}`)
+  }
+
   const result = await signInWithPhoneOtp(formData)
 
   if (!result.ok) {
     redirect(`${AUTH_PATHS.signIn}?error=${encodeURIComponent(result.message)}`)
   }
 
-  redirect(`${AUTH_PATHS.signIn}?sent=1`)
+  redirect(`/login/verify?phone=${encodeURIComponent(phone)}`)
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams
-  const hasSentLoginCode = params?.sent === "1"
   const errorMessage = params?.error
 
   return (
@@ -65,12 +70,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           {errorMessage ? (
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
               {errorMessage}
-            </p>
-          ) : null}
-
-          {hasSentLoginCode ? (
-            <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-              Code envoyé. Vérifiez votre téléphone.
             </p>
           ) : null}
 
