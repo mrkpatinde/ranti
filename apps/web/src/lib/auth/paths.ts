@@ -1,6 +1,6 @@
 export const AUTH_PATHS = {
   signIn: "/login",
-  afterSignIn: "/dashboard",
+  afterSignIn: "/welcome",
   afterSignOut: "/",
   authError: "/auth/error",
 } as const
