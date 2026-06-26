@@ -46,7 +46,7 @@ export default async function PropertiesPage() {
               Aucun lieu pour le moment
             </h2>
             <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
-              Ajoutez d'abord le premier endroit ou vous encaissez un loyer.
+              Ajoutez d&apos;abord le premier endroit ou vous encaissez un loyer.
             </p>
             <Link
               href="/properties/new"
