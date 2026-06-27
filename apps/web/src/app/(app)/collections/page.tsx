@@ -120,6 +120,12 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
             Chaque encaissement enregistré reste ici, même non confirmé. Vous ne perdez jamais la
             trace d&apos;un loyer reçu.
           </p>
+          <Link
+            href="/collections/new"
+            className="inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+          >
+            Encaisser un loyer
+          </Link>
         </div>
 
         {notice ? (
