@@ -1,6 +1,6 @@
 # Ranti
 
-Ranti est le cahier de loyers moderne des propriétaires africains.
+Ranti est le registre de loyer moderne des propriétaires africains.
 
 ## Statut
 
