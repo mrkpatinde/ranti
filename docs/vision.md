@@ -2,7 +2,7 @@
 
 ## Positionnement
 
-Ranti est le cahier de loyers moderne des propriétaires africains.
+Ranti est le registre de loyer moderne des propriétaires africains.
 
 Il aide les propriétaires à suivre les loyers, identifier les retards, garder les preuves de paiement et générer des reçus simples.
 
@@ -10,7 +10,7 @@ Il aide les propriétaires à suivre les loyers, identifier les retards, garder 
 
 Aujourd'hui, beaucoup de propriétaires suivent les loyers avec :
 
-- un cahier papier ;
+- un registre papier ;
 - WhatsApp ;
 - des appels ;
 - des captures Mobile Money ;
@@ -44,7 +44,7 @@ Ranti n'est pas :
 
 ## Critère de réussite du MVP
 
-Un propriétaire peut, chaque mois, suivre ses loyers sans cahier papier et sans confusion.
+Un propriétaire peut, chaque mois, suivre ses loyers sans registre papier et sans confusion.
 
 ## Règle produit
 
