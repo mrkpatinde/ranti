@@ -101,6 +101,28 @@ export async function archiveProperty(formData: FormData) {
 
   const supabase = await createClient()
 
+  // Refuse archiving while any unit of this property has an active lease.
+  const { data: propertyUnits } = await supabase
+    .from("units")
+    .select("id")
+    .eq("landlord_id", landlord.id)
+    .eq("property_id", id)
+    .is("deleted_at", null)
+  const unitIds = (propertyUnits ?? []).map((u) => u.id as string)
+  if (unitIds.length > 0) {
+    const { data: activeLeases } = await supabase
+      .from("leases")
+      .select("id")
+      .eq("landlord_id", landlord.id)
+      .in("unit_id", unitIds)
+      .eq("status", "active")
+      .is("deleted_at", null)
+      .limit(1)
+    if (activeLeases && activeLeases.length > 0) {
+      redirect(`/properties/${id}?error=${encodeURIComponent("Un logement de ce lieu a un bail actif. Terminez le bail avant d'archiver.")}`)
+    }
+  }
+
   // Soft-delete only. Units, leases and history are preserved (api.md Properties).
   const { error } = await supabase
     .from("properties")
