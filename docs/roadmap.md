@@ -67,23 +67,27 @@ UI : creation livree (units/new). Le reste existe cote logique metier (actions u
 
 ## Sprint 5 - Tenants and Leases
 
-Logique metier livree (createTenant, createLease, activateLease, endLease + migration lease_draft_status). UI proprietaire encore absente (le tableau de bord affiche "Ajouter un locataire" en bientot).
+UI livree : /tenants, /tenants/new, /leases, /leases/new, /leases/[id] (detail + activation + fin). Dashboard cable (CTA reels + etapes Locataire/Bail/Loyers).
 
-- [ ] Creer un locataire (logique prete, UI a faire)
-- [ ] Creer un bail (logique prete, UI a faire)
-- [ ] Associer un logement (logique prete, UI a faire)
+- [x] Creer un locataire (UI /tenants/new)
+- [x] Creer un bail (UI /leases/new, selecteurs logement + locataire)
+- [x] Associer un logement (choisi a la creation du bail)
+- [x] Activer / terminer un bail (UI /leases/[id])
 
 ## Sprint 6 - Rent Cycle
 
-Le coeur metier est en base et audite (SECURITY INVOKER, RLS applique). UI partielle.
+Flux boucle de bout en bout (UI + DB). Coeur metier audite (SECURITY INVOKER, RLS applique).
 
-- [x] Generer les echeances (generate_rent_dues, declenche a l'activation du bail ; marquage overdue planifie)
+- [x] Generer les echeances (generate_rent_dues a l'activation du bail ; visibles sur /leases/[id] ; marquage overdue planifie)
 - [x] Enregistrer une reception de loyer (record/confirm/cancel + durcissement migration 015)
 - [x] Gerer les allocations (allocation obligatoire, controle tenant + logement, paiement partiel non statutaire)
-- [~] Vue Encaissements : liste + recuperation des brouillons + confirmer/annuler (UI livree)
-- [ ] Formulaire encaisser (saisie + selecteur d'allocations) : UI a faire
-- [x] Generer une quittance (generate_receipt / cancel_receipt cote logique)
-- [ ] Vue quittances : UI a faire
+- [x] Vue Encaissements (/collections) : liste, brouillons en tete, confirmer/annuler
+- [x] Formulaire encaisser (/collections/new : bail actif -> allocation aux echeances impayees)
+- [x] Generer une quittance (generate_receipt depuis encaissement confirme)
+- [x] Vue quittances (/receipts + /receipts/[id] : detail, periodes reglees, annuler)
+
+Reste : UI modifier/archiver (units, properties, tenants), dashboard mensuel
+de synthese (payes / en retard / action), gestion visible des retards/relances.
 
 ## Sprint 7 - Beta
 
@@ -97,3 +101,6 @@ Le coeur metier est en base et audite (SECURITY INVOKER, RLS applique). UI parti
 - Vue Encaissements livree (/collections) : liste, brouillons en tete, confirmer / annuler.
 - Saisie telephone Benin : prefixe fixe 229, validation 01 + 10 chiffres, espacement automatique.
 - Infra Vercel reparee : monorepo Root Directory = apps/web, vercel.json racine supprime, projets dupliques nettoyes.
+- Flux proprietaire boucle de bout en bout : UI locataire, bail (creation/activation/fin), echeances visibles, formulaire encaisser avec allocation, vue + detail quittances. Dashboard cable.
+- Vrai logo Ranti (mark lignes de carnet) en favicon ; oeil afficher/masquer mot de passe ; messages auth explicites (compte existant / provider telephone desactive).
+- Note : login bloque tant que le provider Telephone Supabase Auth n'est pas active (config dashboard).
