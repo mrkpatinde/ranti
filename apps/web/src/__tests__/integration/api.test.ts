@@ -2,12 +2,23 @@ import { describe, it, expect } from "vitest"
 
 const BASE = "http://localhost:3300"
 
+async function serverUp(): Promise<boolean> {
+  try {
+    const r = await fetch(BASE, { method: "HEAD" })
+    return r.status > 0
+  } catch {
+    return false
+  }
+}
+const SERVER_UP = await serverUp()
+if (!SERVER_UP) console.warn("[skip] dev server not reachable on " + BASE + " — integration/load tests skipped")
+
 async function get(path: string): Promise<{ status: number; body: string }> {
   const res = await fetch(`${BASE}${path}`, { redirect: "manual" })
   return { status: res.status, body: await res.text() }
 }
 
-describe("API Integration — pages publiques", () => {
+describe.skipIf(!SERVER_UP)("API Integration — pages publiques", () => {
   it("GET / returns 200 with CTA", async () => {
     const { status, body } = await get("/")
     expect(status).toBe(200)
@@ -37,7 +48,7 @@ describe("API Integration — pages publiques", () => {
   })
 })
 
-describe("API Integration — protection des routes", () => {
+describe.skipIf(!SERVER_UP)("API Integration — protection des routes", () => {
   const protectedRoutes = [
     "/dashboard",
     "/properties",
@@ -61,7 +72,7 @@ describe("API Integration — protection des routes", () => {
   }
 })
 
-describe("API Integration — static assets", () => {
+describe.skipIf(!SERVER_UP)("API Integration — static assets", () => {
   it("GET /icon.svg returns 200", async () => {
     const { status } = await get("/icon.svg")
     expect(status).toBe(200)
@@ -73,7 +84,7 @@ describe("API Integration — static assets", () => {
   })
 })
 
-describe("API Integration — content security", () => {
+describe.skipIf(!SERVER_UP)("API Integration — content security", () => {
   it("login page has password recovery link", async () => {
     const { body } = await get("/login")
     expect(body).toContain("Mot de passe oublié")
@@ -95,7 +106,7 @@ describe("API Integration — content security", () => {
   })
 })
 
-describe("API Integration — HTTP security headers", () => {
+describe.skipIf(!SERVER_UP)("API Integration — HTTP security headers", () => {
   it("does not leak powered-by header", async () => {
     const res = await fetch(`${BASE}/`, { redirect: "manual" })
     // Next.js with poweredByHeader: false. In development mode
