@@ -6,17 +6,11 @@ Version 1.0 — approuvé.
 
 Ce document décrit l'expérience vécue par un propriétaire lorsqu'il utilise Ranti.
 
-Il ne décrit ni les écrans, ni les API, ni la base de données.
-
 Il décrit les situations réelles que vit un propriétaire et la manière dont Ranti l'accompagne.
 
 ## Principe
 
-Chaque parcours doit répondre à une question simple :
-
-> Que cherche réellement à accomplir le propriétaire à ce moment précis ?
-
-Ranti ne guide pas un utilisateur dans un logiciel.
+Chaque parcours doit clarifier l'objectif réel du propriétaire à ce moment précis.
 
 Ranti accompagne un propriétaire dans la gestion de ses relations locatives.
 
@@ -26,7 +20,7 @@ Ranti accompagne un propriétaire dans la gestion de ses relations locatives.
 
 Un propriétaire entend parler de Ranti.
 
-Il gère aujourd'hui ses loyers avec sa mémoire, WhatsApp, un cahier, Excel ou plusieurs méthodes en parallèle.
+Il gère aujourd'hui ses loyers avec sa mémoire, WhatsApp, un registre, Excel ou plusieurs méthodes en parallèle.
 
 ### Ce qu'il cherche
 
@@ -52,7 +46,7 @@ Créer son espace rapidement, sans avoir l'impression de remplir un formulaire.
 
 ### Ce qu'il doit ressentir
 
-"Je commence mon cahier de loyers."
+"Je commence mon registre de loyer."
 
 ### Résultat attendu
 
@@ -144,11 +138,7 @@ Le propriétaire ouvre Ranti quelques jours plus tard.
 
 ### Ce qu'il cherche
 
-Répondre en moins de 30 secondes à trois questions :
-
-- Ai-je reçu tous mes loyers ?
-- Qui est en retard ?
-- Dois-je faire quelque chose aujourd'hui ?
+Répondre rapidement aux questions principales : loyers reçus, retards, action utile.
 
 ### Ce qu'il doit ressentir
 
@@ -172,8 +162,6 @@ La relation locative reste claire et documentée.
 
 À chaque étape, le propriétaire doit avoir l'impression d'être chez lui.
 
-Il n'utilise pas un logiciel.
-
-Il ouvre son cahier de loyers.
+Il ouvre son registre de loyer.
 
 À chaque visite, Ranti doit lui donner davantage de tranquillité d'esprit qu'à son arrivée.
