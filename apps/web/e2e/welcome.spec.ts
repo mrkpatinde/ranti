@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test"
 
 test("landing shows the primary call to action", async ({ page }) => {
   await page.goto("/")
-  await expect(page.getByRole("heading", { name: /Suivez vos loyers/ })).toBeVisible()
-  await expect(page.getByRole("link", { name: "Créer mon espace" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: /Vos loyers, sans confusion/ })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Ouvrir mon espace propriétaire" })).toBeVisible()
   await expect(page.getByRole("link", { name: "Se connecter" })).toBeVisible()
 })
 
