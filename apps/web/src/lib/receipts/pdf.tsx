@@ -3,7 +3,7 @@ import type { Landlord } from "@/lib/landlords"
 import type { Receipt } from "./types"
 
 const methodLabels: Record<string, string> = {
-  cash: "Especes",
+  cash: "Espèces",
   mobile_money: "Mobile Money",
   bank_transfer: "Virement",
   other: "Autre",
@@ -11,7 +11,7 @@ const methodLabels: Record<string, string> = {
 
 const kindLabels: Record<string, string> = {
   quittance: "Quittance de loyer",
-  receipt: "Recu de paiement",
+  receipt: "Reçu de paiement",
 }
 
 function formatAmount(amount: number): string {
@@ -72,9 +72,9 @@ export function ReceiptPdf({
           <View>
             <Text style={s.title}>{kind}</Text>
             <Text style={[s.muted, { textAlign: "right" }]}>N° {receipt.receipt_number}</Text>
-            <Text style={[s.muted, { textAlign: "right" }]}>Emise le {formatDate(receipt.issued_at)}</Text>
+            <Text style={[s.muted, { textAlign: "right" }]}>Émise le {formatDate(receipt.issued_at)}</Text>
             {receipt.status === "cancelled" ? (
-              <Text style={[{ textAlign: "right", color: "#A32D2D" }]}>Annulee</Text>
+              <Text style={[{ textAlign: "right", color: "#A32D2D" }]}>Annulée</Text>
             ) : null}
           </View>
         </View>
@@ -85,11 +85,11 @@ export function ReceiptPdf({
             <Text style={s.strong}>
               {landlord.first_name} {landlord.last_name}
             </Text>
-            <Text style={s.muted}>Proprietaire</Text>
+            <Text style={s.muted}>Propriétaire</Text>
             {landlord.phone ? <Text style={s.muted}>{landlord.phone}</Text> : null}
           </View>
           <View style={{ width: "48%" }}>
-            <Text style={s.label}>A</Text>
+            <Text style={s.label}>À</Text>
             <Text style={s.strong}>
               {snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}` : "Locataire"}
             </Text>
@@ -101,7 +101,7 @@ export function ReceiptPdf({
         {snap.allocations && snap.allocations.length > 0 ? (
           <View style={s.block}>
             <View style={s.lineRow}>
-              <Text style={s.label}>Periode reglee</Text>
+              <Text style={s.label}>Période réglée</Text>
               <Text style={s.label}>Montant</Text>
             </View>
             {snap.allocations.map((a, i) => (
@@ -117,10 +117,10 @@ export function ReceiptPdf({
 
         <View style={[s.row, s.block, { alignItems: "center" }]}>
           <View>
-            <Text style={s.label}>Total paye</Text>
+            <Text style={s.label}>Total payé</Text>
             {snap.reception ? (
               <Text style={s.muted}>
-                {methodLabels[snap.reception.payment_method] ?? snap.reception.payment_method} - recu le{" "}
+                {methodLabels[snap.reception.payment_method] ?? snap.reception.payment_method} - reçu le{" "}
                 {formatDate(snap.reception.received_at)}
               </Text>
             ) : null}
@@ -130,8 +130,8 @@ export function ReceiptPdf({
 
         <Text style={s.mention}>
           {receipt.kind === "quittance"
-            ? "Le present document vaut quittance : le loyer de la periode ci-dessus est integralement paye."
-            : "Recu de paiement pour la somme ci-dessus. Le loyer n'est pas integralement solde : ce document ne vaut pas quittance."}
+            ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé."
+            : "Reçu de paiement pour la somme ci-dessus. Le loyer n'est pas intégralement soldé : ce document ne vaut pas quittance."}
         </Text>
 
         <View style={[s.row, { alignItems: "flex-end", marginTop: 8 }]}>
@@ -143,9 +143,9 @@ export function ReceiptPdf({
                 <Text style={s.muted}>QR</Text>
               </View>
             )}
-            <Text style={[s.muted, { marginLeft: 8, width: 120 }]}>Verifier l&apos;authenticite en ligne</Text>
+            <Text style={[s.muted, { marginLeft: 8, width: 120 }]}>Vérifier l&apos;authenticité en ligne</Text>
           </View>
-          <Text style={s.sigLine}>Signature du proprietaire</Text>
+          <Text style={s.sigLine}>Signature du propriétaire</Text>
         </View>
       </Page>
     </Document>

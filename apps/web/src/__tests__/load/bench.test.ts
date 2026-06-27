@@ -13,6 +13,17 @@ import { describe, it } from "vitest"
  */
 
 const BASE = "http://localhost:3300"
+
+async function serverUp(): Promise<boolean> {
+  try {
+    const r = await fetch(BASE, { method: "HEAD" })
+    return r.status > 0
+  } catch {
+    return false
+  }
+}
+const SERVER_UP = await serverUp()
+if (!SERVER_UP) console.warn("[skip] dev server not reachable on " + BASE + " — integration/load tests skipped")
 const CONCURRENCY = 20
 const REQUESTS_PER_ROUTE = 100
 
@@ -86,7 +97,7 @@ function summary(r: BenchResult): string {
   ].join(" ")
 }
 
-describe("Load test — landing page (static-ish)", () => {
+describe.skipIf(!SERVER_UP)("Load test — landing page (static-ish)", () => {
   it(`bench / with ${CONCURRENCY} concurrent × ${REQUESTS_PER_ROUTE} requests`, async () => {
     const r = await benchRoute("/", CONCURRENCY, REQUESTS_PER_ROUTE)
     console.log("\n  " + summary(r))
@@ -99,7 +110,7 @@ describe("Load test — landing page (static-ish)", () => {
   }, 30000)
 })
 
-describe("Load test — login page (dynamic)", () => {
+describe.skipIf(!SERVER_UP)("Load test — login page (dynamic)", () => {
   it(`bench /login with ${CONCURRENCY} concurrent × ${REQUESTS_PER_ROUTE} requests`, async () => {
     const r = await benchRoute("/login", CONCURRENCY, REQUESTS_PER_ROUTE)
     console.log("\n  " + summary(r))
@@ -112,7 +123,7 @@ describe("Load test — login page (dynamic)", () => {
   }, 30000)
 })
 
-describe("Load test — signup page (dynamic + form)", () => {
+describe.skipIf(!SERVER_UP)("Load test — signup page (dynamic + form)", () => {
   it(`bench /signup with ${Math.floor(CONCURRENCY/2)} concurrent × ${Math.floor(REQUESTS_PER_ROUTE/2)} requests`, async () => {
     const r = await benchRoute("/signup", Math.floor(CONCURRENCY/2), Math.floor(REQUESTS_PER_ROUTE/2))
     console.log("\n  " + summary(r))
@@ -124,7 +135,7 @@ describe("Load test — signup page (dynamic + form)", () => {
   }, 30000)
 })
 
-describe("Load test — mixed workload", () => {
+describe.skipIf(!SERVER_UP)("Load test — mixed workload", () => {
   it("handles mixed routes concurrently without errors", async () => {
     const routes = ["/", "/login", "/signup", "/recover", "/auth/error"]
     const perRoute = 20

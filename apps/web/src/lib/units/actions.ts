@@ -52,7 +52,7 @@ export async function createUnit(formData: FormData) {
     .maybeSingle()
 
   if (!property) {
-    unitError("Lieu introuvable. Creez d'abord un lieu.")
+    unitError("Lieu introuvable. Créez d'abord un lieu.")
   }
 
   const { error } = await supabase.from("units").insert({
@@ -65,7 +65,7 @@ export async function createUnit(formData: FormData) {
   })
 
   if (error) {
-    unitError("Impossible de creer ce logement. Reessayez.")
+    unitError("Impossible de créer ce logement. Réessayez.")
   }
 
   revalidatePath("/dashboard")
@@ -110,8 +110,8 @@ export async function updateUnit(formData: FormData) {
     // unique (property_id, name)
     const message =
       error.code === "23505"
-        ? "Un logement porte deja ce nom dans ce lieu."
-        : "Impossible d'enregistrer. Reessayez."
+        ? "Un logement porte déjà ce nom dans ce lieu."
+        : "Impossible d'enregistrer. Réessayez."
     redirect(`/units/${id}/edit?error=${encodeURIComponent(message)}`)
   }
 
@@ -148,7 +148,7 @@ export async function setUnitAvailability(formData: FormData) {
     .is("deleted_at", null)
 
   if (error) {
-    redirect(`/units/${id}?error=${encodeURIComponent("Impossible de changer le statut. Reessayez.")}`)
+    redirect(`/units/${id}?error=${encodeURIComponent("Impossible de changer le statut. Réessayez.")}`)
   }
 
   revalidatePath("/dashboard")
@@ -193,7 +193,7 @@ export async function archiveUnit(formData: FormData) {
     .is("deleted_at", null)
 
   if (error) {
-    redirect(`/units/${id}?error=${encodeURIComponent("Impossible d'archiver. Reessayez.")}`)
+    redirect(`/units/${id}?error=${encodeURIComponent("Impossible d'archiver. Réessayez.")}`)
   }
 
   revalidatePath("/dashboard")
