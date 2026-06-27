@@ -104,7 +104,9 @@ CREATE POLICY "Landlords see own reminders" ON reminders
 -- Les landlords n'ont pas le droit d'insérer/modifier des reminders
 
 -- 6. AUDIT TRIGGER SUR reminders
-SELECT audit.create_trigger('reminders');
+create trigger reminders_audit
+  after insert or update on public.reminders
+  for each row execute function private.log_audit();
 
 COMMIT;
 
