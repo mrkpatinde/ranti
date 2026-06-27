@@ -2,7 +2,7 @@ import Link from "next/link"
 import { recordCollection } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeases, getLease } from "@/lib/leases"
-import { getLeaseRentDues } from "@/lib/rent-dues"
+import { getLeaseDueBalances } from "@/lib/rent-dues"
 import { getLandlordTenants, getTenant } from "@/lib/tenants"
 import { getLandlordUnits, getUnit } from "@/lib/units"
 
@@ -118,10 +118,14 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
   const [tenant, unit, dues] = await Promise.all([
     getTenant(landlord.id, lease.tenant_id),
     getUnit(landlord.id, lease.unit_id),
-    getLeaseRentDues(landlord.id, lease.id),
+    getLeaseDueBalances(landlord.id, lease.id),
   ])
-  const unpaid = dues.filter((d) => d.status === "expected" || d.status === "overdue")
-  const total = unpaid.reduce((sum, d) => sum + d.amount_due, 0)
+  // Remaining = amount_due - already-paid; only dues still owing something.
+  const unpaid = dues
+    .filter((d) => d.status === "expected" || d.status === "overdue")
+    .map((d) => ({ ...d, remaining: Math.max(0, d.amount_due - d.amount_paid) }))
+    .filter((d) => d.remaining > 0)
+  const total = unpaid.reduce((sum, d) => sum + d.remaining, 0)
 
   return (
     <Shell subtitle="Encaisser un loyer">
@@ -188,15 +192,18 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
                 className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800"
               >
                 <div>
-                  <p className="font-medium text-neutral-950 dark:text-neutral-50">{formatAmount(due.amount_due)}</p>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">échéance {formatDate(due.due_date)}</p>
+                  <p className="font-medium text-neutral-950 dark:text-neutral-50">reste {formatAmount(due.remaining)}</p>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    échéance {formatDate(due.due_date)}
+                    {due.amount_paid > 0 ? ` · ${formatAmount(due.amount_paid)} déjà reçu` : ""}
+                  </p>
                 </div>
                 <input type="hidden" name="allocation_due_id" value={due.id} />
                 <input
                   name="allocation_amount"
                   type="text"
                   inputMode="numeric"
-                  defaultValue={String(due.amount_due)}
+                  defaultValue={String(due.remaining)}
                   aria-label={`Montant alloué à l'échéance du ${formatDate(due.due_date)}`}
                   className="w-32 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
                 />
