@@ -1,5 +1,8 @@
 export type ReceiptStatus = "issued" | "cancelled"
 
+// quittance = rent fully paid; receipt = partial payment proof.
+export type ReceiptKind = "receipt" | "quittance"
+
 export type ReceiptSnapshot = {
   tenant?: { first_name: string; last_name: string; phone: string | null }
   unit?: { name: string; type: string }
@@ -21,6 +24,7 @@ export type Receipt = {
   total_amount: number
   currency: string
   status: ReceiptStatus
+  kind: ReceiptKind
   pdf_storage_path: string | null
   cancelled_at: string | null
   cancellation_reason: string | null

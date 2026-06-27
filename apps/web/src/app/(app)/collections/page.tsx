@@ -8,7 +8,7 @@ import {
   type PaymentMethod,
 } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
-import { generateReceipt } from "@/lib/receipts"
+import { generateReceipt, getLandlordReceipts } from "@/lib/receipts"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 
@@ -76,11 +76,18 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
   // getLandlordCollections throws (CollectionsQueryError) on a technical/RLS
   // failure instead of returning [] — so a real fault surfaces as an error page
   // rather than being silently shown as "aucun encaissement".
-  const [collections, tenants, units] = await Promise.all([
+  const [collections, tenants, units, receipts] = await Promise.all([
     getLandlordCollections(landlord.id),
     getLandlordTenants(landlord.id),
     getLandlordUnits(landlord.id),
+    getLandlordReceipts(landlord.id),
   ])
+
+  // A reception that already has a (non-cancelled) document: link to it instead
+  // of offering to generate again.
+  const receiptByReception = new Map(
+    receipts.filter((r) => r.status !== "cancelled").map((r) => [r.rent_reception_id, r]),
+  )
 
   const tenantName = (id: string): string => {
     const t = tenants.find((tenant) => tenant.id === id)
@@ -218,15 +225,24 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                 ) : null}
 
                 {c.status === "confirmed" ? (
-                  <form action={generateReceipt} className="mt-5">
-                    <input type="hidden" name="reception_id" value={c.id} />
-                    <button
-                      type="submit"
-                      className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+                  receiptByReception.has(c.id) ? (
+                    <Link
+                      href={`/receipts/${receiptByReception.get(c.id)!.id}`}
+                      className="mt-5 inline-flex rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
                     >
-                      Générer la quittance
-                    </button>
-                  </form>
+                      Voir le justificatif
+                    </Link>
+                  ) : (
+                    <form action={generateReceipt} className="mt-5">
+                      <input type="hidden" name="reception_id" value={c.id} />
+                      <button
+                        type="submit"
+                        className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+                      >
+                        Générer le justificatif
+                      </button>
+                    </form>
+                  )
                 ) : null}
               </article>
             ))}

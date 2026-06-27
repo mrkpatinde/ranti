@@ -21,9 +21,14 @@ const methodLabels: Record<string, string> = {
   other: "Autre",
 }
 
+const kindLabels = {
+  quittance: "Quittance de loyer",
+  receipt: "Reçu de paiement",
+} as const
+
 const noticeLabels: Record<string, string> = {
-  receipt_generated: "Quittance générée.",
-  receipt_cancelled: "Quittance annulée.",
+  receipt_generated: "Document généré.",
+  receipt_cancelled: "Document annulé.",
 }
 
 function formatAmount(amount: number): string {
@@ -54,10 +59,10 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
       <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">Ranti</p>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Quittance</p>
+          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">{kindLabels[receipt.kind]}</p>
         </div>
         <Link href="/receipts" className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300">
-          Toutes les quittances
+          Tous les documents
         </Link>
       </header>
 
@@ -77,7 +82,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                Quittance {receipt.receipt_number}
+                {kindLabels[receipt.kind]} {receipt.receipt_number}
               </h1>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                 Émise le {formatDate(receipt.issued_at)}
@@ -140,13 +145,23 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           ) : null}
 
           {receipt.status === "issued" ? (
-            <form action={cancelReceipt} className="mt-6">
+            <form action={cancelReceipt} className="mt-6 space-y-3 border-t border-neutral-200 pt-5 dark:border-neutral-800">
               <input type="hidden" name="id" value={receipt.id} />
+              <label htmlFor="reason" className="block text-sm font-medium text-neutral-800 dark:text-neutral-100">
+                Motif d&apos;annulation
+              </label>
+              <textarea
+                id="reason"
+                name="reason"
+                rows={2}
+                placeholder="Ex. erreur de montant, paiement non reçu"
+                className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+              />
               <button
                 type="submit"
                 className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
               >
-                Annuler la quittance
+                Annuler ce document
               </button>
             </form>
           ) : null}
