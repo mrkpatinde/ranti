@@ -61,9 +61,17 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">Ranti</p>
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">{kindLabels[receipt.kind]}</p>
         </div>
-        <Link href="/receipts" className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300">
-          Tous les documents
-        </Link>
+        <div className="flex items-center gap-3">
+          <a
+            href={`/receipts/${receipt.id}/pdf`}
+            className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+          >
+            Télécharger le PDF
+          </a>
+          <Link href="/receipts" className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300">
+            Tous les documents
+          </Link>
+        </div>
       </header>
 
       <section className="flex flex-1 flex-col gap-8 py-10">
