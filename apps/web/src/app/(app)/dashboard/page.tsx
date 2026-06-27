@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { isLocalAuthEnabled } from "@/lib/auth"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getLandlordLeases } from "@/lib/leases"
 import { getLandlordProperties } from "@/lib/properties"
+import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 
 const unitTypeLabels: Record<string, string> = {
@@ -15,23 +17,36 @@ const unitTypeLabels: Record<string, string> = {
   other: "Autre",
 }
 
-function buildSetupSteps(hasProperties: boolean, hasUnits: boolean) {
+function buildSetupSteps(
+  hasProperties: boolean,
+  hasUnits: boolean,
+  hasTenants: boolean,
+  hasLeases: boolean,
+  hasActiveLease: boolean
+) {
   return [
     { label: "Bien", done: hasProperties },
     { label: "Logement", done: hasUnits },
-    { label: "Locataire", done: false },
-    { label: "Bail", done: false },
-    { label: "Loyers", done: false },
+    { label: "Locataire", done: hasTenants },
+    { label: "Bail", done: hasLeases },
+    { label: "Loyers", done: hasActiveLease },
   ]
 }
 
 export default async function DashboardPage() {
   const landlord = await requireLandlordProfile()
-  const properties = await getLandlordProperties(landlord.id)
-  const units = await getLandlordUnits(landlord.id)
+  const [properties, units, tenants, leases] = await Promise.all([
+    getLandlordProperties(landlord.id),
+    getLandlordUnits(landlord.id),
+    getLandlordTenants(landlord.id),
+    getLandlordLeases(landlord.id),
+  ])
   const hasProperties = properties.length > 0
   const hasUnits = units.length > 0
-  const setupSteps = buildSetupSteps(hasProperties, hasUnits)
+  const hasTenants = tenants.length > 0
+  const hasLeases = leases.length > 0
+  const hasActiveLease = leases.some((lease) => lease.status === "active")
+  const setupSteps = buildSetupSteps(hasProperties, hasUnits, hasTenants, hasLeases, hasActiveLease)
   const isLocalMode = isLocalAuthEnabled()
 
   return (
@@ -46,7 +61,19 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/tenants"
+            className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+          >
+            Locataires
+          </Link>
+          <Link
+            href="/leases"
+            className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+          >
+            Baux
+          </Link>
           <Link
             href="/collections"
             className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
@@ -162,7 +189,13 @@ export default async function DashboardPage() {
                 Vos logements
               </h2>
               <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
-                Le premier logement est prêt. La prochaine étape sera d&apos;ajouter un locataire.
+                {hasActiveLease
+                  ? "Vos baux sont actifs. Suivez les loyers reçus et en retard."
+                  : hasLeases
+                    ? "Activez votre bail pour générer les échéances de loyer."
+                    : hasTenants
+                      ? "Créez un bail entre un logement et un locataire."
+                      : "Le premier logement est prêt. Ajoutez maintenant un locataire."}
               </p>
             </div>
 
@@ -182,13 +215,20 @@ export default async function DashboardPage() {
               ))}
             </div>
 
-            <button
-              type="button"
-              disabled
-              className="rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white opacity-60 dark:bg-neutral-50 dark:text-neutral-950"
-            >
-              Ajouter un locataire (bientôt)
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/tenants/new"
+                className="inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+              >
+                Ajouter un locataire
+              </Link>
+              <Link
+                href="/leases/new"
+                className="inline-flex rounded-xl border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+              >
+                Créer un bail
+              </Link>
+            </div>
           </div>
         ) : null}
       </section>
