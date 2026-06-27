@@ -4,7 +4,6 @@ import { confirmRentPayment } from "./actions";
 
 // ============================================================
 // Page de confirmation locataire — publique, zéro auth
-// Le locataire arrive via le lien dans le SMS (ranti.app/c/[token])
 // ============================================================
 
 function formatAmount(amount: number): string {
@@ -27,7 +26,6 @@ export default async function ConfirmerPage({
   const { token } = await params;
   const supabase = await createClient();
 
-  // Valider le format du token (UUID)
   if (
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
       token,
@@ -36,11 +34,10 @@ export default async function ConfirmerPage({
     notFound();
   }
 
-  // Chercher l'échéance correspondante
   const { data: rentDue, error } = await supabase
     .from("rent_dues")
     .select(
-      "id, amount_due, currency, due_date, period_start, period_end, status, unit:units(name), tenant:tenants(first_name, last_name)",
+      "id, amount_due, currency, due_date, period_start, period_end, status, unit_id, tenant_id, unit:units(name), tenant:tenants(first_name, last_name)",
     )
     .eq("confirmation_token", token)
     .maybeSingle();
@@ -49,12 +46,12 @@ export default async function ConfirmerPage({
     notFound();
   }
 
-  // Vérifier si déjà confirmé ou payé
+  // Vérifier si déjà une déclaration existe pour cette période
   const { data: existingReception } = await supabase
     .from("rent_receptions")
     .select("id, status")
-    .eq("unit_id", (rentDue as any).unit?.id)
-    .eq("tenant_id", (rentDue as any).tenant?.id)
+    .eq("unit_id", rentDue.unit_id)
+    .eq("tenant_id", rentDue.tenant_id)
     .gte("received_at", rentDue.period_start)
     .lte("received_at", rentDue.period_end)
     .order("created_at", { ascending: false })
@@ -63,6 +60,17 @@ export default async function ConfirmerPage({
 
   const alreadyDraft = existingReception?.status === "draft";
   const alreadyConfirmed = existingReception?.status === "confirmed";
+
+  // Noms pour l'affichage (issus des jointures Supabase)
+  type RentDueJoined = typeof rentDue & {
+    unit?: { name?: string } | null;
+    tenant?: { first_name?: string; last_name?: string } | null;
+  };
+  const joined = rentDue as RentDueJoined;
+  const unitName = joined.unit?.name || "Logement";
+  const tenantDisplay = joined.tenant
+    ? `${joined.tenant.first_name} ${joined.tenant.last_name}`
+    : "Locataire";
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-6 py-16">
@@ -76,33 +84,40 @@ export default async function ConfirmerPage({
         </h1>
 
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-          {(rentDue as any).unit?.name || "Logement"}
+          {unitName}
         </p>
 
         {/* Détails de l'échéance */}
         <div className="mt-8 space-y-4 rounded-2xl border border-neutral-100 bg-neutral-50 p-5 dark:border-neutral-800 dark:bg-neutral-900">
           <div className="flex justify-between text-sm">
-            <span className="text-neutral-500 dark:text-neutral-400">Locataire</span>
+            <span className="text-neutral-500 dark:text-neutral-400">
+              Locataire
+            </span>
             <span className="font-medium text-neutral-900 dark:text-neutral-100">
-              {(rentDue as any).tenant?.first_name}{" "}
-              {(rentDue as any).tenant?.last_name}
+              {tenantDisplay}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-neutral-500 dark:text-neutral-400">Période</span>
+            <span className="text-neutral-500 dark:text-neutral-400">
+              Période
+            </span>
             <span className="text-neutral-900 dark:text-neutral-100">
               {formatDate(rentDue.period_start)} –{" "}
               {formatDate(rentDue.period_end)}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-neutral-500 dark:text-neutral-400">Échéance</span>
+            <span className="text-neutral-500 dark:text-neutral-400">
+              Échéance
+            </span>
             <span className="text-neutral-900 dark:text-neutral-100">
               {formatDate(rentDue.due_date)}
             </span>
           </div>
           <div className="flex justify-between border-t border-neutral-200 pt-3 text-sm font-semibold dark:border-neutral-700">
-            <span className="text-neutral-700 dark:text-neutral-300">Montant</span>
+            <span className="text-neutral-700 dark:text-neutral-300">
+              Montant
+            </span>
             <span className="text-lg text-neutral-950 dark:text-neutral-50">
               {formatAmount(rentDue.amount_due)}
             </span>
@@ -120,7 +135,8 @@ export default async function ConfirmerPage({
           ) : alreadyDraft ? (
             <div className="space-y-4 text-center">
               <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-                Votre déclaration a bien été enregistrée. Le propriétaire va la vérifier.
+                Votre déclaration a bien été enregistrée. Le propriétaire va la
+                vérifier.
               </p>
             </div>
           ) : rentDue.status === "paid" ? (
@@ -138,8 +154,8 @@ export default async function ConfirmerPage({
                 J&apos;ai payé ce loyer
               </button>
               <p className="mt-4 text-center text-xs text-neutral-400 dark:text-neutral-500">
-                En cliquant, vous confirmez avoir payé votre loyer.
-                Le propriétaire validera cette déclaration.
+                En cliquant, vous confirmez avoir payé votre loyer. Le
+                propriétaire validera cette déclaration.
               </p>
             </form>
           )}
