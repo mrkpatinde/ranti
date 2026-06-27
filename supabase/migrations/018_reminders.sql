@@ -48,6 +48,7 @@ BEGIN
 END $$;
 
 -- Recréer la contrainte avec les 3 statuts
+ALTER TABLE rent_receptions DROP CONSTRAINT IF EXISTS rent_receptions_status_check;
 ALTER TABLE rent_receptions
   ADD CONSTRAINT rent_receptions_status_check
   CHECK (status IN ('draft', 'confirmed', 'cancelled'));
