@@ -8,6 +8,7 @@ import {
   type PaymentMethod,
 } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { generateReceipt } from "@/lib/receipts"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 
@@ -214,6 +215,18 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                       </button>
                     </form>
                   </div>
+                ) : null}
+
+                {c.status === "confirmed" ? (
+                  <form action={generateReceipt} className="mt-5">
+                    <input type="hidden" name="reception_id" value={c.id} />
+                    <button
+                      type="submit"
+                      className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+                    >
+                      Générer la quittance
+                    </button>
+                  </form>
                 ) : null}
               </article>
             ))}
