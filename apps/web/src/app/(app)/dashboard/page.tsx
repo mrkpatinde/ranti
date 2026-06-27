@@ -3,7 +3,7 @@ import { isLocalAuthEnabled } from "@/lib/auth"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeases } from "@/lib/leases"
 import { getLandlordProperties } from "@/lib/properties"
-import { getLandlordRentDues } from "@/lib/rent-dues"
+import { getLandlordDueBalances } from "@/lib/rent-dues"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 
@@ -49,7 +49,7 @@ export default async function DashboardPage() {
     getLandlordUnits(landlord.id),
     getLandlordTenants(landlord.id),
     getLandlordLeases(landlord.id),
-    getLandlordRentDues(landlord.id),
+    getLandlordDueBalances(landlord.id),
   ])
   const hasProperties = properties.length > 0
   const hasUnits = units.length > 0
@@ -65,10 +65,15 @@ export default async function DashboardPage() {
     const t = tenants.find((x) => x.id === id)
     return t ? `${t.first_name} ${t.last_name}` : "Locataire"
   }
+  const remaining = (d: (typeof dues)[number]): number => Math.max(0, d.amount_due - d.amount_paid)
   const overdue = dues.filter((d) => d.status === "overdue")
   const expected = dues.filter((d) => d.status === "expected")
-  const paid = dues.filter((d) => d.status === "paid")
-  const sum = (list: typeof dues): number => list.reduce((total, d) => total + d.amount_due, 0)
+  // Sums use the remaining amount so a partial payment lowers "à encaisser".
+  const sumRemaining = (list: typeof dues): number => list.reduce((total, d) => total + remaining(d), 0)
+  const overdueRemaining = sumRemaining(overdue)
+  const expectedRemaining = sumRemaining(expected)
+  const totalPaid = dues.reduce((total, d) => total + d.amount_paid, 0)
+  const paidCount = dues.filter((d) => d.status === "paid").length
   // Action list: late first, then upcoming, soonest due date first.
   const actionDues = [...overdue, ...expected].sort((a, b) => a.due_date.localeCompare(b.due_date))
 
@@ -161,18 +166,18 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
                 <p className="text-sm text-red-900 dark:text-red-100">En retard</p>
-                <p className="mt-1 text-2xl font-semibold text-red-950 dark:text-red-50">{formatAmount(sum(overdue))}</p>
+                <p className="mt-1 text-2xl font-semibold text-red-950 dark:text-red-50">{formatAmount(overdueRemaining)}</p>
                 <p className="text-sm text-red-800 dark:text-red-200">{overdue.length} échéance{overdue.length > 1 ? "s" : ""}</p>
               </div>
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950">
                 <p className="text-sm text-amber-900 dark:text-amber-100">Attendu</p>
-                <p className="mt-1 text-2xl font-semibold text-amber-950 dark:text-amber-50">{formatAmount(sum(expected))}</p>
+                <p className="mt-1 text-2xl font-semibold text-amber-950 dark:text-amber-50">{formatAmount(expectedRemaining)}</p>
                 <p className="text-sm text-amber-800 dark:text-amber-200">{expected.length} échéance{expected.length > 1 ? "s" : ""}</p>
               </div>
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950">
                 <p className="text-sm text-emerald-900 dark:text-emerald-100">Payé</p>
-                <p className="mt-1 text-2xl font-semibold text-emerald-950 dark:text-emerald-50">{formatAmount(sum(paid))}</p>
-                <p className="text-sm text-emerald-800 dark:text-emerald-200">{paid.length} échéance{paid.length > 1 ? "s" : ""}</p>
+                <p className="mt-1 text-2xl font-semibold text-emerald-950 dark:text-emerald-50">{formatAmount(totalPaid)}</p>
+                <p className="text-sm text-emerald-800 dark:text-emerald-200">{paidCount} soldée{paidCount > 1 ? "s" : ""}</p>
               </div>
             </div>
 
@@ -196,7 +201,8 @@ export default async function DashboardPage() {
                           {tenantName(due.tenant_id)} — {unitName(due.unit_id)}
                         </p>
                         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                          {formatAmount(due.amount_due)} · échéance {formatDate(due.due_date)}
+                          reste {formatAmount(remaining(due))} · échéance {formatDate(due.due_date)}
+                          {due.amount_paid > 0 ? ` · ${formatAmount(due.amount_paid)} déjà reçu` : ""}
                           {due.status === "overdue" ? " · en retard" : ""}
                         </p>
                       </div>

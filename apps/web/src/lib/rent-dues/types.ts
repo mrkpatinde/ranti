@@ -17,3 +17,8 @@ export type RentDue = {
   updated_at: string
   deleted_at: string | null
 }
+
+// rent_dues + confirmed allocations sum (view rent_due_balances).
+export type RentDueBalance = RentDue & {
+  amount_paid: number
+}
