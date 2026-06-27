@@ -61,7 +61,7 @@ export async function recordCollection(formData: FormData) {
   const allocations = readAllocations(formData)
 
   const back = (msg: string): never =>
-    redirect(`/dashboard?error=${encodeURIComponent(msg)}`)
+    redirect(`/collections?error=${encodeURIComponent(msg)}`)
 
   if (!tenantId || !unitId) back("Locataire ou logement manquant.")
   if (!amount) back("Indiquez le montant encaissé.")
@@ -101,38 +101,38 @@ export async function recordCollection(formData: FormData) {
     if (cancelError) {
       // Cleanup itself failed: the draft persists. Fall back to the recoverable
       // notice rather than pretend success.
-      redirect(`/dashboard?notice=collection_recorded_unconfirmed`)
+      redirect(`/collections?notice=collection_recorded_unconfirmed`)
     }
 
     back("Encaissement non enregistré (échec de confirmation). Réessayez.")
   }
 
-  revalidatePath("/dashboard")
-  redirect(`/dashboard?notice=collection_confirmed`)
+  revalidatePath("/collections")
+  redirect(`/collections?notice=collection_confirmed`)
 }
 
 export async function confirmCollection(formData: FormData) {
   await requireLandlordProfile()
 
   const id = readString(formData, "id")
-  if (!id) redirect(`/dashboard?error=${encodeURIComponent("Encaissement introuvable.")}`)
+  if (!id) redirect(`/collections?error=${encodeURIComponent("Encaissement introuvable.")}`)
 
   const supabase = await createClient()
   const { error } = await supabase.rpc("confirm_collection", { p_reception_id: id })
 
   if (error) {
-    redirect(`/dashboard?error=${encodeURIComponent("Confirmation impossible. Réessayez.")}`)
+    redirect(`/collections?error=${encodeURIComponent("Confirmation impossible. Réessayez.")}`)
   }
 
-  revalidatePath("/dashboard")
-  redirect(`/dashboard?notice=collection_confirmed`)
+  revalidatePath("/collections")
+  redirect(`/collections?notice=collection_confirmed`)
 }
 
 export async function cancelCollection(formData: FormData) {
   await requireLandlordProfile()
 
   const id = readString(formData, "id")
-  if (!id) redirect(`/dashboard?error=${encodeURIComponent("Encaissement introuvable.")}`)
+  if (!id) redirect(`/collections?error=${encodeURIComponent("Encaissement introuvable.")}`)
 
   const reason = readString(formData, "reason")
 
@@ -146,9 +146,9 @@ export async function cancelCollection(formData: FormData) {
     const message = error.message.includes("has_receipt")
       ? "Impossible : une quittance a déjà été générée."
       : "Annulation impossible. Réessayez."
-    redirect(`/dashboard?error=${encodeURIComponent(message)}`)
+    redirect(`/collections?error=${encodeURIComponent(message)}`)
   }
 
-  revalidatePath("/dashboard")
-  redirect(`/dashboard?notice=collection_cancelled`)
+  revalidatePath("/collections")
+  redirect(`/collections?notice=collection_cancelled`)
 }
