@@ -14,7 +14,7 @@ export async function signUpWithPhonePassword(formData: FormData): Promise<AuthR
   if (!phone) {
     return {
       ok: false,
-      message: "Numéro invalide. Utilisez le format international, par exemple +229…",
+      message: "Numéro invalide. Entrez votre numéro béninois (10 chiffres commençant par 01).",
       code: "invalid_phone_input",
     }
   }
@@ -34,12 +34,16 @@ export async function signUpWithPhonePassword(formData: FormData): Promise<AuthR
   if (error) {
     const alreadyExists =
       error.code === "user_already_exists" || /already.*regist/i.test(error.message)
+    const providerDisabled =
+      error.code === "phone_provider_disabled" || /phone.*(sign|log).*disabled/i.test(error.message)
 
     return {
       ok: false,
       message: alreadyExists
         ? "Ce numéro a déjà un espace. Connectez-vous."
-        : "Création de l'espace impossible. Réessayez.",
+        : providerDisabled
+          ? "Inscription par téléphone indisponible pour le moment. Réessayez plus tard."
+          : "Création de l'espace impossible. Réessayez.",
       code: alreadyExists ? "user_already_exists" : error.code,
     }
   }
@@ -129,9 +133,14 @@ export async function signInWithPhonePassword(formData: FormData): Promise<AuthR
   const { error } = await supabase.auth.signInWithPassword({ phone, password })
 
   if (error) {
+    const providerDisabled =
+      error.code === "phone_provider_disabled" || /phone.*(sign|log).*disabled/i.test(error.message)
+
     return {
       ok: false,
-      message: "Connexion impossible. Vérifiez votre numéro et votre mot de passe.",
+      message: providerDisabled
+        ? "Connexion par téléphone indisponible pour le moment. Réessayez plus tard."
+        : "Connexion impossible. Vérifiez votre numéro et votre mot de passe.",
       code: error.code,
     }
   }
