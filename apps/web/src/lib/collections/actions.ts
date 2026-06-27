@@ -36,8 +36,10 @@ function readAllocations(formData: FormData): CollectionAllocation[] {
 
 function collectionErrorMessage(message: string): string {
   if (message.includes("allocations_exceed")) return "La somme allouée dépasse le montant reçu."
+  if (message.includes("allocation_required")) return "Affectez l'encaissement à au moins une échéance."
   if (message.includes("amount_invalid")) return "Indiquez un montant valide."
   if (message.includes("method_invalid")) return "Méthode de paiement invalide."
+  if (message.includes("due_unit_mismatch")) return "Une échéance ne correspond pas au logement encaissé."
   if (message.includes("due_tenant_mismatch")) return "Une échéance ne correspond pas à ce locataire."
   if (message.includes("due_cancelled")) return "Une échéance annulée ne peut pas être encaissée."
   if (message.includes("not_found")) return "Donnée introuvable."
@@ -87,7 +89,22 @@ export async function recordCollection(formData: FormData) {
   })
 
   if (confirmError) {
-    redirect(`/dashboard?notice=collection_recorded_unconfirmed`)
+    // Guard: a failed confirm would leave an unconfirmed draft that no current
+    // UI surfaces — money "received" with no visible impact on the dues. Roll it
+    // back to a cancelled (audited) trace so nothing is silently stranded, then
+    // tell the owner the encaissement was NOT recorded so they retry.
+    const { error: cancelError } = await supabase.rpc("cancel_collection", {
+      p_reception_id: receptionId,
+      p_reason: "Annulation auto : confirmation échouée à l'enregistrement.",
+    })
+
+    if (cancelError) {
+      // Cleanup itself failed: the draft persists. Fall back to the recoverable
+      // notice rather than pretend success.
+      redirect(`/dashboard?notice=collection_recorded_unconfirmed`)
+    }
+
+    back("Encaissement non enregistré (échec de confirmation). Réessayez.")
   }
 
   revalidatePath("/dashboard")
