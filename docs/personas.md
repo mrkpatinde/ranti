@@ -16,7 +16,7 @@ Hypothèse prioritaire à valider terrain.
 
 Le propriétaire particulier possède ou gère entre 1 et 20 logements.
 
-Il n'est pas une agence immobilière structurée. Il gère ses loyers avec des outils simples : cahier papier, WhatsApp, appels, mémoire, captures Mobile Money, reçus manuels ou Excel basique.
+Il n'est pas une agence immobilière structurée. Il gère ses loyers avec des outils simples : registre papier, WhatsApp, appels, mémoire, captures Mobile Money, reçus manuels ou Excel basique.
 
 ### Problème principal
 
@@ -28,7 +28,7 @@ Il veut savoir rapidement :
 
 ### Comportements actuels probables
 
-- Il note les paiements dans un cahier.
+- Il note les paiements dans un registre.
 - Il reçoit des preuves par WhatsApp.
 - Il appelle ou écrit aux locataires en retard.
 - Il peut oublier de relancer certains locataires.
@@ -51,7 +51,7 @@ Il veut savoir rapidement :
 
 ### Critère de réussite
 
-Il peut remplacer son cahier de loyers pour le suivi mensuel sans perdre en simplicité.
+Il peut remplacer son registre de loyer pour le suivi mensuel sans perdre en simplicité.
 
 ## Persona secondaire — Le locataire
 
@@ -136,7 +136,7 @@ Le petit gestionnaire local est observé, mais il ne pilote pas le MVP.
 4. Comment reçoit-il les preuves de paiement ?
 5. Comment produit-il un reçu ?
 6. Qu'est-ce qui crée le plus de conflits ?
-7. Quel outil utilise-t-il le plus : cahier, WhatsApp, Excel, appels ?
+7. Quel outil utilise-t-il le plus : registre, WhatsApp, Excel, appels ?
 8. Accepterait-il de saisir chaque paiement dans Ranti ?
 9. Le locataire devrait-il interagir avec Ranti ou seulement le propriétaire ?
 10. Quel serait le moment exact où Ranti lui ferait gagner du temps ?
