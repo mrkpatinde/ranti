@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { failQuery } from "@/lib/supabase/query-error"
 import type { RentDue } from "./types"
 
 export async function getLandlordRentDues(landlordId: string): Promise<RentDue[]> {
@@ -11,9 +12,7 @@ export async function getLandlordRentDues(landlordId: string): Promise<RentDue[]
     .is("deleted_at", null)
     .order("due_date", { ascending: true })
 
-  if (error) {
-    return []
-  }
+  if (error) failQuery("rent_dues", error)
 
   return (data ?? []) as RentDue[]
 }
@@ -29,9 +28,7 @@ export async function getLeaseRentDues(landlordId: string, leaseId: string): Pro
     .is("deleted_at", null)
     .order("period_start", { ascending: true })
 
-  if (error) {
-    return []
-  }
+  if (error) failQuery("rent_dues", error)
 
   return (data ?? []) as RentDue[]
 }
@@ -39,13 +36,15 @@ export async function getLeaseRentDues(landlordId: string, leaseId: string): Pro
 export async function getRentDue(landlordId: string, id: string): Promise<RentDue | null> {
   const supabase = await createClient()
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("rent_dues")
     .select("*")
     .eq("id", id)
     .eq("landlord_id", landlordId)
     .is("deleted_at", null)
     .maybeSingle()
+
+  if (error) failQuery("rent_dues", error)
 
   return (data as RentDue | null) ?? null
 }
