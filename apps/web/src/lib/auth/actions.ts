@@ -234,7 +234,10 @@ export async function completeRecovery(formData: FormData): Promise<AuthResult> 
 export async function signOut() {
   const supabase = await createClient()
 
-  await supabase.auth.signOut()
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    console.error("signOut: Supabase sign-out failed", error.message)
+  }
 
   revalidatePath("/", "layout")
   redirect(AUTH_PATHS.afterSignOut)
