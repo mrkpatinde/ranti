@@ -8,7 +8,7 @@ type NewPropertyPageProps = {
   }>
 }
 
-const examples = ["Maison Akpakpa", "Immeuble Calavi", "Cour Fidjrosse", "Boutique centre-ville"]
+const examples = ["Maison Akpakpa", "Immeuble Calavi", "Cour Fidjrossè", "Boutique centre-ville"]
 
 export default async function NewPropertyPage({ searchParams }: NewPropertyPageProps) {
   await requireLandlordProfile()
@@ -45,7 +45,7 @@ export default async function NewPropertyPage({ searchParams }: NewPropertyPageP
             Quel lieu voulez-vous suivre ?
           </h1>
           <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
-            Ajoutez seulement le premier endroit ou vous encaissez un loyer.
+            Ajoutez seulement le premier endroit où vous encaissez un loyer.
           </p>
         </div>
 
@@ -92,14 +92,14 @@ export default async function NewPropertyPage({ searchParams }: NewPropertyPageP
 
           <div className="space-y-2">
             <label htmlFor="address" className={labelClass}>
-              Adresse ou repere <span className="text-neutral-400">(optionnel)</span>
+              Adresse ou repère <span className="text-neutral-400">(optionnel)</span>
             </label>
             <input
               id="address"
               name="address"
               type="text"
               autoComplete="street-address"
-              placeholder="Ex. quartier, rue ou repere simple"
+              placeholder="Ex. quartier, rue ou repère simple"
               className={inputClass}
             />
           </div>
@@ -127,7 +127,7 @@ export default async function NewPropertyPage({ searchParams }: NewPropertyPageP
             type="submit"
             className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
-            Creer ce lieu
+            Créer ce lieu
           </button>
         </form>
       </section>
