@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { failQuery } from "@/lib/supabase/query-error"
 import type { Receipt } from "./types"
 
 export async function getLandlordReceipts(landlordId: string): Promise<Receipt[]> {
@@ -11,9 +12,7 @@ export async function getLandlordReceipts(landlordId: string): Promise<Receipt[]
     .is("deleted_at", null)
     .order("issued_at", { ascending: false })
 
-  if (error) {
-    return []
-  }
+  if (error) failQuery("receipts", error)
 
   return (data ?? []) as Receipt[]
 }
@@ -21,13 +20,15 @@ export async function getLandlordReceipts(landlordId: string): Promise<Receipt[]
 export async function getReceipt(landlordId: string, id: string): Promise<Receipt | null> {
   const supabase = await createClient()
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("receipts")
     .select("*")
     .eq("id", id)
     .eq("landlord_id", landlordId)
     .is("deleted_at", null)
     .maybeSingle()
+
+  if (error) failQuery("receipts", error)
 
   return (data as Receipt | null) ?? null
 }
