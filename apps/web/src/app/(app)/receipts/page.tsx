@@ -12,6 +12,11 @@ const statusLabels: Record<ReceiptStatus, string> = {
   cancelled: "Annulée",
 }
 
+const kindLabels = {
+  quittance: "Quittance",
+  receipt: "Reçu",
+} as const
+
 function formatAmount(amount: number): string {
   return `${amount.toLocaleString("fr-FR")} FCFA`
 }
@@ -76,7 +81,7 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
                       {formatAmount(receipt.total_amount)}
                     </h2>
                     <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                      {receipt.receipt_number} · {formatDate(receipt.issued_at)}
+                      {kindLabels[receipt.kind]} · {receipt.receipt_number} · {formatDate(receipt.issued_at)}
                     </p>
                   </div>
                   <span className="shrink-0 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
