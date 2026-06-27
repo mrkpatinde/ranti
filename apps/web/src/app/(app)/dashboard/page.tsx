@@ -80,6 +80,12 @@ export default async function DashboardPage() {
           >
             Encaissements
           </Link>
+          <Link
+            href="/receipts"
+            className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+          >
+            Quittances
+          </Link>
           <form action="/auth/signout" method="post">
             <button
               type="submit"
