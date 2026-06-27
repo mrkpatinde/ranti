@@ -12,7 +12,7 @@ function hasValidSubject(claims: unknown): claims is AuthClaims {
     claims !== null &&
     "sub" in claims &&
     typeof (claims as { sub?: unknown }).sub === "string" &&
-    Boolean((claims as { sub: string }).sub)
+    (claims as { sub: string }).sub.trim().length > 0
   )
 }
 

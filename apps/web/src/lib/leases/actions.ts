@@ -80,6 +80,7 @@ export async function createLease(formData: FormData) {
     .single()
 
   if (error || !data) {
+    console.error("createLease: insert failed", error?.code, error?.message)
     err("Impossible de créer le bail. Réessayez.")
   }
 
@@ -110,6 +111,7 @@ export async function activateLease(formData: FormData) {
   const { error } = await supabase.rpc("activate_lease", { p_lease_id: id })
 
   if (error) {
+    console.error("activateLease: RPC failed", error.code, error.message)
     if (error.code === "P0002") {
       redirect(`/leases?error=${encodeURIComponent("Bail introuvable.")}`)
     }
@@ -143,6 +145,11 @@ export async function endLease(formData: FormData) {
 
   const today = new Date().toISOString().slice(0, 10)
 
+  // Guard: a lease with a future start_date cannot be ended before it begins.
+  if (today < lease.start_date) {
+    redirect(`/leases/${id}?error=${encodeURIComponent("Ce bail n'a pas encore commencé.")}`)
+  }
+
   const supabase = await createClient()
 
   // History (dues, receptions, receipts) is preserved (api.md Leases).
@@ -154,6 +161,7 @@ export async function endLease(formData: FormData) {
     .eq("status", "active")
 
   if (error) {
+    console.error("endLease: update failed", error.code, error.message)
     redirect(`/leases/${id}?error=${encodeURIComponent("Impossible de terminer le bail. Réessayez.")}`)
   }
 
@@ -211,6 +219,7 @@ export async function updateLease(formData: FormData) {
     .eq("status", "draft")
 
   if (error) {
+    console.error("updateLease: update failed", error.code, error.message)
     err("Impossible d'enregistrer. Réessayez.")
   }
 

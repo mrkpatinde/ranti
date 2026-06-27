@@ -219,9 +219,13 @@ export async function completeRecovery(formData: FormData): Promise<AuthResult> 
   const { error: updateError } = await supabase.auth.updateUser({ password })
 
   if (updateError) {
+    console.error("completeRecovery: password update failed after OTP verified", updateError.message)
+    // User is now authenticated with the old password from the successful
+    // verifyOtp above. Sign them out to avoid a confused half-state.
+    await supabase.auth.signOut()
     return {
       ok: false,
-      message: "Impossible de mettre à jour le mot de passe.",
+      message: "Impossible de mettre à jour le mot de passe. Réessayez.",
       code: updateError.code,
     }
   }

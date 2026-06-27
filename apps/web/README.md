@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ranti — web application
 
-## Getting Started
+Application web mobile-first pour les propriétaires africains. Stack : Next.js 16 (Turbopack), Supabase Auth + DB, Tailwind CSS.
 
-First, run the development server:
+## Démarrer en local
 
 ```bash
+npm install
+cp .env.example .env.local   # configurer les variables Supabase
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3300](http://localhost:3300).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Mode développement sans SMS (local auth)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+En développement, le fournisseur SMS Supabase peut être désactivé. Pour contourner
+l'authentification réelle et tester les pages protégées sans recevoir d'OTP :
 
-## Learn More
+```bash
+RANTI_LOCAL_AUTH=*** npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Ce mode :
+- Injecte un `auth_user_id` et un `phone` factices pour toutes les requêtes
+- Permet de tester le flux complet (dashboard, propriétés, baux, encaissements, reçus)
+- **Ne fonctionne qu'en `NODE_ENV !== "production"`**
+- Utilisé par les tests E2E Playwright (`playwright.config.ts`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Variables optionnelles pour personnaliser l'identité locale :
+- `RANTI_LOCAL_AUTH_USER_ID` (défaut : `00000000-0000-4000-8000-000000000001`)
+- `RANTI_LOCAL_AUTH_PHONE` (défaut : `+229****0000`)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tests
 
-## Deploy on Vercel
+```bash
+npm test              # 91 tests unitaires + intégration + charge
+npx playwright test   # 7 tests E2E (nécessite un navigateur)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Build production
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build && npm start
+```
+
+## Déploiement
+
+Vercel (monorepo, root directory = `apps/web`). Le workflow CI GitHub exécute
+`lint` + `build` sur chaque push.

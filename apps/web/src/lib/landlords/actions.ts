@@ -50,6 +50,7 @@ export async function createLandlordProfile(formData: FormData) {
       redirect(AUTH_PATHS.afterSignIn)
     }
 
+    console.error("createLandlordProfile: insert failed", error.code, error.message)
     profileError("Création du profil impossible. Réessayez.")
   }
 

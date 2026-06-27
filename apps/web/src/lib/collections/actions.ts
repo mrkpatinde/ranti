@@ -24,6 +24,10 @@ function readAllocations(formData: FormData): CollectionAllocation[] {
   const dueIds = formData.getAll("allocation_due_id")
   const amounts = formData.getAll("allocation_amount")
 
+  // If the two arrays have different lengths, something is wrong with the form
+  // submission — reject rather than silently dropping mismatched items.
+  if (dueIds.length !== amounts.length) return []
+
   const allocations: CollectionAllocation[] = []
   dueIds.forEach((dueId, i) => {
     const amount = readAmount(amounts[i] ?? null)
