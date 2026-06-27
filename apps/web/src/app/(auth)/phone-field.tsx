@@ -16,8 +16,9 @@ export function PhoneField({
         Numéro de téléphone
       </label>
       <div className="flex items-stretch rounded-xl border border-neutral-300 bg-white transition focus-within:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:focus-within:border-neutral-50">
-        <span className="flex select-none items-center gap-1 border-r border-neutral-200 px-3 text-base font-medium text-neutral-600 dark:border-neutral-700 dark:text-neutral-300">
-          🇧🇯 +229
+        <span className="flex select-none items-center gap-1.5 whitespace-nowrap border-r border-neutral-200 px-4 text-base font-medium text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
+          <span aria-hidden>🇧🇯</span>
+          +229
         </span>
         <input
           id="phone"
@@ -27,7 +28,7 @@ export function PhoneField({
           defaultValue={toLocalPhone(defaultValue)}
           autoComplete="tel"
           inputMode="tel"
-          placeholder="01 97 14 74 02"
+          placeholder="01 23 45 67 89"
           className="w-full rounded-r-xl bg-transparent px-4 py-3 text-base text-neutral-950 outline-none dark:text-neutral-50"
         />
       </div>
