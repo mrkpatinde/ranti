@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AUTH_PATHS, signInWithPhonePassword } from "@/lib/auth"
 import { normalizePhone } from "@/lib/auth/validation"
+import { PasswordField } from "../password-field"
 import { PhoneField } from "../phone-field"
 
 type LoginPageProps = {
@@ -61,13 +62,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             >
               Mot de passe
             </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
+            <PasswordField
               autoComplete="current-password"
-              className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+              inputClassName="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
             />
           </div>
 

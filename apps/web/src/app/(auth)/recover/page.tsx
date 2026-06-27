@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AUTH_PATHS, completeRecovery, requestRecoveryCode } from "@/lib/auth"
 import { normalizePhone } from "@/lib/auth/validation"
+import { PasswordField } from "../password-field"
 import { PhoneField } from "../phone-field"
 
 type RecoverPageProps = {
@@ -96,15 +97,11 @@ export default async function RecoverPage({ searchParams }: RecoverPageProps) {
               <label htmlFor="password" className={labelClass}>
                 Nouveau mot de passe
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={8}
+              <PasswordField
                 autoComplete="new-password"
+                minLength={8}
                 placeholder="Au moins 8 caractères"
-                className={inputClass}
+                inputClassName={inputClass}
               />
             </div>
 
