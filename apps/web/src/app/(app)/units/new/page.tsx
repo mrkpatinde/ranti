@@ -18,7 +18,7 @@ const UNIT_TYPE_OPTIONS = [
   { value: "shop", label: "Boutique" },
   { value: "store", label: "Magasin" },
   { value: "office", label: "Bureau" },
-  { value: "warehouse", label: "Entrepot" },
+  { value: "warehouse", label: "Entrepôt" },
   { value: "other", label: "Autre" },
 ]
 
