@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AUTH_PATHS, signUpWithPhonePassword } from "@/lib/auth"
 import { normalizePhone } from "@/lib/auth/validation"
+import { PhoneField } from "../phone-field"
 
 type SignupPageProps = {
   searchParams?: Promise<{
@@ -54,25 +55,10 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         </div>
 
         <form action={submitSignup} className="space-y-5">
-          <div className="space-y-2">
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-neutral-800 dark:text-neutral-100"
-            >
-              Numéro de téléphone
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              required
-              defaultValue={phone}
-              autoComplete="tel"
-              inputMode="tel"
-              placeholder="+229…"
-              className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
-            />
-          </div>
+          <PhoneField
+            defaultValue={phone}
+            labelClassName="block text-sm font-medium text-neutral-800 dark:text-neutral-100"
+          />
 
           <div className="space-y-2">
             <label
