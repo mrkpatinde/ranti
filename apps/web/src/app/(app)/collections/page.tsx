@@ -73,9 +73,9 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
   const landlord = await requireLandlordProfile()
   const params = await searchParams
 
-  // getLandlordCollections throws (CollectionsQueryError) on a technical/RLS
-  // failure instead of returning [] — so a real fault surfaces as an error page
-  // rather than being silently shown as "aucun encaissement".
+  // getLandlordCollections throws (QueryError) on a technical/RLS failure
+  // instead of returning [] — so a real fault surfaces as an error page rather
+  // than being silently shown as "aucun encaissement".
   const [collections, tenants, units, receipts] = await Promise.all([
     getLandlordCollections(landlord.id),
     getLandlordTenants(landlord.id),

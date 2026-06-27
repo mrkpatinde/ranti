@@ -123,6 +123,19 @@ export async function archiveTenant(formData: FormData) {
 
   const supabase = await createClient()
 
+  // Refuse archiving while an active lease still references this tenant.
+  const { data: activeLeases } = await supabase
+    .from("leases")
+    .select("id")
+    .eq("landlord_id", landlord.id)
+    .eq("tenant_id", id)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .limit(1)
+  if (activeLeases && activeLeases.length > 0) {
+    redirect(`/tenants/${id}?error=${encodeURIComponent("Ce locataire a un bail actif. Terminez le bail avant d'archiver.")}`)
+  }
+
   // Soft-delete only; history (leases, dues, receipts) is preserved (api.md Tenants).
   const { error } = await supabase
     .from("tenants")

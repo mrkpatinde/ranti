@@ -171,6 +171,19 @@ export async function archiveUnit(formData: FormData) {
 
   const supabase = await createClient()
 
+  // Refuse archiving while an active lease still references this unit.
+  const { data: activeLeases } = await supabase
+    .from("leases")
+    .select("id")
+    .eq("landlord_id", landlord.id)
+    .eq("unit_id", id)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .limit(1)
+  if (activeLeases && activeLeases.length > 0) {
+    redirect(`/units/${id}?error=${encodeURIComponent("Ce logement a un bail actif. Terminez le bail avant d'archiver.")}`)
+  }
+
   // Soft-delete only; history is preserved (api.md Units, architecture-principles #12).
   const { error } = await supabase
     .from("units")
