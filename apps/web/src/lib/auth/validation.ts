@@ -12,22 +12,38 @@ export function normalizePassword(value: FormDataEntryValue | null) {
 // owner, who types only their local number (e.g. 0197147402).
 export const BENIN_DIALING_CODE = "+229"
 
+// A Benin local number is exactly 10 digits and starts with 01 (e.g. 0190000000).
+const BENIN_LOCAL_PATTERN = /^01\d{8}$/
+
 export function normalizePhone(value: FormDataEntryValue | null) {
   if (typeof value !== "string") return null
 
-  const phone = value.replace(/\s+/g, "").trim()
-  if (phone === "") return null
+  const raw = value.replace(/\s+/g, "").trim()
+  if (raw === "") return null
 
-  // Already international (e.g. a value round-tripped from a previous submit).
-  if (phone.startsWith("+")) {
-    return phone.length >= 8 ? phone : null
+  let local: string
+  if (raw.startsWith(BENIN_DIALING_CODE)) {
+    // Already international (e.g. a value round-tripped from a previous submit).
+    local = raw.slice(BENIN_DIALING_CODE.length)
+  } else if (raw.startsWith("+")) {
+    // Benin only at the MVP — reject any other country code.
+    return null
+  } else {
+    local = raw.replace(/\D/g, "")
   }
 
-  // Local Benin number: digits only, prefixed with the fixed dialing code.
-  const digits = phone.replace(/\D/g, "")
-  if (digits.length < 8) return null
+  if (!BENIN_LOCAL_PATTERN.test(local)) return null
 
-  return `${BENIN_DIALING_CODE}${digits}`
+  return `${BENIN_DIALING_CODE}${local}`
+}
+
+// Group a local number into pairs for display: 0190000000 -> "01 90 00 00 00".
+export function formatLocalPhone(value: string): string {
+  return value
+    .replace(/\D/g, "")
+    .slice(0, 10)
+    .replace(/(\d{2})(?=\d)/g, "$1 ")
+    .trim()
 }
 
 // Display helper: strip the fixed dialing code so the field shows only the
