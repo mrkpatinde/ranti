@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AUTH_PATHS, completeRecovery, requestRecoveryCode } from "@/lib/auth"
 import { normalizePhone } from "@/lib/auth/validation"
+import { PhoneField } from "../phone-field"
 
 type RecoverPageProps = {
   searchParams?: Promise<{
@@ -119,22 +120,7 @@ export default async function RecoverPage({ searchParams }: RecoverPageProps) {
           </form>
         ) : (
           <form action={submitRequest} className="space-y-5">
-            <div className="space-y-2">
-              <label htmlFor="phone" className={labelClass}>
-                Numéro de téléphone
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                defaultValue={phone}
-                autoComplete="tel"
-                inputMode="tel"
-                placeholder="+229…"
-                className={inputClass}
-              />
-            </div>
+            <PhoneField defaultValue={phone} labelClassName={labelClass} />
 
             {errorMessage ? (
               <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
