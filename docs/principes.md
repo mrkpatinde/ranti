@@ -8,7 +8,7 @@ Ce document définit les règles qui empêchent Ranti de redevenir lourd, confus
 
 ## Principe 1 — Compréhension immédiate
 
-Ranti doit être compris en moins de 5 secondes par un propriétaire africain qui gère ses loyers avec un cahier, WhatsApp ou sa mémoire.
+Ranti doit être compris en moins de 5 secondes par un propriétaire africain qui gère ses loyers avec un registre, WhatsApp ou sa mémoire.
 
 ## Principe 2 — Problème unique
 
