@@ -78,94 +78,128 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           </p>
         ) : null}
 
-        <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                {kindLabels[receipt.kind]} {receipt.receipt_number}
-              </h1>
-              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                Émise le {formatDate(receipt.issued_at)}
-              </p>
+        <article className="rounded-3xl border border-neutral-200 bg-white p-7 dark:border-neutral-800 dark:bg-neutral-950">
+          <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 flex-col justify-center gap-[3px] rounded-lg bg-neutral-950 px-2 dark:bg-neutral-50">
+                <span className="h-[3px] w-5 rounded-full bg-white dark:bg-neutral-950" />
+                <span className="h-[3px] w-[15px] rounded-full bg-white dark:bg-neutral-950" />
+                <span className="h-[3px] w-[10px] rounded-full bg-white dark:bg-neutral-950" />
+              </span>
+              <div>
+                <p className="font-medium text-neutral-950 dark:text-neutral-50">Ranti</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">Registre de loyer</p>
+              </div>
             </div>
-            <span className="shrink-0 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
-              {statusLabels[receipt.status]}
-            </span>
+            <div className="text-right">
+              <p className="text-lg font-medium text-neutral-950 dark:text-neutral-50">{kindLabels[receipt.kind]}</p>
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">N° {receipt.receipt_number}</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">Émise le {formatDate(receipt.issued_at)}</p>
+              {receipt.status === "cancelled" ? (
+                <span className="mt-1 inline-flex rounded-lg border border-red-300 px-2 py-0.5 text-xs font-medium text-red-700 dark:border-red-800 dark:text-red-200">
+                  {statusLabels[receipt.status]}
+                </span>
+              ) : null}
+            </div>
           </div>
 
-          <dl className="mt-6 space-y-3 text-sm">
-            {snap.tenant ? (
-              <div className="flex justify-between gap-4">
-                <dt className="text-neutral-500 dark:text-neutral-400">Locataire</dt>
-                <dd className="text-neutral-950 dark:text-neutral-50">
-                  {snap.tenant.first_name} {snap.tenant.last_name}
-                </dd>
-              </div>
-            ) : null}
-            {snap.unit ? (
-              <div className="flex justify-between gap-4">
-                <dt className="text-neutral-500 dark:text-neutral-400">Logement</dt>
-                <dd className="text-neutral-950 dark:text-neutral-50">{snap.unit.name}</dd>
-              </div>
-            ) : null}
-            {snap.reception ? (
-              <>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-neutral-500 dark:text-neutral-400">Reçu le</dt>
-                  <dd className="text-neutral-950 dark:text-neutral-50">{formatDate(snap.reception.received_at)}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-neutral-500 dark:text-neutral-400">Méthode</dt>
-                  <dd className="text-neutral-950 dark:text-neutral-50">
-                    {methodLabels[snap.reception.payment_method] ?? snap.reception.payment_method}
-                  </dd>
-                </div>
-              </>
-            ) : null}
-            <div className="flex justify-between gap-4 border-t border-neutral-200 pt-3 dark:border-neutral-800">
-              <dt className="font-medium text-neutral-950 dark:text-neutral-50">Total</dt>
-              <dd className="font-semibold text-neutral-950 dark:text-neutral-50">{formatAmount(receipt.total_amount)}</dd>
+          <div className="grid grid-cols-2 gap-4 border-b border-neutral-200 py-5 dark:border-neutral-800">
+            <div>
+              <p className="text-xs uppercase tracking-[0.08em] text-neutral-400">De</p>
+              <p className="mt-1.5 text-sm font-medium text-neutral-950 dark:text-neutral-50">
+                {landlord.first_name} {landlord.last_name}
+              </p>
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">Propriétaire</p>
+              {landlord.phone ? (
+                <p className="text-sm text-neutral-600 dark:text-neutral-300">{landlord.phone}</p>
+              ) : null}
             </div>
-          </dl>
+            <div>
+              <p className="text-xs uppercase tracking-[0.08em] text-neutral-400">À</p>
+              <p className="mt-1.5 text-sm font-medium text-neutral-950 dark:text-neutral-50">
+                {snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}` : "Locataire"}
+              </p>
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">Locataire</p>
+              {snap.unit ? (
+                <p className="text-sm text-neutral-600 dark:text-neutral-300">{snap.unit.name}</p>
+              ) : null}
+            </div>
+          </div>
 
           {snap.allocations && snap.allocations.length > 0 ? (
-            <div className="mt-6 space-y-2">
-              <p className="text-sm font-medium text-neutral-800 dark:text-neutral-100">Périodes réglées</p>
+            <div className="border-b border-neutral-200 py-5 dark:border-neutral-800">
+              <div className="flex justify-between text-xs text-neutral-400">
+                <span>Période réglée</span>
+                <span>Montant</span>
+              </div>
               {snap.allocations.map((a, i) => (
-                <div key={i} className="flex justify-between gap-4 text-sm">
-                  <span className="text-neutral-500 dark:text-neutral-400">{formatPeriod(a.period_start, a.period_end)}</span>
+                <div key={i} className="flex justify-between gap-4 py-1.5 text-sm">
+                  <span className="text-neutral-700 dark:text-neutral-200">{formatPeriod(a.period_start, a.period_end)}</span>
                   <span className="text-neutral-950 dark:text-neutral-50">{formatAmount(a.amount_allocated)}</span>
                 </div>
               ))}
             </div>
           ) : null}
 
-          {receipt.status === "cancelled" && receipt.cancellation_reason ? (
-            <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">Motif : {receipt.cancellation_reason}</p>
-          ) : null}
+          <div className="flex items-center justify-between gap-4 border-b border-neutral-200 py-5 dark:border-neutral-800">
+            <div>
+              <p className="text-sm text-neutral-400">Total payé</p>
+              {snap.reception ? (
+                <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                  {methodLabels[snap.reception.payment_method] ?? snap.reception.payment_method} · reçu le{" "}
+                  {formatDate(snap.reception.received_at)}
+                </p>
+              ) : null}
+            </div>
+            <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">{formatAmount(receipt.total_amount)}</p>
+          </div>
 
-          {receipt.status === "issued" ? (
-            <form action={cancelReceipt} className="mt-6 space-y-3 border-t border-neutral-200 pt-5 dark:border-neutral-800">
-              <input type="hidden" name="id" value={receipt.id} />
-              <label htmlFor="reason" className="block text-sm font-medium text-neutral-800 dark:text-neutral-100">
-                Motif d&apos;annulation
-              </label>
-              <textarea
-                id="reason"
-                name="reason"
-                rows={2}
-                placeholder="Ex. erreur de montant, paiement non reçu"
-                className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
-              />
-              <button
-                type="submit"
-                className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
-              >
-                Annuler ce document
-              </button>
-            </form>
-          ) : null}
-        </div>
+          <p className="py-4 text-sm leading-6 text-neutral-600 dark:text-neutral-300">
+            {receipt.kind === "quittance"
+              ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé."
+              : "Reçu de paiement pour la somme ci-dessus. Le loyer n'est pas intégralement soldé : ce document ne vaut pas quittance."}
+          </p>
+
+          <div className="flex items-end justify-between gap-4 pt-2">
+            <div className="flex items-center gap-3">
+              <span className="flex h-16 w-16 items-center justify-center rounded-lg border border-neutral-300 text-xs text-neutral-400 dark:border-neutral-700">
+                QR
+              </span>
+              <span className="max-w-[140px] text-xs text-neutral-400">Vérifier l&apos;authenticité en ligne (bientôt)</span>
+            </div>
+            <div className="text-center">
+              <div className="w-40 border-t border-neutral-300 pt-1.5 text-xs text-neutral-400 dark:border-neutral-700">
+                Signature du propriétaire
+              </div>
+            </div>
+          </div>
+        </article>
+
+        {receipt.status === "cancelled" && receipt.cancellation_reason ? (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Motif d&apos;annulation : {receipt.cancellation_reason}</p>
+        ) : null}
+
+        {receipt.status === "issued" ? (
+          <form action={cancelReceipt} className="space-y-3 rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
+            <input type="hidden" name="id" value={receipt.id} />
+            <label htmlFor="reason" className="block text-sm font-medium text-neutral-800 dark:text-neutral-100">
+              Motif d&apos;annulation
+            </label>
+            <textarea
+              id="reason"
+              name="reason"
+              rows={2}
+              placeholder="Ex. erreur de montant, paiement non reçu"
+              className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+            />
+            <button
+              type="submit"
+              className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+            >
+              Annuler ce document
+            </button>
+          </form>
+        ) : null}
       </section>
     </main>
   )
