@@ -8,7 +8,7 @@ import type { CollectionAllocation } from "./types"
 
 function readString(formData: FormData, key: string): string | null {
   const v = formData.get(key)
-  return typeof v === "string" && v ? v : null
+  return typeof v === "string" && v.trim() ? v.trim() : null
 }
 
 function readAmount(value: FormDataEntryValue | null): number | null {
@@ -19,13 +19,10 @@ function readAmount(value: FormDataEntryValue | null): number | null {
   return Number.isInteger(n) && n > 0 ? n : null
 }
 
-// Allocations come as parallel fields: allocation_due_id[] + allocation_amount[].
 function readAllocations(formData: FormData): CollectionAllocation[] {
   const dueIds = formData.getAll("allocation_due_id")
   const amounts = formData.getAll("allocation_amount")
 
-  // If the two arrays have different lengths, something is wrong with the form
-  // submission — reject rather than silently dropping mismatched items.
   if (dueIds.length !== amounts.length) return []
 
   const allocations: CollectionAllocation[] = []
@@ -51,10 +48,6 @@ function collectionErrorMessage(message: string): string {
   return "Encaissement impossible. Réessayez."
 }
 
-/**
- * Records an encaissement and confirms it immediately (the owner declaring the
- * receipt is the human validation — Principle 4). The fast "encaisser" path.
- */
 export async function recordCollection(formData: FormData) {
   await requireLandlordProfile()
 
@@ -88,24 +81,17 @@ export async function recordCollection(formData: FormData) {
     back(collectionErrorMessage(error?.message ?? ""))
   }
 
-  // Confirm right away (fast path). A failed confirm leaves a recoverable draft.
   const { error: confirmError } = await supabase.rpc("confirm_collection", {
     p_reception_id: receptionId,
   })
 
   if (confirmError) {
-    // Guard: a failed confirm would leave an unconfirmed draft that no current
-    // UI surfaces — money "received" with no visible impact on the dues. Roll it
-    // back to a cancelled (audited) trace so nothing is silently stranded, then
-    // tell the owner the encaissement was NOT recorded so they retry.
     const { error: cancelError } = await supabase.rpc("cancel_collection", {
       p_reception_id: receptionId,
       p_reason: "Annulation auto : confirmation échouée à l'enregistrement.",
     })
 
     if (cancelError) {
-      // Cleanup itself failed: the draft persists. Fall back to the recoverable
-      // notice rather than pretend success.
       redirect(`/collections?notice=collection_recorded_unconfirmed`)
     }
 
@@ -140,6 +126,9 @@ export async function cancelCollection(formData: FormData) {
   if (!id) redirect(`/collections?error=${encodeURIComponent("Encaissement introuvable.")}`)
 
   const reason = readString(formData, "reason")
+  if (!reason) {
+    redirect(`/collections?error=${encodeURIComponent("Indiquez pourquoi vous annulez cet encaissement.")}`)
+  }
 
   const supabase = await createClient()
   const { error } = await supabase.rpc("cancel_collection", {
