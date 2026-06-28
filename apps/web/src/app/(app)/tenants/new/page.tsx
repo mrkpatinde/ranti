@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { BeninPhoneInput } from "@/components/benin-phone-input"
 import { SubmitButton } from "@/components/submit-button"
 import { createTenant } from "@/lib/tenants"
 import { requireLandlordProfile } from "@/lib/landlords"
@@ -36,11 +37,12 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
 
       <section className="flex flex-1 flex-col justify-center gap-8 py-10">
         <div className="space-y-3">
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-neutral-400">Étape 3 sur 5</p>
           <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
             Qui doit recevoir les relances ?
           </h1>
           <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
-            Ajoutez le locataire et son numéro. Sans numéro, Ranti ne peut pas rappeler proprement les loyers dus.
+            Ajoutez le locataire et son numéro. C’est ce numéro que Ranti utilisera pour les rappels de loyer.
           </p>
         </div>
 
@@ -75,21 +77,10 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
               <span className="inline-flex items-center rounded-l-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-base text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
                 🇧🇯 +229
               </span>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel-national"
-                placeholder="01 90 00 00 00"
-                required
-                pattern="01\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}"
-                title="Entrez les 10 chiffres du numéro béninois : 01 90 00 00 00."
-                className={phoneInputClass}
-              />
+              <BeninPhoneInput id="phone" name="phone" required className={phoneInputClass} />
             </div>
             <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
-              Ce numéro servira aux rappels et relances liés au loyer.
+              Tapez les 10 chiffres : les espaces s’ajoutent automatiquement.
             </p>
           </div>
 
