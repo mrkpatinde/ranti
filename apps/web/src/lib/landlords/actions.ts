@@ -34,7 +34,7 @@ export async function createLandlordProfile(formData: FormData) {
   const phone = sessionPhone ?? onboardingPhone
 
   if (!phone) {
-    profileError("Entrez votre numéro béninois pour terminer votre profil.")
+    profileError("Entrez les 10 chiffres de votre numéro béninois, par exemple 01 90 00 00 00.")
   }
 
   const supabase = await createClient()
