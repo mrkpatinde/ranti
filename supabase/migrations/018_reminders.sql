@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS reminders (
 --    Optimise la requête quotidienne qui cherche les échéances à relancer
 CREATE INDEX IF NOT EXISTS idx_rent_dues_reminder
   ON rent_dues(status, next_reminder_at)
-  WHERE status IN ('pending', 'overdue') AND deleted_at IS NULL;
+  WHERE status IN ('expected', 'overdue') AND deleted_at IS NULL;
 
 -- Index pour retrouver les relances d'une échéance
 CREATE INDEX IF NOT EXISTS idx_reminders_rent_due
@@ -97,7 +97,7 @@ ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Landlords see own reminders" ON reminders;
 CREATE POLICY "Landlords see own reminders" ON reminders
   FOR SELECT
-  USING (landlord_id = current_setting('app.current_landlord_id')::uuid);
+  USING (landlord_id = private.current_landlord_id());
 
 -- Seul le service (cron) peut insérer des reminders
 -- (Le cron utilise la service_role key qui bypass RLS)

@@ -60,12 +60,11 @@ async function checkRemindersDue(): Promise<number> {
     .select(
       "id, landlord_id, tenant_id, unit_id, amount_due, currency, due_date, status, confirmation_token, reminder_count, period_start, period_end, tenant:tenants!inner(phone, first_name, last_name), unit:units(name)",
     )
-    .in("status", ["pending", "overdue", "pending_confirmation"])
+    .in("status", ["expected", "overdue"])
     .is("deleted_at", null)
     .not("tenant.phone", "is", null)
     .or(
-      "next_reminder_at.is.null,next_reminder_at.lte",
-      now.toISOString(),
+      `next_reminder_at.is.null,next_reminder_at.lte.${now.toISOString()}`,
     )
     .order("due_date", { ascending: true })
     .limit(50);

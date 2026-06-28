@@ -18,12 +18,24 @@ function formatDate(iso: string): string {
   });
 }
 
+const ERROR_MESSAGES: Record<string, string> = {
+  not_found: "Échéance introuvable.",
+  invalid_token: "Lien de confirmation invalide.",
+  already_processed: "Cette échéance est déjà traitée.",
+  already_confirmed: "Ce loyer a déjà été confirmé par le propriétaire.",
+  already_declared: "Vous avez déjà déclaré ce paiement. Le propriétaire va le vérifier.",
+  insert_failed: "Impossible d'enregistrer votre déclaration. Réessayez.",
+};
+
 export default async function ConfirmerPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { token } = await params;
+  const sp = await searchParams;
   const supabase = await createClient();
 
   if (
@@ -60,6 +72,8 @@ export default async function ConfirmerPage({
 
   const alreadyDraft = existingReception?.status === "draft";
   const alreadyConfirmed = existingReception?.status === "confirmed";
+  const success = sp.success === "1";
+  const errorMsg = typeof sp.error === "string" ? (ERROR_MESSAGES[sp.error] ?? null) : null;
 
   // Noms pour l'affichage (issus des jointures Supabase)
   type RentDueJoined = typeof rentDue & {
@@ -86,6 +100,20 @@ export default async function ConfirmerPage({
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           {unitName}
         </p>
+
+        {/* Message d'erreur */}
+        {errorMsg && (
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* Message de succès */}
+        {success && (
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+            Votre déclaration a été enregistrée. Le propriétaire va la vérifier.
+          </div>
+        )}
 
         {/* Détails de l'échéance */}
         <div className="mt-8 space-y-4 rounded-2xl border border-neutral-100 bg-neutral-50 p-5 dark:border-neutral-800 dark:bg-neutral-900">
@@ -132,7 +160,7 @@ export default async function ConfirmerPage({
                 Le propriétaire a confirmé la réception de ce loyer.
               </p>
             </div>
-          ) : alreadyDraft ? (
+          ) : alreadyDraft || success ? (
             <div className="space-y-4 text-center">
               <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
                 Votre déclaration a bien été enregistrée. Le propriétaire va la
@@ -146,7 +174,7 @@ export default async function ConfirmerPage({
               </p>
             </div>
           ) : (
-            <form action={confirmRentPayment.bind(null, rentDue.id)}>
+            <form action={confirmRentPayment.bind(null, rentDue.id, token)}>
               <button
                 type="submit"
                 className="inline-flex w-full justify-center rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"

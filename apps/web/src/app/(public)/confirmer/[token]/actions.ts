@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 // ============================================================
@@ -8,22 +9,27 @@ import { createClient } from "@/lib/supabase/server";
 // Appelée depuis /confirmer/[token]
 // ============================================================
 
-export async function confirmRentPayment(rentDueId: string) {
+export async function confirmRentPayment(rentDueId: string, token: string) {
   const supabase = await createClient();
 
   // 1. Récupérer l'échéance pour avoir les infos nécessaires
   const { data: rentDue, error: fetchError } = await supabase
     .from("rent_dues")
-    .select("id, landlord_id, tenant_id, unit_id, period_start, period_end, amount_due, currency, status")
+    .select("id, landlord_id, tenant_id, unit_id, period_start, period_end, amount_due, currency, status, confirmation_token")
     .eq("id", rentDueId)
     .maybeSingle();
 
   if (fetchError || !rentDue) {
-    return { ok: false, message: "Échéance introuvable." };
+    redirect(`/confirmer/${token}?error=not_found`);
+  }
+
+  // Vérifier que le token de l'URL correspond bien au token de l'échéance
+  if (rentDue.confirmation_token !== token) {
+    redirect(`/confirmer/${token}?error=invalid_token`);
   }
 
   if (rentDue.status === "paid" || rentDue.status === "cancelled") {
-    return { ok: false, message: "Cette échéance est déjà traitée." };
+    redirect(`/confirmer/${token}?error=already_processed`);
   }
 
   // 2. Vérifier qu'il n'y a pas déjà une déclaration pour cette période
@@ -40,10 +46,10 @@ export async function confirmRentPayment(rentDueId: string) {
 
   if (existing) {
     if (existing.status === "confirmed") {
-      return { ok: false, message: "Ce loyer a déjà été confirmé par le propriétaire." };
+      redirect(`/confirmer/${token}?error=already_confirmed`);
     }
     if (existing.status === "draft") {
-      return { ok: false, message: "Vous avez déjà déclaré ce paiement. Le propriétaire va le vérifier." };
+      redirect(`/confirmer/${token}?error=already_declared`);
     }
   }
 
@@ -56,7 +62,7 @@ export async function confirmRentPayment(rentDueId: string) {
       unit_id: rentDue.unit_id,
       amount_received: rentDue.amount_due,
       currency: rentDue.currency,
-      payment_method: "tenant_declared", // Le locataire déclare, le proprio précisera
+      payment_method: "other", // Locataire déclare — le proprio précisera lors de la validation
       status: "draft",
       received_at: new Date().toISOString(),
       note: "Déclaré par le locataire — en attente de validation du propriétaire.",
@@ -64,20 +70,10 @@ export async function confirmRentPayment(rentDueId: string) {
 
   if (insertError) {
     console.error("confirmRentPayment: insert failed", insertError.code, insertError.message);
-    return { ok: false, message: "Impossible d'enregistrer votre déclaration. Réessayez." };
+    redirect(`/confirmer/${token}?error=insert_failed`);
   }
 
-  // 4. Mettre à jour le statut de l'échéance
-  await supabase
-    .from("rent_dues")
-    .update({ status: "pending_confirmation" })
-    .eq("id", rentDueId);
-
-  // 5. Revalider le cache
+  // 4. Revalider le cache et rediriger
   revalidatePath("/", "layout");
-
-  return {
-    ok: true,
-    message: "Votre déclaration a été enregistrée. Le propriétaire va la vérifier.",
-  };
+  redirect(`/confirmer/${token}?success=1`);
 }
