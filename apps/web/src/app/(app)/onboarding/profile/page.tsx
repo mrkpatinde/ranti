@@ -31,7 +31,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const missingPhone = params?.missing === "phone"
 
   const inputClass =
-    "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+    "w-full rounded-r-xl border border-l-0 border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
   const labelClass = "block text-sm font-medium text-neutral-800 dark:text-neutral-100"
 
   return (
@@ -82,21 +82,26 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <label htmlFor="phone" className={labelClass}>
               Numéro de téléphone
             </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              inputMode="numeric"
-              autoComplete="tel-national"
-              defaultValue={defaultPhone}
-              placeholder="01 90 00 00 00"
-              required
-              pattern="(?:01\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}|\d{2}\s?\d{2}\s?\d{2}\s?\d{2})"
-              title="Entrez un numéro béninois : 01 90 00 00 00 ou 90 00 00 00."
-              className={inputClass}
-            />
+            <div className="flex">
+              <span className="inline-flex items-center rounded-l-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-base text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+                🇧🇯 +229
+              </span>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                defaultValue={defaultPhone}
+                placeholder="01 90 00 00 00"
+                required
+                pattern="01\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}"
+                title="Entrez les 10 chiffres du numéro béninois : 01 90 00 00 00."
+                className={inputClass}
+              />
+            </div>
             <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
-              Ce numéro identifie votre espace propriétaire et vous permet de recevoir les alertes importantes.
+              Entrez uniquement les 10 chiffres du numéro béninois, par exemple 01 90 00 00 00.
             </p>
           </div>
 
@@ -110,7 +115,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               type="text"
               required
               autoComplete="given-name"
-              className={inputClass}
+              className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
             />
           </div>
 
@@ -124,7 +129,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               type="text"
               required
               autoComplete="family-name"
-              className={inputClass}
+              className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
             />
           </div>
 
