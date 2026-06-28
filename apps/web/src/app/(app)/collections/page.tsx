@@ -52,7 +52,6 @@ function formatDate(iso: string): string {
   })
 }
 
-// Drafts first (they need the owner's attention), then confirmed, then cancelled.
 const statusOrder: Record<CollectionStatus, number> = {
   draft: 0,
   confirmed: 1,
@@ -74,9 +73,6 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
   const landlord = await requireLandlordProfile()
   const params = await searchParams
 
-  // getLandlordCollections throws (QueryError) on a technical/RLS failure
-  // instead of returning [] — so a real fault surfaces as an error page rather
-  // than being silently shown as "aucun encaissement".
   const [collections, tenants, units, receipts] = await Promise.all([
     getLandlordCollections(landlord.id),
     getLandlordTenants(landlord.id),
@@ -84,8 +80,6 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
     getLandlordReceipts(landlord.id),
   ])
 
-  // A reception that already has a (non-cancelled) document: link to it instead
-  // of offering to generate again.
   const receiptByReception = new Map(
     receipts.filter((r) => r.status !== "cancelled").map((r) => [r.rent_reception_id, r]),
   )
@@ -203,7 +197,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                 ) : null}
 
                 {c.status === "draft" ? (
-                  <div className="mt-5 flex flex-wrap gap-3">
+                  <div className="mt-5 space-y-4">
                     <form action={confirmCollection}>
                       <input type="hidden" name="id" value={c.id} />
                       <SubmitButton
@@ -212,12 +206,25 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                         Confirmer
                       </SubmitButton>
                     </form>
-                    <form action={cancelCollection}>
+
+                    <form action={cancelCollection} className="space-y-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
                       <input type="hidden" name="id" value={c.id} />
+                      <label htmlFor={`reason-${c.id}`} className="block text-sm font-medium text-neutral-800 dark:text-neutral-100">
+                        Motif d&apos;annulation
+                      </label>
+                      <textarea
+                        id={`reason-${c.id}`}
+                        name="reason"
+                        rows={2}
+                        required
+                        minLength={3}
+                        placeholder="Ex. paiement saisi par erreur"
+                        className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+                      />
                       <SubmitButton
-                        className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 disabled:opacity-60 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+                        className="rounded-xl border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60 dark:border-red-900 dark:text-red-200 dark:hover:border-red-300"
                       >
-                        Annuler
+                        Annuler cet encaissement
                       </SubmitButton>
                     </form>
                   </div>
@@ -229,7 +236,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                       href={`/receipts/${receiptByReception.get(c.id)!.id}`}
                       className="mt-5 inline-flex rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
                     >
-                      Voir le justificatif
+                      Voir le document
                     </Link>
                   ) : (
                     <form action={generateReceipt} className="mt-5">
@@ -237,7 +244,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                       <SubmitButton
                         className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 disabled:opacity-60 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
                       >
-                        Générer le justificatif
+                        Générer la quittance ou le reçu
                       </SubmitButton>
                     </form>
                   )
