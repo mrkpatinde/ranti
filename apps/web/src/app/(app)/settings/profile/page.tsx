@@ -1,34 +1,31 @@
 import Link from "next/link"
-import { BeninPhoneInput } from "@/components/benin-phone-input"
-import { SubmitButton } from "@/components/submit-button"
 import { toLocalPhone } from "@/lib/auth"
-import { requireLandlordProfile, updateLandlordProfile } from "@/lib/landlords"
+import { requireLandlordProfile } from "@/lib/landlords"
 
 type ProfileSettingsPageProps = {
-  searchParams?: Promise<{ notice?: string; error?: string }>
+  searchParams?: Promise<{ error?: string }>
 }
 
-const CIVILITY_OPTIONS = [
-  { value: "mr", label: "Monsieur" },
-  { value: "mrs", label: "Madame" },
-  { value: "miss", label: "Mademoiselle" },
-  { value: "not_specified", label: "Préférer ne pas dire" },
-] as const
+const civilityLabels: Record<string, string> = {
+  mr: "Monsieur",
+  mrs: "Madame",
+  miss: "Mademoiselle",
+  not_specified: "Non renseignée",
+}
 
-const inputClass =
-  "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
-const phoneInputClass =
-  "w-full rounded-r-xl border border-l-0 border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
-const labelClass = "block text-sm font-medium text-neutral-800 dark:text-neutral-100"
-
-const noticeLabels: Record<string, string> = {
-  profile_updated: "Profil propriétaire mis à jour.",
+function ProfileRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950">
+      <p className="text-xs uppercase tracking-[0.16em] text-neutral-400">{label}</p>
+      <p className="mt-1 text-base font-medium text-neutral-950 dark:text-neutral-50">{value}</p>
+    </div>
+  )
 }
 
 export default async function ProfileSettingsPage({ searchParams }: ProfileSettingsPageProps) {
   const landlord = await requireLandlordProfile()
   const params = await searchParams
-  const notice = params?.notice ? noticeLabels[params.notice] : null
+  const civility = civilityLabels[landlord.civility ?? "not_specified"] ?? "Non renseignée"
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
@@ -42,73 +39,30 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
         </Link>
       </header>
 
-      <section className="flex flex-1 flex-col gap-8 py-10">
+      <section className="flex flex-1 flex-col gap-6 py-10">
         <div className="space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-            Modifier mon profil
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">Identité du propriétaire</h1>
           <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
-            Ces informations apparaissent dans votre espace et sur vos documents de paiement.
+            Ces informations apparaissent dans le registre, les reçus et les quittances. Elles sont verrouillées pour éviter les changements incohérents.
           </p>
         </div>
 
-        {notice ? (
-          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
-            {notice}
-          </p>
-        ) : null}
-
         {params?.error ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
             {params.error}
           </p>
         ) : null}
 
-        <form action={updateLandlordProfile} className="space-y-5">
-          <fieldset className="space-y-2">
-            <legend className={labelClass}>Civilité</legend>
-            <div className="flex flex-wrap gap-2">
-              {CIVILITY_OPTIONS.map((option) => (
-                <label key={option.value} className="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="civility"
-                    value={option.value}
-                    defaultChecked={(landlord.civility ?? "not_specified") === option.value}
-                    className="peer sr-only"
-                  />
-                  <span className="block rounded-xl border border-neutral-300 px-3 py-2 text-sm text-neutral-800 transition peer-checked:border-neutral-950 peer-checked:bg-neutral-950 peer-checked:text-white dark:border-neutral-700 dark:text-neutral-100 dark:peer-checked:border-neutral-50 dark:peer-checked:bg-neutral-50 dark:peer-checked:text-neutral-950">
-                    {option.label}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+        <div className="space-y-3">
+          <ProfileRow label="Civilité" value={civility} />
+          <ProfileRow label="Prénom" value={landlord.first_name} />
+          <ProfileRow label="Nom" value={landlord.last_name} />
+          <ProfileRow label="Téléphone" value={`+229 ${toLocalPhone(landlord.phone)}`} />
+        </div>
 
-          <div className="space-y-2">
-            <label htmlFor="phone" className={labelClass}>Numéro de téléphone</label>
-            <div className="flex">
-              <span className="inline-flex items-center rounded-l-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-base text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
-                🇧🇯 +229
-              </span>
-              <BeninPhoneInput id="phone" name="phone" defaultValue={toLocalPhone(landlord.phone)} required className={phoneInputClass} />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="first_name" className={labelClass}>Prénom</label>
-            <input id="first_name" name="first_name" type="text" required defaultValue={landlord.first_name} className={inputClass} />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="last_name" className={labelClass}>Nom</label>
-            <input id="last_name" name="last_name" type="text" required defaultValue={landlord.last_name} className={inputClass} />
-          </div>
-
-          <SubmitButton className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200">
-            Enregistrer les modifications
-          </SubmitButton>
-        </form>
+        <p className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-6 text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
+          Pour corriger ces informations plus tard, Ranti devra passer par une vérification et garder une trace du changement.
+        </p>
       </section>
     </main>
   )
