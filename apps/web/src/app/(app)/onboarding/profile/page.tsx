@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
-import { AUTH_PATHS } from "@/lib/auth"
+import { AUTH_PATHS, getCurrentUser, toLocalPhone } from "@/lib/auth"
 import { createLandlordProfile, getCurrentLandlord } from "@/lib/landlords"
 
 type ProfilePageProps = {
   searchParams?: Promise<{
     error?: string
+    missing?: string
   }>
 }
 
@@ -23,8 +24,11 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     redirect(AUTH_PATHS.afterSignIn)
   }
 
+  const currentUser = await getCurrentUser()
+  const defaultPhone = currentUser?.phone ? toLocalPhone(currentUser.phone) : ""
   const params = await searchParams
   const errorMessage = params?.error
+  const missingPhone = params?.missing === "phone"
 
   const inputClass =
     "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
@@ -47,6 +51,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </div>
         </div>
 
+        {missingPhone ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+            Ajoutez votre numéro pour activer les rappels et terminer votre profil.
+          </p>
+        ) : null}
+
         <form action={createLandlordProfile} className="space-y-5">
           <fieldset className="space-y-2">
             <legend className={labelClass}>Civilité</legend>
@@ -67,6 +77,25 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               ))}
             </div>
           </fieldset>
+
+          <div className="space-y-2">
+            <label htmlFor="phone" className={labelClass}>
+              Numéro de téléphone
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel-national"
+              defaultValue={defaultPhone}
+              placeholder="01 90 00 00 00"
+              className={inputClass}
+            />
+            <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
+              Ranti l’utilise pour les rappels WhatsApp et le suivi de vos loyers.
+            </p>
+          </div>
 
           <div className="space-y-2">
             <label htmlFor="first_name" className={labelClass}>
