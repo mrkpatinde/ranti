@@ -9,11 +9,23 @@ export function normalizePassword(value: FormDataEntryValue | null) {
 }
 
 // Ranti starts in Benin: the dialing code is fixed and never entered by the
-// owner, who types only their local number (e.g. 0197147402).
+// owner, who types their local number. Accept both the current 10-digit format
+// (0197147402) and the legacy 8-digit habit (97147402), then store the current
+// international format consistently.
 export const BENIN_DIALING_CODE = "+229"
 
-// A Benin local number is exactly 10 digits and starts with 01 (e.g. 0190000000).
+// A current Benin local number is exactly 10 digits and starts with 01.
 const BENIN_LOCAL_PATTERN = /^01\d{8}$/
+const BENIN_LEGACY_LOCAL_PATTERN = /^\d{8}$/
+
+function normalizeBeninLocalPhone(local: string) {
+  const digits = local.replace(/\D/g, "")
+
+  if (BENIN_LOCAL_PATTERN.test(digits)) return digits
+  if (BENIN_LEGACY_LOCAL_PATTERN.test(digits)) return `01${digits}`
+
+  return null
+}
 
 export function normalizePhone(value: FormDataEntryValue | null) {
   if (typeof value !== "string") return null
@@ -23,18 +35,20 @@ export function normalizePhone(value: FormDataEntryValue | null) {
 
   let local: string
   if (raw.startsWith(BENIN_DIALING_CODE)) {
-    // Already international (e.g. a value round-tripped from a previous submit).
+    // Already international, with either the current local number or the legacy
+    // 8-digit local habit after +229.
     local = raw.slice(BENIN_DIALING_CODE.length)
   } else if (raw.startsWith("+")) {
     // Benin only at the MVP — reject any other country code.
     return null
   } else {
-    local = raw.replace(/\D/g, "")
+    local = raw
   }
 
-  if (!BENIN_LOCAL_PATTERN.test(local)) return null
+  const normalizedLocal = normalizeBeninLocalPhone(local)
+  if (!normalizedLocal) return null
 
-  return `${BENIN_DIALING_CODE}${local}`
+  return `${BENIN_DIALING_CODE}${normalizedLocal}`
 }
 
 // Group a local number into pairs for display: 0190000000 -> "01 90 00 00 00".
