@@ -18,7 +18,7 @@ export const REMINDER_TEMPLATES = {
   "j+3": (montant: string, mois: string, lien: string) =>
     `Ranti — Votre loyer de ${montant} (${mois}) est en retard de 3 jours. Regularisez : ${lien}`,
 
-  "j+10": (montant: string, mois: string, _lien: string) =>
+  "j+10": (montant: string, mois: string) =>
     `Ranti — Votre loyer de ${montant} (${mois}) est en retard de 10 jours. Contactez votre proprietaire.`,
 };
 

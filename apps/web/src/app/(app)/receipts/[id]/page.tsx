@@ -30,7 +30,7 @@ const kindLabels = {
 
 const noticeLabels: Record<string, string> = {
   receipt_generated: "Document généré.",
-  receipt_cancelled: "Document annulé. L'encaissement lié a aussi été retiré du registre.",
+  receipt_cancelled: "Document annulé. L’encaissement lié reste intact dans le registre.",
 }
 
 function formatDate(iso: string): string {
@@ -69,7 +69,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
         {notice ? <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">{notice}</p> : null}
         {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">{sp.error}</p> : null}
 
-        {receipt.status === "cancelled" ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">Ce document est annulé. L'encaissement lié ne doit plus être considéré comme payé dans le registre.</p> : null}
+        {receipt.status === "cancelled" ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">Ce document est annulé. L’encaissement lié reste conservé dans le registre.</p> : null}
 
         <article className="rounded-3xl border border-neutral-200 bg-white p-7 dark:border-neutral-800 dark:bg-neutral-950">
           <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
@@ -127,7 +127,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
             <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">{formatFcfa(receipt.total_amount)}</p>
           </div>
 
-          <p className="py-4 text-sm leading-6 text-neutral-600 dark:text-neutral-300">{receipt.kind === "quittance" ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé." : "Reçu de paiement pour la somme ci-dessus. Le loyer n'est pas intégralement soldé : ce document ne vaut pas quittance."}</p>
+          <p className="py-4 text-sm leading-6 text-neutral-600 dark:text-neutral-300">{receipt.kind === "quittance" ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé." : "Reçu de paiement pour la somme ci-dessus. Le loyer n’est pas intégralement soldé : ce document ne vaut pas quittance."}</p>
 
           <div className="flex items-end justify-between gap-4 pt-2">
             <div className="flex items-center gap-3">
@@ -145,7 +145,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
             <input type="hidden" name="id" value={receipt.id} />
             <label htmlFor="reason" className="block text-sm font-medium text-neutral-800 dark:text-neutral-100">Pourquoi annulez-vous cette quittance ?</label>
             <textarea id="reason" name="reason" rows={2} required minLength={3} placeholder="Ex. erreur de montant, paiement non reçu" className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50" />
-            <SubmitButton className="rounded-xl border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60 dark:border-red-900 dark:text-red-200 dark:hover:border-red-300">Annuler cette quittance et retirer l'encaissement</SubmitButton>
+            <SubmitButton className="rounded-xl border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60 dark:border-red-900 dark:text-red-200 dark:hover:border-red-300">Annuler ce document</SubmitButton>
           </form>
         ) : null}
       </section>

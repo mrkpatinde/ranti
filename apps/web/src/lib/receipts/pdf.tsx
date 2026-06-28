@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 import { formatFcfa } from "@/lib/format"
 import type { Landlord } from "@/lib/landlords"
