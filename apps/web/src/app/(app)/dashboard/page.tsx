@@ -34,13 +34,23 @@ function buildSetupSteps(
   hasActiveLease: boolean
 ) {
   return [
-    { label: "Bien", done: hasProperties },
+    { label: "Lieu", done: hasProperties },
     { label: "Logement", done: hasUnits },
     { label: "Locataire", done: hasTenants },
     { label: "Bail", done: hasLeases },
     { label: "Loyers", done: hasActiveLease },
   ]
 }
+
+const navLinks = [
+  { href: "/settings/profile", label: "Profil" },
+  { href: "/properties", label: "Lieux" },
+  { href: "/units", label: "Logements" },
+  { href: "/tenants", label: "Locataires" },
+  { href: "/leases", label: "Baux" },
+  { href: "/collections", label: "Encaissements" },
+  { href: "/receipts", label: "Quittances" },
+]
 
 export default async function DashboardPage() {
   const landlord = await requireLandlordProfile()
@@ -51,6 +61,7 @@ export default async function DashboardPage() {
     getLandlordLeases(landlord.id),
     getLandlordDueBalances(landlord.id),
   ])
+
   const hasProperties = properties.length > 0
   const hasUnits = units.length > 0
   const hasTenants = tenants.length > 0
@@ -59,66 +70,50 @@ export default async function DashboardPage() {
   const setupSteps = buildSetupSteps(hasProperties, hasUnits, hasTenants, hasLeases, hasActiveLease)
   const isLocalMode = isLocalAuthEnabled()
 
-  // Monthly rent synthesis: the three MVP questions — who paid, who is late, what to do.
-  const unitName = (id: string): string => units.find((u) => u.id === id)?.name ?? "Logement"
+  const propertyName = (id: string): string => properties.find((property) => property.id === id)?.name ?? "Lieu"
+  const unitName = (id: string): string => units.find((unit) => unit.id === id)?.name ?? "Logement"
   const tenantName = (id: string): string => {
-    const t = tenants.find((x) => x.id === id)
-    return t ? `${t.first_name} ${t.last_name}` : "Locataire"
+    const tenant = tenants.find((item) => item.id === id)
+    return tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"
   }
-  const remaining = (d: (typeof dues)[number]): number => Math.max(0, d.amount_due - d.amount_paid)
-  const overdue = dues.filter((d) => d.status === "overdue")
-  const expected = dues.filter((d) => d.status === "expected")
-  // Sums use the remaining amount so a partial payment lowers "à encaisser".
-  const sumRemaining = (list: typeof dues): number => list.reduce((total, d) => total + remaining(d), 0)
+  const remaining = (due: (typeof dues)[number]): number => Math.max(0, due.amount_due - due.amount_paid)
+  const overdue = dues.filter((due) => due.status === "overdue")
+  const expected = dues.filter((due) => due.status === "expected")
+  const sumRemaining = (list: typeof dues): number => list.reduce((total, due) => total + remaining(due), 0)
   const overdueRemaining = sumRemaining(overdue)
   const expectedRemaining = sumRemaining(expected)
-  const totalPaid = dues.reduce((total, d) => total + d.amount_paid, 0)
-  const paidCount = dues.filter((d) => d.status === "paid").length
-  // Action list: late first, then upcoming, soonest due date first.
+  const totalPaid = dues.reduce((total, due) => total + due.amount_paid, 0)
+  const paidCount = dues.filter((due) => due.status === "paid").length
   const actionDues = [...overdue, ...expected].sort((a, b) => a.due_date.localeCompare(b.due_date))
+
+  const nextAction = !hasProperties
+    ? { href: "/properties/new", label: "Ajouter mon premier lieu", title: "Première étape : ajouter un lieu", body: "Une maison, une cour, un immeuble ou une boutique où vous encaissez un loyer." }
+    : !hasUnits
+      ? { href: "/units/new", label: "Ajouter mon premier logement", title: "Deuxième étape : ajouter un logement", body: "Décrivez le premier espace qui peut recevoir un locataire." }
+      : !hasTenants
+        ? { href: "/tenants/new", label: "Ajouter un locataire", title: "Troisième étape : ajouter un locataire", body: "Ajoutez une personne joignable pour permettre les relances." }
+        : !hasLeases
+          ? { href: "/leases/new", label: "Créer un bail", title: "Quatrième étape : créer un bail", body: "Indiquez le loyer, la date d'échéance et le logement concerné." }
+          : !hasActiveLease
+            ? { href: "/leases", label: "Activer un bail", title: "Dernière étape : activer le bail", body: "Activez le bail pour générer les loyers attendus." }
+            : null
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
-      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
+      <header className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">
-            Ranti
-          </p>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-            {landlord.first_name} {landlord.last_name}
-          </p>
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">Ranti</p>
+          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">{landlord.first_name} {landlord.last_name}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href="/tenants"
-            className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
-          >
-            Locataires
-          </Link>
-          <Link
-            href="/leases"
-            className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
-          >
-            Baux
-          </Link>
-          <Link
-            href="/collections"
-            className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
-          >
-            Encaissements
-          </Link>
-          <Link
-            href="/receipts"
-            className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
-          >
-            Quittances
-          </Link>
+        <div className="flex max-w-xl flex-wrap items-center justify-end gap-3">
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300">
+              {link.label}
+            </Link>
+          ))}
           <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
-            >
+            <button type="submit" className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50">
               Se déconnecter
             </button>
           </form>
@@ -131,32 +126,21 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
-      <section className="flex flex-1 flex-col justify-center gap-8 py-12">
+      <section className="flex flex-1 flex-col gap-8 py-12">
         <div className="space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 sm:text-4xl">
-            Bonjour {landlord.first_name}.
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 sm:text-4xl">Bonjour {landlord.first_name}.</h1>
           <p className="max-w-xl text-base leading-7 text-neutral-600 dark:text-neutral-300">
-            Votre registre de loyer commence par les lieux et les logements que vous voulez suivre.
-            Ensuite, vous ajouterez les locataires et les baux.
+            Votre registre de loyer vous montre qui a payé, qui doit encore, et quoi faire maintenant.
           </p>
         </div>
 
         <ol className="flex flex-wrap items-center gap-2 text-sm">
           {setupSteps.map((step, index) => (
             <li key={step.label} className="flex items-center gap-2">
-              <span
-                className={
-                  step.done
-                    ? "rounded-lg border border-neutral-950 bg-neutral-950 px-3 py-1.5 text-white dark:border-neutral-50 dark:bg-neutral-50 dark:text-neutral-950"
-                    : "rounded-lg border border-neutral-300 px-3 py-1.5 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
-                }
-              >
+              <span className={step.done ? "rounded-lg border border-neutral-950 bg-neutral-950 px-3 py-1.5 text-white dark:border-neutral-50 dark:bg-neutral-50 dark:text-neutral-950" : "rounded-lg border border-neutral-300 px-3 py-1.5 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"}>
                 {step.done ? "✓ " : ""}{step.label}
               </span>
-              {index < setupSteps.length - 1 ? (
-                <span aria-hidden className="text-neutral-400">→</span>
-              ) : null}
+              {index < setupSteps.length - 1 ? <span aria-hidden className="text-neutral-400">→</span> : null}
             </li>
           ))}
         </ol>
@@ -182,36 +166,18 @@ export default async function DashboardPage() {
             </div>
 
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-              <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                À encaisser
-              </h2>
+              <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">À encaisser</h2>
               {actionDues.length === 0 ? (
-                <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
-                  Tout est à jour. Aucun loyer en attente.
-                </p>
+                <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">Tout est à jour. Aucun loyer en attente.</p>
               ) : (
                 <div className="mt-4 space-y-3">
                   {actionDues.slice(0, 8).map((due) => (
-                    <div
-                      key={due.id}
-                      className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800"
-                    >
+                    <div key={due.id} className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800">
                       <div>
-                        <p className="font-medium text-neutral-950 dark:text-neutral-50">
-                          {tenantName(due.tenant_id)} — {unitName(due.unit_id)}
-                        </p>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                          reste {formatAmount(remaining(due))} · échéance {formatDate(due.due_date)}
-                          {due.amount_paid > 0 ? ` · ${formatAmount(due.amount_paid)} déjà reçu` : ""}
-                          {due.status === "overdue" ? " · en retard" : ""}
-                        </p>
+                        <p className="font-medium text-neutral-950 dark:text-neutral-50">{tenantName(due.tenant_id)} — {unitName(due.unit_id)}</p>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">reste {formatAmount(remaining(due))} · échéance {formatDate(due.due_date)}{due.amount_paid > 0 ? ` · ${formatAmount(due.amount_paid)} déjà reçu` : ""}{due.status === "overdue" ? " · en retard" : ""}</p>
                       </div>
-                      <Link
-                        href={`/collections/new?lease_id=${due.lease_id}`}
-                        className="shrink-0 rounded-xl bg-neutral-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
-                      >
-                        Encaisser
-                      </Link>
+                      <Link href={`/collections/new?lease_id=${due.lease_id}`} className="shrink-0 rounded-xl bg-neutral-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200">Encaisser</Link>
                     </div>
                   ))}
                 </div>
@@ -220,107 +186,48 @@ export default async function DashboardPage() {
           </div>
         ) : null}
 
-        {!hasProperties ? (
+        {nextAction ? (
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-            <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-              Première étape : ajouter un lieu
-            </h2>
-            <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
-              Une maison, un immeuble, une cour ou une boutique où vous encaissez un loyer.
-            </p>
-            <Link
-              href="/properties/new"
-              className="mt-5 inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
-            >
-              Ajouter mon premier lieu
-            </Link>
+            <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">{nextAction.title}</h2>
+            <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">{nextAction.body}</p>
+            <Link href={nextAction.href} className="mt-5 inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200">{nextAction.label}</Link>
           </div>
         ) : null}
 
-        {hasProperties && !hasUnits ? (
+        {hasProperties ? (
           <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                Deuxième étape : ajouter un logement
-              </h2>
-              <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
-                Décrivez le premier espace qui peut recevoir un locataire.
-              </p>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">Vos lieux</h2>
+              <Link href="/properties" className="text-sm font-medium text-neutral-700 underline-offset-4 hover:underline dark:text-neutral-200">Gérer</Link>
             </div>
-
             <div className="space-y-3">
-              {properties.map((property) => (
-                <article
-                  key={property.id}
-                  className="rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800"
-                >
-                  <h3 className="font-medium text-neutral-950 dark:text-neutral-50">
-                    {property.name}
-                  </h3>
-                  {property.city || property.address ? (
-                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                      {[property.city, property.address].filter(Boolean).join(" — ")}
-                    </p>
-                  ) : null}
-                </article>
+              {properties.slice(0, 4).map((property) => (
+                <Link key={property.id} href={`/properties/${property.id}`} className="block rounded-2xl border border-neutral-200 px-4 py-3 transition hover:border-neutral-950 dark:border-neutral-800 dark:hover:border-neutral-50">
+                  <h3 className="font-medium text-neutral-950 dark:text-neutral-50">{property.name}</h3>
+                  {property.city || property.address ? <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{[property.city, property.address].filter(Boolean).join(" — ")}</p> : null}
+                </Link>
               ))}
             </div>
-
-            <Link
-              href="/units/new"
-              className="inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
-            >
-              Ajouter mon premier logement
-            </Link>
           </div>
         ) : null}
 
         {hasUnits ? (
           <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                Vos logements
-              </h2>
-              <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
-                {hasActiveLease
-                  ? "Vos baux sont actifs. Suivez les loyers reçus et en retard."
-                  : hasLeases
-                    ? "Activez votre bail pour générer les échéances de loyer."
-                    : hasTenants
-                      ? "Créez un bail entre un logement et un locataire."
-                      : "Le premier logement est prêt. Ajoutez maintenant un locataire."}
-              </p>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">Vos logements</h2>
+              <Link href="/units" className="text-sm font-medium text-neutral-700 underline-offset-4 hover:underline dark:text-neutral-200">Gérer</Link>
             </div>
-
             <div className="space-y-3">
-              {units.map((unit) => (
-                <article
-                  key={unit.id}
-                  className="rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800"
-                >
-                  <h3 className="font-medium text-neutral-950 dark:text-neutral-50">
-                    {unit.name}
-                  </h3>
-                  <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                    {unitTypeLabels[unit.unit_type] ?? "Logement"} — disponible
-                  </p>
-                </article>
+              {units.slice(0, 6).map((unit) => (
+                <Link key={unit.id} href={`/units/${unit.id}`} className="block rounded-2xl border border-neutral-200 px-4 py-3 transition hover:border-neutral-950 dark:border-neutral-800 dark:hover:border-neutral-50">
+                  <h3 className="font-medium text-neutral-950 dark:text-neutral-50">{unit.name}</h3>
+                  <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{unitTypeLabels[unit.unit_type] ?? "Logement"} — {propertyName(unit.property_id)}</p>
+                </Link>
               ))}
             </div>
-
             <div className="flex flex-wrap gap-3">
-              <Link
-                href="/tenants/new"
-                className="inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
-              >
-                Ajouter un locataire
-              </Link>
-              <Link
-                href="/leases/new"
-                className="inline-flex rounded-xl border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
-              >
-                Créer un bail
-              </Link>
+              <Link href="/tenants/new" className="inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200">Ajouter un locataire</Link>
+              <Link href="/leases/new" className="inline-flex rounded-xl border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50">Créer un bail</Link>
             </div>
           </div>
         ) : null}
