@@ -48,6 +48,17 @@ export async function cancelReceipt(formData: FormData) {
   }
 
   const supabase = await createClient()
+  const { data: receipt, error: readError } = await supabase
+    .from("receipts")
+    .select("id, rent_reception_id")
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle()
+
+  if (readError || !receipt) {
+    redirect(`/receipts?error=${encodeURIComponent("Quittance introuvable.")}`)
+  }
+
   const { error } = await supabase.rpc("cancel_receipt", {
     p_receipt_id: id,
     p_reason: reason,
@@ -57,6 +68,17 @@ export async function cancelReceipt(formData: FormData) {
     redirect(`/receipts/${id}?error=${encodeURIComponent("Annulation impossible. Réessayez.")}`)
   }
 
+  const { error: collectionError } = await supabase.rpc("cancel_collection", {
+    p_reception_id: receipt.rent_reception_id,
+    p_reason: `Quittance annulée : ${reason}`,
+  })
+
+  if (collectionError) {
+    redirect(`/receipts/${id}?error=${encodeURIComponent("Quittance annulée, mais l'encaissement n'a pas pu être retiré. Vérifiez les encaissements.")}`)
+  }
+
+  revalidatePath("/dashboard")
+  revalidatePath("/collections")
   revalidatePath("/receipts")
   redirect(`/receipts/${id}?notice=receipt_cancelled`)
 }
