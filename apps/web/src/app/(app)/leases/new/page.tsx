@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { SubmitButton } from "@/components/submit-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createLease } from "@/lib/leases"
 import { getLandlordTenants } from "@/lib/tenants"
@@ -178,12 +179,11 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
             <textarea id="notes" name="notes" rows={3} placeholder="Information utile" className={inputClass} />
           </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+          <SubmitButton
+            className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
             Créer le bail (brouillon)
-          </button>
+          </SubmitButton>
         </form>
       </section>
     </main>

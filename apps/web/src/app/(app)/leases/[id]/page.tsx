@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { SubmitButton } from "@/components/submit-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { activateLease, endLease, getLease } from "@/lib/leases"
 import { getLeaseRentDues } from "@/lib/rent-dues"
@@ -122,23 +123,21 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             {lease.status === "draft" ? (
               <form action={activateLease}>
                 <input type="hidden" name="id" value={lease.id} />
-                <button
-                  type="submit"
-                  className="rounded-xl bg-neutral-950 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+                <SubmitButton
+                  className="rounded-xl bg-neutral-950 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
                 >
                   Activer le bail
-                </button>
+                </SubmitButton>
               </form>
             ) : null}
             {lease.status === "active" ? (
               <form action={endLease}>
                 <input type="hidden" name="id" value={lease.id} />
-                <button
-                  type="submit"
-                  className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+                <SubmitButton
+                  className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 disabled:opacity-60 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
                 >
                   Terminer le bail
-                </button>
+                </SubmitButton>
               </form>
             ) : null}
           </div>

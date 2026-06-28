@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { SubmitButton } from "@/components/submit-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { cancelReceipt, getReceipt } from "@/lib/receipts"
 import type { ReceiptStatus } from "@/lib/receipts"
@@ -200,12 +201,11 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               placeholder="Ex. erreur de montant, paiement non reçu"
               className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
             />
-            <button
-              type="submit"
-              className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+            <SubmitButton
+              className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 disabled:opacity-60 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
             >
               Annuler ce document
-            </button>
+            </SubmitButton>
           </form>
         ) : null}
       </section>

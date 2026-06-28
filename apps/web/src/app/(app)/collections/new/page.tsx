@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { SubmitButton } from "@/components/submit-button"
 import { recordCollection } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeases, getLease } from "@/lib/leases"
@@ -218,12 +219,11 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
             <input id="note" name="note" type="text" placeholder="Réf. Mobile Money, remarque…" className={inputClass} />
           </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+          <SubmitButton
+            className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
             Enregistrer l&apos;encaissement
-          </button>
+          </SubmitButton>
         </form>
       )}
     </Shell>

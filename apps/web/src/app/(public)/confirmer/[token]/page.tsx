@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { SubmitButton } from "@/components/submit-button";
 import { createClient } from "@/lib/supabase/server";
 import { confirmRentPayment } from "./actions";
 
@@ -175,12 +176,12 @@ export default async function ConfirmerPage({
             </div>
           ) : (
             <form action={confirmRentPayment.bind(null, rentDue.id, token)}>
-              <button
-                type="submit"
-                className="inline-flex w-full justify-center rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+              <SubmitButton
+                className="inline-flex w-full justify-center rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+                pendingLabel="Envoi…"
               >
                 J&apos;ai payé ce loyer
-              </button>
+              </SubmitButton>
               <p className="mt-4 text-center text-xs text-neutral-400 dark:text-neutral-500">
                 En cliquant, vous confirmez avoir payé votre loyer. Le
                 propriétaire validera cette déclaration.

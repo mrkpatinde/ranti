@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { SubmitButton } from "@/components/submit-button"
 import { createTenant } from "@/lib/tenants"
 import { requireLandlordProfile } from "@/lib/landlords"
 
@@ -82,12 +83,11 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
             <textarea id="notes" name="notes" rows={3} placeholder="Information utile" className={inputClass} />
           </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+          <SubmitButton
+            className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
             Enregistrer le locataire
-          </button>
+          </SubmitButton>
         </form>
       </section>
     </main>

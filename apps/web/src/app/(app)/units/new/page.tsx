@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { SubmitButton } from "@/components/submit-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordProperties } from "@/lib/properties"
 import { createUnit } from "@/lib/units"
@@ -152,12 +153,11 @@ export default async function NewUnitPage({ searchParams }: NewUnitPageProps) {
             </p>
           ) : null}
 
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+          <SubmitButton
+            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
             Ajouter ce logement
-          </button>
+          </SubmitButton>
         </form>
       </section>
     </main>
