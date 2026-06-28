@@ -11,12 +11,6 @@ function profileError(message: string): never {
   redirect(`${AUTH_PATHS.profile}?error=${encodeURIComponent(message)}`)
 }
 
-/**
- * Creates the business landlord profile after authentication.
- * Phone/password users keep the verified phone from Supabase Auth.
- * Google users must provide a phone in the onboarding profile step because
- * Google OAuth does not reliably expose a phone number to Supabase.
- */
 export async function createLandlordProfile(formData: FormData) {
   const claims = await requireAuth()
 
@@ -29,12 +23,13 @@ export async function createLandlordProfile(formData: FormData) {
   }
 
   const currentUser = await getCurrentUser()
-  const sessionPhone = claims.phone ?? currentUser?.phone
-  const onboardingPhone = normalizePhone(formData.get("phone"))
-  const phone = sessionPhone ?? onboardingPhone
+  const claimPhone = normalizePhone(claims.phone ?? null)
+  const userPhone = normalizePhone(currentUser?.phone ?? null)
+  const formPhone = normalizePhone(formData.get("phone"))
+  const phone = claimPhone ?? userPhone ?? formPhone
 
   if (!phone) {
-    profileError("Entrez les 10 chiffres de votre numéro béninois, par exemple 01 90 00 00 00.")
+    profileError("Entrez votre numéro local à 10 chiffres.")
   }
 
   const supabase = await createClient()
@@ -48,13 +43,12 @@ export async function createLandlordProfile(formData: FormData) {
   })
 
   if (error) {
-    // Unique violation = profile already exists for this user; treat as done.
     if (error.code === "23505") {
       revalidatePath("/", "layout")
       redirect(AUTH_PATHS.afterSignIn)
     }
 
-    console.error("createLandlordProfile: insert failed", error.code, error.message)
+    console.error("createLandlordProfile failed", error.code, error.message)
     profileError("Création du profil impossible. Réessayez.")
   }
 
