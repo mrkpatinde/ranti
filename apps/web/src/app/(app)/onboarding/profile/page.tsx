@@ -90,10 +90,13 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               autoComplete="tel-national"
               defaultValue={defaultPhone}
               placeholder="01 90 00 00 00"
+              required
+              pattern="(?:01\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}|\d{2}\s?\d{2}\s?\d{2}\s?\d{2})"
+              title="Entrez un numéro béninois : 01 90 00 00 00 ou 90 00 00 00."
               className={inputClass}
             />
             <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
-              Ranti l’utilise pour les rappels WhatsApp et le suivi de vos loyers.
+              Entrez votre numéro béninois, avec ou sans le préfixe 01.
             </p>
           </div>
 
