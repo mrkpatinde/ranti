@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { SubmitButton } from "@/components/submit-button"
 import {
   cancelCollection,
   confirmCollection,
@@ -205,21 +206,19 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                   <div className="mt-5 flex flex-wrap gap-3">
                     <form action={confirmCollection}>
                       <input type="hidden" name="id" value={c.id} />
-                      <button
-                        type="submit"
-                        className="rounded-xl bg-neutral-950 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+                      <SubmitButton
+                        className="rounded-xl bg-neutral-950 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
                       >
                         Confirmer
-                      </button>
+                      </SubmitButton>
                     </form>
                     <form action={cancelCollection}>
                       <input type="hidden" name="id" value={c.id} />
-                      <button
-                        type="submit"
-                        className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+                      <SubmitButton
+                        className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 disabled:opacity-60 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
                       >
                         Annuler
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                 ) : null}
@@ -235,12 +234,11 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                   ) : (
                     <form action={generateReceipt} className="mt-5">
                       <input type="hidden" name="reception_id" value={c.id} />
-                      <button
-                        type="submit"
-                        className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+                      <SubmitButton
+                        className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 disabled:opacity-60 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
                       >
                         Générer le justificatif
-                      </button>
+                      </SubmitButton>
                     </form>
                   )
                 ) : null}

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { SubmitButton } from "@/components/submit-button"
 import { AUTH_PATHS } from "@/lib/auth"
 import { createLandlordProfile, getCurrentLandlord } from "@/lib/landlords"
 
@@ -101,12 +102,11 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             </p>
           ) : null}
 
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+          <SubmitButton
+            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
             Accéder à mon espace
-          </button>
+          </SubmitButton>
         </form>
       </section>
     </main>
