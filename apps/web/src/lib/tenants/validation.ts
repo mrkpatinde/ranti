@@ -9,6 +9,9 @@ function normalizeText(value: FormDataEntryValue | null, maxLength: number) {
   return text
 }
 
+const BENIN_DIALING_CODE = "+229"
+const BENIN_LOCAL_PATTERN = /^01\d{8}$/
+
 export function normalizeTenantName(value: FormDataEntryValue | null) {
   const name = normalizeText(value, 80)
 
@@ -24,17 +27,25 @@ export function normalizeOptionalTenantText(
   return normalizeText(value, maxLength)
 }
 
-// Phone is optional and not globally unique at the MVP (api.md Tenants).
-// Kept lenient: trim and collapse spaces, no strict format.
+// Required for Ranti's reminder promise. Store a current Benin number consistently.
 export function normalizeTenantPhone(value: FormDataEntryValue | null) {
   if (typeof value !== "string") return null
 
-  const phone = value.replace(/\s+/g, " ").trim()
+  const raw = value.replace(/\s+/g, "").trim()
+  if (!raw) return null
 
-  if (!phone) return null
-  if (phone.length > 32) return null
+  let local: string
+  if (raw.startsWith(BENIN_DIALING_CODE)) {
+    local = raw.slice(BENIN_DIALING_CODE.length)
+  } else if (raw.startsWith("+")) {
+    return null
+  } else {
+    local = raw.replace(/\D/g, "")
+  }
 
-  return phone
+  if (!BENIN_LOCAL_PATTERN.test(local)) return null
+
+  return `${BENIN_DIALING_CODE}${local}`
 }
 
 export function isEmail(value: string) {
