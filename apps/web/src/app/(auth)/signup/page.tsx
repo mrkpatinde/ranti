@@ -116,7 +116,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             href={AUTH_PATHS.signIn}
             className="block text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
           >
-            J'ai déjà un espace
+            J&apos;ai déjà un espace
           </Link>
         </form>
       </section>
