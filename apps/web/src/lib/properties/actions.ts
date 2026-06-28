@@ -30,20 +30,24 @@ export async function createProperty(formData: FormData) {
 
   const supabase = await createClient()
 
-  const { error } = await supabase.from("properties").insert({
-    landlord_id: landlord.id,
-    name,
-    city,
-    address,
-    notes,
-  })
+  const { data, error } = await supabase
+    .from("properties")
+    .insert({
+      landlord_id: landlord.id,
+      name,
+      city,
+      address,
+      notes,
+    })
+    .select("id")
+    .single()
 
-  if (error) {
+  if (error || !data) {
     propertyError("Impossible de créer ce lieu. Réessayez.")
   }
 
   revalidatePath("/dashboard")
-  redirect("/dashboard?notice=property_created")
+  redirect(`/units/new?property_id=${data.id}`)
 }
 
 export async function updateProperty(formData: FormData) {
@@ -101,7 +105,6 @@ export async function archiveProperty(formData: FormData) {
 
   const supabase = await createClient()
 
-  // Refuse archiving while any unit of this property has an active lease.
   const { data: propertyUnits } = await supabase
     .from("units")
     .select("id")
@@ -123,7 +126,6 @@ export async function archiveProperty(formData: FormData) {
     }
   }
 
-  // Soft-delete only. Units, leases and history are preserved (api.md Properties).
   const { error } = await supabase
     .from("properties")
     .update({ deleted_at: new Date().toISOString() })
