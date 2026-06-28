@@ -7,4 +7,5 @@ export const AUTH_PATHS = {
   afterSignIn: "/dashboard",
   afterSignOut: "/",
   authError: "/auth/error",
+  authCallback: "/auth/callback",
 } as const

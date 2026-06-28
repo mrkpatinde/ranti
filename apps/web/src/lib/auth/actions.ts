@@ -7,6 +7,28 @@ import { AUTH_PATHS } from "./paths"
 import { normalizeOtp, normalizePassword, normalizePhone } from "./validation"
 import type { AuthResult } from "./types"
 
+export async function signInWithGoogle() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3300"}${AUTH_PATHS.authCallback}`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+      },
+    },
+  })
+
+  if (error || !data.url) {
+    console.error("signInWithGoogle: OAuth failed", error?.message)
+    redirect(`${AUTH_PATHS.signIn}?error=${encodeURIComponent("Connexion Google impossible. Réessayez.")}`)
+  }
+
+  redirect(data.url)
+}
+
 export async function signUpWithPhonePassword(formData: FormData): Promise<AuthResult> {
   const phone = normalizePhone(formData.get("phone"))
   const password = normalizePassword(formData.get("password"))
