@@ -1,4 +1,6 @@
+import { AppShell } from "@/components/app-shell"
 import { requireAuth } from "@/lib/auth"
+import { getCurrentLandlord } from "@/lib/landlords"
 
 export default async function AppLayout({
   children,
@@ -6,6 +8,7 @@ export default async function AppLayout({
   children: React.ReactNode
 }) {
   await requireAuth()
+  const landlord = await getCurrentLandlord()
 
-  return children
+  return <AppShell landlord={landlord}>{children}</AppShell>
 }
