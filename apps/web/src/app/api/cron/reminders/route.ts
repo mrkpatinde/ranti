@@ -125,9 +125,10 @@ async function checkRemindersDue(): Promise<number> {
         process.env.PUBLIC_URL || "https://ranti.app";
       const lien = `${PUBLIC_URL}/confirmer/${due.confirmation_token}`;
 
-      const templateFn = REMINDER_TEMPLATES[template];
       const referenceDate = template.startsWith("j+") ? mois : dateEcheance;
-      const message = templateFn(montant, referenceDate, lien);
+      const message = template === "j+10"
+        ? REMINDER_TEMPLATES[template](montant, referenceDate)
+        : REMINDER_TEMPLATES[template](montant, referenceDate, lien);
 
       const result = await sendSms(phone, message);
 
