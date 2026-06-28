@@ -22,6 +22,11 @@ function readString(formData: FormData, key: string): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null
 }
 
+function withError(path: string, message: string) {
+  const separator = path.includes("?") ? "&" : "?"
+  return `${path}${separator}error=${encodeURIComponent(message)}`
+}
+
 type TenantInput = {
   firstName: string
   lastName: string
@@ -38,15 +43,15 @@ function readTenantInput(formData: FormData, errorPath: string): TenantInput {
   const notes = normalizeOptionalTenantText(formData.get("notes"), 500)
 
   if (!firstName || !lastName) {
-    redirect(`${errorPath}?error=${encodeURIComponent("Indiquez le prénom et le nom du locataire.")}`)
+    redirect(withError(errorPath, "Indiquez le prénom et le nom du locataire."))
   }
 
   if (!phone) {
-    redirect(`${errorPath}?error=${encodeURIComponent("Ajoutez le numéro du locataire pour permettre les relances.")}`)
+    redirect(withError(errorPath, "Ajoutez le numéro du locataire pour permettre les relances."))
   }
 
   if (email && !isEmail(email)) {
-    redirect(`${errorPath}?error=${encodeURIComponent("L'adresse email n'est pas valide.")}`)
+    redirect(withError(errorPath, "L'adresse email n'est pas valide."))
   }
 
   return { firstName, lastName, phone, email, notes }
@@ -74,7 +79,7 @@ export async function createTenant(formData: FormData) {
     .single()
 
   if (error || !data) {
-    redirect(`${errorPath}?error=${encodeURIComponent("Impossible de créer ce locataire. Réessayez.")}`)
+    redirect(withError(errorPath, "Impossible de créer ce locataire. Réessayez."))
   }
 
   revalidatePath("/dashboard")
