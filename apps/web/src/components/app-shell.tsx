@@ -4,18 +4,22 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { Landlord } from "@/lib/landlords"
 
-const MAIN_NAV = [
-  { href: "/dashboard", label: "Accueil", helper: "Vue d'ensemble" },
-  { href: "/collections", label: "Encaissements", helper: "Paiements reçus" },
-  { href: "/receipts", label: "Quittances", helper: "Documents" },
-  { href: "/properties", label: "Lieux", helper: "Maisons et cours" },
-  { href: "/units", label: "Logements", helper: "Chambres et boutiques" },
-  { href: "/tenants", label: "Locataires", helper: "Contacts" },
-  { href: "/leases", label: "Baux", helper: "Accords" },
+const TRACKING_NAV = [
+  { href: "/dashboard", label: "Accueil" },
+  { href: "/collections", label: "Encaissements" },
+  { href: "/receipts", label: "Quittances" },
 ]
 
-const SETTINGS_NAV = [
-  { href: "/settings/profile", label: "Profil" },
+const REGISTER_NAV = [
+  { href: "/properties", label: "Lieux" },
+  { href: "/units", label: "Logements" },
+  { href: "/tenants", label: "Locataires" },
+  { href: "/leases", label: "Baux" },
+]
+
+const MOBILE_NAV = [
+  ...TRACKING_NAV,
+  ...REGISTER_NAV,
 ]
 
 function isActive(pathname: string, href: string) {
@@ -23,7 +27,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-function NavLink({ href, label, helper, pathname }: { href: string; label: string; helper?: string; pathname: string }) {
+function NavLink({ href, label, pathname }: { href: string; label: string; pathname: string }) {
   const active = isActive(pathname, href)
 
   return (
@@ -31,13 +35,23 @@ function NavLink({ href, label, helper, pathname }: { href: string; label: strin
       href={href}
       className={
         active
-          ? "block rounded-2xl border border-neutral-950 bg-neutral-950 px-4 py-3 text-white dark:border-neutral-50 dark:bg-neutral-50 dark:text-neutral-950"
-          : "block rounded-2xl border border-transparent px-4 py-3 text-neutral-700 transition hover:border-neutral-200 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:border-neutral-800 dark:hover:bg-neutral-950"
+          ? "block rounded-xl bg-neutral-950 px-3 py-2 text-sm font-medium text-white dark:bg-neutral-50 dark:text-neutral-950"
+          : "block rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-neutral-50"
       }
     >
-      <span className="block text-sm font-medium">{label}</span>
-      {helper ? <span className={active ? "mt-0.5 block text-xs text-neutral-300 dark:text-neutral-700" : "mt-0.5 block text-xs text-neutral-400"}>{helper}</span> : null}
+      {label}
     </Link>
+  )
+}
+
+function NavSection({ title, items, pathname }: { title: string; items: Array<{ href: string; label: string }>; pathname: string }) {
+  return (
+    <div className="space-y-1">
+      <p className="px-3 pb-1 text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">{title}</p>
+      {items.map((item) => (
+        <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
+      ))}
+    </div>
   )
 }
 
@@ -50,10 +64,10 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
   const ownerName = `${landlord.first_name} ${landlord.last_name}`
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50 lg:grid lg:grid-cols-[280px_1fr]">
-      <aside className="hidden min-h-screen border-r border-neutral-200 bg-white px-5 py-6 dark:border-neutral-800 dark:bg-neutral-950 lg:flex lg:flex-col">
-        <div className="flex items-center gap-3 border-b border-neutral-200 pb-6 dark:border-neutral-800">
-          <span className="flex h-10 w-10 flex-col justify-center gap-[3px] rounded-xl bg-neutral-950 px-2.5 dark:bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50 lg:grid lg:grid-cols-[240px_1fr]">
+      <aside className="hidden min-h-screen border-r border-neutral-200 bg-white px-4 py-5 dark:border-neutral-800 dark:bg-neutral-950 lg:flex lg:flex-col">
+        <Link href="/dashboard" className="flex items-center gap-3 px-2 pb-5">
+          <span className="flex h-9 w-9 flex-col justify-center gap-[3px] rounded-xl bg-neutral-950 px-2.5 dark:bg-neutral-50">
             <span className="h-[3px] w-5 rounded-full bg-white dark:bg-neutral-950" />
             <span className="h-[3px] w-4 rounded-full bg-white dark:bg-neutral-950" />
             <span className="h-[3px] w-3 rounded-full bg-white dark:bg-neutral-950" />
@@ -62,27 +76,21 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
             <p className="font-semibold tracking-tight">Ranti</p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">Registre de loyer</p>
           </div>
-        </div>
+        </Link>
 
-        <nav className="mt-6 space-y-1">
-          {MAIN_NAV.map((item) => (
-            <NavLink key={item.href} href={item.href} label={item.label} helper={item.helper} pathname={pathname} />
-          ))}
+        <nav className="space-y-6 border-t border-neutral-200 pt-5 dark:border-neutral-800">
+          <NavSection title="Suivi" items={TRACKING_NAV} pathname={pathname} />
+          <NavSection title="Registre" items={REGISTER_NAV} pathname={pathname} />
         </nav>
 
-        <div className="mt-auto border-t border-neutral-200 pt-5 dark:border-neutral-800">
-          <p className="px-4 text-xs uppercase tracking-[0.18em] text-neutral-400">Paramètres</p>
-          <div className="mt-2 space-y-1">
-            {SETTINGS_NAV.map((item) => (
-              <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
-            ))}
+        <div className="mt-auto space-y-2 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+          <NavLink href="/settings/profile" label="Profil" pathname={pathname} />
+          <div className="px-3 py-2">
+            <p className="truncate text-sm font-medium">{ownerName}</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">Propriétaire</p>
           </div>
-          <div className="mt-4 rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800">
-            <p className="text-sm font-medium">{ownerName}</p>
-            <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">Propriétaire</p>
-          </div>
-          <form action="/auth/signout" method="post" className="mt-3">
-            <button type="submit" className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-left text-sm font-medium text-neutral-700 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-200 dark:hover:border-neutral-50">
+          <form action="/auth/signout" method="post">
+            <button type="submit" className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-neutral-50">
               Se déconnecter
             </button>
           </form>
@@ -98,7 +106,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
             </Link>
           </div>
           <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            {MAIN_NAV.map((item) => {
+            {MOBILE_NAV.map((item) => {
               const active = isActive(pathname, item.href)
               return (
                 <Link
@@ -107,7 +115,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
                   className={
                     active
                       ? "shrink-0 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-medium text-white dark:bg-neutral-50 dark:text-neutral-950"
-                      : "shrink-0 rounded-xl border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 dark:border-neutral-800 dark:text-neutral-200"
+                      : "shrink-0 rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-300"
                   }
                 >
                   {item.label}
