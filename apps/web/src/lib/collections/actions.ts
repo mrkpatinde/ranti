@@ -40,6 +40,7 @@ function readAllocations(formData: FormData): CollectionAllocation[] {
 
 function collectionErrorMessage(message: string): string {
   if (message.includes("allocations_exceed")) return "La somme allouée dépasse le montant reçu."
+  if (message.includes("allocation_exceeds_due")) return "Une allocation dépasse le reste dû de l'échéance."
   if (message.includes("allocation_required")) return "Affectez l'encaissement à au moins une échéance."
   if (message.includes("amount_invalid")) return "Indiquez un montant valide."
   if (message.includes("method_invalid")) return "Méthode de paiement invalide."
