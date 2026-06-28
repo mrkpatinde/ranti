@@ -1,4 +1,5 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import { formatFcfa } from "@/lib/format"
 import type { Landlord } from "@/lib/landlords"
 import type { Receipt } from "./types"
 
@@ -12,10 +13,6 @@ const methodLabels: Record<string, string> = {
 const kindLabels: Record<string, string> = {
   quittance: "Quittance de loyer",
   receipt: "Reçu de paiement",
-}
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
 }
 
 function formatDate(iso: string): string {
@@ -73,26 +70,20 @@ export function ReceiptPdf({
             <Text style={s.title}>{kind}</Text>
             <Text style={[s.muted, { textAlign: "right" }]}>N° {receipt.receipt_number}</Text>
             <Text style={[s.muted, { textAlign: "right" }]}>Émise le {formatDate(receipt.issued_at)}</Text>
-            {receipt.status === "cancelled" ? (
-              <Text style={[{ textAlign: "right", color: "#A32D2D" }]}>Annulée</Text>
-            ) : null}
+            {receipt.status === "cancelled" ? <Text style={[{ textAlign: "right", color: "#A32D2D" }]}>Annulée</Text> : null}
           </View>
         </View>
 
         <View style={[s.row, s.block]}>
           <View style={{ width: "48%" }}>
             <Text style={s.label}>De</Text>
-            <Text style={s.strong}>
-              {landlord.first_name} {landlord.last_name}
-            </Text>
+            <Text style={s.strong}>{landlord.first_name} {landlord.last_name}</Text>
             <Text style={s.muted}>Propriétaire</Text>
             {landlord.phone ? <Text style={s.muted}>{landlord.phone}</Text> : null}
           </View>
           <View style={{ width: "48%" }}>
             <Text style={s.label}>À</Text>
-            <Text style={s.strong}>
-              {snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}` : "Locataire"}
-            </Text>
+            <Text style={s.strong}>{snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}` : "Locataire"}</Text>
             <Text style={s.muted}>Locataire</Text>
             {snap.unit ? <Text style={s.muted}>{snap.unit.name}</Text> : null}
           </View>
@@ -106,10 +97,8 @@ export function ReceiptPdf({
             </View>
             {snap.allocations.map((a, i) => (
               <View key={i} style={s.lineRow}>
-                <Text>
-                  {formatDate(a.period_start)} - {formatDate(a.period_end)}
-                </Text>
-                <Text>{formatAmount(a.amount_allocated)}</Text>
+                <Text>{formatDate(a.period_start)} - {formatDate(a.period_end)}</Text>
+                <Text>{formatFcfa(a.amount_allocated)}</Text>
               </View>
             ))}
           </View>
@@ -118,31 +107,16 @@ export function ReceiptPdf({
         <View style={[s.row, s.block, { alignItems: "center" }]}>
           <View>
             <Text style={s.label}>Total payé</Text>
-            {snap.reception ? (
-              <Text style={s.muted}>
-                {methodLabels[snap.reception.payment_method] ?? snap.reception.payment_method} - reçu le{" "}
-                {formatDate(snap.reception.received_at)}
-              </Text>
-            ) : null}
+            {snap.reception ? <Text style={s.muted}>{methodLabels[snap.reception.payment_method] ?? snap.reception.payment_method} - reçu le {formatDate(snap.reception.received_at)}</Text> : null}
           </View>
-          <Text style={s.total}>{formatAmount(receipt.total_amount)}</Text>
+          <Text style={s.total}>{formatFcfa(receipt.total_amount)}</Text>
         </View>
 
-        <Text style={s.mention}>
-          {receipt.kind === "quittance"
-            ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé."
-            : "Reçu de paiement pour la somme ci-dessus. Le loyer n'est pas intégralement soldé : ce document ne vaut pas quittance."}
-        </Text>
+        <Text style={s.mention}>{receipt.kind === "quittance" ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé." : "Reçu de paiement pour la somme ci-dessus. Le loyer n'est pas intégralement soldé : ce document ne vaut pas quittance."}</Text>
 
         <View style={[s.row, { alignItems: "flex-end", marginTop: 8 }]}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            {qrDataUrl ? (
-              <Image src={qrDataUrl} style={s.qr} />
-            ) : (
-              <View style={s.qrBox}>
-                <Text style={s.muted}>QR</Text>
-              </View>
-            )}
+            {qrDataUrl ? <Image src={qrDataUrl} style={s.qr} /> : <View style={s.qrBox}><Text style={s.muted}>QR</Text></View>}
             <Text style={[s.muted, { marginLeft: 8, width: 120 }]}>Vérifier l&apos;authenticité en ligne</Text>
           </View>
           <Text style={s.sigLine}>Signature du propriétaire</Text>
