@@ -8,24 +8,13 @@ export function normalizePassword(value: FormDataEntryValue | null) {
   return password
 }
 
-// Ranti starts in Benin: the dialing code is fixed and never entered by the
-// owner, who types their local number. Accept both the current 10-digit format
-// (0197147402) and the legacy 8-digit habit (97147402), then store the current
-// international format consistently.
+// Ranti starts in Benin: the owner enters only the local 10-digit number
+// introduced by the national numbering update, e.g. 0197147402.
+// We store it consistently with the international dialing code: +2290197147402.
 export const BENIN_DIALING_CODE = "+229"
 
 // A current Benin local number is exactly 10 digits and starts with 01.
 const BENIN_LOCAL_PATTERN = /^01\d{8}$/
-const BENIN_LEGACY_LOCAL_PATTERN = /^\d{8}$/
-
-function normalizeBeninLocalPhone(local: string) {
-  const digits = local.replace(/\D/g, "")
-
-  if (BENIN_LOCAL_PATTERN.test(digits)) return digits
-  if (BENIN_LEGACY_LOCAL_PATTERN.test(digits)) return `01${digits}`
-
-  return null
-}
 
 export function normalizePhone(value: FormDataEntryValue | null) {
   if (typeof value !== "string") return null
@@ -35,20 +24,19 @@ export function normalizePhone(value: FormDataEntryValue | null) {
 
   let local: string
   if (raw.startsWith(BENIN_DIALING_CODE)) {
-    // Already international, with either the current local number or the legacy
-    // 8-digit local habit after +229.
+    // Be defensive if a browser/autofill sends the country code, but the UI must
+    // keep asking for the local 10-digit number only.
     local = raw.slice(BENIN_DIALING_CODE.length)
   } else if (raw.startsWith("+")) {
     // Benin only at the MVP — reject any other country code.
     return null
   } else {
-    local = raw
+    local = raw.replace(/\D/g, "")
   }
 
-  const normalizedLocal = normalizeBeninLocalPhone(local)
-  if (!normalizedLocal) return null
+  if (!BENIN_LOCAL_PATTERN.test(local)) return null
 
-  return `${BENIN_DIALING_CODE}${normalizedLocal}`
+  return `${BENIN_DIALING_CODE}${local}`
 }
 
 // Group a local number into pairs for display: 0190000000 -> "01 90 00 00 00".
