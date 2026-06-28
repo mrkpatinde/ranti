@@ -87,6 +87,12 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           </p>
         ) : null}
 
+        {receipt.status === "cancelled" ? (
+          <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">
+            Ce document est annulé. Ne le partagez plus comme preuve de paiement active.
+          </p>
+        ) : null}
+
         <article className="rounded-3xl border border-neutral-200 bg-white p-7 dark:border-neutral-800 dark:bg-neutral-950">
           <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
             <div className="flex items-center gap-3">
@@ -184,27 +190,31 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           </div>
         </article>
 
-        {receipt.status === "cancelled" && receipt.cancellation_reason ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Motif d&apos;annulation : {receipt.cancellation_reason}</p>
+        {receipt.status === "cancelled" ? (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            Motif d&apos;annulation : {receipt.cancellation_reason ?? "Motif non renseigné avant correction."}
+          </p>
         ) : null}
 
         {receipt.status === "issued" ? (
           <form action={cancelReceipt} className="space-y-3 rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
             <input type="hidden" name="id" value={receipt.id} />
             <label htmlFor="reason" className="block text-sm font-medium text-neutral-800 dark:text-neutral-100">
-              Motif d&apos;annulation
+              Pourquoi annulez-vous cette quittance ?
             </label>
             <textarea
               id="reason"
               name="reason"
               rows={2}
+              required
+              minLength={3}
               placeholder="Ex. erreur de montant, paiement non reçu"
               className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
             />
             <SubmitButton
-              className="rounded-xl border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 disabled:opacity-60 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+              className="rounded-xl border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60 dark:border-red-900 dark:text-red-200 dark:hover:border-red-300"
             >
-              Annuler ce document
+              Annuler cette quittance
             </SubmitButton>
           </form>
         ) : null}
