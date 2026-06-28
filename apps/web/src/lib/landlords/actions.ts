@@ -70,44 +70,7 @@ export async function createLandlordProfile(formData: FormData) {
   redirect(AUTH_PATHS.afterSignIn)
 }
 
-export async function updateLandlordProfile(formData: FormData) {
-  const claims = await requireAuth()
-
-  const firstName = normalizeName(formData.get("first_name"))
-  const lastName = normalizeName(formData.get("last_name"))
-  const civility = normalizeCivility(formData.get("civility"))
-  const phone = normalizePhone(formData.get("phone"))
-
-  if (!firstName || !lastName) {
-    settingsError("Indiquez votre prénom et votre nom.")
-  }
-
-  if (!phone) {
-    settingsError("Entrez votre numéro local à 10 chiffres.")
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from("landlords")
-    .update({
-      phone,
-      first_name: firstName,
-      last_name: lastName,
-      civility: civility ?? "not_specified",
-    })
-    .eq("auth_user_id", claims.sub)
-    .is("deleted_at", null)
-
-  if (error) {
-    if (error.code === "23505" && isConstraintError(error.message, "landlords_phone_key")) {
-      settingsError("Ce numéro est déjà lié à un autre compte Ranti.")
-    }
-
-    console.error("updateLandlordProfile failed", error.code, error.message)
-    settingsError("Impossible de modifier votre profil. Réessayez.")
-  }
-
-  revalidatePath("/", "layout")
-  revalidatePath("/dashboard")
-  redirect("/settings/profile?notice=profile_updated")
+export async function updateLandlordProfile() {
+  await requireAuth()
+  settingsError("Les informations du propriétaire sont verrouillées pour protéger les quittances et l'historique du registre.")
 }
