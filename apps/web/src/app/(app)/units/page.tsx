@@ -54,7 +54,7 @@ export default async function UnitsPage({ searchParams }: UnitsPageProps) {
         {units.length === 0 ? (
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
             <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">Aucun logement pour le moment</h2>
-            <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">Ajoutez d'abord un logement pour pouvoir créer un bail.</p>
+            <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">Ajoutez d’abord un logement pour pouvoir créer un bail.</p>
             <Link href="/units/new" className="mt-5 inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200">Ajouter un logement</Link>
           </div>
         ) : (
