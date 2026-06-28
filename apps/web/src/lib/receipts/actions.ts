@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server"
 
 function readString(formData: FormData, key: string): string | null {
   const v = formData.get(key)
-  return typeof v === "string" && v ? v : null
+  return typeof v === "string" && v.trim() ? v.trim() : null
 }
 
 // Generate a receipt from a confirmed reception (invariant #3). Idempotent.
@@ -43,6 +43,9 @@ export async function cancelReceipt(formData: FormData) {
   if (!id) redirect(`/receipts?error=${encodeURIComponent("Quittance introuvable.")}`)
 
   const reason = readString(formData, "reason")
+  if (!reason) {
+    redirect(`/receipts/${id}?error=${encodeURIComponent("Indiquez pourquoi vous annulez cette quittance.")}`)
+  }
 
   const supabase = await createClient()
   const { error } = await supabase.rpc("cancel_receipt", {
