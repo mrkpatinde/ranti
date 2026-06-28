@@ -151,8 +151,6 @@ export default function PrivacyPage() {
           </p>
           <p className="mt-2">
             Email : <span className="text-neutral-950 font-medium">kadorel93@gmail.com</span>
-            <br />
-            Téléphone : <span className="text-neutral-950 font-medium">+229 01 64 61 99 45</span>
           </p>
         </section>
 
