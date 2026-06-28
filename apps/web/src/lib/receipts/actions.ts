@@ -48,17 +48,11 @@ export async function cancelReceipt(formData: FormData) {
   }
 
   const supabase = await createClient()
-  const { data: receipt, error: readError } = await supabase
-    .from("receipts")
-    .select("id, rent_reception_id")
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle()
 
-  if (readError || !receipt) {
-    redirect(`/receipts?error=${encodeURIComponent("Quittance introuvable.")}`)
-  }
-
+  // ADR-005 flux 1 — annuler le document SEUL. Ne touche jamais l'encaissement.
+  // (Ancienne cascade auto cancel_collection retirée : annuler une quittance
+  // ne veut pas dire que l'argent n'a jamais été reçu. Pour retirer l'argent,
+  // l'utilisateur annule explicitement l'encaissement — flux 2 cancelCollection.)
   const { error } = await supabase.rpc("cancel_receipt", {
     p_receipt_id: id,
     p_reason: reason,
@@ -68,17 +62,40 @@ export async function cancelReceipt(formData: FormData) {
     redirect(`/receipts/${id}?error=${encodeURIComponent("Annulation impossible. Réessayez.")}`)
   }
 
-  const { error: collectionError } = await supabase.rpc("cancel_collection", {
-    p_reception_id: receipt.rent_reception_id,
-    p_reason: `Quittance annulée : ${reason}`,
-  })
-
-  if (collectionError) {
-    redirect(`/receipts/${id}?error=${encodeURIComponent("Quittance annulée, mais l'encaissement n'a pas pu être retiré. Vérifiez les encaissements.")}`)
-  }
-
   revalidatePath("/dashboard")
   revalidatePath("/collections")
   revalidatePath("/receipts")
   redirect(`/receipts/${id}?notice=receipt_cancelled`)
+}
+
+// ADR-005 flux 3 — remplacer un document : annule l'ancien + génère un nouveau
+// document actif lié, de façon atomique côté DB (rpc replace_receipt).
+// Ne supprime jamais l'ancien, ne touche jamais l'encaissement.
+export async function replaceReceipt(formData: FormData) {
+  await requireLandlordProfile()
+
+  const id = readString(formData, "id")
+  if (!id) redirect(`/receipts?error=${encodeURIComponent("Quittance introuvable.")}`)
+
+  const reason = readString(formData, "reason")
+  if (!reason) {
+    redirect(`/receipts/${id}?error=${encodeURIComponent("Indiquez pourquoi vous remplacez cette quittance.")}`)
+  }
+
+  const supabase = await createClient()
+  const { data: newId, error } = await supabase.rpc("replace_receipt", {
+    p_receipt_id: id,
+    p_reason: reason,
+  })
+
+  if (error || !newId) {
+    const message = (error?.message ?? "").includes("receipt_not_issued")
+      ? "Seule une quittance active peut être remplacée."
+      : "Remplacement impossible. Réessayez."
+    redirect(`/receipts/${id}?error=${encodeURIComponent(message)}`)
+  }
+
+  revalidatePath("/dashboard")
+  revalidatePath("/receipts")
+  redirect(`/receipts/${newId}?notice=receipt_replaced`)
 }
