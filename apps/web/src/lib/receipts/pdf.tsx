@@ -116,7 +116,7 @@ export function ReceiptPdf({
 
         <View style={[s.row, { alignItems: "flex-end", marginTop: 8 }]}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            {qrDataUrl ? <Image src={qrDataUrl} style={s.qr} /> : <View style={s.qrBox}><Text style={s.muted}>QR</Text></View>}
+            {qrDataUrl ? <Image src={qrDataUrl} style={s.qr} alt="QR de vérification" /> : <View style={s.qrBox}><Text style={s.muted}>QR</Text></View>}
             <Text style={[s.muted, { marginLeft: 8, width: 120 }]}>Vérifier l&apos;authenticité en ligne</Text>
           </View>
           <Text style={s.sigLine}>Signature du propriétaire</Text>
