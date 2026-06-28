@@ -34,7 +34,7 @@ export async function createUnit(formData: FormData) {
   }
 
   if (!name) {
-    unitError("Donnez un nom simple a ce logement.")
+    unitError("Donnez un nom simple à ce logement.")
   }
 
   if (!unitType) {
@@ -55,21 +55,25 @@ export async function createUnit(formData: FormData) {
     unitError("Lieu introuvable. Créez d'abord un lieu.")
   }
 
-  const { error } = await supabase.from("units").insert({
-    landlord_id: landlord.id,
-    property_id: propertyId,
-    name,
-    unit_type: unitType,
-    availability_status: "available",
-    notes,
-  })
+  const { data, error } = await supabase
+    .from("units")
+    .insert({
+      landlord_id: landlord.id,
+      property_id: propertyId,
+      name,
+      unit_type: unitType,
+      availability_status: "available",
+      notes,
+    })
+    .select("id")
+    .single()
 
-  if (error) {
+  if (error || !data) {
     unitError("Impossible de créer ce logement. Réessayez.")
   }
 
   revalidatePath("/dashboard")
-  redirect("/dashboard?notice=unit_created")
+  redirect(`/tenants/new?unit_id=${data.id}`)
 }
 
 export async function updateUnit(formData: FormData) {
@@ -90,7 +94,7 @@ export async function updateUnit(formData: FormData) {
   const notes = normalizeOptionalUnitText(formData.get("notes"), 500)
 
   if (!name) {
-    redirect(`/units/${id}/edit?error=${encodeURIComponent("Donnez un nom simple a ce logement.")}`)
+    redirect(`/units/${id}/edit?error=${encodeURIComponent("Donnez un nom simple à ce logement.")}`)
   }
 
   if (!unitType) {
@@ -107,7 +111,6 @@ export async function updateUnit(formData: FormData) {
     .is("deleted_at", null)
 
   if (error) {
-    // unique (property_id, name)
     const message =
       error.code === "23505"
         ? "Un logement porte déjà ce nom dans ce lieu."
@@ -171,7 +174,6 @@ export async function archiveUnit(formData: FormData) {
 
   const supabase = await createClient()
 
-  // Refuse archiving while an active lease still references this unit.
   const { data: activeLeases } = await supabase
     .from("leases")
     .select("id")
@@ -184,7 +186,6 @@ export async function archiveUnit(formData: FormData) {
     redirect(`/units/${id}?error=${encodeURIComponent("Ce logement a un bail actif. Terminez le bail avant d'archiver.")}`)
   }
 
-  // Soft-delete only; history is preserved (api.md Units, architecture-principles #12).
   const { error } = await supabase
     .from("units")
     .update({ deleted_at: new Date().toISOString() })
