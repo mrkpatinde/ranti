@@ -5,16 +5,17 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AUTH_PATHS } from "@/lib/auth/paths"
 import { getCurrentUser, requireAuth } from "@/lib/auth/server"
-import { normalizeCivility, normalizeName } from "@/lib/auth/validation"
+import { normalizeCivility, normalizeName, normalizePhone } from "@/lib/auth/validation"
 
 function profileError(message: string): never {
   redirect(`${AUTH_PATHS.profile}?error=${encodeURIComponent(message)}`)
 }
 
 /**
- * Creates the business landlord profile after phone verification.
- * Self-contained: redirects to the dashboard on success, back to the profile
- * step with an error message otherwise.
+ * Creates the business landlord profile after authentication.
+ * Phone/password users keep the verified phone from Supabase Auth.
+ * Google users must provide a phone in the onboarding profile step because
+ * Google OAuth does not reliably expose a phone number to Supabase.
  */
 export async function createLandlordProfile(formData: FormData) {
   const claims = await requireAuth()
@@ -27,10 +28,13 @@ export async function createLandlordProfile(formData: FormData) {
     profileError("Indiquez votre prénom et votre nom.")
   }
 
-  const phone = claims.phone ?? (await getCurrentUser())?.phone
+  const currentUser = await getCurrentUser()
+  const sessionPhone = claims.phone ?? currentUser?.phone
+  const onboardingPhone = normalizePhone(formData.get("phone"))
+  const phone = sessionPhone ?? onboardingPhone
 
   if (!phone) {
-    profileError("Numéro introuvable. Reconnectez-vous.")
+    profileError("Entrez votre numéro béninois pour terminer votre profil.")
   }
 
   const supabase = await createClient()
