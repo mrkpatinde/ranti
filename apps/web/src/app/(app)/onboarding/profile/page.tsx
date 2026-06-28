@@ -53,7 +53,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
         {missingPhone ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-            Ajoutez votre numéro pour activer les rappels et terminer votre profil.
+            Ajoutez votre numéro pour activer votre espace propriétaire.
           </p>
         ) : null}
 
@@ -96,7 +96,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               className={inputClass}
             />
             <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
-              Entrez votre numéro béninois, avec ou sans le préfixe 01.
+              Ce numéro identifie votre espace propriétaire et vous permet de recevoir les alertes importantes.
             </p>
           </div>
 
