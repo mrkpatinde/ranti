@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { BeninPhoneInput } from "@/components/benin-phone-input"
 import { SubmitButton } from "@/components/submit-button"
 import { AUTH_PATHS, getCurrentUser, toLocalPhone } from "@/lib/auth"
 import { createLandlordProfile, getCurrentLandlord } from "@/lib/landlords"
@@ -49,7 +50,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               Votre profil
             </h1>
             <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
-              Utilisé sur vos quittances et dans votre espace.
+              Ce numéro vous identifie et apparaîtra dans votre espace propriétaire.
             </p>
           </div>
         </div>
@@ -89,22 +90,16 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               <span className="inline-flex items-center rounded-l-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-base text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
                 🇧🇯 +229
               </span>
-              <input
+              <BeninPhoneInput
                 id="phone"
                 name="phone"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel-national"
                 defaultValue={defaultPhone}
-                placeholder="01 90 00 00 00"
                 required
-                pattern="01\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}"
-                title="Entrez les 10 chiffres du numéro béninois : 01 90 00 00 00."
                 className={phoneInputClass}
               />
             </div>
             <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
-              Entrez uniquement les 10 chiffres du numéro béninois, par exemple 01 90 00 00 00.
+              Tapez les 10 chiffres : Ranti ajoute les espaces automatiquement.
             </p>
           </div>
 
