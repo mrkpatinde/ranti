@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AUTH_PATHS, signInWithGoogle, signInWithPhonePassword } from "@/lib/auth"
 import { normalizePhone } from "@/lib/auth/validation"
+import { SubmitButton } from "@/components/submit-button"
 import { PasswordField } from "../password-field"
 import { PhoneField } from "../phone-field"
 
@@ -97,12 +98,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </p>
           ) : null}
 
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+          <SubmitButton
+            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+            pendingLabel="Connexion…"
           >
             Se connecter
-          </button>
+          </SubmitButton>
 
           <div className="flex items-center justify-between">
             <Link
