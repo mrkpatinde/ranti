@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { AUTH_PATHS } from "./paths"
 import { normalizeOtp, normalizePassword, normalizePhone } from "./validation"
@@ -10,10 +11,16 @@ import type { AuthResult } from "./types"
 export async function signInWithGoogle() {
   const supabase = await createClient()
 
+  // Resolve the origin dynamically from headers (works in both dev and production)
+  const headersList = await headers()
+  const host = headersList.get("host") ?? headersList.get("x-forwarded-host") ?? "localhost:3300"
+  const protocol = headersList.get("x-forwarded-proto") ?? "http"
+  const origin = `${protocol}://${host}`
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3300"}${AUTH_PATHS.authCallback}`,
+      redirectTo: `${origin}${AUTH_PATHS.authCallback}`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",
