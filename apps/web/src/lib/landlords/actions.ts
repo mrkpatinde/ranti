@@ -11,6 +11,10 @@ function profileError(message: string): never {
   redirect(`${AUTH_PATHS.profile}?error=${encodeURIComponent(message)}`)
 }
 
+function isConstraintError(message: string, constraint: string) {
+  return message.includes(constraint)
+}
+
 export async function createLandlordProfile(formData: FormData) {
   const claims = await requireAuth()
 
@@ -44,8 +48,14 @@ export async function createLandlordProfile(formData: FormData) {
 
   if (error) {
     if (error.code === "23505") {
-      revalidatePath("/", "layout")
-      redirect(AUTH_PATHS.afterSignIn)
+      if (isConstraintError(error.message, "landlords_auth_user_id_key")) {
+        revalidatePath("/", "layout")
+        redirect(AUTH_PATHS.afterSignIn)
+      }
+
+      if (isConstraintError(error.message, "landlords_phone_key")) {
+        profileError("Ce numéro est déjà lié à un autre compte Ranti.")
+      }
     }
 
     console.error("createLandlordProfile failed", error.code, error.message)
