@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { isLocalAuthEnabled } from "@/lib/auth"
+import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeases } from "@/lib/leases"
 import { getLandlordProperties } from "@/lib/properties"
@@ -8,7 +9,7 @@ import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 
 function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
+  return formatFcfa(amount)
 }
 
 function formatDate(iso: string): string {
@@ -41,16 +42,6 @@ function buildSetupSteps(
     { label: "Loyers", done: hasActiveLease },
   ]
 }
-
-const navLinks = [
-  { href: "/settings/profile", label: "Profil" },
-  { href: "/properties", label: "Lieux" },
-  { href: "/units", label: "Logements" },
-  { href: "/tenants", label: "Locataires" },
-  { href: "/leases", label: "Baux" },
-  { href: "/collections", label: "Encaissements" },
-  { href: "/receipts", label: "Quittances" },
-]
 
 export default async function DashboardPage() {
   const landlord = await requireLandlordProfile()
@@ -100,34 +91,15 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
-      <header className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
-        <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">Ranti</p>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">{landlord.first_name} {landlord.last_name}</p>
-        </div>
-
-        <div className="flex max-w-xl flex-wrap items-center justify-end gap-3">
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300">
-              {link.label}
-            </Link>
-          ))}
-          <form action="/auth/signout" method="post">
-            <button type="submit" className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50">
-              Se déconnecter
-            </button>
-          </form>
-        </div>
-      </header>
-
       {isLocalMode ? (
-        <section className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
           Mode local actif. Développement sans provider SMS.
         </section>
       ) : null}
 
       <section className="flex flex-1 flex-col gap-8 py-12">
         <div className="space-y-3">
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-neutral-400">Tableau de bord</p>
           <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 sm:text-4xl">Bonjour {landlord.first_name}.</h1>
           <p className="max-w-xl text-base leading-7 text-neutral-600 dark:text-neutral-300">
             Votre registre de loyer vous montre qui a payé, qui doit encore, et quoi faire maintenant.
