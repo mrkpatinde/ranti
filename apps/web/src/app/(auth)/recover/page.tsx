@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AUTH_PATHS, completeRecovery, requestRecoveryCode } from "@/lib/auth"
 import { normalizePhone } from "@/lib/auth/validation"
+import { SubmitButton } from "@/components/submit-button"
 import { PasswordField } from "../password-field"
 import { PhoneField } from "../phone-field"
 
@@ -111,9 +112,9 @@ export default async function RecoverPage({ searchParams }: RecoverPageProps) {
               </p>
             ) : null}
 
-            <button type="submit" className={buttonClass}>
+            <SubmitButton className={buttonClass} pendingLabel="Patientez…">
               Mettre à jour mon mot de passe
-            </button>
+            </SubmitButton>
           </form>
         ) : (
           <form action={submitRequest} className="space-y-5">
@@ -125,9 +126,9 @@ export default async function RecoverPage({ searchParams }: RecoverPageProps) {
               </p>
             ) : null}
 
-            <button type="submit" className={buttonClass}>
+            <SubmitButton className={buttonClass} pendingLabel="Envoi…">
               Recevoir un code
-            </button>
+            </SubmitButton>
           </form>
         )}
 
