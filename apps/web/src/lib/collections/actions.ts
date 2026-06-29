@@ -48,6 +48,22 @@ function collectionErrorMessage(message: string): string {
   return "Encaissement impossible. Réessayez."
 }
 
+async function generateDocumentForConfirmedCollection(receptionId: string): Promise<string | null> {
+  const supabase = await createClient()
+  const { data: receiptId, error } = await supabase.rpc("generate_receipt", {
+    p_reception_id: receptionId,
+  })
+
+  if (error || !receiptId) return null
+  return String(receiptId)
+}
+
+function revalidateCollectionProofPaths() {
+  revalidatePath("/dashboard")
+  revalidatePath("/collections")
+  revalidatePath("/receipts")
+}
+
 export async function recordCollection(formData: FormData) {
   await requireLandlordProfile()
 
@@ -98,8 +114,15 @@ export async function recordCollection(formData: FormData) {
     back("Encaissement non enregistré (échec de confirmation). Réessayez.")
   }
 
-  revalidatePath("/collections")
-  redirect(`/collections?notice=collection_confirmed`)
+  const receiptId = await generateDocumentForConfirmedCollection(String(receptionId))
+
+  revalidateCollectionProofPaths()
+
+  if (receiptId) {
+    redirect(`/receipts/${receiptId}?notice=receipt_generated`)
+  }
+
+  redirect(`/collections?notice=collection_confirmed_document_pending`)
 }
 
 export async function confirmCollection(formData: FormData) {
@@ -115,8 +138,15 @@ export async function confirmCollection(formData: FormData) {
     redirect(`/collections?error=${encodeURIComponent("Confirmation impossible. Réessayez.")}`)
   }
 
-  revalidatePath("/collections")
-  redirect(`/collections?notice=collection_confirmed`)
+  const receiptId = await generateDocumentForConfirmedCollection(id)
+
+  revalidateCollectionProofPaths()
+
+  if (receiptId) {
+    redirect(`/receipts/${receiptId}?notice=receipt_generated`)
+  }
+
+  redirect(`/collections?notice=collection_confirmed_document_pending`)
 }
 
 export async function cancelCollection(formData: FormData) {
