@@ -2,17 +2,19 @@
 
 ## Statut
 
-Version 1.3 — modèle relationnel candidat aligné avec l'architecture, l'ADR-001 et l'API.
+Version 1.4 — modèle relationnel candidat aligné avec l'architecture, les ADR-001, ADR-006, ADR-007 et l'API.
 
 Ce document définit le modèle de référence de la base de données de Ranti avant migrations SQL définitives.
 
 ## Objectif
 
-La base doit protéger la mémoire fiable des loyers et répondre clairement à trois questions :
+La base doit protéger la mémoire fiable des loyers et répondre clairement à cinq questions :
 
 1. Qui a payé ?
 2. Qui est en retard ?
 3. Quelle preuve existe pour chaque loyer reçu, si une preuve existe ?
+4. Quelle relance est prévue, préparée ou envoyée ?
+5. Quel reçu ou quelle quittance a été généré après validation ?
 
 ## Principes
 
@@ -20,6 +22,8 @@ La base doit protéger la mémoire fiable des loyers et répondre clairement à 
 - `landlord_id` sur toutes les tables métier importantes.
 - `rent_dues` est la table centrale du MVP.
 - Une réception de loyer est indépendante d'un provider de paiement.
+- Les rappels et relances naissent des règles du bail et des échéances.
+- Les reçus et quittances naissent des paiements validés.
 - Les données financières et historiques ne sont pas supprimées silencieusement.
 - Les montants sont stockés en entiers, jamais en flottants.
 - Les données dérivées comme `amount_received` et `balance_due` sont mises à jour uniquement par transaction serveur.
@@ -91,6 +95,29 @@ unique active lease per unit over overlapping period
 
 Le SQL exact sera défini dans la migration finale.
 
+### `lease_reminder_rules`
+
+Règles de rappel et relance liées à un bail.
+
+Cette table permet à Ranti de préparer ou automatiser les rappels/relances à partir du bail, sans demander au propriétaire de relancer manuellement chaque mois.
+
+Champs : `id`, `landlord_id`, `lease_id`, `rule_type`, `offset_days`, `channel`, `message_template`, `is_active`, `created_at`, `updated_at`, `deleted_at`.
+
+Types candidats :
+
+- `before_due_reminder` : rappel avant échéance ;
+- `due_day_reminder` : rappel le jour de l'échéance ;
+- `after_due_reminder` : relance après retard.
+
+Canaux : `whatsapp`, `sms`, `email`, `manual`.
+
+Contraintes :
+
+- Une règle appartient toujours à un bail du même propriétaire.
+- Une règle inactive ne génère plus de nouvelles relances.
+- Le message doit rester simple, clair et respectueux.
+- Le canal externe est un adaptateur, jamais la source de vérité métier.
+
 ### `rent_dues`
 
 Échéance de loyer. Table centrale du MVP.
@@ -155,7 +182,13 @@ Contraintes :
 
 Quittance ou reçu généré par Ranti.
 
-Champs : `id`, `landlord_id`, `tenant_id`, `lease_id`, `unit_id`, `receipt_number`, `currency`, `total_amount`, `issued_at`, `issued_by_user_id`, `status`, `pdf_file_url`, `snapshot`, `created_at`, `updated_at`, `cancelled_at`.
+Champs : `id`, `landlord_id`, `tenant_id`, `lease_id`, `unit_id`, `receipt_number`, `document_type`, `currency`, `total_amount`, `issued_at`, `issued_by_user_id`, `status`, `pdf_file_url`, `snapshot`, `created_at`, `updated_at`, `cancelled_at`.
+
+Types candidats :
+
+- `partial_payment_receipt` : reçu de paiement partiel ;
+- `full_period_receipt` : reçu complet d'une période soldée ;
+- `rent_quittance` : quittance de loyer.
 
 Statuts : `issued`, `cancelled`, `replaced`.
 
@@ -163,6 +196,7 @@ Contraintes :
 
 - `receipt_number` unique par propriétaire.
 - Un reçu doit être lié à des réceptions de loyer confirmées.
+- Un reçu ou une quittance est généré automatiquement après validation propriétaire quand les conditions sont réunies.
 - Un reçu généré ne se modifie pas silencieusement.
 - `snapshot` conserve les informations importantes au moment de génération.
 
@@ -176,17 +210,22 @@ Contraintes : `amount` > 0.
 
 ### `reminders`
 
-Relance liée à une échéance.
+Rappel ou relance liée à une échéance.
 
-MVP prudent : créer une relance simple sans obligation d'envoi automatique.
+MVP prudent : Ranti prépare automatiquement les rappels/relances à partir des règles du bail ; l'envoi externe complet peut rester validé ou déclenché par le propriétaire selon les contraintes WhatsApp/SMS.
 
-Champs : `id`, `landlord_id`, `rent_due_id`, `tenant_id`, `channel`, `message`, `status`, `sent_at`, `created_by_user_id`, `created_at`, `updated_at`.
+Champs : `id`, `landlord_id`, `lease_id`, `rent_due_id`, `tenant_id`, `lease_reminder_rule_id`, `channel`, `message`, `status`, `scheduled_for`, `queued_at`, `sent_at`, `failed_at`, `created_by`, `created_at`, `updated_at`.
 
 Canaux : `manual`, `whatsapp`, `sms`, `email`.
 
-Statuts : `draft`, `queued`, `sent`, `failed`, `cancelled`.
+Statuts : `draft`, `scheduled`, `queued`, `sent`, `failed`, `cancelled`.
 
-Contraintes : une relance doit toujours viser une échéance ; le canal ne devient jamais source de vérité.
+Contraintes :
+
+- Une relance doit toujours viser une échéance.
+- Une relance peut être générée depuis une règle de bail.
+- Le canal ne devient jamais source de vérité.
+- Une relance ne modifie jamais le statut de paiement.
 
 ### `audit_logs`
 
@@ -215,6 +254,7 @@ Contraintes futures : token brut jamais stocké ; expiration/révocation ; accè
 ```txt
 app_users -> landlords
 landlords -> properties -> units -> leases -> rent_dues
+leases -> lease_reminder_rules -> reminders
 landlords -> tenants -> leases
 rent_dues -> rent_reception_allocations -> rent_receptions
 rent_receptions -> payment_proofs
@@ -229,11 +269,13 @@ landlords -> audit_logs
 2. Un bail relie un logement et un locataire.
 3. Un logement ne peut pas avoir deux baux actifs sur une période qui se chevauche.
 4. Une échéance vient d'un bail.
-5. Une réception de loyer confirmée doit être allouée à une ou plusieurs échéances.
-6. Un reçu vient après confirmation d'une réception de loyer.
-7. Une relance vise toujours une échéance.
-8. Les fichiers sensibles sont protégés.
-9. Les actions critiques sont auditées.
+5. Une règle de rappel/relance vient d'un bail.
+6. Une relance vise toujours une échéance.
+7. Une réception de loyer confirmée doit être allouée à une ou plusieurs échéances.
+8. Un reçu ou une quittance vient après confirmation d'une réception de loyer.
+9. Un reçu ou une quittance généré ne se modifie pas silencieusement.
+10. Les fichiers sensibles sont protégés.
+11. Les actions critiques sont auditées.
 
 ## Index recommandés
 
@@ -245,6 +287,7 @@ units(landlord_id, property_id)
 tenants(landlord_id)
 leases(landlord_id, unit_id, status)
 leases(landlord_id, tenant_id, status)
+lease_reminder_rules(landlord_id, lease_id, is_active)
 rent_dues(landlord_id, status, due_date)
 rent_dues(landlord_id, tenant_id, due_date)
 rent_dues(lease_id, period_start, period_end)
@@ -254,73 +297,10 @@ rent_reception_allocations(rent_due_id)
 payment_proofs(landlord_id, rent_due_id)
 payment_proofs(landlord_id, rent_reception_id)
 receipts(landlord_id, receipt_number)
+receipts(landlord_id, tenant_id, issued_at)
 receipt_items(receipt_id)
-reminders(landlord_id, rent_due_id, created_at)
+reminders(landlord_id, rent_due_id, scheduled_for)
+reminders(landlord_id, lease_reminder_rule_id, status)
 audit_logs(landlord_id, entity_type, entity_id)
 audit_logs(actor_user_id, created_at)
 ```
-
-## Sécurité et accès
-
-- Un propriétaire ne voit que les données de son `landlord_id`.
-- Cette règle doit être appliquée côté serveur et, si possible, via politiques de sécurité base.
-- Le locataire n'a pas d'espace complet par défaut au MVP.
-- L'accès administrateur est limité, tracé et réservé au support ou à la sécurité.
-
-## Suppression et archivage
-
-Suppression physique acceptable pour brouillons sans impact, données créées par erreur avant activation, événements techniques non critiques après rétention.
-
-Suppression physique à éviter pour baux, échéances, réceptions de loyer, allocations, preuves, reçus, relances envoyées, audit logs.
-
-Préférer `archived`, `cancelled`, `reversed`, `deleted_at` avec audit, ou une correction.
-
-## Exclu du MVP
-
-- Agences complexes.
-- Multi-propriétaires avancés.
-- Équipes et rôles granulaires.
-- Portail locataire complet.
-- Liens publics contrôlés.
-- Envoi automatique de notifications.
-- Comptabilité complète.
-- Paiements en ligne obligatoires.
-- Rapprochement bancaire automatique.
-- Analytics avancés.
-
-## Questions ouvertes avant migrations SQL
-
-1. Prestataire d'authentification initial.
-2. Format exact de l'identifiant utilisateur.
-3. Politique de stockage des preuves.
-4. Format du numéro de reçu.
-5. Stratégie exacte de génération des échéances.
-6. Stratégie de correction d'un reçu déjà généré.
-7. SQL exact pour empêcher les baux actifs qui se chevauchent sur un même logement.
-
-## Ordre recommandé des migrations
-
-1. `app_users`
-2. `landlords`
-3. `properties`
-4. `units`
-5. `tenants`
-6. `leases`
-7. `rent_dues`
-8. `rent_receptions`
-9. `rent_reception_allocations`
-10. `payment_proofs`
-11. `receipts`
-12. `receipt_items`
-13. `reminders`
-14. `audit_logs`
-
-Post-MVP : `notification_deliveries`, `public_links`.
-
-## Phrase de contrôle
-
-La base de données de Ranti doit pouvoir raconter l'histoire suivante sans ambiguïté :
-
-> Ce propriétaire a ce logement. Ce locataire l'occupe selon ce bail. Pour ce mois, cette échéance était attendue. Voici ce qui a été reçu. Voici la preuve s'il y en a une. Voici le reçu. Voici la relance si nécessaire. Voici l'historique des actions.
-
-Si le schéma ne permet plus de raconter cette histoire simplement, il doit être corrigé.
