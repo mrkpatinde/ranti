@@ -2,11 +2,39 @@
 
 ## Statut
 
-Version 2.0 — hypothèses de parcours à valider terrain.
+Version 2.1 — hypothèses de parcours alignées avec les écrans livrés Sprint 5-6.
 
 Ce document ne décrit pas ce que l'utilisateur est censé ressentir.
 
 Il décrit des situations observables, des actions attendues, les données nécessaires, les risques et les questions terrain à valider.
+
+## Écrans déjà livrés ou mentionnés post-Sprint 6
+
+Ces écrans doivent être pris en compte quand on relit les flows :
+
+```txt
+/tenants
+/tenants/new
+/leases
+/leases/new
+/leases/[id]
+/collections
+/collections/new
+/receipts
+/receipts/[id]
+```
+
+Écrans ou capacités encore incomplets :
+
+```txt
+modifier / archiver propriété
+modifier / archiver logement
+modifier / archiver locataire
+dashboard mensuel complet
+règles de rappel / relance visibles
+historique de relances complet
+validation paiement avec annonce du document généré
+```
 
 ## Principe
 
@@ -129,6 +157,10 @@ La propriété est créée et prête à recevoir des logements.
 - Le propriétaire ne distingue pas toujours propriété, maison et logement.
 - Le niveau de détail demandé peut être trop élevé.
 
+### État produit
+
+Création livrée. Modification et archivage restent incomplets côté UI selon roadmap.
+
 ### Validation terrain
 
 À vérifier : les mots utilisés dans l'UI correspondent-ils à la manière dont le propriétaire parle de ses biens ?
@@ -165,6 +197,10 @@ Chaque logement peut ensuite recevoir un bail.
 - Trop de types de logement compliquent le choix.
 - Certains propriétaires ne raisonnent pas par logement mais par locataire.
 
+### État produit
+
+Création livrée. Modification, changement de statut et archivage restent incomplets côté UI selon roadmap.
+
 ### Validation terrain
 
 À vérifier : le propriétaire arrive-t-il à modéliser son bien réel sans contorsion ?
@@ -183,7 +219,7 @@ Le nom et le téléphone suffisent pour démarrer.
 
 ### Action attendue
 
-Il crée un locataire.
+Il crée un locataire via `/tenants/new` ou consulte la liste via `/tenants`.
 
 ### Données nécessaires
 
@@ -201,6 +237,10 @@ Le locataire peut être associé à un bail.
 - Le locataire peut avoir plusieurs noms d'usage.
 - Le propriétaire peut vouloir ajouter un locataire sans créer de bail immédiatement.
 
+### État produit
+
+Liste et création locataire livrées. Modification et archivage restent à confirmer côté UI.
+
 ### Validation terrain
 
 À vérifier : quelles informations minimales les propriétaires ont réellement sur leurs locataires ?
@@ -215,11 +255,11 @@ Le propriétaire veut définir les règles de paiement pour un locataire occupan
 
 ### Hypothèse
 
-Le bail ou accord locatif peut être réduit au MVP à quelques informations : logement, locataire, montant, échéance, date de début et canal de contact.
+Le bail ou accord locatif peut être réduit au MVP à quelques informations : logement, locataire, montant, échéance et date de début.
 
 ### Action attendue
 
-Il crée puis active un bail.
+Il crée un bail via `/leases/new`, consulte les baux via `/leases`, puis active ou termine un bail via `/leases/[id]`.
 
 ### Données nécessaires
 
@@ -228,27 +268,29 @@ Il crée puis active un bail.
 - montant mensuel ;
 - devise ;
 - date de début ;
-- jour d'échéance ;
-- canal de contact ;
-- règles de rappel/relance simples.
+- jour d'échéance.
 
 ### Sortie attendue
 
-Ranti peut générer les échéances et préparer les rappels/relances.
+Ranti peut générer les échéances.
 
 ### Risques
 
 - Le mot "bail" peut être trop formel si le propriétaire a seulement un accord oral.
-- Les règles de rappel peuvent être trop précoces dans l'onboarding.
 - Un bail commencé en milieu de mois peut créer une première échéance ambiguë.
+- Les règles de rappel/relance ne sont pas encore visibles comme vrai flow livré.
+
+### État produit
+
+Liste, création, détail, activation et fin de bail livrés selon roadmap.
 
 ### Validation terrain
 
-À vérifier : les propriétaires acceptent-ils de renseigner les règles de rappel dès la création du bail ?
+À vérifier : les propriétaires comprennent-ils le concept de bail/accord locatif dans l'interface ?
 
 ---
 
-## Flow 7 — Générer les échéances
+## Flow 7 — Générer et consulter les échéances
 
 ### Situation observable
 
@@ -260,7 +302,7 @@ Le propriétaire ne veut pas créer manuellement chaque mois de loyer.
 
 ### Action attendue
 
-Ranti génère les échéances automatiquement à partir du bail.
+Ranti génère les échéances automatiquement à l'activation du bail et les rend visibles sur la fiche bail.
 
 ### Données nécessaires
 
@@ -281,13 +323,106 @@ Les échéances existent et peuvent être suivies.
 - Changement de montant après génération.
 - Bail terminé qui continue à générer des échéances.
 
+### État produit
+
+Génération des échéances livrée selon roadmap. Marquage overdue planifié.
+
 ### Validation terrain
 
 À vérifier : les échéances générées correspondent-elles à la manière dont le propriétaire compte les mois ?
 
 ---
 
-## Flow 8 — Préparer ou générer une relance
+## Flow 8 — Enregistrer ou confirmer un encaissement
+
+### Situation observable
+
+Le propriétaire reçoit un paiement en cash, Mobile Money, virement ou autre moyen.
+
+### Hypothèse
+
+Le propriétaire accepte de valider le paiement dans Ranti si l'action est rapide et produit une preuve utile.
+
+### Action attendue
+
+Il crée un encaissement via `/collections/new`, consulte les encaissements via `/collections`, puis confirme ou annule.
+
+### Données nécessaires
+
+- bail actif ;
+- locataire ;
+- logement ;
+- échéance ;
+- montant reçu ;
+- moyen de paiement ;
+- date de réception ;
+- allocation aux échéances.
+
+### Sortie attendue
+
+L'échéance est mise à jour selon les allocations.
+
+### Risques
+
+- Paiement supérieur au solde.
+- Paiement couvrant plusieurs mois.
+- Paiement partiel mal compris.
+- Double confirmation par erreur.
+- Allocation incorrecte.
+
+### État produit
+
+Vue encaissements, formulaire encaisser, brouillons en tête, confirmer/annuler et allocations livrés selon roadmap.
+
+### Validation terrain
+
+À vérifier : le propriétaire comprend-il l'allocation aux échéances ou faut-il la masquer davantage ?
+
+---
+
+## Flow 9 — Générer et consulter reçu/quittance
+
+### Situation observable
+
+Un encaissement confirmé doit produire une preuve documentaire.
+
+### Hypothèse
+
+Le propriétaire veut retrouver facilement le reçu ou la quittance associé à un paiement.
+
+### Action attendue
+
+Il consulte `/receipts` ou `/receipts/[id]`.
+
+### Données nécessaires
+
+- encaissement confirmé ;
+- allocations ;
+- échéances couvertes ;
+- snapshot ;
+- statut du document.
+
+### Sortie attendue
+
+Le reçu ou la quittance existe, est consultable, et peut être annulé selon les règles métier.
+
+### Risques
+
+- Différence reçus/quittances mal comprise.
+- Paiement partiel et quittance confondus.
+- Document annulé ou remplacé mal présenté.
+
+### État produit
+
+Vue quittances et détail livrés selon roadmap. Proof Engine automatique complet reste à auditer et compléter.
+
+### Validation terrain
+
+À vérifier : le propriétaire comprend-il la différence entre reçu partiel, reçu complet et quittance ?
+
+---
+
+## Flow 10 — Préparer ou générer une relance
 
 ### Situation observable
 
@@ -322,59 +457,17 @@ Le propriétaire voit ce qui est prévu, envoyé, annulé ou échoué.
 - Doublon de relance.
 - Canal externe non maîtrisé.
 
+### État produit
+
+Non livré comme flow complet. DB live contient `reminders`, mais pas encore `lease_reminder_rules`.
+
 ### Validation terrain
 
 À vérifier : le propriétaire veut-il que Ranti envoie automatiquement ou préfère-t-il valider l'envoi ?
 
 ---
 
-## Flow 9 — Valider un paiement reçu
-
-### Situation observable
-
-Le propriétaire reçoit un paiement en cash, Mobile Money, virement ou autre moyen.
-
-### Hypothèse
-
-Le propriétaire accepte de valider le paiement dans Ranti si l'action est rapide et produit une preuve utile.
-
-### Action attendue
-
-Il saisit ou confirme le montant, le locataire, le logement, la période et le moyen de paiement.
-
-### Données nécessaires
-
-- locataire ;
-- logement ou bail ;
-- échéance ;
-- montant reçu ;
-- moyen de paiement ;
-- date de réception ;
-- preuve facultative.
-
-### Sortie attendue
-
-L'échéance est mise à jour.
-
-Si le paiement est partiel, Ranti génère un reçu partiel.
-
-Si l'échéance est soldée, Ranti génère une quittance ou un reçu complet.
-
-### Risques
-
-- Paiement supérieur au solde.
-- Paiement couvrant plusieurs mois.
-- Paiement partiel mal compris.
-- Double confirmation par erreur.
-- Document généré alors que l'allocation est incorrecte.
-
-### Validation terrain
-
-À vérifier : le propriétaire comprend-il avant validation quel document sera généré ?
-
----
-
-## Flow 10 — Retrouver l'historique
+## Flow 11 — Retrouver l'historique
 
 ### Situation observable
 
@@ -407,6 +500,10 @@ Le propriétaire peut expliquer ce qui s'est passé sans dépendre de sa mémoir
 - Trop d'informations affichées.
 - Historique difficile à lire sur mobile.
 - Document annulé ou remplacé mal présenté.
+
+### État produit
+
+Historique partiel présent via baux, encaissements et reçus. Historique complet locataire/bail avec relances reste à compléter.
 
 ### Validation terrain
 
