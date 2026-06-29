@@ -2,7 +2,39 @@
 
 ## Statut
 
-Version 1.0 — à utiliser pour Claude Design.
+Version 1.1 — brief de conception, sans output visuel validé dans le repo.
+
+Ce fichier décrit ce qu'il faut designer. Il ne prouve pas qu'une maquette existe.
+
+## État des artefacts visuels
+
+Aucun output Claude Design, Figma, image ou prototype visuel validé n'est actuellement documenté dans le repo.
+
+Tant qu'un artefact visuel n'est pas lié ici, ce fichier reste un brief, pas une preuve de design.
+
+## Livrables attendus
+
+Les livrables design doivent être ajoutés ou référencés dans le repo sous une forme exploitable :
+
+```txt
+docs/design/
+  dashboard-owner.md
+  lease-detail.md
+  payment-confirmation.md
+  receipt-generated.md
+  reminders.md
+  screenshots/
+```
+
+Chaque livrable doit indiquer :
+
+- source : Claude Design, Figma, capture, prototype code ;
+- date ;
+- statut : brouillon, retenu, rejeté, à tester ;
+- écran concerné ;
+- hypothèses UX ;
+- décisions prises ;
+- points à tester terrain.
 
 ## Positionnement
 
@@ -18,7 +50,7 @@ Ils utilisent aujourd'hui registre papier, WhatsApp, appels, mémoire, captures 
 
 ## Principe UX central
 
-En moins de 5 secondes, le propriétaire doit comprendre :
+En moins de 5 secondes, le propriétaire doit pouvoir identifier :
 
 1. combien était attendu ce mois-ci ;
 2. combien est déjà encaissé ;
@@ -26,6 +58,8 @@ En moins de 5 secondes, le propriétaire doit comprendre :
 4. qui est en retard ;
 5. quelles relances sont prévues ou envoyées ;
 6. quels reçus ou quittances ont été générés.
+
+Ce principe reste une hypothèse UX tant qu'il n'a pas été testé avec des propriétaires.
 
 ## Deux moteurs produit
 
