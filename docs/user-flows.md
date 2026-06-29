@@ -1,208 +1,427 @@
-# Ranti — User Journeys
+# Ranti — User Flows
 
 ## Statut
 
-Version 1.1 — approuvé.
+Version 2.0 — hypothèses de parcours à valider terrain.
 
-Ce document décrit l'expérience vécue par un propriétaire lorsqu'il utilise Ranti.
+Ce document ne décrit pas ce que l'utilisateur est censé ressentir.
 
-Il décrit les situations réelles que vit un propriétaire et la manière dont Ranti l'accompagne.
+Il décrit des situations observables, des actions attendues, les données nécessaires, les risques et les questions terrain à valider.
 
 ## Principe
 
-Chaque parcours doit clarifier l'objectif réel du propriétaire à ce moment précis.
+Un user flow Ranti doit pouvoir être testé avec un vrai propriétaire.
 
-Ranti accompagne un propriétaire dans la gestion de ses relations locatives.
+Un flow est utile seulement s'il permet d'observer :
 
-Ranti est un registre de loyer actif : il ne se contente pas d'afficher des données, il prépare les rappels, relances et preuves à partir du bail et des paiements validés.
+- ce que le propriétaire essaie de faire ;
+- les informations qu'il comprend ou ne comprend pas ;
+- l'action qu'il réalise ;
+- les blocages ;
+- la preuve que le flow répond à un problème réel.
 
-## Journey 1 — Je découvre Ranti
+## Statut de validation terrain
 
-### Situation
+Aucune réponse terrain documentée n'est encore présente dans le repo.
 
-Un propriétaire entend parler de Ranti.
+Avant de considérer ces flows comme validés, il faut alimenter `docs/research-log.md` avec des entretiens, observations ou tests de maquette.
 
-Il gère aujourd'hui ses loyers avec sa mémoire, WhatsApp, un registre, Excel ou plusieurs méthodes en parallèle.
+---
 
-### Ce qu'il cherche
+## Flow 1 — Comprendre Ranti
 
-Comprendre immédiatement ce que Ranti peut lui apporter.
+### Situation observable
 
-### Ce qu'il doit ressentir
+Un propriétaire découvre Ranti depuis une landing page, un message WhatsApp, une recommandation ou une démonstration.
 
-"Enfin un outil pensé pour ma façon de gérer."
+### Hypothèse
 
-### Résultat attendu
+Le propriétaire comprend rapidement que Ranti sert à suivre les loyers, les retards, les relances et les preuves.
 
-Le propriétaire décide de commencer.
+### Action attendue
 
-## Journey 2 — J'ouvre mon espace
+Il décide soit de commencer, soit de demander plus d'informations, soit d'abandonner.
 
-### Situation
+### Données nécessaires
 
-Le propriétaire décide d'utiliser Ranti.
+Aucune donnée métier.
 
-### Ce qu'il cherche
+### Sortie attendue
 
-Créer son espace rapidement, sans avoir l'impression de remplir un formulaire.
+Le propriétaire comprend la promesse sans explication longue.
 
-### Ce qu'il doit ressentir
+### Risques
 
-"Je commence mon registre de loyer."
+- Le produit semble trop proche d'un simple tableau.
+- Le produit semble trop complexe.
+- Le mot "registre de loyer" n'est pas compris partout.
+- La promesse de relance automatique peut créer une inquiétude.
 
-### Résultat attendu
+### Validation terrain
 
-Son espace est prêt.
+À vérifier : le propriétaire peut-il expliquer Ranti avec ses propres mots après 30 secondes ?
 
-## Journey 3 — Je crée ma première propriété
+---
 
-### Situation
+## Flow 2 — Créer son espace propriétaire
 
-Le propriétaire ajoute la première propriété qu'il souhaite gérer.
+### Situation observable
 
-### Ce qu'il cherche
+Le propriétaire veut essayer Ranti.
 
-Représenter fidèlement son patrimoine.
+### Hypothèse
 
-### Résultat attendu
+Il accepte de créer un compte si l'effort est court et si le bénéfice est clair.
 
-La propriété est créée.
+### Action attendue
 
-## Journey 4 — J'ajoute mes logements
+Il saisit ses informations de base et accède à un espace vide.
 
-### Situation
+### Données nécessaires
 
-Le propriétaire décrit les logements contenus dans sa propriété.
+- téléphone ;
+- mot de passe ;
+- prénom / nom ou nom d'usage ;
+- pays ou indicatif.
 
-Exemples : chambre, appartement, boutique, magasin.
+### Sortie attendue
 
-### Ce qu'il cherche
+Un propriétaire existe dans Ranti.
 
-Retrouver exactement ce qu'il possède.
+### Risques
 
-### Résultat attendu
+- Le téléphone au format local est mal saisi.
+- L'OTP ou le provider téléphone bloque l'inscription.
+- L'utilisateur ne comprend pas quoi faire après l'inscription.
 
-Tous les logements sont enregistrés.
+### Validation terrain
 
-## Journey 5 — J'indique lesquels sont occupés
+À vérifier : le propriétaire peut-il créer son espace sans aide en moins de 2 minutes ?
 
-### Situation
+---
 
-Certains logements sont disponibles.
+## Flow 3 — Ajouter une propriété
 
-D'autres sont déjà occupés.
+### Situation observable
 
-### Ce qu'il cherche
+Le propriétaire veut représenter un lieu qu'il possède ou gère.
 
-Identifier rapidement ceux qui génèrent un loyer.
+### Hypothèse
 
-### Résultat attendu
+Il pense d'abord en lieu ou maison, puis en logements.
 
-Les logements occupés sont prêts à recevoir un bail.
+### Action attendue
 
-## Journey 6 — Je crée le premier bail
+Il crée une propriété avec un nom simple.
 
-### Situation
+### Données nécessaires
 
-Le propriétaire renseigne les informations de la relation locative.
+- nom de la propriété ;
+- ville ou quartier ;
+- adresse ou repère facultatif.
 
-### Ce qu'il cherche
+### Sortie attendue
 
-Définir une seule fois les règles de location.
+La propriété est créée et prête à recevoir des logements.
 
-### Informations importantes
+### Risques
+
+- Le propriétaire ne distingue pas toujours propriété, maison et logement.
+- Le niveau de détail demandé peut être trop élevé.
+
+### Validation terrain
+
+À vérifier : les mots utilisés dans l'UI correspondent-ils à la manière dont le propriétaire parle de ses biens ?
+
+---
+
+## Flow 4 — Ajouter un logement
+
+### Situation observable
+
+Le propriétaire veut ajouter les unités louables d'une propriété.
+
+### Hypothèse
+
+Il peut nommer ses logements simplement : chambre 1, appartement A, boutique, magasin.
+
+### Action attendue
+
+Il crée un ou plusieurs logements rattachés à une propriété.
+
+### Données nécessaires
+
+- propriété ;
+- nom du logement ;
+- type de logement ;
+- statut disponible ou occupé.
+
+### Sortie attendue
+
+Chaque logement peut ensuite recevoir un bail.
+
+### Risques
+
+- Trop de types de logement compliquent le choix.
+- Certains propriétaires ne raisonnent pas par logement mais par locataire.
+
+### Validation terrain
+
+À vérifier : le propriétaire arrive-t-il à modéliser son bien réel sans contorsion ?
+
+---
+
+## Flow 5 — Ajouter un locataire
+
+### Situation observable
+
+Le propriétaire veut associer une personne à un logement occupé.
+
+### Hypothèse
+
+Le nom et le téléphone suffisent pour démarrer.
+
+### Action attendue
+
+Il crée un locataire.
+
+### Données nécessaires
+
+- prénom / nom ou nom d'usage ;
+- téléphone facultatif mais recommandé ;
+- notes facultatives.
+
+### Sortie attendue
+
+Le locataire peut être associé à un bail.
+
+### Risques
+
+- Le propriétaire n'a pas toujours le numéro exact.
+- Le locataire peut avoir plusieurs noms d'usage.
+- Le propriétaire peut vouloir ajouter un locataire sans créer de bail immédiatement.
+
+### Validation terrain
+
+À vérifier : quelles informations minimales les propriétaires ont réellement sur leurs locataires ?
+
+---
+
+## Flow 6 — Créer un bail ou accord locatif
+
+### Situation observable
+
+Le propriétaire veut définir les règles de paiement pour un locataire occupant un logement.
+
+### Hypothèse
+
+Le bail ou accord locatif peut être réduit au MVP à quelques informations : logement, locataire, montant, échéance, date de début et canal de contact.
+
+### Action attendue
+
+Il crée puis active un bail.
+
+### Données nécessaires
+
+- logement ;
+- locataire ;
+- montant mensuel ;
+- devise ;
+- date de début ;
+- jour d'échéance ;
+- canal de contact ;
+- règles de rappel/relance simples.
+
+### Sortie attendue
+
+Ranti peut générer les échéances et préparer les rappels/relances.
+
+### Risques
+
+- Le mot "bail" peut être trop formel si le propriétaire a seulement un accord oral.
+- Les règles de rappel peuvent être trop précoces dans l'onboarding.
+- Un bail commencé en milieu de mois peut créer une première échéance ambiguë.
+
+### Validation terrain
+
+À vérifier : les propriétaires acceptent-ils de renseigner les règles de rappel dès la création du bail ?
+
+---
+
+## Flow 7 — Générer les échéances
+
+### Situation observable
+
+Un bail est actif.
+
+### Hypothèse
+
+Le propriétaire ne veut pas créer manuellement chaque mois de loyer.
+
+### Action attendue
+
+Ranti génère les échéances automatiquement à partir du bail.
+
+### Données nécessaires
+
+- bail actif ;
+- montant ;
+- date de début ;
+- jour d'échéance ;
+- période de facturation.
+
+### Sortie attendue
+
+Les échéances existent et peuvent être suivies.
+
+### Risques
+
+- Doublons d'échéances.
+- Mauvais calcul en fin de mois.
+- Changement de montant après génération.
+- Bail terminé qui continue à générer des échéances.
+
+### Validation terrain
+
+À vérifier : les échéances générées correspondent-elles à la manière dont le propriétaire compte les mois ?
+
+---
+
+## Flow 8 — Préparer ou générer une relance
+
+### Situation observable
+
+Une échéance approche ou devient en retard.
+
+### Hypothèse
+
+Ranti peut réduire les oublis en préparant ou planifiant les rappels à partir du bail.
+
+### Action attendue
+
+Ranti crée une relance prévue, préparée ou envoyée selon la règle applicable.
+
+### Données nécessaires
+
+- échéance ;
+- règle de rappel/relance ;
+- statut de paiement ;
+- canal ;
+- message ;
+- date prévue.
+
+### Sortie attendue
+
+Le propriétaire voit ce qui est prévu, envoyé, annulé ou échoué.
+
+### Risques
+
+- Relance envoyée alors que le paiement a été reçu hors Ranti.
+- Message trop automatique ou trop agressif.
+- Locataire sans numéro fiable.
+- Doublon de relance.
+- Canal externe non maîtrisé.
+
+### Validation terrain
+
+À vérifier : le propriétaire veut-il que Ranti envoie automatiquement ou préfère-t-il valider l'envoi ?
+
+---
+
+## Flow 9 — Valider un paiement reçu
+
+### Situation observable
+
+Le propriétaire reçoit un paiement en cash, Mobile Money, virement ou autre moyen.
+
+### Hypothèse
+
+Le propriétaire accepte de valider le paiement dans Ranti si l'action est rapide et produit une preuve utile.
+
+### Action attendue
+
+Il saisit ou confirme le montant, le locataire, le logement, la période et le moyen de paiement.
+
+### Données nécessaires
 
 - locataire ;
-- logement ;
-- montant du loyer ;
-- période ;
-- date d'échéance ;
-- canal de contact ;
-- règles de rappel ;
-- règles de relance.
+- logement ou bail ;
+- échéance ;
+- montant reçu ;
+- moyen de paiement ;
+- date de réception ;
+- preuve facultative.
 
-### Résultat attendu
-
-Les échéances sont générées automatiquement.
-
-Les rappels et relances peuvent être préparés ou planifiés à partir du bail.
-
-## Journey 7 — Je reçois mon premier loyer
-
-### Situation
-
-Le locataire règle son loyer.
-
-### Ce qu'il cherche
-
-Confirmer rapidement la réception.
-
-Une preuve peut être ajoutée si nécessaire, mais elle n'est pas obligatoire dans le MVP.
-
-### Résultat attendu
+### Sortie attendue
 
 L'échéance est mise à jour.
 
-Si le paiement est partiel, Ranti génère automatiquement un reçu de paiement partiel.
+Si le paiement est partiel, Ranti génère un reçu partiel.
 
-Si l'échéance est soldée, Ranti génère automatiquement une quittance ou un reçu complet.
+Si l'échéance est soldée, Ranti génère une quittance ou un reçu complet.
 
-## Journey 8 — Je prends des nouvelles de mes loyers
+### Risques
 
-### Situation
+- Paiement supérieur au solde.
+- Paiement couvrant plusieurs mois.
+- Paiement partiel mal compris.
+- Double confirmation par erreur.
+- Document généré alors que l'allocation est incorrecte.
 
-Le propriétaire ouvre Ranti quelques jours plus tard.
+### Validation terrain
 
-### Ce qu'il cherche
+À vérifier : le propriétaire comprend-il avant validation quel document sera généré ?
 
-Répondre rapidement aux questions principales : loyers reçus, retards, relances prévues, preuves générées, action utile.
+---
 
-### Ce qu'il doit ressentir
+## Flow 10 — Retrouver l'historique
 
-"Tout est clair."
+### Situation observable
 
-## Journey 9 — Ranti gère un retard
+Un propriétaire ou un locataire conteste ou vérifie un paiement passé.
 
-### Situation
+### Hypothèse
 
-Une échéance dépasse sa date limite.
+L'historique doit réduire les conflits en reliant échéances, paiements, reçus/quittances et relances.
 
-### Ce que Ranti fait
+### Action attendue
 
-Ranti détecte le retard à partir de l'échéance générée par le bail.
+Le propriétaire ouvre le locataire, le bail, l'échéance ou le document.
 
-Ranti prépare ou déclenche la relance selon les règles configurées sur le bail.
+### Données nécessaires
 
-Ranti conserve l'historique de la relance.
+- échéances ;
+- réceptions ;
+- allocations ;
+- preuves ;
+- reçus/quittances ;
+- relances ;
+- audit logs.
 
-### Ce que le propriétaire cherche
+### Sortie attendue
 
-Savoir immédiatement quel logement est concerné, ce qui a été fait, et ce qui reste à faire.
+Le propriétaire peut expliquer ce qui s'est passé sans dépendre de sa mémoire.
 
-### Résultat attendu
+### Risques
 
-La relation locative reste claire et documentée.
+- Trop d'informations affichées.
+- Historique difficile à lire sur mobile.
+- Document annulé ou remplacé mal présenté.
 
-Le propriétaire n'a pas besoin de compter uniquement sur sa mémoire pour relancer.
+### Validation terrain
 
-## Journey 10 — Je retrouve une preuve
+À vérifier : le propriétaire retrouve-t-il un paiement précis en moins d'une minute ?
 
-### Situation
+---
 
-Un propriétaire ou un locataire veut vérifier un paiement passé.
+## Prochaine étape de validation
 
-### Ce qu'il cherche
+Créer et alimenter `docs/research-log.md` avec :
 
-Retrouver rapidement le paiement, le reçu ou la quittance associé à une période.
+- entretiens propriétaires ;
+- observations terrain ;
+- tests de maquette ;
+- objections ;
+- décisions prises après terrain.
 
-### Résultat attendu
-
-Ranti affiche l'historique du locataire : échéances, paiements validés, documents générés et relances associées.
-
-## Principe fondamental
-
-À chaque étape, le propriétaire doit avoir l'impression d'être chez lui.
-
-Il ouvre son registre de loyer.
-
-À chaque visite, Ranti doit lui donner davantage de tranquillité d'esprit qu'à son arrivée.
+Un flow non validé reste une hypothèse.
