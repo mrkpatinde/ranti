@@ -304,3 +304,71 @@ reminders(landlord_id, lease_reminder_rule_id, status)
 audit_logs(landlord_id, entity_type, entity_id)
 audit_logs(actor_user_id, created_at)
 ```
+
+## Sécurité et accès
+
+- Un propriétaire ne voit que les données de son `landlord_id`.
+- Cette règle doit être appliquée côté serveur et, si possible, via politiques de sécurité base.
+- Le locataire n'a pas d'espace complet par défaut au MVP.
+- L'accès administrateur est limité, tracé et réservé au support ou à la sécurité.
+
+## Suppression et archivage
+
+Suppression physique acceptable pour brouillons sans impact, données créées par erreur avant activation, événements techniques non critiques après rétention.
+
+Suppression physique à éviter pour baux, règles de rappel, échéances, réceptions de loyer, allocations, preuves, reçus, relances envoyées, audit logs.
+
+Préférer `archived`, `cancelled`, `reversed`, `deleted_at` avec audit, ou une correction.
+
+## Exclu du MVP
+
+- Agences complexes.
+- Multi-propriétaires avancés.
+- Équipes et rôles granulaires.
+- Portail locataire complet.
+- Liens publics contrôlés.
+- Envoi automatique externe non maîtrisé.
+- Comptabilité complète.
+- Paiements en ligne obligatoires.
+- Rapprochement bancaire automatique.
+- Analytics avancés.
+
+## Questions ouvertes avant migrations SQL
+
+1. Prestataire d'authentification initial.
+2. Format exact de l'identifiant utilisateur.
+3. Politique de stockage des preuves.
+4. Format du numéro de reçu.
+5. Stratégie exacte de génération des échéances.
+6. Stratégie de correction d'un reçu déjà généré.
+7. SQL exact pour empêcher les baux actifs qui se chevauchent sur un même logement.
+8. Stratégie exacte de génération des règles et relances.
+9. Statut exact à utiliser pour reçu partiel, reçu complet et quittance.
+
+## Ordre recommandé des migrations
+
+1. `app_users`
+2. `landlords`
+3. `properties`
+4. `units`
+5. `tenants`
+6. `leases`
+7. `lease_reminder_rules`
+8. `rent_dues`
+9. `rent_receptions`
+10. `rent_reception_allocations`
+11. `payment_proofs`
+12. `receipts`
+13. `receipt_items`
+14. `reminders`
+15. `audit_logs`
+
+Post-MVP : `notification_deliveries`, `public_links`.
+
+## Phrase de contrôle
+
+La base de données de Ranti doit pouvoir raconter l'histoire suivante sans ambiguïté :
+
+> Ce propriétaire a ce logement. Ce locataire l'occupe selon ce bail. Pour ce mois, cette échéance était attendue. Voici ce qui a été reçu. Voici la preuve s'il y en a une. Voici le reçu ou la quittance généré. Voici la relance prévue ou envoyée. Voici l'historique des actions.
+
+Si le schéma ne permet plus de raconter cette histoire simplement, il doit être corrigé.
