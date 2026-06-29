@@ -35,6 +35,8 @@ const statusLabels: Record<CollectionStatus, string> = {
 
 const noticeLabels: Record<string, string> = {
   collection_confirmed: "Encaissement confirmé.",
+  collection_confirmed_document_pending:
+    "Encaissement confirmé. Le document n'a pas été généré automatiquement ; vous pouvez le générer depuis l'encaissement.",
   collection_cancelled: "Encaissement annulé.",
   collection_recorded_unconfirmed:
     "Encaissement enregistré mais non confirmé. Confirmez-le ci-dessous.",
