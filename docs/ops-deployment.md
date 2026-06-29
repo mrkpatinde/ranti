@@ -2,181 +2,158 @@
 
 ## Statut
 
-Version 0.1 — squelette opérationnel à compléter après audit du code et des environnements.
+Version 0.2 — runbook opérationnel minimal.
 
-Ce document évite que la configuration de Ranti reste uniquement dans la mémoire des intervenants.
+Ce document doit permettre à quelqu'un d'intervenir sans dépendre uniquement de la mémoire d'Adonis ou d'un agent IA.
 
-## Objectif
+Ne jamais y mettre de secret.
 
-Documenter comment Ranti est configuré, déployé, migré et vérifié.
+## Stack connue
 
-Ce document ne doit jamais contenir de secrets.
+- Monorepo : `apps/web`, `supabase/migrations`, `docs`.
+- App web : Next.js dans `apps/web`.
+- Déploiement app : Vercel.
+- Base : Supabase Postgres.
+- Auth : Supabase Auth.
+- Projet Supabase live connu : `pcxkxeesgusorrpmrkaj`.
+- RLS : activé sur les tables métier.
 
-## Environnements
+## Commandes
 
-### Local
+Depuis la racine :
 
-À documenter :
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run test:e2e
+```
 
-- prérequis Node ;
-- gestionnaire de paquets ;
-- commandes d'installation ;
-- commandes de dev ;
-- connexion Supabase locale ou distante ;
-- données de seed ;
-- tests à lancer.
+Depuis `apps/web` :
 
-### Preview / Vercel
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run test
+npm run test:unit
+npm run test:e2e
+npm run test:watch
+```
 
-À documenter :
+## Installation locale
 
-- projet Vercel ;
-- root directory ;
-- build command ;
-- install command ;
-- output directory ;
-- variables requises ;
-- domaines ;
-- règle de protection preview si applicable.
+```bash
+npm install
+npm --prefix apps/web install
+npm run dev
+```
 
-### Production
+## Build local
 
-À documenter :
+```bash
+npm run build
+```
 
-- projet Vercel production ;
-- projet Supabase production ;
-- stratégie migration ;
-- stratégie rollback ;
-- monitoring minimum.
+Si le build échoue, ne pas déployer.
 
-## Services externes
+## Tests avant déploiement
 
-### Supabase
+```bash
+npm run lint
+npm --prefix apps/web run test:unit
+npm --prefix apps/web run test
+npm run test:e2e
+```
+
+## Vercel
+
+Configuration connue :
+
+- Root Directory : `apps/web`.
+- Build Next.js exécuté dans `apps/web`.
+- Éviter une configuration racine qui contredit le monorepo.
+
+À vérifier avant déploiement :
+
+- Root Directory = `apps/web`.
+- Config d'environnement présente côté Vercel.
+- Branche de production correcte.
+- Domaine correct.
+- Logs de build sans erreur.
+
+## Supabase
 
 Projet live connu : `pcxkxeesgusorrpmrkaj`.
 
-À documenter :
-
-- région ;
-- version Postgres ;
-- auth providers activés ;
-- politiques RLS critiques ;
-- buckets Storage ;
-- fonctions SQL importantes ;
-- migrations appliquées ;
-- procédure de migration.
-
-### Vercel
-
-À documenter :
-
-- nom du projet ;
-- root directory ;
-- branches de déploiement ;
-- variables ;
-- domaines ;
-- logs à vérifier après déploiement.
-
-### Brevo / SMS / Email
-
-À documenter si utilisé :
-
-- rôle exact du service ;
-- variables requises ;
-- templates ;
-- limites ;
-- fallback ;
-- coût ou quota.
-
-### WhatsApp / SMS futurs
-
-À documenter avant envoi automatique :
-
-- provider ;
-- opt-in ;
-- templates ;
-- coûts ;
-- statuts de livraison ;
-- retries ;
-- désactivation par bail ou locataire.
-
-## Variables d'environnement
-
-Ne jamais écrire les valeurs réelles.
-
-Format attendu :
+Tables live observées :
 
 ```txt
-VARIABLE_NAME=
-Usage :
-Scope : local / preview / production
-Obligatoire : oui / non
-Risque si absent :
+landlords
+properties
+units
+tenants
+leases
+rent_dues
+rent_receptions
+rent_reception_allocations
+payment_proofs
+receipts
+audit_logs
+reminders
 ```
 
-Variables candidates à vérifier dans le code :
+Attention : `lease_reminder_rules` n'existe pas encore en DB live au moment de la gap analysis.
 
-```txt
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-SUPABASE_DB_URL
-BREVO_API_KEY
-```
+## Déploiement standard
 
-Cette liste doit être confirmée par audit du repo.
+1. Vérifier l'état Git.
+2. Lancer les tests pertinents.
+3. Lancer le build local.
+4. Vérifier les migrations en attente.
+5. Déployer via Vercel.
+6. Lire les logs de build.
+7. Tester le login.
+8. Tester le dashboard.
+9. Tester un flux propriétaire minimal si l'environnement le permet.
 
-## Migrations Supabase
-
-### Règle
+## Migration Supabase — règle stricte
 
 Aucune migration ne doit être appliquée sans :
 
 - lecture du schéma live ;
-- vérification des migrations déjà appliquées ;
+- vérification des migrations déjà présentes ;
 - test fresh-apply ;
 - test de régression SQL ;
 - plan rollback ou correction ;
 - validation explicite si la migration touche paiements, reçus, quittances, relances ou RLS.
 
-### Procédure à documenter
+## Migration Supabase — procédure
 
 ```txt
-1. Vérifier l'état live.
-2. Créer une migration additive si possible.
-3. Lancer fresh-apply local.
-4. Lancer tests SQL.
-5. Lancer tests applicatifs.
-6. Relire diff migration.
-7. Appliquer sur l'environnement cible.
-8. Vérifier tables, contraintes, politiques RLS et logs.
+1. Lire le schéma live.
+2. Comparer avec docs/database.md et migrations existantes.
+3. Créer une migration additive si possible.
+4. Lancer fresh-apply local ou sur branche de dev.
+5. Lancer les tests SQL critiques.
+6. Lancer les tests applicatifs.
+7. Relire les contraintes, index et RLS.
+8. Appliquer sur l'environnement cible.
+9. Vérifier tables, contraintes, policies, logs et flux UI.
 ```
-
-## Tests avant déploiement
-
-À documenter précisément après audit :
-
-```txt
-npm test
-npm run test
-npm run lint
-npm run typecheck
-npx playwright test
-supabase db reset
-```
-
-Ne garder que les commandes réellement valides dans le repo.
 
 ## Checklist pré-déploiement
 
-- [ ] Les migrations sont testées fresh-apply.
-- [ ] Les tests SQL critiques passent.
-- [ ] Les tests frontend critiques passent.
-- [ ] Les variables d'environnement sont présentes.
+- [ ] Le build passe.
+- [ ] Le lint passe ou les exceptions sont documentées.
+- [ ] Les tests unitaires critiques passent.
+- [ ] Les tests E2E critiques passent si le changement touche l'UI.
+- [ ] Les migrations fresh-apply passent si le changement touche la DB.
 - [ ] Les politiques RLS sont cohérentes.
-- [ ] Les flux auth sont testés.
-- [ ] Les flux de loyer/reçu/quittance sont testés.
 - [ ] Aucun secret n'est dans le repo.
+- [ ] La config d'environnement est présente dans Vercel.
 
 ## Checklist post-déploiement
 
@@ -192,11 +169,43 @@ Ne garder que les commandes réellement valides dans le repo.
 
 ## Incidents connus
 
-À compléter.
+### Provider téléphone Supabase Auth
 
-## Décisions ops à prendre
+Symptôme : login ou inscription téléphone bloqué.
 
-- Source exacte des variables d'environnement.
+Cause probable : provider téléphone non activé ou mal configuré.
+
+Action : vérifier la configuration Auth dans Supabase Dashboard.
+
+### RLS sans policy
+
+Symptôme : l'app ne peut pas lire/écrire via utilisateur authentifié alors que les tables existent.
+
+Cause probable : RLS activé sans policies correspondantes.
+
+Action : vérifier les policies appliquées et les migrations RLS.
+
+### Mauvais Root Directory Vercel
+
+Symptôme : build Vercel échoue ou ne trouve pas l'app.
+
+Cause probable : Root Directory différent de `apps/web`.
+
+Action : corriger la configuration Vercel.
+
+## Services externes à documenter avant usage complet
+
+- Email transactionnel.
+- SMS.
+- WhatsApp.
+- Génération PDF.
+- Stockage fichiers.
+
+Pour chaque service, documenter : rôle exact, provider, environnement, limites, erreurs connues, fallback et coût.
+
+## Décisions ops ouvertes
+
+- Source exacte de la configuration d'environnement.
 - Procédure de migration production.
 - Provider SMS/Email/WhatsApp retenu.
 - Monitoring minimum.
