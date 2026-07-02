@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Ranti brand type: Fraunces (display serif, headings/prices/wordmark) +
+// Hanken Grotesk (body/labels/buttons) — the same fonts as the production
+// brand system (see project/_ds/.../tokens/fonts.css in the design handoff).
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const hankenGrotesk = Hanken_Grotesk({
+  variable: "--font-hanken",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Ranti — Gestion des loyers pour propriétaires africains",
+  title: "Ranti — Le registre de loyer des propriétaires africains",
   description:
-    "Ranti aide les propriétaires africains à suivre les paiements, les retards, les preuves et les reçus sans perdre la relation avec leurs locataires.",
+    "Qui a payé, qui doit, relances automatiques et quittances conservées. Vous renseignez le bail, Ranti suit les loyers.",
 };
 
 export default function RootLayout({
@@ -26,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${hankenGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

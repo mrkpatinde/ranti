@@ -30,18 +30,18 @@ export default async function PropertyDetailPage({ searchParams }: PropertyDetai
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
-      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
+      <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
             Ranti
           </p>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Detail du lieu
           </p>
         </div>
         <Link
           href="/properties"
-          className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+          className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
         >
           Vos lieux
         </Link>
@@ -49,37 +49,37 @@ export default async function PropertyDetailPage({ searchParams }: PropertyDetai
 
       <section className="flex flex-1 flex-col gap-8 py-12">
         <div className="space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 sm:text-4xl">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             {property.name}
           </h1>
-          <p className="max-w-xl text-base leading-7 text-neutral-600 dark:text-neutral-300">
+          <p className="max-w-xl text-base leading-7 text-foreground/70">
             {formatLocation(property.city, property.address)}
           </p>
         </div>
 
-        <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Ville
           </p>
-          <p className="mt-3 text-lg font-medium text-neutral-950 dark:text-neutral-50">
+          <p className="mt-3 text-lg font-medium text-foreground">
             {property.city ?? "Non renseignee"}
           </p>
         </div>
 
-        <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Repere
           </p>
-          <p className="mt-3 text-lg font-medium text-neutral-950 dark:text-neutral-50">
+          <p className="mt-3 text-lg font-medium text-foreground">
             {property.address ?? "Non renseigne"}
           </p>
         </div>
 
-        <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Note
           </p>
-          <p className="mt-3 text-base leading-7 text-neutral-600 dark:text-neutral-300">
+          <p className="mt-3 text-base leading-7 text-foreground/70">
             {property.notes ?? "Aucune note pour ce lieu."}
           </p>
         </div>

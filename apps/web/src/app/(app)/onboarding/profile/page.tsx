@@ -19,9 +19,9 @@ const CIVILITY_OPTIONS = [
 ] as const
 
 const fullInputClass =
-  "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+  "w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
 const phoneInputClass =
-  "w-full rounded-r-xl border border-l-0 border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+  "w-full rounded-r-xl border border-l-0 border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const existing = await getCurrentLandlord()
@@ -36,27 +36,27 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const errorMessage = params?.error
   const missingPhone = params?.missing === "phone"
 
-  const labelClass = "block text-sm font-medium text-neutral-800 dark:text-neutral-100"
+  const labelClass = "block text-sm font-medium text-foreground"
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
       <section className="space-y-8">
         <div className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
             Ranti
           </p>
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
               Votre profil
             </h1>
-            <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
+            <p className="text-base leading-7 text-foreground/70">
               Ce numéro vous identifie et apparaîtra dans votre espace propriétaire.
             </p>
           </div>
         </div>
 
         {missingPhone ? (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          <p className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent-foreground">
             Ajoutez votre numéro pour activer votre espace propriétaire.
           </p>
         ) : null}
@@ -74,7 +74,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                     defaultChecked={option.value === "not_specified"}
                     className="peer sr-only"
                   />
-                  <span className="block rounded-xl border border-neutral-300 px-3 py-2 text-sm text-neutral-800 transition peer-checked:border-neutral-950 peer-checked:bg-neutral-950 peer-checked:text-white dark:border-neutral-700 dark:text-neutral-100 dark:peer-checked:border-neutral-50 dark:peer-checked:bg-neutral-50 dark:peer-checked:text-neutral-950">
+                  <span className="block rounded-xl border border-border px-3 py-2 text-sm text-foreground transition peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">
                     {option.label}
                   </span>
                 </label>
@@ -87,7 +87,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               Numéro de téléphone
             </label>
             <div className="flex">
-              <span className="inline-flex items-center rounded-l-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-base text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+              <span className="inline-flex items-center rounded-l-xl border border-border bg-background px-4 py-3 text-base text-foreground/70">
                 🇧🇯 +229
               </span>
               <BeninPhoneInput
@@ -98,7 +98,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 className={phoneInputClass}
               />
             </div>
-            <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm leading-6 text-muted-foreground">
               Tapez les 10 chiffres : Ranti ajoute les espaces automatiquement.
             </p>
           </div>
@@ -132,13 +132,13 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </div>
 
           {errorMessage ? (
-            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {errorMessage}
             </p>
           ) : null}
 
           <SubmitButton
-            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+            className="w-full rounded-full bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
           >
             Accéder à mon espace
           </SubmitButton>

@@ -37,37 +37,37 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
-      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
+      <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">Ranti</p>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Vos baux</p>
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Ranti</p>
+          <p className="mt-2 text-sm text-muted-foreground">Vos baux</p>
         </div>
-        <Link href="/dashboard" className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300">
+        <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
           Tableau de bord
         </Link>
       </header>
 
       <section className="flex flex-1 flex-col gap-8 py-12">
         <div className="space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50 sm:text-4xl">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             Vos baux
           </h1>
-          <p className="max-w-xl text-base leading-7 text-neutral-600 dark:text-neutral-300">
+          <p className="max-w-xl text-base leading-7 text-foreground/70">
             Un bail relie un logement à un locataire. Activez-le pour générer les loyers.
           </p>
         </div>
 
         {leases.length === 0 ? (
-          <div className="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950">
-            <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
               Aucun bail pour le moment
             </h2>
-            <p className="mt-2 text-base leading-7 text-neutral-600 dark:text-neutral-300">
+            <p className="mt-2 text-base leading-7 text-foreground/70">
               Créez un bail entre un logement et un locataire.
             </p>
             <Link
               href="/leases/new"
-              className="mt-5 inline-flex rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+              className="mt-5 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
             >
               Créer mon premier bail
             </Link>
@@ -78,18 +78,18 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
               <Link
                 key={lease.id}
                 href={`/leases/${lease.id}`}
-                className="block rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-950 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-neutral-50"
+                className="block rounded-2xl border border-border bg-card p-6 transition hover:border-primary"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+                    <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
                       {tenantName(lease.tenant_id)} — {unitName(lease.unit_id)}
                     </h2>
-                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       {formatAmount(lease.monthly_rent_amount)} / mois · échéance le {lease.due_day}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
+                  <span className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80">
                     {leaseStatusLabels[lease.status]}
                   </span>
                 </div>
@@ -98,7 +98,7 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
 
             <Link
               href="/leases/new"
-              className="inline-flex rounded-xl border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-800 transition hover:border-neutral-950 dark:border-neutral-700 dark:text-neutral-100 dark:hover:border-neutral-50"
+              className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary"
             >
               Créer un autre bail
             </Link>

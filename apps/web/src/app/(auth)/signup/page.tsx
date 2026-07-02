@@ -43,14 +43,14 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
       <section className="space-y-8">
         <div className="space-y-3 text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
             Ranti
           </p>
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
               Créer votre espace
             </h1>
-            <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
+            <p className="text-base leading-7 text-foreground/70">
               Votre numéro et un mot de passe suffisent.
             </p>
           </div>
@@ -60,13 +60,13 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         <form action={submitSignup} className="space-y-5">
           <PhoneField
             defaultValue={phone}
-            labelClassName="block text-sm font-medium text-neutral-800 dark:text-neutral-100"
+            labelClassName="block text-sm font-medium text-foreground"
           />
 
           <div className="space-y-2">
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-neutral-800 dark:text-neutral-100"
+              className="block text-sm font-medium text-foreground"
             >
               Mot de passe
             </label>
@@ -74,18 +74,18 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               autoComplete="new-password"
               minLength={8}
               placeholder="Au moins 8 caractères"
-              inputClassName="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+              inputClassName="w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
             />
           </div>
 
           {errorMessage ? (
-            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {errorMessage}
             </p>
           ) : null}
 
           <SubmitButton
-            className="w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+            className="w-full rounded-full bg-accent px-4 py-3 text-base font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(242,163,60,0.55)] transition hover:brightness-95 disabled:opacity-60"
             pendingLabel="Création…"
           >
             Continuer
@@ -93,23 +93,23 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
 
           <Link
             href={AUTH_PATHS.signIn}
-            className="block text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+            className="block text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
           >
             J&apos;ai déjà un espace
           </Link>
         </form>
 
         <div className="flex items-center gap-3">
-          <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-          <span className="text-xs text-neutral-400 dark:text-neutral-500">ou</span>
-          <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">ou</span>
+          <span className="h-px flex-1 bg-border" />
         </div>
 
         {/* Google OAuth — secondary, below the primary phone path. */}
         <form action={signInWithGoogle}>
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base font-medium text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-base font-medium text-foreground/80 transition hover:bg-secondary/60"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>

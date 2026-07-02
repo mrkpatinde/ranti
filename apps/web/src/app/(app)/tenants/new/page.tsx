@@ -9,10 +9,10 @@ type NewTenantPageProps = {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+  "w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
 const phoneInputClass =
-  "w-full rounded-r-xl border border-l-0 border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
-const labelClass = "block text-sm font-medium text-neutral-800 dark:text-neutral-100"
+  "w-full rounded-r-xl border border-l-0 border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
+const labelClass = "block text-sm font-medium text-foreground"
 
 export default async function NewTenantPage({ searchParams }: NewTenantPageProps) {
   await requireLandlordProfile()
@@ -22,14 +22,14 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
-      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
+      <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">Ranti</p>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Nouveau locataire</p>
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Ranti</p>
+          <p className="mt-2 text-sm text-muted-foreground">Nouveau locataire</p>
         </div>
         <Link
           href="/dashboard"
-          className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+          className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
         >
           Retour
         </Link>
@@ -37,17 +37,17 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
 
       <section className="flex flex-1 flex-col justify-center gap-8 py-10">
         <div className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-neutral-400">Étape 3 sur 5</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">Étape 3 sur 5</p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             Qui doit recevoir les relances ?
           </h1>
-          <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
+          <p className="text-base leading-7 text-foreground/70">
             Ajoutez le locataire et son numéro. C’est ce numéro que Ranti utilisera pour les rappels de loyer.
           </p>
         </div>
 
         {errorMessage ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {errorMessage}
           </p>
         ) : null}
@@ -74,32 +74,32 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
               Numéro WhatsApp du locataire
             </label>
             <div className="flex">
-              <span className="inline-flex items-center rounded-l-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-base text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+              <span className="inline-flex items-center rounded-l-xl border border-border bg-background px-4 py-3 text-base text-foreground/70">
                 🇧🇯 +229
               </span>
               <BeninPhoneInput id="phone" name="phone" required className={phoneInputClass} />
             </div>
-            <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm leading-6 text-muted-foreground">
               Tapez les 10 chiffres : les espaces s’ajoutent automatiquement.
             </p>
           </div>
 
           <div className="space-y-2">
             <label htmlFor="email" className={labelClass}>
-              Email <span className="text-neutral-400">(optionnel)</span>
+              Email <span className="text-muted-foreground">(optionnel)</span>
             </label>
             <input id="email" name="email" type="email" placeholder="Ex. awa@email.com" className={inputClass} />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="notes" className={labelClass}>
-              Note <span className="text-neutral-400">(optionnel)</span>
+              Note <span className="text-muted-foreground">(optionnel)</span>
             </label>
             <textarea id="notes" name="notes" rows={3} placeholder="Information utile" className={inputClass} />
           </div>
 
           <SubmitButton
-            className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+            className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
           >
             Continuer vers le bail
           </SubmitButton>

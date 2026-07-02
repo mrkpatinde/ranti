@@ -51,23 +51,23 @@ export default async function RecoverPage({ searchParams }: RecoverPageProps) {
   const errorMessage = params?.error
 
   const inputClass =
-    "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
-  const labelClass = "block text-sm font-medium text-neutral-800 dark:text-neutral-100"
+    "w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
+  const labelClass = "block text-sm font-medium text-foreground"
   const buttonClass =
-    "w-full rounded-xl bg-neutral-950 px-4 py-3 text-base font-medium text-white transition hover:bg-neutral-800 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+    "w-full rounded-full bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition hover:bg-primary/90"
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
       <section className="space-y-8">
         <div className="space-y-3 text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
             Ranti
           </p>
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
               Mot de passe oublié
             </h1>
-            <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
+            <p className="text-base leading-7 text-foreground/70">
               {sent
                 ? `Entrez le code reçu par SMS au ${phone} et choisissez un nouveau mot de passe.`
                 : "Indiquez votre numéro pour recevoir un code par SMS."}
@@ -107,7 +107,7 @@ export default async function RecoverPage({ searchParams }: RecoverPageProps) {
             </div>
 
             {errorMessage ? (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {errorMessage}
               </p>
             ) : null}
@@ -121,7 +121,7 @@ export default async function RecoverPage({ searchParams }: RecoverPageProps) {
             <PhoneField defaultValue={phone} labelClassName={labelClass} />
 
             {errorMessage ? (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {errorMessage}
               </p>
             ) : null}
@@ -134,7 +134,7 @@ export default async function RecoverPage({ searchParams }: RecoverPageProps) {
 
         <Link
           href={AUTH_PATHS.signIn}
-          className="block text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300"
+          className="block text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
         >
           Retour à la connexion
         </Link>
