@@ -23,14 +23,20 @@ describe("normalizeTenantName", () => {
 })
 
 describe("normalizeTenantPhone", () => {
-  it("keeps a lenient free-form phone, collapsing spaces", () => {
-    expect(normalizeTenantPhone("  01 90 00 00 00 ")).toBe("01 90 00 00 00")
+  it("normalizes a Benin local number to E.164", () => {
+    expect(normalizeTenantPhone("  01 90 00 00 00 ")).toBe("+2290190000000")
+  })
+  it("accepts a number already prefixed with +229", () => {
+    expect(normalizeTenantPhone("+229 01 90 00 00 00")).toBe("+2290190000000")
+  })
+  it("rejects foreign international prefixes", () => {
+    expect(normalizeTenantPhone("+33 6 12 34 56 78")).toBeNull()
   })
   it("returns null on empty", () => {
     expect(normalizeTenantPhone("   ")).toBeNull()
     expect(normalizeTenantPhone(null)).toBeNull()
   })
-  it("rejects over 32 chars", () => {
+  it("rejects local numbers that do not match the Benin pattern", () => {
     expect(normalizeTenantPhone("9".repeat(33))).toBeNull()
   })
 })

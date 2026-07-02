@@ -44,7 +44,7 @@ export default async function EditLeasePage({ params, searchParams }: EditLeaseP
         <div className="space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">Corriger le bail</h1>
           <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">{tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"} — {unit?.name ?? "Logement"}</p>
-          {!isDraft ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">Ce bail est déjà activé. Ranti ne permet pas de le modifier librement pour protéger l'historique des loyers.</p> : null}
+          {!isDraft ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">Ce bail est déjà activé. Ranti ne permet pas de le modifier librement pour protéger l&apos;historique des loyers.</p> : null}
         </div>
 
         {sp?.error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{sp.error}</p> : null}
@@ -56,7 +56,7 @@ export default async function EditLeasePage({ params, searchParams }: EditLeaseP
             <input id="monthly_rent_amount" name="monthly_rent_amount" type="text" inputMode="numeric" required defaultValue={String(lease.monthly_rent_amount)} disabled={!isDraft} className={inputClass} />
           </div>
           <div className="space-y-2">
-            <label htmlFor="due_day" className={labelClass}>Jour d'échéance</label>
+            <label htmlFor="due_day" className={labelClass}>Jour d&apos;échéance</label>
             <input id="due_day" name="due_day" type="number" min={1} max={31} required defaultValue={lease.due_day} disabled={!isDraft} className={inputClass} />
           </div>
           <div className="space-y-2">
