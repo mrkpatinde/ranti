@@ -7,7 +7,6 @@ import {
   FileText,
   Home,
   MessageCircle,
-  Shield,
 } from "lucide-react";
 
 const SIGNUP_HREF = "/signup";
@@ -27,7 +26,7 @@ function ProductPreview() {
   const rows = [
     { name: "Aline", unit: "Chambre 1", status: "Payé", tone: "green" },
     { name: "Koffi", unit: "Boutique", status: "En retard", tone: "amber" },
-    { name: "Mireille", unit: "Appartement", status: "Reçu prêt", tone: "green" },
+    { name: "Mireille", unit: "Appartement", status: "Payé", tone: "green" },
   ];
 
   return (
@@ -82,6 +81,16 @@ function ProductPreview() {
               </span>
             </div>
           ))}
+
+          <div className="flex items-center gap-3 rounded-2xl border border-[#dbe7d2] bg-[#f2f7ec] px-4 py-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#244334] text-[#fff8eb]">
+              <MessageCircle size={16} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#26382d]">Relance envoyée à Koffi</p>
+              <p className="text-xs text-[#65775a]">Automatique · SMS · il y a 2 h</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -107,10 +116,22 @@ const pillars = [
 ];
 
 const steps = [
-  "Renseignez vos logements, locataires et baux.",
-  "Ranti génère les échéances du mois.",
-  "Les relances partent automatiquement au bon moment.",
-  "Vous confirmez les encaissements ; les reçus restent disponibles.",
+  {
+    title: "Renseignez vos logements, locataires et baux.",
+    detail: "Une fois. Loyer, date d'échéance, numéro du locataire.",
+  },
+  {
+    title: "Ranti génère les échéances du mois.",
+    detail: "Chaque bail actif produit ses loyers attendus, sans saisie.",
+  },
+  {
+    title: "Les relances partent automatiquement.",
+    detail: "Avant l'échéance, puis en cas de retard. Vous n'y pensez plus.",
+  },
+  {
+    title: "Vous confirmez l'encaissement, la quittance est prête.",
+    detail: "Un document numéroté, daté, conservé dans le registre.",
+  },
 ];
 
 const faq = [
@@ -164,11 +185,11 @@ export default function Landing() {
               </div>
 
               <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-[#26382d] sm:text-6xl md:text-7xl">
-                Vos loyers, suivis avec calme.
+                Qui a payé. Qui doit. Ranti relance pour vous.
               </h1>
 
               <p className="mt-7 max-w-xl text-lg leading-8 text-[#695f4f] md:text-xl">
-                Ranti remplace le désordre WhatsApp, les notes papier et les oublis par un registre de loyer clair : vous renseignez le bail, Ranti suit les loyers, relance au bon moment et garde chaque reçu.
+                Le registre de loyer des propriétaires africains. Vous renseignez le bail une fois : Ranti suit les échéances, relance au bon moment et garde chaque quittance.
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -223,15 +244,13 @@ export default function Landing() {
 
             <div className="rounded-[2rem] border border-[#dfd0bb] bg-[#fff9ef] p-4 shadow-[0_22px_70px_rgba(92,72,44,0.1)]">
               {steps.map((step, index) => (
-                <div key={step} className="flex gap-4 rounded-3xl p-5 transition hover:bg-[#f4ead9]">
+                <div key={step.title} className="flex gap-4 rounded-3xl p-5 transition hover:bg-[#f4ead9]">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#244334] text-sm font-semibold text-[#fff8eb]">
                     {String(index + 1).padStart(2, '0')}
                   </div>
                   <div>
-                    <p className="font-semibold text-[#26382d]">{step}</p>
-                    <p className="mt-1 text-sm leading-6 text-[#736754]">
-                      Une action simple, tracée proprement dans le registre.
-                    </p>
+                    <p className="font-semibold text-[#26382d]">{step.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-[#736754]">{step.detail}</p>
                   </div>
                 </div>
               ))}
@@ -245,7 +264,7 @@ export default function Landing() {
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#cbd9bd]">Promesse produit</p>
                 <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-5xl">
-                  Avec nous, tu oublies moins. Donc tu encaisses plus.
+                  Vous oubliez moins. Vous encaissez plus.
                 </h2>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -284,6 +303,21 @@ export default function Landing() {
             </div>
           </div>
         </section>
+
+        <section className="px-6 pb-24">
+          <div className="mx-auto max-w-4xl rounded-[2.2rem] border border-[#dfd0bb] bg-[#fff9ef] px-8 py-14 text-center shadow-[0_22px_70px_rgba(92,72,44,0.1)]">
+            <h2 className="mx-auto max-w-2xl text-4xl font-semibold leading-tight tracking-[-0.04em] text-[#26382d] md:text-5xl">
+              Ouvrez votre registre de loyer.
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-8 text-[#6f634f]">
+              Deux minutes pour créer votre espace. Votre premier bail suivi dès aujourd'hui.
+            </p>
+            <Link href={SIGNUP_HREF} className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#244334] px-8 py-4 text-base font-semibold text-[#fff8eb] shadow-[0_16px_34px_rgba(36,67,52,0.22)] transition hover:bg-[#1d362a]">
+              Commencer
+              <ArrowRight size={18} />
+            </Link>
+          </div>
+        </section>
       </main>
 
       <footer className="border-t border-[#dfd0bb] bg-[#efe4d1] px-6 py-8">
@@ -291,11 +325,12 @@ export default function Landing() {
           <div className="flex items-center gap-3">
             <RantiLogo size={24} />
             <span className="font-semibold text-[#26382d]">Ranti</span>
+            <span className="text-[#8a7c66]">· Registre de loyer moderne</span>
           </div>
-          <div className="flex flex-wrap gap-4">
-            <span>Registre de loyer moderne</span>
-            <span>·</span>
-            <span>Pour propriétaires africains</span>
+          <div className="flex flex-wrap gap-5">
+            <Link href="/login" className="transition hover:text-[#26382d]">Se connecter</Link>
+            <Link href="/conditions" className="transition hover:text-[#26382d]">Conditions</Link>
+            <Link href="/confidentialite" className="transition hover:text-[#26382d]">Confidentialité</Link>
           </div>
         </div>
       </footer>

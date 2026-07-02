@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ranti — Gestion des loyers pour propriétaires africains",
+  title: "Ranti — Le registre de loyer des propriétaires africains",
   description:
-    "Ranti aide les propriétaires africains à suivre les paiements, les retards, les preuves et les reçus sans perdre la relation avec leurs locataires.",
+    "Qui a payé, qui doit, relances automatiques et quittances conservées. Vous renseignez le bail, Ranti suit les loyers.",
 };
 
 export default function RootLayout({
