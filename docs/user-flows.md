@@ -152,11 +152,11 @@ Une échéance dépasse sa date limite.
 
 ### Ce qu'il cherche
 
-Savoir immédiatement quel logement est concerné et relancer le locataire sereinement.
+Savoir immédiatement quel logement est concerné et constater que Ranti a déjà relancé le locataire au bon moment. Ajuster ou renvoyer une relance reste possible, mais comme contrôle secondaire — pas comme flux principal.
 
 ### Résultat attendu
 
-La relation locative reste claire et documentée.
+La relation locative reste claire et documentée, sans que le propriétaire ait à penser aux relances.
 
 ## Principe fondamental
 

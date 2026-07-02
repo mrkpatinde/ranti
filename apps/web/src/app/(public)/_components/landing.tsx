@@ -96,8 +96,8 @@ const pillars = [
   },
   {
     icon: <Bell size={18} />,
-    title: "Des relances propres",
-    body: "Ranti aide à rappeler sans tension, avec un suivi clair de ce qui reste dû.",
+    title: "Des relances automatiques",
+    body: "Ranti sait quand relancer. Les rappels partent au bon moment, sans que vous y pensiez.",
   },
   {
     icon: <FileText size={18} />,
@@ -107,10 +107,10 @@ const pillars = [
 ];
 
 const steps = [
-  "Ajoutez vos logements et locataires.",
+  "Renseignez vos logements, locataires et baux.",
   "Ranti génère les échéances du mois.",
-  "Vous confirmez les encaissements reçus.",
-  "Les reçus et l'historique restent disponibles.",
+  "Les relances partent automatiquement au bon moment.",
+  "Vous confirmez les encaissements ; les reçus restent disponibles.",
 ];
 
 const faq = [
@@ -168,7 +168,7 @@ export default function Landing() {
               </h1>
 
               <p className="mt-7 max-w-xl text-lg leading-8 text-[#695f4f] md:text-xl">
-                Ranti remplace le désordre WhatsApp, les notes papier et les oublis par un registre de loyer clair : qui a payé, qui doit, quoi relancer, quel reçu garder.
+                Ranti remplace le désordre WhatsApp, les notes papier et les oublis par un registre de loyer clair : vous renseignez le bail, Ranti suit les loyers, relance au bon moment et garde chaque reçu.
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -250,7 +250,7 @@ export default function Landing() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
-                  ['Relances', 'Des rappels propres, sans improviser chaque fin de mois.'],
+                  ['Relances', 'Elles partent automatiquement au bon moment. Vous voyez ce que Ranti a déjà relancé.'],
                   ['Preuves', 'Les confirmations, reçus et annulations restent historisés.'],
                   ['Contrôle', 'Ranti ne touche jamais votre argent sans votre validation.'],
                   ['Clarté', 'Un propriétaire comprend son mois en quelques secondes.'],
