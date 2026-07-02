@@ -12,8 +12,8 @@ type NewCollectionPageProps = {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
-const labelClass = "block text-sm font-medium text-neutral-800 dark:text-neutral-100"
+  "w-full rounded-xl border border-border bg-card px-4 py-3 text-base outline-none transition focus:border-primary"
+const labelClass = "block text-sm font-semibold"
 
 const PAYMENT_METHODS = [
   { value: "cash", label: "Espèces" },
@@ -33,12 +33,11 @@ function formatDate(iso: string): string {
 function Shell({ subtitle, children }: { subtitle: string; children: React.ReactNode }) {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
-      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
+      <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">Ranti</p>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">{subtitle}</p>
+          <h1 className="font-display text-xl font-extrabold tracking-tight">{subtitle}</h1>
         </div>
-        <Link href="/collections" className="text-sm font-medium text-neutral-600 underline-offset-4 hover:underline dark:text-neutral-300">
+        <Link href="/collections" className="text-sm font-medium text-foreground/60 underline-offset-4 hover:underline">
           Encaissements
         </Link>
       </header>
@@ -66,18 +65,15 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
     }
 
     return (
-      <Shell subtitle="Encaisser un loyer">
+      <Shell subtitle="Confirmer un paiement reçu">
         <div className="space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-            Pour quel bail ?
-          </h1>
-          <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
-            Choisissez le bail concerné par le loyer reçu.
+          <p className="text-base leading-7 text-foreground/70">
+            Le loyer vous a été payé hors Ranti — espèces ou Mobile Money. Choisissez le bail concerné : la quittance sera générée dès la confirmation.
           </p>
         </div>
         {active.length === 0 ? (
-          <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-            Aucun bail actif. Activez un bail pour générer ses échéances, puis revenez encaisser.
+          <p className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent-foreground">
+            Aucun bail actif. Activez un bail pour générer ses échéances, puis revenez confirmer un paiement.
           </p>
         ) : (
           <div className="space-y-3">
@@ -85,12 +81,12 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
               <Link
                 key={lease.id}
                 href={`/collections/new?lease_id=${lease.id}`}
-                className="block rounded-2xl border border-neutral-200 px-4 py-3 transition hover:border-neutral-950 dark:border-neutral-800 dark:hover:border-neutral-50"
+                className="block rounded-2xl border border-border bg-card px-4 py-3 shadow-sm transition hover:border-primary hover:bg-secondary/60"
               >
-                <p className="font-medium text-neutral-950 dark:text-neutral-50">
+                <p className="font-semibold">
                   {tenantName(lease.tenant_id)} — {unitName(lease.unit_id)}
                 </p>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="text-sm text-muted-foreground">
                   {formatAmount(lease.monthly_rent_amount)} / mois
                 </p>
               </Link>
@@ -105,11 +101,11 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
   const lease = await getLease(landlord.id, params.lease_id)
   if (!lease) {
     return (
-      <Shell subtitle="Encaisser un loyer">
-        <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">
+      <Shell subtitle="Confirmer un paiement reçu">
+        <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
           Bail introuvable.
         </p>
-        <Link href="/collections/new" className="text-sm font-medium text-neutral-700 underline-offset-4 hover:underline dark:text-neutral-200">
+        <Link href="/collections/new" className="text-sm font-medium underline-offset-4 hover:underline">
           Choisir un autre bail
         </Link>
       </Shell>
@@ -129,24 +125,24 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
   const total = unpaid.reduce((sum, d) => sum + d.remaining, 0)
 
   return (
-    <Shell subtitle="Encaisser un loyer">
+    <Shell subtitle="Confirmer un paiement reçu">
       <div className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-          Loyer reçu
-        </h1>
-        <p className="text-base leading-7 text-neutral-600 dark:text-neutral-300">
+        <p className="text-sm font-semibold text-muted-foreground">
           {tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"} — {unit?.name ?? "Logement"}
+        </p>
+        <p className="text-base leading-7 text-foreground/70">
+          Le loyer vous a été payé hors Ranti — espèces ou Mobile Money. Confirmez-le : la quittance est générée automatiquement.
         </p>
       </div>
 
       {params.error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           {params.error}
         </p>
       ) : null}
 
       {unpaid.length === 0 ? (
-        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+        <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm">
           Aucune échéance à régler sur ce bail. Tout est à jour.
         </p>
       ) : (
@@ -156,7 +152,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
 
           <div className="space-y-2">
             <label htmlFor="amount_received" className={labelClass}>
-              Montant reçu (FCFA)
+              Montant reçu (F CFA)
             </label>
             <input
               id="amount_received"
@@ -171,7 +167,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
 
           <div className="space-y-2">
             <label htmlFor="payment_method" className={labelClass}>
-              Méthode
+              Mode de paiement
             </label>
             <select id="payment_method" name="payment_method" required defaultValue="cash" className={inputClass}>
               {PAYMENT_METHODS.map((m) => (
@@ -184,17 +180,17 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
 
           <div className="space-y-3">
             <p className={labelClass}>Échéances à régler</p>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm text-muted-foreground">
               Le montant alloué réduit la dette. Laissez 0 pour ne pas allouer une échéance.
             </p>
             {unpaid.map((due) => (
               <div
                 key={due.id}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 px-4 py-3 dark:border-neutral-800"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-secondary/60 px-4 py-3"
               >
                 <div>
-                  <p className="font-medium text-neutral-950 dark:text-neutral-50">reste {formatAmount(due.remaining)}</p>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                  <p className="font-semibold">reste {formatAmount(due.remaining)}</p>
+                  <p className="text-sm text-muted-foreground">
                     échéance {formatDate(due.due_date)}
                     {due.amount_paid > 0 ? ` · ${formatAmount(due.amount_paid)} déjà reçu` : ""}
                   </p>
@@ -206,7 +202,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
                   inputMode="numeric"
                   defaultValue={String(due.remaining)}
                   aria-label={`Montant alloué à l'échéance du ${formatDate(due.due_date)}`}
-                  className="w-32 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-950 outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-50 dark:focus:border-neutral-50"
+                  className="w-32 rounded-xl border border-border bg-card px-3 py-2 text-base outline-none transition focus:border-primary"
                 />
               </div>
             ))}
@@ -220,9 +216,9 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
           </div>
 
           <SubmitButton
-            className="w-full rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+            className="w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(242,163,60,0.55)] transition hover:brightness-95 disabled:opacity-60"
           >
-            Enregistrer l&apos;encaissement
+            Confirmer le paiement reçu
           </SubmitButton>
         </form>
       )}

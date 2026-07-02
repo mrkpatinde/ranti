@@ -2,7 +2,10 @@
 
 /*
  * Design tokens (shadcn-style, HSL triplets) — source de vérité des couleurs.
- * Ranti utilise une base ivoire / sauge / terre pour éviter l'effet agence noir-blanc.
+ * Système visuel Ranti : canevas crème (#faf3e5), encre vert forêt (#163828),
+ * accent orange chaud (#f2a33c) réservé aux appels à l'action. Porté depuis
+ * le prototype Claude Design (docs/design/) — voir project/_ds/.../tokens/
+ * dans le bundle de handoff pour les valeurs hex sources.
  */
 
 @theme inline {
@@ -33,59 +36,63 @@
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-hanken);
+  --font-display: var(--font-fraunces);
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
 :root {
-  --background: 38 55% 93%;
-  --foreground: 133 18% 18%;
-  --card: 40 68% 97%;
-  --card-foreground: 133 18% 18%;
-  --border: 36 31% 79%;
-  --input: 36 27% 72%;
-  --ring: 142 30% 27%;
-  --primary: 143 30% 20%;
-  --primary-foreground: 41 78% 96%;
-  --secondary: 41 47% 88%;
-  --secondary-foreground: 133 18% 22%;
-  --muted: 40 42% 87%;
-  --muted-foreground: 35 18% 41%;
-  --accent: 93 34% 84%;
-  --accent-foreground: 133 22% 22%;
-  --popover: 40 68% 97%;
-  --popover-foreground: 133 18% 18%;
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 40 68% 97%;
-  --radius: 0.875rem;
+  --background: 40 68% 94%; /* #faf3e5 — canevas crème */
+  --foreground: 152 44% 15%; /* #163828 — encre vert forêt */
+  --card: 0 0% 100%; /* #ffffff — surface des cartes */
+  --card-foreground: 152 44% 15%;
+  --border: 41 43% 85%; /* #eae0ca — filet chaud */
+  --input: 41 43% 85%;
+  --ring: 153 44% 25%; /* #235a41 */
+  --primary: 152 44% 15%; /* #163828 */
+  --primary-foreground: 40 68% 94%; /* #faf3e5 */
+  --secondary: 82 33% 94%; /* #f0f4e9 — teinte verte douce */
+  --secondary-foreground: 152 44% 15%;
+  --muted: 60 5% 96%; /* #f5f5f4 */
+  --muted-foreground: 25 5% 45%; /* #78716c */
+  --accent: 34 87% 59%; /* #f2a33c — orange d'appel à l'action */
+  --accent-foreground: 34 78% 13%; /* #3a2407 */
+  --popover: 0 0% 100%;
+  --popover-foreground: 152 44% 15%;
+  --destructive: 0 72% 51%; /* #dc2626 */
+  --destructive-foreground: 0 0% 100%;
+  --radius: 1rem; /* 16px — rayon standard des cartes */
 }
 
+/* Le système Ranti n'a pas de variante sombre définie (canevas crème partout) ;
+   ce thème sombre garde l'esprit de la marque (fond vert forêt, texte crème)
+   pour les écrans pas encore migrés. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: 134 22% 10%;
-    --foreground: 41 63% 93%;
-    --card: 135 20% 13%;
-    --card-foreground: 41 63% 93%;
-    --border: 133 14% 25%;
-    --input: 133 14% 28%;
-    --ring: 93 28% 70%;
-    --primary: 41 63% 93%;
-    --primary-foreground: 134 22% 10%;
-    --secondary: 133 15% 19%;
-    --secondary-foreground: 41 45% 84%;
-    --muted: 133 15% 18%;
-    --muted-foreground: 39 20% 68%;
-    --accent: 94 23% 29%;
-    --accent-foreground: 41 63% 93%;
-    --popover: 134 22% 10%;
-    --popover-foreground: 41 63% 93%;
+    --background: 152 45% 11%; /* #102a1e */
+    --foreground: 40 68% 94%; /* #faf3e5 */
+    --card: 155 44% 19%; /* #1b4634 */
+    --card-foreground: 40 68% 94%;
+    --border: 155 30% 25%;
+    --input: 155 30% 28%;
+    --ring: 34 87% 59%;
+    --primary: 40 68% 94%;
+    --primary-foreground: 152 45% 11%;
+    --secondary: 155 30% 20%;
+    --secondary-foreground: 40 60% 90%;
+    --muted: 155 25% 18%;
+    --muted-foreground: 30 6% 68%;
+    --accent: 34 87% 59%;
+    --accent-foreground: 34 78% 13%;
+    --popover: 152 45% 11%;
+    --popover-foreground: 40 68% 94%;
     --destructive: 0 72% 51%;
-    --destructive-foreground: 41 63% 93%;
+    --destructive-foreground: 40 68% 94%;
   }
 }
 
@@ -96,6 +103,6 @@
   body {
     background: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+    font-family: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
   }
 }

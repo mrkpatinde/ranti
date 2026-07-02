@@ -35,8 +35,8 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
       href={href}
       className={
         active
-          ? "block rounded-xl bg-neutral-950 px-3 py-2 text-sm font-medium text-white dark:bg-neutral-50 dark:text-neutral-950"
-          : "block rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-neutral-50"
+          ? "block rounded-full bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground"
+          : "block rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
       }
     >
       {label}
@@ -47,11 +47,22 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
 function NavSection({ title, items, pathname }: { title: string; items: Array<{ href: string; label: string }>; pathname: string }) {
   return (
     <div className="space-y-1">
-      <p className="px-3 pb-1 text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-400">{title}</p>
+      <p className="px-3.5 pb-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
       {items.map((item) => (
         <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
       ))}
     </div>
+  )
+}
+
+// Trois lignes de registre, celle du milieu barrée en orange — la marque Ranti.
+function LogoMark() {
+  return (
+    <span className="flex h-9 w-9 shrink-0 flex-col items-start justify-center gap-[3px] rounded-lg bg-primary px-2.5">
+      <span className="h-[2.5px] w-4 rounded-full bg-primary-foreground" />
+      <span className="h-[2.5px] w-4 rounded-full bg-accent" />
+      <span className="h-[2.5px] w-4 rounded-full bg-primary-foreground" />
+    </span>
   )
 }
 
@@ -64,33 +75,29 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
   const ownerName = `${landlord.first_name} ${landlord.last_name}`
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50 lg:grid lg:grid-cols-[240px_1fr]">
-      <aside className="hidden min-h-screen border-r border-neutral-200 bg-white px-4 py-5 dark:border-neutral-800 dark:bg-neutral-950 lg:flex lg:flex-col">
+    <div className="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[240px_1fr]">
+      <aside className="hidden min-h-screen border-r border-border bg-card px-4 py-5 lg:flex lg:flex-col">
         <Link href="/dashboard" className="flex items-center gap-3 px-2 pb-5">
-          <span className="flex h-9 w-9 flex-col justify-center gap-[3px] rounded-xl bg-neutral-950 px-2.5 dark:bg-neutral-50">
-            <span className="h-[3px] w-5 rounded-full bg-white dark:bg-neutral-950" />
-            <span className="h-[3px] w-4 rounded-full bg-white dark:bg-neutral-950" />
-            <span className="h-[3px] w-3 rounded-full bg-white dark:bg-neutral-950" />
-          </span>
+          <LogoMark />
           <div>
-            <p className="font-semibold tracking-tight">Ranti</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Registre de loyer</p>
+            <p className="font-display text-lg font-extrabold tracking-tight">Ranti</p>
+            <p className="text-xs text-muted-foreground">Registre de loyer</p>
           </div>
         </Link>
 
-        <nav className="space-y-6 border-t border-neutral-200 pt-5 dark:border-neutral-800">
+        <nav className="space-y-6 border-t border-border pt-5">
           <NavSection title="Suivi" items={TRACKING_NAV} pathname={pathname} />
           <NavSection title="Registre" items={REGISTER_NAV} pathname={pathname} />
         </nav>
 
-        <div className="mt-auto space-y-2 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+        <div className="mt-auto space-y-2 border-t border-border pt-4">
           <NavLink href="/settings/profile" label="Profil" pathname={pathname} />
-          <div className="px-3 py-2">
+          <div className="px-3.5 py-2">
             <p className="truncate text-sm font-medium">{ownerName}</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Propriétaire</p>
+            <p className="text-xs text-muted-foreground">Propriétaire</p>
           </div>
           <form action="/auth/signout" method="post">
-            <button type="submit" className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-neutral-50">
+            <button type="submit" className="w-full rounded-full px-3.5 py-2 text-left text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground">
               Se déconnecter
             </button>
           </form>
@@ -98,10 +105,10 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90 lg:hidden">
+        <header className="sticky top-0 z-10 border-b border-border bg-background/85 px-4 py-3 backdrop-blur-md lg:hidden">
           <div className="flex items-center justify-between gap-3">
-            <Link href="/dashboard" className="font-semibold tracking-tight">Ranti</Link>
-            <Link href="/settings/profile" className="rounded-xl border border-neutral-300 px-3 py-2 text-sm font-medium dark:border-neutral-700">
+            <Link href="/dashboard" className="font-display text-lg font-extrabold tracking-tight">Ranti</Link>
+            <Link href="/settings/profile" className="rounded-full border border-border px-3.5 py-2 text-sm font-medium">
               Profil
             </Link>
           </div>
@@ -114,8 +121,8 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
                   href={item.href}
                   className={
                     active
-                      ? "shrink-0 rounded-xl bg-neutral-950 px-3 py-2 text-sm font-medium text-white dark:bg-neutral-50 dark:text-neutral-950"
-                      : "shrink-0 rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-300"
+                      ? "shrink-0 rounded-full bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground"
+                      : "shrink-0 rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70"
                   }
                 >
                   {item.label}
@@ -125,7 +132,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
           </nav>
         </header>
 
-        <div className="mx-auto min-h-screen w-full max-w-5xl bg-white dark:bg-neutral-950 lg:bg-transparent lg:dark:bg-transparent">
+        <div className="mx-auto min-h-screen w-full max-w-5xl">
           {children}
         </div>
       </div>
