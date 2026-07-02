@@ -39,11 +39,11 @@ function buildSetupSteps(
   hasActiveLease: boolean
 ) {
   return [
-    { label: "Lieu", done: hasProperties },
-    { label: "Logement", done: hasUnits },
-    { label: "Locataire", done: hasTenants },
-    { label: "Bail", done: hasLeases },
-    { label: "Loyers", done: hasActiveLease },
+    { label: "Lieu", done: hasProperties, href: "/properties" },
+    { label: "Logement", done: hasUnits, href: "/units" },
+    { label: "Locataire", done: hasTenants, href: "/tenants" },
+    { label: "Bail", done: hasLeases, href: "/leases" },
+    { label: "Loyers", done: hasActiveLease, href: "/leases" },
   ]
 }
 
@@ -155,16 +155,19 @@ export default async function DashboardPage() {
           ) : null}
         </div>
 
-        <ol className="flex flex-wrap items-center gap-2 text-sm">
-          {setupSteps.map((step, index) => (
-            <li key={step.label} className="flex items-center gap-2">
-              <span className={step.done ? "rounded-full border border-primary bg-primary px-3 py-1.5 text-primary-foreground" : "rounded-full border border-border px-3 py-1.5 text-muted-foreground"}>
-                {step.done ? "✓ " : ""}{step.label}
-              </span>
-              {index < setupSteps.length - 1 ? <span aria-hidden className="text-muted-foreground">→</span> : null}
-            </li>
-          ))}
-        </ol>
+        <div className="space-y-2">
+          <ol className="flex flex-wrap items-center gap-2 text-sm">
+            {setupSteps.map((step, index) => (
+              <li key={step.label} className="flex items-center gap-2">
+                <Link href={step.href} className={step.done ? "rounded-full border border-primary bg-primary px-3 py-1.5 text-primary-foreground transition hover:bg-primary/90" : "rounded-full border border-border px-3 py-1.5 text-muted-foreground transition hover:border-primary hover:text-foreground"}>
+                  {step.done ? "✓ " : ""}{step.label}
+                </Link>
+                {index < setupSteps.length - 1 ? <span aria-hidden className="text-muted-foreground">→</span> : null}
+              </li>
+            ))}
+          </ol>
+          <p className="text-sm leading-6 text-muted-foreground">ⓘ Le registre se construit dans cet ordre : un lieu contient des logements, un logement se loue à un locataire par un bail, et le bail activé génère les loyers à suivre. Touchez une étape pour la gérer.</p>
+        </div>
 
         {hasActiveLease ? (
           <div className="space-y-5">

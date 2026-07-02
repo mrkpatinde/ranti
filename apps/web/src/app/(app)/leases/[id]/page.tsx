@@ -106,13 +106,24 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
                   <input type="hidden" name="id" value={lease.id} />
                   <SubmitButton className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">Activer et générer les loyers</SubmitButton>
                 </form>
+                <p className="w-full text-sm leading-6 text-muted-foreground">ⓘ L&apos;activation crée les échéances mensuelles depuis la date de début et met le suivi en route : rappels avant l&apos;échéance, relances en cas de retard, quittance à chaque paiement confirmé.</p>
               </>
             ) : null}
             {lease.status === "active" ? (
-              <form action={endLease}>
-                <input type="hidden" name="id" value={lease.id} />
-                <SubmitButton className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60">Terminer le bail</SubmitButton>
-              </form>
+              <details className="w-full">
+                <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground/70 transition hover:border-red-300 hover:text-red-700">Terminer le bail…</summary>
+                <div className="mt-3 space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                  <p className="text-sm leading-6 text-red-900">
+                    Terminer le bail arrête la génération des échéances et les relances automatiques.
+                    L&apos;historique (échéances passées, paiements, quittances) reste conservé dans le registre.
+                    <strong> Cette action est définitive</strong> — un bail terminé ne peut pas être réactivé, il faudra en créer un nouveau.
+                  </p>
+                  <form action={endLease}>
+                    <input type="hidden" name="id" value={lease.id} />
+                    <SubmitButton className="rounded-full border border-red-300 bg-card px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:border-red-700 disabled:opacity-60">Oui, terminer définitivement ce bail</SubmitButton>
+                  </form>
+                </div>
+              </details>
             ) : null}
           </div>
         </div>

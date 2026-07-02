@@ -11,17 +11,7 @@ import {
 
 const SIGNUP_HREF = "/signup";
 
-// Marque Ranti : trois lignes de registre, celle du milieu barrée en orange.
-function RantiLogo({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <rect width="32" height="32" rx="9" fill="#163828" />
-      <rect x="8" y="10" width="16" height="2.6" rx="1.3" fill="#faf3e5" />
-      <rect x="8" y="15" width="16" height="2.6" rx="1.3" fill="#f2a33c" />
-      <rect x="8" y="20" width="16" height="2.6" rx="1.3" fill="#faf3e5" />
-    </svg>
-  );
-}
+import { RantiLogo } from "@/components/ranti-logo";
 
 function StatusBadge({ tone, children }: { tone: "paid" | "late" | "declared"; children: React.ReactNode }) {
   const tones = {

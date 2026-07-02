@@ -85,6 +85,11 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
   const receiptByReception = new Map(
     receipts.filter((r) => r.status !== "cancelled").map((r) => [r.rent_reception_id, r]),
   )
+  // Encaissements dont le document a été annulé (flux de correction) :
+  // l'encaissement reste confirmé, il faut le dire clairement au propriétaire.
+  const cancelledReceiptReceptions = new Set(
+    receipts.filter((r) => r.status === "cancelled").map((r) => r.rent_reception_id),
+  )
 
   const tenantName = (id: string): string => {
     const t = tenants.find((tenant) => tenant.id === id)
@@ -212,7 +217,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                     <form action={cancelCollection} className="space-y-2 rounded-2xl border border-border p-4">
                       <input type="hidden" name="id" value={c.id} />
                       <label htmlFor={`reason-${c.id}`} className="block text-sm font-medium text-foreground">
-                        Motif d&apos;annulation
+                        Motif d&apos;annulation <span className="text-red-700">*</span>
                       </label>
                       <textarea
                         id={`reason-${c.id}`}
@@ -236,19 +241,53 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                   receiptByReception.has(c.id) ? (
                     <Link
                       href={`/receipts/${receiptByReception.get(c.id)!.id}`}
-                      className="mt-5 inline-flex rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary"
+                      className="mt-5 inline-flex rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary"
                     >
                       Voir le document
                     </Link>
                   ) : (
-                    <form action={generateReceipt} className="mt-5">
-                      <input type="hidden" name="reception_id" value={c.id} />
-                      <SubmitButton
-                        className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60"
-                      >
-                        Générer la quittance ou le reçu
-                      </SubmitButton>
-                    </form>
+                    <div className="mt-5 space-y-4">
+                      {cancelledReceiptReceptions.has(c.id) ? (
+                        <p className="rounded-xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm leading-6 text-accent-foreground">
+                          ⓘ Le document de cet encaissement a été <strong>annulé</strong>, mais le paiement reste
+                          confirmé dans le registre. Générez un document corrigé — ou annulez aussi
+                          l&apos;encaissement ci-dessous s&apos;il a été saisi par erreur.
+                        </p>
+                      ) : null}
+                      <form action={generateReceipt}>
+                        <input type="hidden" name="reception_id" value={c.id} />
+                        <SubmitButton
+                          className="rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60"
+                        >
+                          {cancelledReceiptReceptions.has(c.id) ? "Générer un document corrigé" : "Générer la quittance ou le reçu"}
+                        </SubmitButton>
+                      </form>
+                      <details>
+                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground/70 transition hover:border-red-300 hover:text-red-700">Annuler cet encaissement…</summary>
+                        <form action={cancelCollection} className="mt-3 space-y-2 rounded-2xl border border-red-200 bg-red-50 p-4">
+                          <input type="hidden" name="id" value={c.id} />
+                          <p className="text-sm leading-6 text-red-900">
+                            L&apos;annulation remet l&apos;échéance en attente (le loyer redevient dû) et reste tracée
+                            dans le registre avec son motif. Elle est impossible tant qu&apos;un document actif existe.
+                          </p>
+                          <label htmlFor={`reason-confirmed-${c.id}`} className="block text-sm font-medium text-red-900">
+                            Motif d&apos;annulation <span className="text-red-700">*</span>
+                          </label>
+                          <textarea
+                            id={`reason-confirmed-${c.id}`}
+                            name="reason"
+                            rows={2}
+                            required
+                            minLength={3}
+                            placeholder="Ex. montant saisi par erreur"
+                            className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
+                          />
+                          <SubmitButton className="rounded-full border border-red-300 bg-card px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:border-red-700 disabled:opacity-60">
+                            Annuler cet encaissement
+                          </SubmitButton>
+                        </form>
+                      </details>
+                    </div>
                   )
                 ) : null}
               </article>

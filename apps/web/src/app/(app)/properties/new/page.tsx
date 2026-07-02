@@ -64,7 +64,7 @@ export default async function NewPropertyPage({ searchParams }: NewPropertyPageP
         <form action={createProperty} className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="name" className={labelClass}>
-              Nom du lieu
+              Nom du lieu <span className="text-red-700">*</span>
             </label>
             <input
               id="name"
