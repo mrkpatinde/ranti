@@ -80,65 +80,65 @@ export default async function ConfirmerPage({
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-6 py-16">
-      <div className="w-full rounded-3xl border border-neutral-200 bg-white p-8 dark:border-neutral-800 dark:bg-neutral-950">
-        <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">
+      <div className="w-full rounded-2xl border border-border bg-card p-8">
+        <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
           Ranti
         </p>
 
-        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
+        <h1 className="mt-6 font-display text-2xl font-extrabold tracking-tight text-foreground">
           Confirmation de loyer
         </h1>
 
-        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-2 text-sm text-muted-foreground">
           {unitName}
         </p>
 
         {/* Message d'erreur */}
         {errorMsg && (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
             {errorMsg}
           </div>
         )}
 
         {/* Message de succès */}
         {success && (
-          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+          <div className="mt-4 rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
             Votre déclaration a été enregistrée. Le propriétaire va la vérifier.
           </div>
         )}
 
         {/* Détails de l'échéance */}
-        <div className="mt-8 space-y-4 rounded-2xl border border-neutral-100 bg-neutral-50 p-5 dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="mt-8 space-y-4 rounded-2xl border border-border bg-background p-5">
           <div className="flex justify-between text-sm">
-            <span className="text-neutral-500 dark:text-neutral-400">
+            <span className="text-muted-foreground">
               Locataire
             </span>
-            <span className="font-medium text-neutral-900 dark:text-neutral-100">
+            <span className="font-medium text-foreground">
               {rentDue.tenant_first_name || "Locataire"}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-neutral-500 dark:text-neutral-400">
+            <span className="text-muted-foreground">
               Période
             </span>
-            <span className="text-neutral-900 dark:text-neutral-100">
+            <span className="text-foreground">
               {formatDate(rentDue.period_start)} –{" "}
               {formatDate(rentDue.period_end)}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-neutral-500 dark:text-neutral-400">
+            <span className="text-muted-foreground">
               Échéance
             </span>
-            <span className="text-neutral-900 dark:text-neutral-100">
+            <span className="text-foreground">
               {formatDate(rentDue.due_date)}
             </span>
           </div>
-          <div className="flex justify-between border-t border-neutral-200 pt-3 text-sm font-semibold dark:border-neutral-700">
-            <span className="text-neutral-700 dark:text-neutral-300">
+          <div className="flex justify-between border-t border-border pt-3 text-sm font-semibold">
+            <span className="text-foreground/80">
               Montant
             </span>
-            <span className="text-lg text-neutral-950 dark:text-neutral-50">
+            <span className="text-lg text-foreground">
               {formatAmount(rentDue.amount_due)}
             </span>
           </div>
@@ -148,32 +148,32 @@ export default async function ConfirmerPage({
         <div className="mt-8">
           {alreadyConfirmed ? (
             <div className="space-y-4 text-center">
-              <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+              <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
                 Le propriétaire a confirmé la réception de ce loyer.
               </p>
             </div>
           ) : alreadyDraft || success ? (
             <div className="space-y-4 text-center">
-              <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+              <p className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent-foreground">
                 Votre déclaration a bien été enregistrée. Le propriétaire va la
                 vérifier.
               </p>
             </div>
           ) : rentDue.status === "paid" ? (
             <div className="space-y-4 text-center">
-              <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+              <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
                 Cette échéance est déjà marquée comme payée.
               </p>
             </div>
           ) : (
             <form action={confirmRentPayment.bind(null, token)}>
               <SubmitButton
-                className="inline-flex w-full justify-center rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
+                className="inline-flex w-full justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                 pendingLabel="Envoi…"
               >
                 J&apos;ai payé ce loyer
               </SubmitButton>
-              <p className="mt-4 text-center text-xs text-neutral-400 dark:text-neutral-500">
+              <p className="mt-4 text-center text-xs text-muted-foreground">
                 En cliquant, vous confirmez avoir payé votre loyer. Le
                 propriétaire validera cette déclaration.
               </p>

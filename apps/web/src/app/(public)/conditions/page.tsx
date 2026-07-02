@@ -12,21 +12,21 @@ export default function TermsPage() {
     <main className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
       <Link
         href="/"
-        className="text-sm text-neutral-500 hover:text-neutral-900 transition"
+        className="text-sm text-muted-foreground hover:text-foreground transition"
       >
         &larr; Retour à l&rsquo;accueil
       </Link>
 
-      <h1 className="mt-8 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">
+      <h1 className="mt-8 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
         Conditions d&rsquo;utilisation
       </h1>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-muted-foreground">
         Dernière mise à jour : 28 juin 2026
       </p>
 
-      <div className="mt-10 space-y-8 text-neutral-700 leading-relaxed">
+      <div className="mt-10 space-y-8 text-foreground/80 leading-relaxed">
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             1. Présentation du service
           </h2>
           <p className="mt-2">
@@ -40,7 +40,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             2. Inscription et compte
           </h2>
           <ul className="mt-2 list-disc pl-5 space-y-1">
@@ -61,7 +61,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             3. Obligations du propriétaire
           </h2>
           <ul className="mt-2 list-disc pl-5 space-y-1">
@@ -83,7 +83,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             4. Tarification
           </h2>
           <p className="mt-2">
@@ -99,7 +99,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             5. Responsabilité
           </h2>
           <ul className="mt-2 list-disc pl-5 space-y-1">
@@ -123,7 +123,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             6. Relances et messages
           </h2>
           <p className="mt-2">
@@ -139,7 +139,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             7. Propriété intellectuelle
           </h2>
           <p className="mt-2">
@@ -149,7 +149,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             8. Résiliation
           </h2>
           <p className="mt-2">
@@ -164,7 +164,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             9. Droit applicable
           </h2>
           <p className="mt-2">
@@ -174,14 +174,14 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             10. Contact
           </h2>
           <p className="mt-2">
             Pour toute question relative aux présentes conditions d&rsquo;utilisation :
           </p>
           <p className="mt-2">
-            Email : <span className="text-neutral-950 font-medium">kadorel93@gmail.com</span>
+            Email : <span className="text-foreground font-medium">kadorel93@gmail.com</span>
           </p>
         </section>
       </div>

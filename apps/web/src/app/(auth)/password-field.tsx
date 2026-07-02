@@ -35,7 +35,7 @@ export function PasswordField({
         onClick={() => setShow((s) => !s)}
         aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"}
         aria-pressed={show}
-        className="absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500 transition hover:text-neutral-900 dark:hover:text-neutral-100"
+        className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground"
       >
         {show ? <EyeOff className="h-5 w-5" aria-hidden /> : <Eye className="h-5 w-5" aria-hidden />}
       </button>

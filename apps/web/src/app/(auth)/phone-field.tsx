@@ -22,8 +22,8 @@ export function PhoneField({
       <label htmlFor="phone" className={labelClassName}>
         Numéro de téléphone
       </label>
-      <div className="flex items-stretch rounded-xl border border-neutral-300 bg-white transition focus-within:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:focus-within:border-neutral-50">
-        <span className="flex select-none items-center gap-1.5 whitespace-nowrap border-r border-neutral-200 px-4 text-base font-medium text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
+      <div className="flex items-stretch rounded-xl border border-border bg-card transition focus-within:border-primary">
+        <span className="flex select-none items-center gap-1.5 whitespace-nowrap border-r border-border px-4 text-base font-medium text-foreground/80">
           <span aria-hidden>🇧🇯</span>
           +229
         </span>
@@ -37,7 +37,7 @@ export function PhoneField({
           autoComplete="tel"
           inputMode="numeric"
           placeholder="01 90 00 00 00"
-          className="w-full rounded-r-xl bg-transparent px-4 py-3 text-base text-neutral-950 outline-none dark:text-neutral-50"
+          className="w-full rounded-r-xl bg-transparent px-4 py-3 text-base text-foreground outline-none"
         />
       </div>
     </div>

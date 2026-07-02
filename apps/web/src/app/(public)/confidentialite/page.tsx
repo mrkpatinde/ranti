@@ -12,21 +12,21 @@ export default function PrivacyPage() {
     <main className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
       <Link
         href="/"
-        className="text-sm text-neutral-500 hover:text-neutral-900 transition"
+        className="text-sm text-muted-foreground hover:text-foreground transition"
       >
         &larr; Retour à l&rsquo;accueil
       </Link>
 
-      <h1 className="mt-8 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">
+      <h1 className="mt-8 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
         Politique de confidentialité
       </h1>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-muted-foreground">
         Dernière mise à jour : 28 juin 2026
       </p>
 
-      <div className="mt-10 space-y-8 text-neutral-700 leading-relaxed">
+      <div className="mt-10 space-y-8 text-foreground/80 leading-relaxed">
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             1. Qui sommes-nous
           </h2>
           <p className="mt-2">
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             2. Données que nous collectons
           </h2>
           <p className="mt-2">Ranti collecte uniquement les données nécessaires au fonctionnement du service :</p>
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             3. Comment nous utilisons vos données
           </h2>
           <ul className="mt-2 list-disc pl-5 space-y-1">
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             4. Base légale du traitement
           </h2>
           <p className="mt-2">
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             5. Où sont stockées vos données
           </h2>
           <p className="mt-2">
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             6. Durée de conservation
           </h2>
           <p className="mt-2">
@@ -116,7 +116,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             7. Vos droits
           </h2>
           <p className="mt-2">Conformément aux lois applicables en zone UEMOA, vous disposez des droits suivants :</p>
@@ -133,7 +133,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             8. Cookies
           </h2>
           <p className="mt-2">
@@ -143,19 +143,19 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             9. Contact
           </h2>
           <p className="mt-2">
             Pour toute question relative à cette politique de confidentialité ou pour exercer vos droits :
           </p>
           <p className="mt-2">
-            Email : <span className="text-neutral-950 font-medium">kadorel93@gmail.com</span>
+            Email : <span className="text-foreground font-medium">kadorel93@gmail.com</span>
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <h2 className="text-lg font-semibold text-foreground">
             10. Modifications
           </h2>
           <p className="mt-2">
