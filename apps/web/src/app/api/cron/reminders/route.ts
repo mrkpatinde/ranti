@@ -3,7 +3,7 @@
 // Route GET /api/cron/reminders — appelée par Vercel Cron
 // ============================================================
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   sendSms,
   getReminderTemplate,
@@ -36,7 +36,17 @@ export async function GET(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const sent = await checkRemindersDue();
+  // Client service-role : le cron n'a pas de session utilisateur,
+  // le client anon serait bloqué par RLS et ne verrait aucune échéance.
+  const supabase = createAdminClient();
+  if (!supabase) {
+    return Response.json(
+      { error: "SUPABASE_SECRET_KEY not configured" },
+      { status: 500 },
+    );
+  }
+
+  const sent = await checkRemindersDue(supabase);
 
   return Response.json({
     ok: true,
@@ -48,8 +58,9 @@ export async function GET(request: Request) {
 /**
  * Cherche les rent_dues qui nécessitent une relance et envoie un SMS.
  */
-async function checkRemindersDue(): Promise<number> {
-  const supabase = await createClient();
+async function checkRemindersDue(
+  supabase: NonNullable<ReturnType<typeof createAdminClient>>,
+): Promise<number> {
   const now = new Date();
   const today = now.toISOString().split("T")[0];
   let sent = 0;

@@ -4,8 +4,23 @@ import { createClient } from "@/lib/supabase/server";
 import { confirmRentPayment } from "./actions";
 
 // ============================================================
-// Page de confirmation locataire — publique, zéro auth
+// Page de confirmation locataire — publique, zéro auth.
+// Les données viennent de la RPC SECURITY DEFINER
+// get_rent_due_by_token : l'anon ne lit aucune table directement.
 // ============================================================
+
+type RentDueByToken = {
+  id: string;
+  amount_due: number;
+  currency: string;
+  due_date: string;
+  period_start: string;
+  period_end: string;
+  status: string;
+  unit_name: string | null;
+  tenant_first_name: string | null;
+  declaration_status: string | null;
+};
 
 function formatAmount(amount: number): string {
   return `${amount.toLocaleString("fr-FR")} FCFA`;
@@ -47,45 +62,21 @@ export default async function ConfirmerPage({
     notFound();
   }
 
-  const { data: rentDue, error } = await supabase
-    .from("rent_dues")
-    .select(
-      "id, amount_due, currency, due_date, period_start, period_end, status, unit_id, tenant_id, unit:units(name), tenant:tenants(first_name, last_name)",
-    )
-    .eq("confirmation_token", token)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("get_rent_due_by_token", {
+    p_token: token,
+  });
 
+  const rentDue = (data as RentDueByToken[] | null)?.[0];
   if (error || !rentDue) {
     notFound();
   }
 
-  // Vérifier si déjà une déclaration existe pour cette période
-  const { data: existingReception } = await supabase
-    .from("rent_receptions")
-    .select("id, status")
-    .eq("unit_id", rentDue.unit_id)
-    .eq("tenant_id", rentDue.tenant_id)
-    .gte("received_at", rentDue.period_start)
-    .lte("received_at", rentDue.period_end)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const alreadyDraft = existingReception?.status === "draft";
-  const alreadyConfirmed = existingReception?.status === "confirmed";
+  const alreadyDraft = rentDue.declaration_status === "draft";
+  const alreadyConfirmed = rentDue.declaration_status === "confirmed";
   const success = sp.success === "1";
   const errorMsg = typeof sp.error === "string" ? (ERROR_MESSAGES[sp.error] ?? null) : null;
 
-  // Noms pour l'affichage (issus des jointures Supabase)
-  type RentDueJoined = typeof rentDue & {
-    unit?: { name?: string } | null;
-    tenant?: { first_name?: string; last_name?: string } | null;
-  };
-  const joined = rentDue as RentDueJoined;
-  const unitName = joined.unit?.name || "Logement";
-  const tenantDisplay = joined.tenant
-    ? `${joined.tenant.first_name} ${joined.tenant.last_name}`
-    : "Locataire";
+  const unitName = rentDue.unit_name || "Logement";
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-6 py-16">
@@ -123,7 +114,7 @@ export default async function ConfirmerPage({
               Locataire
             </span>
             <span className="font-medium text-neutral-900 dark:text-neutral-100">
-              {tenantDisplay}
+              {rentDue.tenant_first_name || "Locataire"}
             </span>
           </div>
           <div className="flex justify-between text-sm">
@@ -175,7 +166,7 @@ export default async function ConfirmerPage({
               </p>
             </div>
           ) : (
-            <form action={confirmRentPayment.bind(null, rentDue.id, token)}>
+            <form action={confirmRentPayment.bind(null, token)}>
               <SubmitButton
                 className="inline-flex w-full justify-center rounded-xl bg-neutral-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
                 pendingLabel="Envoi…"
