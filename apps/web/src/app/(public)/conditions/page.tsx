@@ -34,7 +34,7 @@ export default function TermsPage() {
             locataires, de générer des échéances automatiques, d&rsquo;envoyer des relances et de produire des reçus.
           </p>
           <p className="mt-2">
-            Le service est accessible sur <span className="font-medium">rantiapp.vercel.app</span> et est édité par
+            Le service est accessible sur <span className="font-medium">https://www.monranti.com</span> et est édité par
             Adonis KPATINDE, entrepreneur individuel basé au Bénin.
           </p>
         </section>
