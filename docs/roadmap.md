@@ -97,9 +97,9 @@ Objectif : Ranti prépare ou automatise les rappels et relances à partir du bai
 
 - [ ] Définir les règles de rappel/relance sur un bail
 - [ ] Afficher les règles sur la fiche bail
-- [ ] Générer les relances prévues à partir des échéances
+- [x] Générer les relances prévues à partir des échéances (cron quotidien /api/cron/reminders, fenêtres J-5/J-1/J-0/J+3/J+10)
 - [ ] Afficher les relances prévues/envoyées sur le dashboard
-- [ ] Afficher l'historique des relances sur la fiche locataire ou bail
+- [x] Écran Relances (/reminders) : historique des relances envoyées + accès aux déclarations locataires à valider
 - [ ] Préparer le message WhatsApp/SMS sans envoi automatique complet au MVP prudent
 - [ ] Auditer création, annulation, file d'attente et envoi de relance
 
