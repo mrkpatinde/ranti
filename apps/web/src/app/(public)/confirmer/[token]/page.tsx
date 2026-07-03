@@ -12,6 +12,7 @@ import { confirmRentPayment } from "./actions";
 type RentDueByToken = {
   id: string;
   amount_due: number;
+  amount_remaining: number;
   currency: string;
   due_date: string;
   period_start: string;
@@ -136,10 +137,12 @@ export default async function ConfirmerPage({
           </div>
           <div className="flex justify-between border-t border-border pt-3 text-sm font-semibold">
             <span className="text-foreground/80">
-              Montant
+              {rentDue.amount_remaining < rentDue.amount_due
+                ? "Reste à payer"
+                : "Montant à confirmer"}
             </span>
             <span className="text-lg text-foreground">
-              {formatAmount(rentDue.amount_due)}
+              {formatAmount(rentDue.amount_remaining)}
             </span>
           </div>
         </div>
