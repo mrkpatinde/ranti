@@ -165,15 +165,30 @@ export default function Landing() {
         <section className="px-6 pb-20 pt-32 md:pb-28 md:pt-40">
           <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.02fr_0.98fr]">
             <div>
-              <h1 className="font-display max-w-3xl text-5xl font-extrabold leading-[1.02] tracking-[-0.03em] text-[#163828] sm:text-6xl md:text-7xl [text-wrap:balance]">
-                Qui a payé. Qui doit. Ranti relance pour vous.
+              <h1 className="lp-rise font-display max-w-3xl text-5xl font-extrabold leading-[1.06] tracking-[-0.03em] text-[#163828] sm:text-6xl md:text-7xl">
+                Qui a payé. Qui doit.
+                <br />
+                <span className="whitespace-nowrap">
+                  Ranti{" "}
+                  <span className="lp-roll" aria-hidden="true">
+                    <span className="lp-roll-track">
+                      <span>relance</span>
+                      <span>suit</span>
+                      <span>prouve</span>
+                      <span>relance</span>
+                    </span>
+                  </span>
+                  <span className="sr-only">relance</span>
+                </span>
+                <br />
+                pour vous.
               </h1>
 
-              <p className="mt-7 max-w-xl text-lg leading-8 text-[#57534e]">
+              <p className="lp-rise lp-rise-2 mt-7 max-w-xl text-lg leading-8 text-[#57534e]">
                 Le registre de loyer des propriétaires africains. Vous renseignez le bail une fois : Ranti suit les échéances, relance au bon moment et garde chaque quittance.
               </p>
 
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <div className="lp-rise lp-rise-3 mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link href={SIGNUP_HREF} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f2a33c] px-7 py-4 text-base font-semibold text-[#3a2407] shadow-[0_6px_16px_-6px_rgba(242,163,60,0.55)] transition hover:bg-[#e18f1f]">
                   Créer mon espace
                   <ArrowRight size={18} strokeWidth={1.8} />
@@ -183,7 +198,7 @@ export default function Landing() {
                 </a>
               </div>
 
-              <div className="mt-7 flex flex-wrap gap-3 text-sm text-[#57534e]">
+              <div className="lp-rise lp-rise-4 mt-7 flex flex-wrap gap-3 text-sm text-[#57534e]">
                 {["Gratuit pendant le pilote", "Sans carte bancaire"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-2 rounded-full border border-[#eae0ca] bg-white px-3 py-2">
                     <Check size={15} strokeWidth={1.8} className="text-[#235a41]" />
@@ -193,7 +208,9 @@ export default function Landing() {
               </div>
             </div>
 
-            <ProductPreview />
+            <div className="lp-rise lp-rise-3">
+              <ProductPreview />
+            </div>
           </div>
         </section>
 

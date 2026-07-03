@@ -106,3 +106,43 @@
     font-family: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
   }
 }
+
+/* ── Animations du hero de la landing (.lp-*) ─────────────────────────────
+   Fondu d'entrée échelonné + « mot-roulant » de marque : une colonne rigide
+   glisse derrière un masque (jamais de fondu croisé), façon ligne de
+   registre. Désactivées si l'utilisateur préfère réduire les animations. */
+@keyframes lp-rise {
+  from { opacity: 0; transform: translateY(8px) scale(0.995); }
+  to { opacity: 1; transform: none; }
+}
+.lp-rise { animation: lp-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.lp-rise-2 { animation-delay: 0.1s; }
+.lp-rise-3 { animation-delay: 0.2s; }
+.lp-rise-4 { animation-delay: 0.3s; }
+
+.lp-roll {
+  display: inline-block;
+  overflow: hidden;
+  height: 1.02em;
+  vertical-align: bottom;
+}
+.lp-roll-track {
+  display: flex;
+  flex-direction: column;
+  animation: lp-roll 9s cubic-bezier(0.7, 0, 0.2, 1) infinite;
+}
+.lp-roll-track > span {
+  display: block;
+  height: 1.02em;
+  line-height: 1.02;
+}
+@keyframes lp-roll {
+  0%, 27% { transform: translateY(0); }
+  33%, 60% { transform: translateY(-1.02em); }
+  66%, 93% { transform: translateY(-2.04em); }
+  100% { transform: translateY(-3.06em); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-rise, .lp-rise-2, .lp-rise-3, .lp-rise-4 { animation: none; }
+  .lp-roll-track { animation: none; }
+}
