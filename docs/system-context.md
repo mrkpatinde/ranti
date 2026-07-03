@@ -10,7 +10,7 @@ Il ne définit pas encore la base de données, les API, les écrans ou le choix 
 
 ## Objectif
 
-Ranti est le cahier de loyers moderne des propriétaires africains.
+Ranti est le registre de loyer moderne des propriétaires africains.
 
 Le système doit aider un propriétaire à répondre rapidement à trois questions :
 

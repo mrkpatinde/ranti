@@ -4,11 +4,18 @@ Ranti est le registre de loyer actif des propriétaires africains.
 
 ## Statut
 
-Produit en reconstruction propre.
+La boucle propriétaire est livrée de bout en bout : propriétés, logements, locataires, baux, génération des échéances, encaissements avec allocations, reçus/quittances, audit logs.
 
-État actuel documenté : post-Sprint 6 — boucle propriétaire de base livrée côté produit/code, avec propriétés, logements, locataires, baux, échéances, encaissements et reçus/quittances.
+Les relances sont automatiques à partir des échéances : cron quotidien (`/api/cron/reminders`, planifié par `apps/web/vercel.json`), templates SMS, confirmation locataire par lien public à token (`/confirmer/[token]`). Le locataire ne crée pas de compte : il déclare avoir payé, le propriétaire valide.
 
-Reminder Engine et Proof Engine sont cadrés dans les docs, mais leur implémentation complète doit passer par la gap analysis DB/code avant migration.
+Ranti n'encaisse pas l'argent. Le propriétaire valide les paiements reçus hors Ranti.
+
+Limites actuelles :
+
+- l'envoi SMS réel n'est pas encore validé en production tant que le provider n'est pas configuré (sandbox : les SMS sont journalisés) ;
+- WhatsApp n'est pas implémenté (colonne `channel` prévue, SMS d'abord).
+
+Détail opérationnel : `docs/BUILD_STATUS.md`.
 
 ## Problème unique
 
@@ -35,19 +42,19 @@ Ranti suit une boucle simple :
 
 ### Reminder Engine
 
-À partir du bail et des échéances, Ranti prépare, planifie ou envoie les rappels et relances.
+À partir du bail et des échéances, Ranti prépare, planifie et envoie les rappels et relances, automatiquement.
 
-Statut : cadré par ADR-006, gap analysis DB live réalisée, implémentation à planifier.
+Statut : implémenté (cron `/api/cron/reminders`, fenêtres J-5/J-1/retard, table `reminders`, confirmation locataire par token). Envoi SMS réel en attente de configuration du provider en production.
 
 ### Proof Engine
 
 À partir d'un paiement validé par le propriétaire, Ranti génère automatiquement le document adapté : reçu partiel, reçu complet ou quittance.
 
-Statut : cadré par ADR-007, DB live partiellement compatible (`receipts.kind`, `snapshot`), audit code requis avant modification.
+Statut : implémenté (`generate_receipt`, `receipts.kind`, `snapshot`, numérotation atomique, correction par remplacement). Aucun document n'est généré sans allocation financière réelle.
 
-## État livré post-Sprint 6
+## État livré
 
-Livré ou partiellement livré :
+Livré :
 
 - auth propriétaire ;
 - profil propriétaire ;
@@ -61,14 +68,16 @@ Livré ou partiellement livré :
 - allocations aux échéances ;
 - reçus/quittances ;
 - audit logs ;
-- RLS activé.
+- RLS activé ;
+- dashboard mensuel de synthèse ;
+- relances automatiques (cron + SMS sandbox) ;
+- confirmation locataire par lien public.
 
 À compléter :
 
 - modifier / archiver propriétés, logements et locataires côté UI ;
-- dashboard mensuel de synthèse ;
-- Reminder Engine complet ;
-- Proof Engine automatique complet ;
+- envoi SMS réel (provider à configurer en production) ;
+- WhatsApp ;
 - ops runbook complet ;
 - validation terrain documentée.
 

@@ -1,6 +1,6 @@
 # Ranti — Build Status
 
-Dernière mise à jour : 2026-07-02 (audit + stabilisation pré-démo)
+Dernière mise à jour : 2026-07-03 (corrections P0/P1 post-review)
 
 ## 1. Ce qui a été trouvé
 
@@ -53,6 +53,18 @@ quittance PDF → relance SMS → confirmation locataire.
   `receipt_correction_flows`, `sensitive_mutation_audit`,
   `tenant_confirmation_rpc` appliquées et enregistrées.
 - Test téléphone locataire mis à jour (E.164), apostrophes JSX corrigées.
+
+## 3 bis. Corrections P0/P1 du 2026-07-03 (PR dédiées)
+
+- Déclaration locataire : crée désormais réception draft + allocation vers
+  l'échéance exacte du token (migration `20260703010000`). Plus de
+  confirmation sans réduction de dette ni quittance `allocations: []`.
+- `confirm_collection` : re-contrôle transactionnel du reste dû au moment
+  de confirmer (migration `20260703020000`) — deux brouillons concurrents
+  ne peuvent plus dépasser `amount_due`.
+- Dashboard : « Encaissé ce mois » = allocations des réceptions confirmées
+  reçues dans le mois (plus de somme historique globale).
+- Mode local : `RANTI_LOCAL_AUTH=1` et `=true` acceptés, jamais en prod.
 
 ## 4. Ce qui reste incomplet (honnête)
 
