@@ -135,7 +135,10 @@ export async function confirmCollection(formData: FormData) {
   const { error } = await supabase.rpc("confirm_collection", { p_reception_id: id })
 
   if (error) {
-    redirect(`/collections?error=${encodeURIComponent("Confirmation impossible. Réessayez.")}`)
+    const message = error.message.includes("allocation_exceeds_due_at_confirm")
+      ? "Confirmation impossible : une autre confirmation a déjà couvert cette échéance."
+      : "Confirmation impossible. Réessayez."
+    redirect(`/collections?error=${encodeURIComponent(message)}`)
   }
 
   const receiptId = await generateDocumentForConfirmedCollection(id)
