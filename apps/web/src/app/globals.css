@@ -135,6 +135,7 @@
   display: block;
   height: 1.02em;
   line-height: 1.02;
+  color: #b87413; /* orange profond de la marque — attire l'œil sur le verbe Ranti */
 }
 @keyframes lp-roll {
   0%, 27% { transform: translateY(0); }
