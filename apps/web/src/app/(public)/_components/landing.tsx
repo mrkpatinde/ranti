@@ -147,7 +147,7 @@ export default function Landing() {
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-[#57534e] md:flex">
             <a href="#fonctionnement" className="transition hover:text-[#163828]">Fonctionnement</a>
-            <a href="#confiance" className="transition hover:text-[#163828]">Confiance</a>
+            <a href="#confiance" className="transition hover:text-[#163828]">Avantages</a>
             <a href="#faq" className="transition hover:text-[#163828]">Questions</a>
           </nav>
           <div className="flex items-center gap-3">
