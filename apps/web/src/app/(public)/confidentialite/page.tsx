@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         Politique de confidentialité
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Dernière mise à jour : 28 juin 2026
+        Dernière mise à jour : 3 juillet 2026
       </p>
 
       <div className="mt-10 space-y-8 text-foreground/80 leading-relaxed">
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
           <p className="mt-2">Ranti collecte uniquement les données nécessaires au fonctionnement du service :</p>
           <ul className="mt-2 list-disc pl-5 space-y-1">
             <li>
-              <strong>Propriétaire</strong> : numéro de téléphone, nom, prénom, civilité.
+              <strong>Propriétaire</strong> : numéro de téléphone, nom, prénom.
             </li>
             <li>
               <strong>Biens immobiliers</strong> : adresse, type de logement, nom du logement.
@@ -61,6 +61,11 @@ export default function PrivacyPage() {
           <p className="mt-3">
             Nous ne collectons jamais de données bancaires, de pièces d&rsquo;identité, ni de données de géolocalisation précise.
           </p>
+          <p className="mt-3">
+            Chaque quittance porte un lien de vérification publique (QR code). Cette page publique affiche uniquement
+            le numéro du document, sa date, le bien, le prénom et l&rsquo;initiale du locataire — <strong>jamais les
+            montants</strong> ni les coordonnées.
+          </p>
         </section>
 
         <section>
@@ -70,7 +75,7 @@ export default function PrivacyPage() {
           <ul className="mt-2 list-disc pl-5 space-y-1">
             <li>Créer et gérer votre compte propriétaire.</li>
             <li>Générer les échéances de loyer et suivre les paiements.</li>
-            <li>Envoyer des relances automatiques aux locataires (SMS ou WhatsApp).</li>
+            <li>Envoyer des relances automatiques aux locataires par SMS (d&rsquo;autres canaux pourront être proposés et seront mentionnés ici).</li>
             <li>Produire des reçus et quittances.</li>
             <li>Améliorer le service et détecter les anomalies techniques.</li>
           </ul>
@@ -96,7 +101,7 @@ export default function PrivacyPage() {
           </h2>
           <p className="mt-2">
             Ranti utilise Supabase comme infrastructure de base de données. Les serveurs de Supabase sont hébergés en
-            Europe (AWS Francfort). Les données sont chiffrées en transit (TLS) et au repos.
+            Europe (AWS Irlande, région eu-west-1). Les données sont chiffrées en transit (TLS) et au repos.
           </p>
           <p className="mt-2">
             Les sessions utilisateur sont gérées par Supabase Auth. Aucun mot de passe n&rsquo;est stocké en clair — seuls

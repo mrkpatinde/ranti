@@ -21,7 +21,7 @@ export default function TermsPage() {
         Conditions d&rsquo;utilisation
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Dernière mise à jour : 28 juin 2026
+        Dernière mise à jour : 3 juillet 2026
       </p>
 
       <div className="mt-10 space-y-8 text-foreground/80 leading-relaxed">
@@ -88,13 +88,13 @@ export default function TermsPage() {
           </h2>
           <p className="mt-2">
             Durant la phase pilote, Ranti est gratuit pour les propriétaires participants. Une tarification sera
-            communiquée avant toute mise en place de paiement. Actuellement, le tarif prévisionnel est de{" "}
-            <strong>300 FCFA par loyer par mois</strong>.
+            communiquée avant toute mise en place de paiement. Le tarif prévisionnel est de{" "}
+            <strong>500 F CFA par loyer suivi et par mois</strong>, SMS de relance inclus.
           </p>
           <p className="mt-2">
-            Les frais liés aux SMS de relance (envoyés via un fournisseur externe) pourront être facturés séparément
-            ou inclus dans l&rsquo;abonnement. Toute modification tarifaire sera annoncée au moins 30 jours à
-            l&rsquo;avance.
+            Une formule annuelle <strong>&laquo; offre découverte &raquo; à 5&nbsp;000 F CFA par loyer et par an</strong>{" "}
+            (soit deux mois offerts par rapport au tarif mensuel) sera proposée. Toute modification tarifaire sera
+            annoncée au moins 30 jours à l&rsquo;avance.
           </p>
         </section>
 
@@ -133,8 +133,9 @@ export default function TermsPage() {
           </p>
           <p className="mt-2">
             Les messages de relance sont envoyés automatiquement selon des fenêtres prédéfinies (J-5, J-1, J+3, J+10
-            par rapport à la date d&rsquo;échéance). Le propriétaire peut désactiver les relances à tout moment depuis
-            son tableau de bord.
+            par rapport à la date d&rsquo;échéance). Le propriétaire peut faire cesser les relances d&rsquo;un bail en le
+            terminant, ou en demander la suspension à tout moment via le contact indiqué ci-dessous. Un réglage de
+            désactivation par bail sera ajouté dans l&rsquo;application.
           </p>
         </section>
 
@@ -153,9 +154,10 @@ export default function TermsPage() {
             8. Résiliation
           </h2>
           <p className="mt-2">
-            Le propriétaire peut supprimer son compte à tout moment depuis les paramètres de l&rsquo;application.
-            Toutes les données associées (profil, propriétés, locataires, baux, encaissements) seront supprimées
-            définitivement sous 30 jours.
+            Le propriétaire peut demander la suppression de son compte à tout moment via le contact indiqué
+            ci-dessous. Toutes les données associées (profil, propriétés, locataires, baux, encaissements) seront
+            supprimées définitivement sous 30 jours. Une suppression en libre-service depuis les paramètres sera
+            ajoutée dans l&rsquo;application.
           </p>
           <p className="mt-2">
             Ranti se réserve le droit de résilier un compte en cas de violation des présentes conditions, après une
