@@ -22,9 +22,14 @@ Il doit avoir l'impression d'entrer dans son cahier de loyers.
 
 ## Décisions verrouillées
 
+### Pays
+
+- L'inscription propose un choix de pays : Bénin (par défaut), Sénégal, Côte d'Ivoire.
+- Au Sénégal et en Côte d'Ivoire, l'inscription se fait via Google uniquement pour le moment (voir ADR-008).
+
 ### Authentification
 
-- L'identifiant principal est le téléphone.
+- L'identifiant principal est le téléphone (au Bénin ; email Google au Sénégal et en Côte d'Ivoire tant que l'OTP SMS n'y est pas disponible).
 - Le mot de passe est obligatoire.
 - L'OTP sert uniquement à vérifier le numéro lors de la première inscription.
 - L'OTP pourra aussi servir plus tard pour la récupération de compte ou une action sensible.
