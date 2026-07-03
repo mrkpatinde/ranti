@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { toLocalPhone } from "@/lib/auth"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_URL, SUPPORT_WHATSAPP_URL } from "@/lib/support"
 
 type ProfileSettingsPageProps = {
   searchParams?: Promise<{ error?: string }>
@@ -63,6 +64,31 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
         <p className="rounded-2xl border border-border bg-background px-4 py-3 text-sm leading-6 text-foreground/70">
           Pour corriger ces informations plus tard, Ranti devra passer par une vérification et garder une trace du changement.
         </p>
+
+        <div className="space-y-3">
+          <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Besoin d&apos;aide ?</h2>
+          <p className="text-sm leading-6 text-foreground/70">
+            En cas de problème ou de question, contactez Ranti par WhatsApp ou par email.
+          </p>
+          <div className="space-y-3">
+            <a
+              href={SUPPORT_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-2xl border border-border bg-card px-4 py-3 transition hover:bg-secondary"
+            >
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">WhatsApp</p>
+              <p className="mt-1 text-base font-medium text-foreground">Écrire au WhatsApp de Ranti</p>
+            </a>
+            <a
+              href={SUPPORT_EMAIL_URL}
+              className="block rounded-2xl border border-border bg-card px-4 py-3 transition hover:bg-secondary"
+            >
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Email</p>
+              <p className="mt-1 text-base font-medium text-foreground">{SUPPORT_EMAIL}</p>
+            </a>
+          </div>
+        </div>
       </section>
     </main>
   )

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { Landlord } from "@/lib/landlords"
 import { RantiLogo } from "@/components/ranti-logo"
+import { SUPPORT_EMAIL_URL, SUPPORT_WHATSAPP_URL } from "@/lib/support"
 
 const TRACKING_NAV = [
   { href: "/dashboard", label: "Accueil" },
@@ -81,6 +82,23 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
         </nav>
 
         <div className="mt-auto space-y-2 border-t border-border pt-4">
+          <div className="space-y-1">
+            <p className="px-3.5 pb-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Aide</p>
+            <a
+              href={SUPPORT_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
+            >
+              WhatsApp Ranti
+            </a>
+            <a
+              href={SUPPORT_EMAIL_URL}
+              className="block rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
+            >
+              Écrire un email
+            </a>
+          </div>
           <NavLink href="/settings/profile" label="Profil" pathname={pathname} />
           <div className="px-3.5 py-2">
             <p className="truncate text-sm font-medium">{ownerName}</p>
