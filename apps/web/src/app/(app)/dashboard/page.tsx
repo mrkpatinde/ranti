@@ -4,6 +4,7 @@ import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeases } from "@/lib/leases"
 import { getLandlordProperties } from "@/lib/properties"
+import { getCollectedThisMonth } from "@/lib/collections"
 import { getLandlordDueBalances } from "@/lib/rent-dues"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
@@ -85,12 +86,13 @@ function StatusPill({ tone, children }: { tone: "late" | "upcoming"; children: R
 
 export default async function DashboardPage() {
   const landlord = await requireLandlordProfile()
-  const [properties, units, tenants, leases, dues] = await Promise.all([
+  const [properties, units, tenants, leases, dues, collectedThisMonth] = await Promise.all([
     getLandlordProperties(landlord.id),
     getLandlordUnits(landlord.id),
     getLandlordTenants(landlord.id),
     getLandlordLeases(landlord.id),
     getLandlordDueBalances(landlord.id),
+    getCollectedThisMonth(landlord.id),
   ])
 
   const hasProperties = properties.length > 0
@@ -114,8 +116,6 @@ export default async function DashboardPage() {
   const sumRemaining = (list: typeof dues): number => list.reduce((total, due) => total + remaining(due), 0)
   const overdueRemaining = sumRemaining(overdue)
   const expectedRemaining = sumRemaining(expected)
-  const totalPaid = dues.reduce((total, due) => total + due.amount_paid, 0)
-  const paidCount = dues.filter((due) => due.status === "paid").length
   const actionDues = [...overdue, ...expected].sort((a, b) => a.due_date.localeCompare(b.due_date))
   const overdueTenantCount = new Set(overdue.map((due) => due.tenant_id)).size
 
@@ -172,7 +172,7 @@ export default async function DashboardPage() {
         {hasActiveLease ? (
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <StatCard label="Encaissé ce mois" value={formatAmount(totalPaid)} helper={`${paidCount} échéance${paidCount > 1 ? "s" : ""} soldée${paidCount > 1 ? "s" : ""}`} tone="brand" />
+              <StatCard label="Encaissé ce mois" value={formatAmount(collectedThisMonth.amount)} helper={`${collectedThisMonth.count} paiement${collectedThisMonth.count > 1 ? "s" : ""} reçu${collectedThisMonth.count > 1 ? "s" : ""} ce mois`} tone="brand" />
               <StatCard
                 label={overdueTenantCount > 0 ? `En retard — ${overdueTenantCount} locataire${overdueTenantCount > 1 ? "s" : ""}` : "En retard"}
                 value={formatAmount(overdueRemaining)}
