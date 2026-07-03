@@ -188,6 +188,8 @@ function getNextReminderDelay(template: string): number {
       return 4;
     case "j-1":
       return 4;
+    case "j-0":
+      return 4;
     case "j+3":
       return 7;
     default:

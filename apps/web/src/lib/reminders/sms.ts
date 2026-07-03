@@ -15,6 +15,9 @@ export const REMINDER_TEMPLATES = {
   "j-1": (montant: string, _date: string, lien: string) =>
     `Ranti — Rappel : votre loyer de ${montant} est du demain. Confirmez : ${lien}`,
 
+  "j-0": (montant: string, _date: string, lien: string) =>
+    `Ranti — Rappel : votre loyer de ${montant} est du aujourd'hui. Confirmez : ${lien}`,
+
   "j+3": (montant: string, mois: string, lien: string) =>
     `Ranti — Votre loyer de ${montant} (${mois}) est en retard. Regularisez : ${lien}`,
 
@@ -90,7 +93,8 @@ export async function sendSms(
 export function getReminderTemplate(daysUntilDue: number): ReminderTemplate | null {
   if (daysUntilDue <= -10) return "j+10"; // 10 jours de retard ou plus
   if (daysUntilDue < 0) return "j+3"; // en retard
-  if (daysUntilDue <= 1) return "j-1"; // dû aujourd'hui ou demain
+  if (daysUntilDue === 0) return "j-0"; // dû aujourd'hui
+  if (daysUntilDue === 1) return "j-1"; // dû demain
   if (daysUntilDue <= 5) return "j-5"; // J-5 à J-2
   return null; // Trop tôt pour relancer
 }

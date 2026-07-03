@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-06-29
+Dernière mise à jour : 2026-07-03
 
 ## Phase 0 - Foundation
 
@@ -120,6 +120,21 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Tests terrain
 - [ ] Corrections
 - [ ] Première beta privée
+
+## Recent (2026-07-03)
+
+- Review complète A à Z : build OK, 117 tests verts, lint 0 erreur, sécurité cœur validée
+  (RPC token SECURITY DEFINER + grants stricts, cron service-role, local-auth bloqué en prod,
+  vues ops sans accès anon/authenticated).
+- Migrations ops rapatriées dans ce repo (`create_ops_reminders`, `ops_dashboard_views`) :
+  fin de la dérive cross-repo avec ranti-ops ; `supabase db reset` rejoue tout le schéma.
+- Perf RLS `landlords` : `auth.uid()` enveloppé dans un sous-select (advisor auth_rls_initplan),
+  migration `landlords_rls_initplan` appliquée en live.
+- Relance jour J : nouveau template `j-0` (« dû aujourd'hui ») — le SMS ne dit plus « demain »
+  le jour de l'échéance. Tests unitaires des fenêtres de relance ajoutés.
+- Assistance propriétaire : liens WhatsApp/email dans le shell et le profil ; lien WhatsApp
+  masqué si `NEXT_PUBLIC_SUPPORT_WHATSAPP` absent (plus de numéro bidon).
+- Branche pays SN/CI (ADR-008) : inscription Google-only Sénégal & Côte d'Ivoire, en cours de PR.
 
 ## Recent (2026-06-29)
 

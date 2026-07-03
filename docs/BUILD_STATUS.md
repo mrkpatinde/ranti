@@ -11,7 +11,7 @@ bout (UI + DB + RLS) :
 propriété → logement → locataire → bail → échéances → encaissement →
 quittance PDF → relance SMS → confirmation locataire.
 
-- Build Next.js : OK. Tests unitaires : 86/86. Lint : 0 erreur.
+- Build Next.js : OK. Tests unitaires : 117/117. Lint : 0 erreur.
 - Docs (vision, ADR-001 à 006, roadmap) alignées avec le code.
 - RLS multi-propriétaire uniforme via `private.current_landlord_id()`.
 - Invariants financiers (branche `stabilize/p0-invariants`) : échéances non
@@ -111,7 +111,13 @@ supabase db reset   # rejoue toutes les migrations + seed.sql
 ```
 
 Le projet live (`pcxkxeesgusorrpmrkaj`) est à jour jusqu'à
-`tenant_confirmation_rpc` (vérifié le 2026-07-02).
+`landlords_rls_initplan` (vérifié le 2026-07-03).
+
+Règle : toute migration appliquée en live — y compris depuis ranti-ops —
+doit avoir son fichier versionné ici, avec le même timestamp que la version
+live. Les migrations ops (`create_ops_reminders`, `ops_dashboard_views`)
+sont rapatriées ; leurs objets sont réservés service_role (aucun grant
+anon/authenticated).
 
 ## 7. Tester le flux principal
 
