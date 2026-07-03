@@ -57,21 +57,21 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
 
           <div className="space-y-2">
             <label htmlFor="first_name" className={labelClass}>
-              Prénom
+              Prénom <span className="text-red-700">*</span>
             </label>
             <input id="first_name" name="first_name" type="text" required placeholder="Ex. Awa" className={inputClass} />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="last_name" className={labelClass}>
-              Nom
+              Nom <span className="text-red-700">*</span>
             </label>
             <input id="last_name" name="last_name" type="text" required placeholder="Ex. Koffi" className={inputClass} />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="phone" className={labelClass}>
-              Numéro WhatsApp du locataire
+              Numéro WhatsApp du locataire <span className="text-red-700">*</span>
             </label>
             <div className="flex">
               <span className="inline-flex items-center rounded-l-xl border border-border bg-background px-4 py-3 text-base text-foreground/70">
@@ -79,6 +79,7 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
               </span>
               <BeninPhoneInput id="phone" name="phone" required className={phoneInputClass} />
             </div>
+            <p className="text-sm leading-6 text-muted-foreground">ⓘ C&apos;est ce numéro que Ranti utilise pour les rappels et relances automatiques par SMS — vérifiez-le bien.</p>
             <p className="text-sm leading-6 text-muted-foreground">
               Tapez les 10 chiffres : les espaces s’ajoutent automatiquement.
             </p>

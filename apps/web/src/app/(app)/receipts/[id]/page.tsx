@@ -5,6 +5,7 @@ import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { cancelReceipt, getReceipt } from "@/lib/receipts"
 import type { ReceiptStatus } from "@/lib/receipts"
+import { RantiLogo } from "@/components/ranti-logo"
 
 type ReceiptDetailPageProps = {
   params: Promise<{ id: string }>
@@ -74,11 +75,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
         <article className="rounded-2xl border border-border bg-card p-7 shadow-[0_14px_50px_-18px_rgba(22,56,40,0.22)]">
           <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 flex-col justify-center gap-[3px] rounded-lg bg-primary px-2">
-                <span className="h-[3px] w-5 rounded-full bg-card" />
-                <span className="h-[3px] w-[15px] rounded-full bg-accent" />
-                <span className="h-[3px] w-[10px] rounded-full bg-card" />
-              </span>
+              <RantiLogo size={36} />
               <div>
                 <p className="font-display font-extrabold tracking-tight text-foreground">Ranti</p>
                 <p className="text-xs text-muted-foreground">Registre de loyer</p>

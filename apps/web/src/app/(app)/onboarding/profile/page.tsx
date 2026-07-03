@@ -11,13 +11,6 @@ type ProfilePageProps = {
   }>
 }
 
-const CIVILITY_OPTIONS = [
-  { value: "mr", label: "Monsieur" },
-  { value: "mrs", label: "Madame" },
-  { value: "miss", label: "Mademoiselle" },
-  { value: "not_specified", label: "Préférer ne pas dire" },
-] as const
-
 const fullInputClass =
   "w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
 const phoneInputClass =
@@ -62,29 +55,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         ) : null}
 
         <form action={createLandlordProfile} className="space-y-5">
-          <fieldset className="space-y-2">
-            <legend className={labelClass}>Civilité</legend>
-            <div className="flex flex-wrap gap-2">
-              {CIVILITY_OPTIONS.map((option) => (
-                <label key={option.value} className="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="civility"
-                    value={option.value}
-                    defaultChecked={option.value === "not_specified"}
-                    className="peer sr-only"
-                  />
-                  <span className="block rounded-xl border border-border px-3 py-2 text-sm text-foreground transition peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">
-                    {option.label}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
           <div className="space-y-2">
             <label htmlFor="phone" className={labelClass}>
-              Numéro de téléphone
+              Numéro de téléphone <span className="text-red-700">*</span>
             </label>
             <div className="flex">
               <span className="inline-flex items-center rounded-l-xl border border-border bg-background px-4 py-3 text-base text-foreground/70">
@@ -105,7 +78,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
           <div className="space-y-2">
             <label htmlFor="first_name" className={labelClass}>
-              Prénom
+              Prénom <span className="text-red-700">*</span>
             </label>
             <input
               id="first_name"
@@ -119,7 +92,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
           <div className="space-y-2">
             <label htmlFor="last_name" className={labelClass}>
-              Nom
+              Nom <span className="text-red-700">*</span>
             </label>
             <input
               id="last_name"

@@ -84,7 +84,7 @@ export default async function NewUnitPage({ searchParams }: NewUnitPageProps) {
         <form action={createUnit} className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="property_id" className={labelClass}>
-              Lieu
+              Lieu <span className="text-red-700">*</span>
             </label>
             <select
               id="property_id"
@@ -103,7 +103,7 @@ export default async function NewUnitPage({ searchParams }: NewUnitPageProps) {
 
           <div className="space-y-2">
             <label htmlFor="name" className={labelClass}>
-              Nom du logement
+              Nom du logement <span className="text-red-700">*</span>
             </label>
             <input
               id="name"
@@ -117,7 +117,7 @@ export default async function NewUnitPage({ searchParams }: NewUnitPageProps) {
 
           <div className="space-y-2">
             <label htmlFor="unit_type" className={labelClass}>
-              Type
+              Type <span className="text-red-700">*</span>
             </label>
             <select
               id="unit_type"

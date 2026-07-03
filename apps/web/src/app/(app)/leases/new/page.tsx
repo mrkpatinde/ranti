@@ -103,7 +103,7 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
 
           <div className="space-y-2">
             <label htmlFor="unit_id" className={labelClass}>
-              Logement
+              Logement <span className="text-red-700">*</span>
             </label>
             <select id="unit_id" name="unit_id" required defaultValue={params?.unit_id ?? units[0]?.id} className={inputClass}>
               {units.map((unit) => (
@@ -116,7 +116,7 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
 
           <div className="space-y-2">
             <label htmlFor="tenant_id" className={labelClass}>
-              Locataire
+              Locataire <span className="text-red-700">*</span>
             </label>
             <select id="tenant_id" name="tenant_id" required defaultValue={params?.tenant_id ?? tenants[0]?.id} className={inputClass}>
               {tenants.map((tenant) => (
@@ -129,7 +129,7 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
 
           <div className="space-y-2">
             <label htmlFor="monthly_rent_amount" className={labelClass}>
-              Loyer mensuel (FCFA)
+              Loyer mensuel (FCFA) <span className="text-red-700">*</span>
             </label>
             <input
               id="monthly_rent_amount"
@@ -144,7 +144,7 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
 
           <div className="space-y-2">
             <label htmlFor="due_day" className={labelClass}>
-              Jour d&apos;échéance (1 à 31)
+              Jour d&apos;échéance (1 à 31) <span className="text-red-700">*</span>
             </label>
             <input
               id="due_day"
@@ -156,13 +156,15 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
               placeholder="Ex. 5"
               className={inputClass}
             />
+            <p className="text-sm leading-6 text-muted-foreground">ⓘ C&apos;est ce jour qui pilote le suivi : rappel automatique avant l&apos;échéance, relance en cas de retard. Choisissez le jour réellement convenu avec le locataire.</p>
           </div>
 
           <div className="space-y-2">
             <label htmlFor="start_date" className={labelClass}>
-              Date de début
+              Date de début <span className="text-red-700">*</span>
             </label>
             <input id="start_date" name="start_date" type="date" required className={inputClass} />
+            <p className="text-sm leading-6 text-muted-foreground">ⓘ Les échéances mensuelles seront générées à partir de cette date, au jour d&apos;échéance choisi.</p>
           </div>
 
           <div className="space-y-2">
@@ -170,6 +172,7 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
               Date de fin (optionnel)
             </label>
             <input id="end_date" name="end_date" type="date" className={inputClass} />
+            <p className="text-sm leading-6 text-muted-foreground">ⓘ Optionnel. Sans date de fin, le bail court et les loyers se suivent mois après mois — le cas le plus courant.</p>
           </div>
 
           <div className="space-y-2">

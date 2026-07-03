@@ -91,6 +91,13 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             Continuer
           </SubmitButton>
 
+          <p className="text-sm leading-6 text-muted-foreground">
+            En créant votre espace, vous acceptez nos{" "}
+            <Link href="/conditions" className="underline underline-offset-4 hover:text-foreground">conditions d&apos;utilisation</Link>{" "}
+            et notre{" "}
+            <Link href="/confidentialite" className="underline underline-offset-4 hover:text-foreground">politique de confidentialité</Link>.
+          </p>
+
           <Link
             href={AUTH_PATHS.signIn}
             className="block text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"

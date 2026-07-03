@@ -20,7 +20,7 @@ export async function GET(
   }
 
   // QR encodes the verification URL for this document.
-  const verifyUrl = `${new URL(request.url).origin}/receipts/${receipt.id}`
+  const verifyUrl = `${new URL(request.url).origin}/verifier/${receipt.id}`
   let qrDataUrl: string | null = null
   try {
     qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 240 })

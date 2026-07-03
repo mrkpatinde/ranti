@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { Landlord } from "@/lib/landlords"
+import { RantiLogo } from "@/components/ranti-logo"
 
 const TRACKING_NAV = [
   { href: "/dashboard", label: "Accueil" },
@@ -55,17 +56,6 @@ function NavSection({ title, items, pathname }: { title: string; items: Array<{ 
   )
 }
 
-// Trois lignes de registre, celle du milieu barrée en orange — la marque Ranti.
-function LogoMark() {
-  return (
-    <span className="flex h-9 w-9 shrink-0 flex-col items-start justify-center gap-[3px] rounded-lg bg-primary px-2.5">
-      <span className="h-[2.5px] w-4 rounded-full bg-primary-foreground" />
-      <span className="h-[2.5px] w-4 rounded-full bg-accent" />
-      <span className="h-[2.5px] w-4 rounded-full bg-primary-foreground" />
-    </span>
-  )
-}
-
 export function AppShell({ children, landlord }: { children: React.ReactNode; landlord: Landlord | null }) {
   const pathname = usePathname()
   const hideShell = pathname.startsWith("/onboarding") || pathname.startsWith("/auth") || !landlord
@@ -78,7 +68,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
     <div className="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[240px_1fr]">
       <aside className="hidden min-h-screen border-r border-border bg-card px-4 py-5 lg:flex lg:flex-col">
         <Link href="/dashboard" className="flex items-center gap-3 px-2 pb-5">
-          <LogoMark />
+          <RantiLogo size={36} />
           <div>
             <p className="font-display text-lg font-extrabold tracking-tight">Ranti</p>
             <p className="text-xs text-muted-foreground">Registre de loyer</p>
