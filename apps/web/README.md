@@ -18,8 +18,10 @@ En développement, le fournisseur SMS Supabase peut être désactivé. Pour cont
 l'authentification réelle et tester les pages protégées sans recevoir d'OTP :
 
 ```bash
-RANTI_LOCAL_AUTH=*** npm run dev
+RANTI_LOCAL_AUTH=1 npm run dev
 ```
+
+Les deux valeurs `1` et `true` sont acceptées.
 
 Ce mode :
 - Injecte un `auth_user_id` et un `phone` factices pour toutes les requêtes
