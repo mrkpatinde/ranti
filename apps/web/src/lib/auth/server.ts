@@ -16,8 +16,11 @@ function hasValidSubject(claims: unknown): claims is AuthClaims {
   )
 }
 
+// Accepte "true" et "1" (la doc utilise RANTI_LOCAL_AUTH=1).
+// Jamais actif en production, quelle que soit la valeur.
 export function isLocalAuthEnabled() {
-  return process.env.NODE_ENV !== "production" && process.env.RANTI_LOCAL_AUTH === "true"
+  const flag = process.env.RANTI_LOCAL_AUTH
+  return process.env.NODE_ENV !== "production" && (flag === "true" || flag === "1")
 }
 
 function getLocalAuthClaims(): AuthClaims {
