@@ -9,6 +9,7 @@ import { SUPPORT_EMAIL_URL, SUPPORT_WHATSAPP_URL } from "@/lib/support"
 const TRACKING_NAV = [
   { href: "/dashboard", label: "Accueil" },
   { href: "/collections", label: "Encaissements" },
+  { href: "/reminders", label: "Relances" },
   { href: "/receipts", label: "Quittances" },
 ]
 
