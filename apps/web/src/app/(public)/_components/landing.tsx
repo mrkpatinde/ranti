@@ -165,10 +165,6 @@ export default function Landing() {
         <section className="px-6 pb-20 pt-32 md:pb-28 md:pt-40">
           <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.02fr_0.98fr]">
             <div>
-              <p className="mb-6 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-[#b87413]">
-                Le registre de loyer actif — Bénin
-              </p>
-
               <h1 className="font-display max-w-3xl text-5xl font-extrabold leading-[1.02] tracking-[-0.03em] text-[#163828] sm:text-6xl md:text-7xl [text-wrap:balance]">
                 Qui a payé. Qui doit. Ranti relance pour vous.
               </h1>
@@ -188,7 +184,7 @@ export default function Landing() {
               </div>
 
               <div className="mt-7 flex flex-wrap gap-3 text-sm text-[#57534e]">
-                {["Gratuit pendant le pilote", "Sans carte bancaire", "Cash · Mobile Money · Virement"].map((item) => (
+                {["Gratuit pendant le pilote", "Sans carte bancaire"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-2 rounded-full border border-[#eae0ca] bg-white px-3 py-2">
                     <Check size={15} strokeWidth={1.8} className="text-[#235a41]" />
                     {item}
@@ -247,7 +243,7 @@ export default function Landing() {
           <div className="mx-auto max-w-6xl overflow-hidden rounded-[28px] bg-[#163828] p-8 text-[#faf3e5] shadow-[0_30px_90px_rgba(22,56,40,0.24)] md:p-12">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <div>
-                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#f2a33c]">Promesse produit</p>
+                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#f2a33c]">Pourquoi Ranti</p>
                 <h2 className="font-display mt-4 max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] md:text-5xl [text-wrap:balance]">
                   Vous oubliez moins. Vous encaissez plus.
                 </h2>
