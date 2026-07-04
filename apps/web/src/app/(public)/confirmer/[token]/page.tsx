@@ -42,6 +42,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   already_confirmed: "Ce loyer a déjà été confirmé par le propriétaire.",
   already_declared: "Vous avez déjà déclaré ce paiement. Le propriétaire va le vérifier.",
   insert_failed: "Impossible d'enregistrer votre déclaration. Réessayez.",
+  method_invalid: "Choisissez le moyen de paiement utilisé.",
+  reference_required: "Indiquez la référence de la transaction (reçue par SMS).",
+  reference_invalid: "Référence trop longue.",
 };
 
 export default async function ConfirmerPage({
@@ -169,16 +172,53 @@ export default async function ConfirmerPage({
               </p>
             </div>
           ) : (
-            <form action={confirmRentPayment.bind(null, token)}>
+            <form action={confirmRentPayment.bind(null, token)} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="method" className="block text-sm font-medium text-foreground">
+                  Comment avez-vous payé ? <span className="text-red-700">*</span>
+                </label>
+                <select
+                  id="method"
+                  name="method"
+                  required
+                  defaultValue="mobile_money"
+                  className="w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
+                >
+                  <option value="mobile_money">Mobile Money</option>
+                  <option value="cash">Espèces</option>
+                  <option value="bank_transfer">Virement bancaire</option>
+                  <option value="other">Autre</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="reference" className="block text-sm font-medium text-foreground">
+                  Référence de la transaction
+                </label>
+                <input
+                  id="reference"
+                  name="reference"
+                  type="text"
+                  maxLength={120}
+                  placeholder="Ex. ID de transaction Mobile Money (reçu par SMS)"
+                  className="w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Obligatoire pour Mobile Money et virement — elle permet au
+                  propriétaire de vérifier votre paiement.
+                </p>
+              </div>
+
               <SubmitButton
                 className="inline-flex w-full justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                 pendingLabel="Envoi…"
               >
                 J&apos;ai payé ce loyer
               </SubmitButton>
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                En cliquant, vous confirmez avoir payé votre loyer. Le
-                propriétaire validera cette déclaration.
+              <p className="text-center text-xs text-muted-foreground">
+                Le montant déclaré est celui fixé par votre bail
+                ({formatAmount(rentDue.amount_remaining)}). Le propriétaire
+                validera cette déclaration.
               </p>
             </form>
           )}
