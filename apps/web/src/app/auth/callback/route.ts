@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache"
 import { NextResponse, type NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { logLoginEvent } from "@/lib/analytics"
 import { AUTH_PATHS } from "@/lib/auth/paths"
 
 export async function GET(request: NextRequest) {
@@ -38,6 +39,8 @@ export async function GET(request: NextRequest) {
   if (!landlord) {
     return NextResponse.redirect(new URL(AUTH_PATHS.profile, origin))
   }
+
+  await logLoginEvent()
 
   // Profile exists but no phone → prompt for phone (needed for WhatsApp reminders)
   if (!landlord.phone) {
