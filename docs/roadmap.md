@@ -124,6 +124,11 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-05)
 
+- Landing : section comparatif (PR #91) sur la page publique — tableau Ranti vs
+  cahier + WhatsApp vs tableur Excel (6 lignes = les 5 questions produit + Reminder/Proof
+  engine), notes nuancées côté alternatives (comparatif honnête), cadrage relances
+  (« sans y penser ») et vocabulaire glossaire respectés. Colonne Ranti mise en avant,
+  table scrollable sur mobile. Additif marketing, aucune logique métier / DB touchée.
 - Onboarding groupé (PR #89) : écran propriétaire `/units/bulk` pour ajouter plusieurs
   logements d'un coup, chacun optionnellement avec locataire + bail activé + échéances.
   RPC atomique `bulk_onboard_portfolio` (SECURITY INVOKER, réutilise
