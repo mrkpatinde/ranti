@@ -66,6 +66,22 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
         </p>
 
         <div className="space-y-3">
+          <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Recevoir les loyers</h2>
+          <Link
+            href="/settings/payment"
+            className="block rounded-2xl border border-border bg-card px-4 py-3 transition hover:bg-secondary"
+          >
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Alias PI-SPI</p>
+            <p className="mt-1 text-base font-medium text-foreground">
+              {landlord.payment_alias ? landlord.payment_alias : "Ajouter votre alias de paiement"}
+            </p>
+            <p className="mt-1 text-sm leading-6 text-foreground/60">
+              Vos locataires paient le loyer directement — instantané et gratuit.
+            </p>
+          </Link>
+        </div>
+
+        <div className="space-y-3">
           <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Besoin d&apos;aide ?</h2>
           <p className="text-sm leading-6 text-foreground/70">
             {SUPPORT_WHATSAPP_URL

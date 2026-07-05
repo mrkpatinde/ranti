@@ -135,6 +135,13 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
         </p>
       </div>
 
+      {landlord.payment_alias ? (
+        <p className="rounded-2xl border border-primary/15 bg-secondary px-4 py-3 text-sm leading-6 text-foreground/70">
+          Astuce : vos locataires peuvent payer directement sur votre alias PI-SPI{" "}
+          <span className="font-semibold text-foreground">{landlord.payment_alias}</span> — instantané et gratuit.
+        </p>
+      ) : null}
+
       {params.error ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           {params.error}

@@ -82,6 +82,14 @@ Terme secondaire décrivant l'action du locataire qui paie.
 
 Dans le domaine Ranti côté propriétaire, le concept principal est l'encaissement.
 
+## Alias PI-SPI
+
+Identifiant de paiement du propriétaire dans le système de paiement instantané interopérable de la BCEAO (PI-SPI). Il peut être un numéro de téléphone ou une adresse de paiement générée par PI-SPI.
+
+Le propriétaire renseigne son alias ; Ranti l'affiche au locataire pour qu'il paie le loyer directement, instantanément et gratuitement, depuis n'importe quelle banque ou wallet connecté à PI-SPI.
+
+Ranti ne détient jamais les fonds : le paiement reste hors Ranti (de compte à compte), puis est déclaré et encaissé comme tout autre paiement. L'alias n'est donc pas un canal d'agrégation ; c'est une coordonnée affichée.
+
 ## Preuve de paiement
 
 Élément permettant de justifier qu'un paiement ou encaissement a été effectué.
