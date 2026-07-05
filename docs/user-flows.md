@@ -78,9 +78,17 @@ Exemples : chambre, appartement, boutique, magasin.
 
 Retrouver exactement ce qu'il possède.
 
+Un propriétaire qui a plusieurs logements ne veut pas les saisir un par un : il doit
+pouvoir en ajouter plusieurs d'un seul geste. Pour un logement déjà occupé, il peut
+saisir dans la foulée le locataire et le loyer (avec sa date de début), et Ranti crée
+le bail et génère les échéances. Un logement encore libre est ajouté sans locataire.
+
 ### Résultat attendu
 
-Tous les logements sont enregistrés.
+Tous les logements sont enregistrés — seuls ou en lot.
+
+Quand le locataire et le loyer sont fournis, le bail est activé et les loyers attendus
+apparaissent, sans étape supplémentaire.
 
 ## Journey 5 — J'indique lesquels sont occupés
 

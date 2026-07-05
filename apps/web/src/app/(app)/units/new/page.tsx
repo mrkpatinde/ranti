@@ -158,6 +158,16 @@ export default async function NewUnitPage({ searchParams }: NewUnitPageProps) {
           >
             Ajouter ce logement
           </SubmitButton>
+
+          <p className="text-center text-sm text-foreground/70">
+            Plusieurs logements à ajouter ?{" "}
+            <Link
+              href="/units/bulk"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Les ajouter en une fois
+            </Link>
+          </p>
         </form>
       </section>
     </main>

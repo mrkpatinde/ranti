@@ -6,7 +6,12 @@ import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 
 type LeasesPageProps = {
-  searchParams?: Promise<{ notice?: string; error?: string }>
+  searchParams?: Promise<{
+    notice?: string
+    error?: string
+    units?: string
+    leases?: string
+  }>
 }
 
 const leaseStatusLabels: Record<LeaseStatus, string> = {
@@ -22,7 +27,14 @@ function formatAmount(amount: number): string {
 
 export default async function LeasesPage({ searchParams }: LeasesPageProps) {
   const landlord = await requireLandlordProfile()
-  await searchParams
+  const params = await searchParams
+  const bulkNotice =
+    params?.notice === "bulk_created"
+      ? `${params.units ?? "0"} logement(s) ajouté(s)` +
+        (params.leases && params.leases !== "0"
+          ? `, ${params.leases} bail/baux activé(s) — loyers générés.`
+          : ".")
+      : null
   const [leases, units, tenants] = await Promise.all([
     getLandlordLeases(landlord.id),
     getLandlordUnits(landlord.id),
@@ -56,6 +68,12 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
             Un bail relie un logement à un locataire. Activez-le pour générer les loyers.
           </p>
         </div>
+
+        {bulkNotice ? (
+          <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
+            {bulkNotice}
+          </p>
+        ) : null}
 
         {leases.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-6">

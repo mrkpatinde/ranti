@@ -55,7 +55,10 @@ export default async function UnitsPage({ searchParams }: UnitsPageProps) {
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Aucun logement pour le moment</h2>
             <p className="mt-2 text-base leading-7 text-foreground/70">Ajoutez d’abord un logement pour pouvoir créer un bail.</p>
-            <Link href="/units/new" className="mt-5 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">Ajouter un logement</Link>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/units/new" className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">Ajouter un logement</Link>
+              <Link href="/units/bulk" className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Ajouter plusieurs logements</Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -67,7 +70,10 @@ export default async function UnitsPage({ searchParams }: UnitsPageProps) {
                 <span className="mt-5 inline-flex text-sm font-medium text-foreground">Voir le détail</span>
               </Link>
             ))}
-            <Link href="/units/new" className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Ajouter un autre logement</Link>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/units/new" className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Ajouter un autre logement</Link>
+              <Link href="/units/bulk" className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Ajouter plusieurs logements</Link>
+            </div>
           </div>
         )}
       </section>
