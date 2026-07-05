@@ -161,6 +161,27 @@ POST /api/leases
 POST /api/rent-receptions
 ```
 
+### Création groupée (onboarding portefeuille)
+
+Un propriétaire qui gère plusieurs logements doit pouvoir en enregistrer plusieurs
+d'un seul geste, chacun optionnellement avec son locataire et son bail activé —
+sans repasser par le wizard unitaire logement par logement.
+
+Implémentation MVP : RPC Postgres `bulk_onboard_portfolio(p_property_id, p_rows)`
+(SECURITY INVOKER, réutilise `activate_lease`/`generate_rent_dues`). Chaque ligne
+de `p_rows` crée un logement ; si la ligne porte un bloc locataire, elle crée aussi
+le locataire, le bail (`draft`) puis l'active (échéances générées, ADR-004). Sinon
+le logement est créé vacant.
+
+Règles :
+
+- Opération **atomique tout-ou-rien** : toute ligne en échec (nom de logement
+  dupliqué, chevauchement de bail, données invalides) annule l'intégralité du lot.
+- Aucune règle métier propre : réutilise les validations et invariants des créations
+  unitaires (logement, locataire, bail) et la génération d'échéances existante.
+- Portée MVP : une propriété par lot ; type de logement et jour d'échéance partagés
+  en entête ; loyer et date de début par ligne.
+
 ### Modification simple
 
 Utiliser `PATCH` quand il s'agit d'une modification partielle sans transition métier sensible.
@@ -239,6 +260,7 @@ Convention : utiliser `Idempotency-Key` quand l'action peut être rejouée par l
 Les actions suivantes doivent être transactionnelles ou garantir une cohérence équivalente :
 
 - créer un bail et générer ses échéances ;
+- créer un lot de logements/locataires/baux (onboarding groupé, atomique) ;
 - créer ou modifier une règle de rappel ;
 - générer les relances prévues ;
 - confirmer une réception de loyer ;
