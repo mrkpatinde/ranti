@@ -7,6 +7,7 @@ import {
   FileText,
   Home,
   MessageCircle,
+  X,
 } from "lucide-react";
 
 const SIGNUP_HREF = "/signup";
@@ -136,6 +137,67 @@ const faq = [
   ],
 ];
 
+// Comparatif honnête : les vraies alternatives du propriétaire (cahier, WhatsApp, Excel).
+// Une valeur "yes" = coche verte, "no" = croix grise, tout le reste = note nuancée.
+const comparisonRows = [
+  {
+    feature: "Voir qui a payé et qui doit, en un coup d'œil",
+    ranti: "yes",
+    cahier: "À recompter à la main",
+    excel: "Si le fichier est à jour",
+  },
+  {
+    feature: "Échéances créées automatiquement depuis le bail",
+    ranti: "yes",
+    cahier: "no",
+    excel: "Saisie manuelle",
+  },
+  {
+    feature: "Relances envoyées au bon moment, sans y penser",
+    ranti: "yes",
+    cahier: "Vous devez y penser",
+    excel: "no",
+  },
+  {
+    feature: "Preuves de paiement rangées avec chaque loyer",
+    ranti: "yes",
+    cahier: "Éparpillées dans WhatsApp",
+    excel: "no",
+  },
+  {
+    feature: "Quittance générée après votre validation",
+    ranti: "yes",
+    cahier: "À écrire à la main",
+    excel: "À écrire à la main",
+  },
+  {
+    feature: "Historique fiable, corrections toujours visibles",
+    ranti: "yes",
+    cahier: "Ratures et pages perdues",
+    excel: "Écrasé sans trace",
+  },
+];
+
+function CompareCell({ value }: { value: string }) {
+  if (value === "yes") {
+    return (
+      <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-[#e7f0e9]">
+        <Check size={16} strokeWidth={2.4} className="text-[#235a41]" />
+        <span className="sr-only">Oui</span>
+      </span>
+    );
+  }
+  if (value === "no") {
+    return (
+      <>
+        <X size={17} strokeWidth={2} className="mx-auto text-[#ccc5b5]" />
+        <span className="sr-only">Non</span>
+      </>
+    );
+  }
+  return <span className="block text-xs leading-snug text-[#8c8578]">{value}</span>;
+}
+
 export default function Landing() {
   return (
     <div className="min-h-screen bg-[#faf3e5] text-[#163828]">
@@ -148,6 +210,7 @@ export default function Landing() {
           <nav className="hidden items-center gap-8 text-sm font-medium text-[#57534e] md:flex">
             <a href="#fonctionnement" className="transition hover:text-[#163828]">Fonctionnement</a>
             <a href="#confiance" className="transition hover:text-[#163828]">Avantages</a>
+            <a href="#comparaison" className="transition hover:text-[#163828]">Comparatif</a>
             <a href="#faq" className="transition hover:text-[#163828]">Questions</a>
           </nav>
           <div className="flex items-center gap-3">
@@ -253,6 +316,62 @@ export default function Landing() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section id="comparaison" className="px-6 py-24">
+          <div className="mx-auto max-w-6xl">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#b87413]">Vous avez déjà une méthode</p>
+              <h2 className="font-display mt-4 text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#163828] md:text-5xl [text-wrap:balance]">
+                Ranti remplace le cahier, sans en perdre la simplicité.
+              </h2>
+              <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#57534e]">
+                Cahier, WhatsApp, Excel : ça tient jusqu'au premier oubli ou au premier litige. Voici ce que Ranti garde à votre place.
+              </p>
+            </div>
+
+            <div className="mt-12 overflow-hidden rounded-[24px] border border-[#eae0ca] bg-white shadow-[0_8px_28px_-14px_rgba(22,56,40,0.25)]">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[680px] border-separate border-spacing-0 text-center">
+                  <thead>
+                    <tr className="bg-[#f4ebd8]">
+                      <th className="sticky left-0 z-10 bg-[#f4ebd8] px-6 py-5 text-left" />
+                      <th className="border-x border-[#dde7dd] px-4 py-5">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-[#163828] px-4 py-2 text-[#faf3e5]">
+                          <RantiLogo size={16} />
+                          <span className="font-display text-sm font-extrabold tracking-tight">Ranti</span>
+                        </span>
+                      </th>
+                      <th className="px-4 py-5 text-xs font-bold uppercase tracking-[0.1em] text-[#8c8578]">Cahier + WhatsApp</th>
+                      <th className="px-4 py-5 text-xs font-bold uppercase tracking-[0.1em] text-[#8c8578]">Tableur Excel</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparisonRows.map((row) => (
+                      <tr key={row.feature}>
+                        <th scope="row" className="sticky left-0 z-10 border-t border-[#f2efe6] bg-white px-6 py-5 text-left text-sm font-semibold text-[#163828]">
+                          {row.feature}
+                        </th>
+                        <td className="border-x border-t border-[#dde7dd] bg-[#eef4ea] px-4 py-5 align-middle">
+                          <CompareCell value={row.ranti} />
+                        </td>
+                        <td className="border-t border-[#f2efe6] px-4 py-5 align-middle">
+                          <CompareCell value={row.cahier} />
+                        </td>
+                        <td className="border-t border-[#f2efe6] px-4 py-5 align-middle">
+                          <CompareCell value={row.excel} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <p className="mt-5 text-center text-sm text-[#a8a29e]">
+              Ranti ne touche jamais votre argent. Vous validez, Ranti garde la mémoire.
+            </p>
           </div>
         </section>
 
