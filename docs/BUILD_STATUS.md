@@ -68,9 +68,16 @@ quittance PDF → relance SMS → confirmation locataire.
 
 ## 4. Ce qui reste incomplet (honnête)
 
-- **Envoi SMS réel** : Africa's Talking en mode sandbox tant que `AT_API_KEY`
-  / `AT_USERNAME` ne sont pas configurés. Le cron loggue le SMS au lieu de
-  l'envoyer — suffisant pour la démo, pas pour la prod.
+- **Canal de relance de fait = WhatsApp (cockpit ranti-ops).** Le cron SMS
+  `/api/cron/reminders` est **dormant par défaut** : il ne fait rien tant que
+  `REMINDERS_SMS_ENABLED` (`1`/`true`) n'est pas défini. Raison : sans
+  coordination avec les envois ops (`reminder_events`), activer le SMS
+  provoquait une double relance (SMS + WhatsApp) sur la même échéance, et le
+  mode sandbox enregistrait des lignes « envoyée » fantômes. Voir M1 (revue
+  2026-07-05).
+- **Envoi SMS réel** : quand on voudra le SMS, prérequis = (1) cross-dedup
+  cron ↔ `reminder_events`, (2) `AT_API_KEY`/`AT_USERNAME` prod, (3)
+  `REMINDERS_SMS_ENABLED=1`. Aujourd'hui non activé.
 - **`CRON_SECRET` et `SUPABASE_SECRET_KEY`** à définir dans Vercel avant que
   la relance tourne réellement.
 - **Login téléphone** : nécessite le provider Phone activé dans Supabase Auth
@@ -172,8 +179,9 @@ Plan B si réseau instable : captures d'écran du parcours prises à l'avance.
 
 1. Configurer `CRON_SECRET` + `SUPABASE_SECRET_KEY` dans Vercel et vérifier
    une exécution réelle du cron (logs Vercel).
-2. Activer un provider SMS (Africa's Talking prod ou Twilio) et tester une
-   relance de bout en bout sur un vrai numéro béninois.
+2. Canal de relance : WhatsApp (ranti-ops) fait foi. Le SMS reste dormant
+   (`REMINDERS_SMS_ENABLED` off). Avant d'activer un provider SMS : coder le
+   cross-dedup cron ↔ `reminder_events` pour ne pas doubler WhatsApp.
 3. Merger `stabilize/p0-invariants` dans `main` (le live est déjà aligné).
 4. Écran « Relances » côté propriétaire : historique des SMS envoyés
    (table `reminders`, déjà en place) + validation des déclarations locataires
