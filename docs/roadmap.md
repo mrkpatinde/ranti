@@ -124,6 +124,15 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-05)
 
+- Alias PI-SPI (Tier 1) : le propriétaire renseigne son alias de paiement PI-SPI
+  (`/settings/payment`, donnée mutable hors identité verrouillée ADR-002). L'alias
+  s'affiche sur l'écran d'encaissement et sur la page publique `/confirmer` du
+  locataire (RPC `get_rent_due_by_token` étendue, migration `20260705140000`). Le
+  locataire paie directement, instantané et gratuit ; Ranti ne détient jamais les
+  fonds — aucun agrément EME/EDP requis. L'injection de l'alias dans le SMS de
+  relance (ADR-006, cron, ranti-ops) est volontairement reportée (gel features,
+  risque pipeline live). Voir ADR-009. Contexte : MTN MoMo Bénin connecté à PI-SPI
+  depuis le 28/06/2026 (Moov + MTN + banques = couverture locataire OK).
 - Landing : section comparatif (PR #91) sur la page publique — tableau Ranti vs
   cahier + WhatsApp vs tableur Excel (6 lignes = les 5 questions produit + Reminder/Proof
   engine), notes nuancées côté alternatives (comparatif honnête), cadrage relances

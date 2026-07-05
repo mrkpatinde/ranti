@@ -22,6 +22,8 @@ type RentDueByToken = {
   unit_name: string | null;
   tenant_first_name: string | null;
   declaration_status: string | null;
+  landlord_payment_alias: string | null;
+  landlord_payment_alias_type: string | null;
 };
 
 function formatAmount(amount: number): string {
@@ -150,6 +152,30 @@ export default async function ConfirmerPage({
             </span>
           </div>
         </div>
+
+        {/* Instruction de paiement PI-SPI — l'alias du propriétaire */}
+        {rentDue.landlord_payment_alias &&
+        !alreadyConfirmed &&
+        !alreadyDraft &&
+        !success &&
+        rentDue.status !== "paid" ? (
+          <div className="mt-8 rounded-2xl border border-primary/20 bg-secondary px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              Payer par PI-SPI
+            </p>
+            <p className="mt-1 text-sm leading-6 text-foreground/80">
+              Envoyez {formatAmount(rentDue.amount_remaining)} à l&apos;alias du propriétaire
+              depuis votre appli (MTN, Moov, banque). C&apos;est instantané et gratuit.
+            </p>
+            <p className="mt-2 text-lg font-bold tracking-wide text-foreground">
+              {rentDue.landlord_payment_alias}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {rentDue.landlord_payment_alias_type === "address" ? "Adresse PI-SPI" : "Numéro"} ·
+              puis touchez « J&apos;ai payé ce loyer » ci-dessous.
+            </p>
+          </div>
+        ) : null}
 
         {/* État actuel */}
         <div className="mt-8">
