@@ -11,7 +11,11 @@ import {
 
 // The signup forms are rendered server-side (server actions) and passed in as
 // nodes; this client gate only decides which signup methods are visible for
-// the selected country. Senegal and Côte d'Ivoire are Google-only for now.
+// the selected country.
+// SPRINT FREEZE (2026-07) : les inscriptions hors Bénin sont gelées pendant le
+// sprint terrain — l'UI n'offre aucun bouton, et côté serveur la création de
+// profil exige un numéro béninois (lib/auth/validation.ts), donc aucun compte
+// hors Bénin ne peut aboutir même en contournant l'UI.
 export function CountrySignupGate({
   phoneSignup,
   googleSignup,
@@ -55,13 +59,10 @@ export function CountrySignupGate({
           {googleSignup}
         </>
       ) : (
-        <>
-          <p className="rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm leading-6 text-foreground/70">
-            Au {country.name}, l&apos;inscription se fait pour le moment avec
-            votre compte Google.
-          </p>
-          {googleSignup}
-        </>
+        <p className="rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm leading-6 text-foreground/70">
+          Ranti arrive bientôt au {country.name}. Les inscriptions y ouvriront
+          après le lancement complet au Bénin — revenez très vite.
+        </p>
       )}
     </div>
   )

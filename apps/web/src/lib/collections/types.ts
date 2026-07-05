@@ -12,6 +12,7 @@ export type Collection = {
   amount_received: number
   currency: string
   payment_method: PaymentMethod
+  payment_reference: string | null
   status: CollectionStatus
   confirmed_at: string | null
   cancelled_at: string | null

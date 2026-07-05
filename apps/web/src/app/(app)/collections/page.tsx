@@ -193,6 +193,12 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                   </span>
                 </div>
 
+                {c.payment_reference ? (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Réf. transaction : <span className="font-medium text-foreground">{c.payment_reference}</span>
+                  </p>
+                ) : null}
+
                 {c.note ? (
                   <p className="mt-3 text-sm text-muted-foreground">{c.note}</p>
                 ) : null}

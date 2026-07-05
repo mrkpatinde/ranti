@@ -133,7 +133,7 @@ async function checkRemindersDue(
         year: "numeric",
       });
       const PUBLIC_URL =
-        process.env.PUBLIC_URL || "https://ranti.app";
+        process.env.PUBLIC_URL || "https://www.monranti.com";
       const lien = `${PUBLIC_URL}/confirmer/${due.confirmation_token}`;
 
       const referenceDate = template.startsWith("j+") ? mois : dateEcheance;

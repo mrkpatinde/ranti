@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
+import { logLoginEvent } from "@/lib/analytics"
 import { AUTH_PATHS } from "./paths"
 import { normalizeOtp, normalizePassword, normalizePhone } from "./validation"
 import type { AuthResult } from "./types"
@@ -173,6 +174,8 @@ export async function signInWithPhonePassword(formData: FormData): Promise<AuthR
       code: error.code,
     }
   }
+
+  await logLoginEvent()
 
   revalidatePath("/", "layout")
 

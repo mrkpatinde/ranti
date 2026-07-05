@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { SubmitButton } from "@/components/submit-button";
 import { createClient } from "@/lib/supabase/server";
 import { confirmRentPayment } from "./actions";
+import { DeclarationFields } from "./declaration-fields";
 
 // ============================================================
 // Page de confirmation locataire — publique, zéro auth.
@@ -42,6 +43,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   already_confirmed: "Ce loyer a déjà été confirmé par le propriétaire.",
   already_declared: "Vous avez déjà déclaré ce paiement. Le propriétaire va le vérifier.",
   insert_failed: "Impossible d'enregistrer votre déclaration. Réessayez.",
+  method_invalid: "Choisissez le moyen de paiement utilisé.",
+  reference_required: "Indiquez la référence de la transaction (reçue par SMS).",
+  reference_invalid: "Référence trop longue.",
 };
 
 export default async function ConfirmerPage({
@@ -169,16 +173,19 @@ export default async function ConfirmerPage({
               </p>
             </div>
           ) : (
-            <form action={confirmRentPayment.bind(null, token)}>
+            <form action={confirmRentPayment.bind(null, token)} className="space-y-4">
+              <DeclarationFields />
+
               <SubmitButton
                 className="inline-flex w-full justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                 pendingLabel="Envoi…"
               >
                 J&apos;ai payé ce loyer
               </SubmitButton>
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                En cliquant, vous confirmez avoir payé votre loyer. Le
-                propriétaire validera cette déclaration.
+              <p className="text-center text-xs text-muted-foreground">
+                Le montant déclaré est celui fixé par votre bail
+                ({formatAmount(rentDue.amount_remaining)}). Le propriétaire
+                validera cette déclaration.
               </p>
             </form>
           )}
