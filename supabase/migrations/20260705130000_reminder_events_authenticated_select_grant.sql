@@ -1,0 +1,15 @@
+-- Fix: le propriétaire ne pouvait pas voir ses relances manuelles (écran /reminders
+-- plantait avec « This page couldn't load / A server error occurred »).
+--
+-- Cause : `reminder_events` (créée côté ranti-ops, service-role only) a bien une
+-- policy SELECT « Landlords see own reminder events »
+-- (USING landlord_id = private.current_landlord_id(), migration 20260703215138)
+-- mais AUCUN grant table pour `authenticated`. PostgREST en rôle authenticated
+-- renvoie 403 « permission denied for table reminder_events » AVANT l'évaluation
+-- de la RLS. getLandlordReminders (lib/reminders/queries.ts) fusionne reminders +
+-- reminder_events ; le 403 sur reminder_events fait échouer toute la page.
+--
+-- Correctif : accorder uniquement SELECT à authenticated. La policy scope déjà aux
+-- lignes du propriétaire ; aucune écriture accordée (les relances manuelles sont
+-- écrites par le service-role via ranti-ops).
+grant select on table public.reminder_events to authenticated;
