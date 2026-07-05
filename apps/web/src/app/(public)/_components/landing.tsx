@@ -331,7 +331,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="mt-12 overflow-hidden rounded-[24px] border border-[#eae0ca] bg-white shadow-[0_8px_28px_-14px_rgba(22,56,40,0.25)]">
+            <div className="mt-12 hidden overflow-hidden rounded-[24px] border border-[#eae0ca] bg-white shadow-[0_8px_28px_-14px_rgba(22,56,40,0.25)] md:block">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[680px] border-separate border-spacing-0 text-center">
                   <thead>
@@ -367,6 +367,39 @@ export default function Landing() {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            <div className="mt-8 space-y-4 md:hidden">
+              {comparisonRows.map((row) => (
+                <div key={row.feature} className="overflow-hidden rounded-2xl border border-[#eae0ca] bg-white shadow-[0_1px_2px_rgba(22,56,40,0.06)]">
+                  <p className="border-b border-[#f2efe6] bg-[#faf3e5] px-4 py-3 text-sm font-bold text-[#163828]">
+                    {row.feature}
+                  </p>
+                  <div className="divide-y divide-[#f2efe6]">
+                    <div className="flex items-center justify-between gap-3 bg-[#eef4ea] px-4 py-3">
+                      <span className="inline-flex items-center gap-1.5">
+                        <RantiLogo size={14} />
+                        <span className="font-display text-sm font-extrabold tracking-tight text-[#163828]">Ranti</span>
+                      </span>
+                      <span className="flex max-w-[52%] shrink-0 items-center justify-end text-right">
+                        <CompareCell value={row.ranti} />
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#8c8578]">Cahier + WhatsApp</span>
+                      <span className="flex max-w-[52%] shrink-0 items-center justify-end text-right">
+                        <CompareCell value={row.cahier} />
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#8c8578]">Tableur Excel</span>
+                      <span className="flex max-w-[52%] shrink-0 items-center justify-end text-right">
+                        <CompareCell value={row.excel} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             <p className="mt-5 text-center text-sm text-[#a8a29e]">
