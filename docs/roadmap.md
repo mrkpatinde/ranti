@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-07-03
+Dernière mise à jour : 2026-07-05
 
 ## Phase 0 - Foundation
 
@@ -64,6 +64,7 @@ Note : le Sprint 3 commence par le parcours créer ma première propriété. La 
 UI : création livrée (units/new). Le reste existe côté logique métier (actions updateUnit, setUnitAvailability, archiveUnit) mais sans écran dédié.
 
 - [x] Créer un logement
+- [x] Ajouter plusieurs logements d'un coup (onboarding groupé /units/bulk, avec locataire+bail+échéances optionnels, RPC atomique bulk_onboard_portfolio)
 - [ ] Modifier un logement (logique prête, UI à faire)
 - [ ] Changer son statut (logique prête, UI à faire)
 - [ ] Archiver un logement (logique prête, UI à faire)
@@ -120,6 +121,20 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Tests terrain
 - [ ] Corrections
 - [ ] Première beta privée
+
+## Recent (2026-07-05)
+
+- Onboarding groupé (PR #89) : écran propriétaire `/units/bulk` pour ajouter plusieurs
+  logements d'un coup, chacun optionnellement avec locataire + bail activé + échéances.
+  RPC atomique `bulk_onboard_portfolio` (SECURITY INVOKER, réutilise
+  `activate_lease`/`generate_rent_dues`, tout-ou-rien). Corrige le cul-de-sac du flux
+  unitaire (un logement -> création locataire forcée). 126 tests verts.
+- Fix relances côté propriétaire : l'écran `/reminders` plantait (server error) car
+  `reminder_events` avait la policy SELECT du propriétaire mais aucun grant table pour
+  `authenticated` (403 « permission denied » avant RLS). Grant SELECT ajouté (migration
+  `20260705130000`) ; la policy scope déjà aux lignes du propriétaire.
+- Sprint instrumentation + lien /confirmer dans les relances : mergés et déployés
+  (ranti #88, ranti-ops #1).
 
 ## Recent (2026-07-03)
 
