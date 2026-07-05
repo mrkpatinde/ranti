@@ -36,6 +36,25 @@ export async function GET(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Canal de relance de fait = WhatsApp via ranti-ops (cockpit opérateur).
+  // Le cron SMS reste dormant tant que REMINDERS_SMS_ENABLED n'est pas activé :
+  // évite la double relance (SMS + WhatsApp) sur la même échéance et les lignes
+  // « envoyée » fantômes en sandbox (le SMS n'est que loggé, jamais remis).
+  // ⚠️ Avant d'activer : implémenter le cross-dedup avec reminder_events (les
+  // envois ops), sinon un locataire reçoit SMS + WhatsApp. Voir M1, revue
+  // sécurité 2026-07-05.
+  const smsEnabled =
+    process.env.REMINDERS_SMS_ENABLED === "1" ||
+    process.env.REMINDERS_SMS_ENABLED === "true";
+  if (!smsEnabled) {
+    return Response.json({
+      ok: true,
+      skipped: "sms_disabled",
+      sent: 0,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   // Client service-role : le cron n'a pas de session utilisateur,
   // le client anon serait bloqué par RLS et ne verrait aucune échéance.
   const supabase = createAdminClient();
