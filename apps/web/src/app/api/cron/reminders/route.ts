@@ -132,13 +132,24 @@ async function checkRemindersDue(
         continue;
       }
 
-      // Arrêter les relances après J+10
-      if (template === "j+10" && (due.reminder_count || 0) >= 3) {
-        await supabase
-          .from("rent_dues")
-          .update({ next_reminder_at: null })
-          .eq("id", due.id);
-        continue;
+      // J+10 = dernière relance, envoyée UNE seule fois. On se base sur
+      // l'existence d'un reminder j+10 pour cette échéance, pas sur le compteur
+      // global : celui-ci atteignait 3 (j-5, j-1, j+3) avant d'arriver à J+10,
+      // si bien que le J+10 n'était jamais envoyé (L3, branche morte).
+      if (template === "j+10") {
+        const { data: alreadySent } = await supabase
+          .from("reminders")
+          .select("id")
+          .eq("rent_due_id", due.id)
+          .eq("template", "j+10")
+          .limit(1);
+        if (alreadySent && alreadySent.length > 0) {
+          await supabase
+            .from("rent_dues")
+            .update({ next_reminder_at: null })
+            .eq("id", due.id);
+          continue;
+        }
       }
 
       const montant = formatAmount(due.amount_due);

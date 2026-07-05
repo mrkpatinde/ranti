@@ -46,7 +46,7 @@ quittance PDF → relance SMS → confirmation locataire.
 - `apps/web/src/lib/supabase/admin.ts` : client service-role serveur
   uniquement (`SUPABASE_SECRET_KEY`), utilisé par le cron. Le cron renvoie
   une 500 explicite si la clé manque.
-- `apps/web/vercel.json` : cron quotidien 07:00 UTC sur `/api/cron/reminders`.
+- `apps/web/vercel.json` : cron quotidien 08:00 UTC (09:00 Bénin) sur `/api/cron/reminders`.
 - Fenêtres de relance corrigées dans `sms.ts` : J-5→J-2 = `j-5`, J-1/J-0 =
   `j-1`, retard = `j+3`, retard ≥ 10 j = `j+10` (copy « en retard » sans durée).
 - Live Supabase resynchronisé : migrations `reminders`, `rent_due_invariants`,
