@@ -59,7 +59,7 @@ export function ReceiptPdf({
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={s.logoMark}>
               <View style={[s.bar, { width: 16 }]} />
-              <View style={[s.bar, { width: 12, backgroundColor: "#f2a33c" }]} />
+              <View style={[s.bar, { width: 12, backgroundColor: "#94f27f" }]} />
               <View style={[s.bar, { width: 8, marginBottom: 0 }]} />
             </View>
             <View style={{ marginLeft: 8 }}>
