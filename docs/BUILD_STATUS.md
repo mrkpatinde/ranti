@@ -80,8 +80,17 @@ quittance PDF → relance SMS → confirmation locataire.
   `REMINDERS_SMS_ENABLED=1`. Aujourd'hui non activé.
 - **`CRON_SECRET` et `SUPABASE_SECRET_KEY`** à définir dans Vercel avant que
   la relance tourne réellement.
-- **Login téléphone** : nécessite le provider Phone activé dans Supabase Auth
-  (sinon mode local `RANTI_LOCAL_AUTH` pour développer/démontrer).
+- **Auth Google-only (temporaire, 2026-07-05)** : connexion et inscription
+  passent uniquement par Google, quel que soit le pays de l'utilisateur. Les
+  parcours téléphone/mot de passe/OTP/récupération sont **gelés** — le code
+  reste dans `lib/auth/actions.ts`, `validation.ts` et les composants
+  `phone-field`/`password-field`, mais aucune page ne les expose (`/recover`
+  et `/signup/verify` redirigent). Le gate pays d'inscription est retiré.
+  Dégel = re-brancher les formulaires + réactiver le provider Phone Supabase.
+  Note : l'onboarding profil exige toujours un numéro béninois (+229) —
+  contrainte à lever pour les inscrits hors Bénin.
+- **Mode local** : `RANTI_LOCAL_AUTH` reste disponible pour développer sans
+  OAuth.
 - UI modifier/archiver manquante pour certains objets (logique métier prête).
 - WhatsApp : canal prévu (colonne `channel`), non implémenté — SMS d'abord.
 - Deux warnings advisor Supabase sur les RPC token : **intentionnel**

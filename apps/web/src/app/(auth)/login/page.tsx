@@ -1,37 +1,18 @@
 import Link from "next/link"
-import { redirect } from "next/navigation"
-import { AUTH_PATHS, signInWithGoogle, signInWithPhonePassword } from "@/lib/auth"
-import { normalizePhone } from "@/lib/auth/validation"
-import { SubmitButton } from "@/components/submit-button"
-import { PasswordField } from "../password-field"
-import { PhoneField } from "../phone-field"
+import { AUTH_PATHS, signInWithGoogle } from "@/lib/auth"
+
+// Auth Google-only (temporaire). Les chemins téléphone/mot de passe sont gelés
+// (code conservé dans lib/auth + composants, non exposés). Voir BUILD_STATUS.
 
 type LoginPageProps = {
   searchParams?: Promise<{
     error?: string
-    phone?: string
   }>
-}
-
-async function submitLogin(formData: FormData) {
-  "use server"
-
-  const phone = normalizePhone(formData.get("phone"))
-  const result = await signInWithPhonePassword(formData)
-
-  if (!result.ok) {
-    const params = new URLSearchParams({ error: result.message })
-    if (phone) params.set("phone", phone)
-    redirect(`${AUTH_PATHS.signIn}?${params.toString()}`)
-  }
-
-  redirect(AUTH_PATHS.afterSignIn)
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams
   const errorMessage = params?.error
-  const phone = params?.phone ?? ""
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
@@ -50,66 +31,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
         </div>
 
-        {/* Phone + password is the primary path (priority) — Google is secondary below. */}
-        <form action={submitLogin} className="space-y-5">
-          <PhoneField
-            defaultValue={phone}
-            labelClassName="block text-sm font-medium text-foreground"
-          />
+        {errorMessage ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
+          </p>
+        ) : null}
 
-          <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-foreground"
-            >
-              Mot de passe
-            </label>
-            <PasswordField
-              autoComplete="current-password"
-              inputClassName="w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
-            />
-          </div>
-
-          {errorMessage ? (
-            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {errorMessage}
-            </p>
-          ) : null}
-
-          <SubmitButton
-            className="w-full rounded-full bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-            pendingLabel="Connexion…"
-          >
-            Se connecter
-          </SubmitButton>
-
-          <div className="flex items-center justify-between">
-            <Link
-              href={AUTH_PATHS.recover}
-              className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
-            >
-              Mot de passe oublié
-            </Link>
-            <Link
-              href={AUTH_PATHS.signUp}
-              className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
-            >
-              Créer un espace
-            </Link>
-          </div>
-        </form>
-
-        <div className="flex items-center gap-3">
-          <span className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">ou</span>
-          <span className="h-px flex-1 bg-border" />
-        </div>
-
-        {/* Google OAuth — secondary, below the primary phone path. */}
         <form action={signInWithGoogle}>
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-base font-medium text-foreground/80 transition hover:bg-secondary/60"
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-base font-medium text-foreground transition hover:bg-secondary/60"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -120,6 +51,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Continuer avec Google
           </button>
         </form>
+
+        <Link
+          href={AUTH_PATHS.signUp}
+          className="block text-center text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
+        >
+          Créer un espace
+        </Link>
       </section>
     </main>
   )
