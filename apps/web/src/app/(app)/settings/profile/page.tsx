@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { toLocalPhone } from "@/lib/auth"
+import { formatPhoneForDisplay } from "@/lib/auth/countries"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_URL, SUPPORT_WHATSAPP_URL } from "@/lib/support"
 
@@ -58,7 +58,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
           <ProfileRow label="Civilité" value={civility} />
           <ProfileRow label="Prénom" value={landlord.first_name} />
           <ProfileRow label="Nom" value={landlord.last_name} />
-          <ProfileRow label="Téléphone" value={`+229 ${toLocalPhone(landlord.phone)}`} />
+          <ProfileRow label="Téléphone" value={formatPhoneForDisplay(landlord.phone)} />
         </div>
 
         <p className="rounded-2xl border border-border bg-background px-4 py-3 text-sm leading-6 text-foreground/70">

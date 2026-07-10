@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-07-05
+Dernière mise à jour : 2026-07-10
 
 ## Phase 0 - Foundation
 
@@ -48,6 +48,10 @@ Livrables :
 - [x] Saisie téléphone Bénin : préfixe fixe 229, format 01 + 10 chiffres, espacement auto
 
 Note : flux codé et testé via Playwright en mode auth local. L'envoi réel des OTP par SMS nécessite un provider SMS configuré dans Supabase Auth.
+
+Mise à jour 2026-07-10 (ADR-010) : l'auth téléphone + mot de passe est gelée. Inscription et connexion passent uniquement par Google, tous pays. Le code téléphone/OTP est conservé pour un dégel futur.
+
+Mise à jour 2026-07-10 (ADR-011) : l'onboarding profil accepte les numéros mobiles Bénin, Sénégal et Côte d'Ivoire (sélecteur d'indicatif alimenté par le registre des pays). Nouveau pays = nouvelle entrée dans le registre.
 
 ## Sprint 3 - Properties
 

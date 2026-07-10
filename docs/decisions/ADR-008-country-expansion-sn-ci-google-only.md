@@ -2,7 +2,10 @@
 
 ## Statut
 
-Acceptée — 2026-07-03.
+Acceptée — 2026-07-03. Partiellement remplacée par ADR-010 (2026-07-10) :
+les voies d'inscription/connexion par téléphone sont gelées, l'auth est
+Google-only pour tous les pays. Le registre des pays et les plans de
+numérotation restent en vigueur.
 
 ## Contexte
 

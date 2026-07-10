@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation"
-import { BeninPhoneInput } from "@/components/benin-phone-input"
+import { CountryPhoneInput } from "@/components/country-phone-input"
 import { SubmitButton } from "@/components/submit-button"
-import { AUTH_PATHS, getCurrentUser, toLocalPhone } from "@/lib/auth"
+import { AUTH_PATHS, getCurrentUser } from "@/lib/auth"
+import {
+  DEFAULT_COUNTRY_CODE,
+  countryForPhone,
+  toCountryLocalPhone,
+} from "@/lib/auth/countries"
 import { createLandlordProfile, getCurrentLandlord } from "@/lib/landlords"
 
 type ProfilePageProps = {
@@ -15,6 +20,8 @@ const fullInputClass =
   "w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
 const phoneInputClass =
   "w-full rounded-r-xl border border-l-0 border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
+const countrySelectClass =
+  "rounded-l-xl border border-border bg-background px-3 py-3 text-base text-foreground/70 outline-none transition focus:border-primary"
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const existing = await getCurrentLandlord()
@@ -24,7 +31,13 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   }
 
   const currentUser = await getCurrentUser()
-  const defaultPhone = currentUser?.phone ? toLocalPhone(currentUser.phone) : ""
+  // Legacy phone-auth accounts carry a verified number: preselect its country
+  // and prefill the local part. Google-only signups start on the default.
+  const knownCountry = countryForPhone(currentUser?.phone)
+  const defaultPhone =
+    knownCountry && currentUser?.phone
+      ? toCountryLocalPhone(knownCountry, currentUser.phone)
+      : ""
   const params = await searchParams
   const errorMessage = params?.error
   const missingPhone = params?.missing === "phone"
@@ -59,20 +72,17 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <label htmlFor="phone" className={labelClass}>
               Numéro de téléphone <span className="text-red-700">*</span>
             </label>
-            <div className="flex">
-              <span className="inline-flex items-center rounded-l-xl border border-border bg-background px-4 py-3 text-base text-foreground/70">
-                🇧🇯 +229
-              </span>
-              <BeninPhoneInput
-                id="phone"
-                name="phone"
-                defaultValue={defaultPhone}
-                required
-                className={phoneInputClass}
-              />
-            </div>
+            <CountryPhoneInput
+              id="phone"
+              name="phone"
+              defaultCountryCode={knownCountry?.code ?? DEFAULT_COUNTRY_CODE}
+              defaultValue={defaultPhone}
+              required
+              selectClassName={countrySelectClass}
+              inputClassName={phoneInputClass}
+            />
             <p className="text-sm leading-6 text-muted-foreground">
-              Tapez les 10 chiffres : Ranti ajoute les espaces automatiquement.
+              Choisissez votre indicatif, puis tapez votre numéro mobile local : Ranti ajoute les espaces automatiquement.
             </p>
           </div>
 
