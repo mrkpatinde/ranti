@@ -24,7 +24,7 @@ const s = StyleSheet.create({
   page: { padding: 40, fontSize: 10, color: "#0A0A0A", fontFamily: "Helvetica" },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   headerBox: { borderBottomWidth: 1, borderBottomColor: "#E5E5E5", paddingBottom: 14, marginBottom: 14 },
-  logoMark: { width: 28, height: 28, backgroundColor: "#0A0A0A", borderRadius: 6, padding: 6, justifyContent: "center" },
+  logoMark: { width: 28, height: 28, backgroundColor: "#292929", borderRadius: 6, padding: 6, justifyContent: "center" },
   bar: { height: 2.5, backgroundColor: "#FFFFFF", borderRadius: 2, marginBottom: 2.5 },
   brand: { fontSize: 13, fontFamily: "Helvetica-Bold" },
   muted: { color: "#737373" },
@@ -59,7 +59,7 @@ export function ReceiptPdf({
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={s.logoMark}>
               <View style={[s.bar, { width: 16 }]} />
-              <View style={[s.bar, { width: 12, backgroundColor: "#f2a33c" }]} />
+              <View style={[s.bar, { width: 12, backgroundColor: "#94f27f" }]} />
               <View style={[s.bar, { width: 8, marginBottom: 0 }]} />
             </View>
             <View style={{ marginLeft: 8 }}>

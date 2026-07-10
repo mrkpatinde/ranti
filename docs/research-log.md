@@ -67,9 +67,36 @@ Décision produit possible :
 Niveau de confiance : faible / moyen / fort
 ```
 
+## Entrées
+
+```txt
+Date : 2026-07-10
+Lieu / canal : OSINT desk research (méthode : docs/methode-osint.md)
+Profil : marché propriétaires Bénin (sources ouvertes, pas d'entretien direct)
+Nombre de logements : n/a
+Méthode actuelle : démarcheur + carnet papier + paiement trimestriel cash/mobile money
+
+Ce qui a été dit ou observé :
+- ~75 % des annonces locatives passent par démarcheurs informels sur Facebook/WhatsApp/TikTok (La Marina BJ 2025).
+- Arnaques immobilières récurrentes via WhatsApp/mobile money ; alertes CNIN → méfiance digitale forte, héritée du mobile money.
+- Impayés judiciarisés et médiatisés (condamnation 1 940 000 FCFA, La Nouvelle Tribune 2025) → besoin de preuve horodatée.
+- Agences (BENIN HOUSE, GEST-IONN, BENIN-IMMO) facturent 8–15 % du loyer pour gestion complète ; personne ne sert le propriétaire auto-gérant 1–10 unités.
+- Vocabulaire terrain : « avance » (3 mois prépayés), « caution » (plafond 3 mois, art. 59 loi 2018-12), « prépayés », « trimestre », « démarcheur » (Matin Libre 2023).
+- Cadre légal : loi 2018-12, loi 2022-30, arrêté 2022-0120 (contrat type), Code du numérique 2017-20 + APDP.
+- Quittance formelle = besoin locataire (banque, visa, justificatif domicile) → levier viral.
+
+Décision produit possible :
+- Positionnement : contrôle + preuve pour l'auto-gérant, jamais « digitalisez-vous ».
+- Quittance gratuite illimitée avec QR de vérification = cheval de Troie viral ; payant = registre/relances/historique.
+- Enregistrement APDP + « Ranti n'encaisse rien » affichés comme arguments de confiance.
+- Démarcheurs = canal de distribution (parrainage), pas concurrent à contourner.
+
+Niveau de confiance : moyen (sources ouvertes convergentes, à valider par entretiens terrain)
+```
+
 ## Synthèse actuelle
 
-Aucune synthèse terrain documentée.
+Une entrée OSINT (2026-07-10). Aucune validation par entretien direct.
 
 ## Décisions issues du terrain
 

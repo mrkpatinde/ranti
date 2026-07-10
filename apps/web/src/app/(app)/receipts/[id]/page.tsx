@@ -72,7 +72,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
         {receipt.status === "cancelled" ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">Ce document est annulé. L’encaissement lié reste conservé dans le registre.</p> : null}
 
-        <article className="rounded-2xl border border-border bg-card p-7 shadow-[0_14px_50px_-18px_rgba(22,56,40,0.22)]">
+        <article className="rounded-2xl border border-border bg-card p-7 shadow-[0_14px_50px_-18px_rgba(41,41,41,0.22)]">
           <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
             <div className="flex items-center gap-3">
               <RantiLogo size={36} />

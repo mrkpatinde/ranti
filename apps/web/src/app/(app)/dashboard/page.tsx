@@ -149,7 +149,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           {hasActiveLease ? (
-            <Link href="/collections/new" className="inline-flex shrink-0 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(242,163,60,0.55)] transition hover:brightness-95">
+            <Link href="/collections/new" className="inline-flex shrink-0 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:brightness-95">
               Confirmer un paiement
             </Link>
           ) : null}
@@ -216,7 +216,7 @@ export default async function DashboardPage() {
             <p className="text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">À faire</p>
             <h2 className="font-display mt-3 text-xl font-extrabold tracking-tight">{nextAction.title}</h2>
             <p className="mt-2 text-base leading-7 text-foreground/70">{nextAction.body}</p>
-            <Link href={nextAction.href} className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(242,163,60,0.55)] transition hover:brightness-95">{nextAction.label}</Link>
+            <Link href={nextAction.href} className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:brightness-95">{nextAction.label}</Link>
             {nextAction.href !== "/properties/new" ? (
               <Link href="/units/bulk" className="mt-4 block text-sm font-medium text-primary underline-offset-4 hover:underline">Ou ajouter plusieurs logements en une fois</Link>
             ) : null}
