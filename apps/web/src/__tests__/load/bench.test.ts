@@ -1,4 +1,4 @@
-import { describe, it } from "vitest"
+import { describe, it, expect } from "vitest"
 
 /**
  * Load test — concurrent requests against the running dev server.
