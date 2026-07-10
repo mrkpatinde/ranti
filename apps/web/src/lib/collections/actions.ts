@@ -45,6 +45,7 @@ function collectionErrorMessage(message: string): string {
   if (message.includes("due_tenant_mismatch")) return "Une échéance ne correspond pas à ce locataire."
   if (message.includes("due_cancelled")) return "Une échéance annulée ne peut pas être encaissée."
   if (message.includes("not_found")) return "Donnée introuvable."
+  console.error("[collections] unmapped RPC error:", message)
   return "Encaissement impossible. Réessayez."
 }
 
@@ -54,6 +55,7 @@ async function generateDocumentForConfirmedCollection(receptionId: string): Prom
     p_reception_id: receptionId,
   })
 
+  if (error) console.error("[collections] generate_receipt failed:", error.message)
   if (error || !receiptId) return null
   return String(receiptId)
 }
@@ -135,7 +137,9 @@ export async function confirmCollection(formData: FormData) {
   const { error } = await supabase.rpc("confirm_collection", { p_reception_id: id })
 
   if (error) {
-    const message = error.message.includes("allocation_exceeds_due_at_confirm")
+    const known = error.message.includes("allocation_exceeds_due_at_confirm")
+    if (!known) console.error("[collections] unmapped confirm error:", error.message)
+    const message = known
       ? "Confirmation impossible : une autre confirmation a déjà couvert cette échéance."
       : "Confirmation impossible. Réessayez."
     redirect(`/collections?error=${encodeURIComponent(message)}`)
@@ -170,7 +174,9 @@ export async function cancelCollection(formData: FormData) {
   })
 
   if (error) {
-    const message = error.message.includes("has_receipt")
+    const known = error.message.includes("has_receipt")
+    if (!known) console.error("[collections] unmapped cancel error:", error.message)
+    const message = known
       ? "Impossible : une quittance a déjà été générée."
       : "Annulation impossible. Réessayez."
     redirect(`/collections?error=${encodeURIComponent(message)}`)
