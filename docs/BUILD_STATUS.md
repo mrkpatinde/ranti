@@ -87,8 +87,10 @@ quittance PDF → relance SMS → confirmation locataire.
   `phone-field`/`password-field`, mais aucune page ne les expose (`/recover`
   et `/signup/verify` redirigent). Le gate pays d'inscription est retiré.
   Dégel = re-brancher les formulaires + réactiver le provider Phone Supabase.
-  Note : l'onboarding profil exige toujours un numéro béninois (+229) —
-  contrainte à lever pour les inscrits hors Bénin.
+  Note : la contrainte « numéro béninois obligatoire » à l'onboarding est
+  levée (ADR-011) — sélecteur d'indicatif Bénin/Sénégal/Côte d'Ivoire, numéro
+  validé contre le plan du pays via le registre `countries.ts`. Un pays hors
+  registre (ex. Togo) reste bloqué tant que son plan n'y est pas ajouté.
 - **Mode local** : `RANTI_LOCAL_AUTH` reste disponible pour développer sans
   OAuth.
 - UI modifier/archiver manquante pour certains objets (logique métier prête).

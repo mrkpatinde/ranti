@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test"
 
 test("landing shows the primary call to action", async ({ page }) => {
   await page.goto("/")
-  await expect(page.getByRole("heading", { name: /Vos loyers, sans confusion/ })).toBeVisible()
-  await expect(page.getByRole("link", { name: "Ouvrir mon espace propriétaire" })).toBeVisible()
-  await expect(page.getByRole("link", { name: "Se connecter" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: /Qui a payé\. Qui doit\./ })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Créer mon espace" }).first()).toBeVisible()
+  await expect(page.getByRole("link", { name: "Se connecter" }).first()).toBeVisible()
 })
 
 test("signup offers Google only", async ({ page }) => {
@@ -41,10 +41,23 @@ test("frozen phone-auth pages redirect", async ({ page }) => {
   await expect(page).toHaveURL(/signup/)
 })
 
+test("profile offers the registry dial codes (ADR-011)", async ({ page }) => {
+  await page.goto("/onboarding/profile")
+  const country = page.getByLabel("Pays")
+  await expect(country).toBeVisible()
+  await expect(country.locator("option")).toHaveText(["🇧🇯 +229", "🇸🇳 +221", "🇨🇮 +225"])
+  await country.selectOption("SN")
+  await expect(page.getByLabel(/^Numéro de téléphone/)).toHaveAttribute(
+    "placeholder",
+    "77 123 45 67",
+  )
+})
+
 test("profile rejects a too-short name", async ({ page }) => {
   await page.goto("/onboarding/profile")
-  await page.getByLabel("Prénom", { exact: true }).fill("A")
-  await page.getByLabel("Nom", { exact: true }).fill("B")
+  await page.getByLabel(/^Numéro de téléphone/).fill("0190000000")
+  await page.getByLabel(/^Prénom/).fill("A")
+  await page.getByLabel(/^Nom/).fill("B")
   await page.getByRole("button", { name: "Accéder à mon espace" }).click()
   await expect(page.getByText("Indiquez votre prénom et votre nom.")).toBeVisible()
 })

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { AUTH_PATHS } from "@/lib/auth/paths"
 import { getCurrentUser, requireAuth } from "@/lib/auth/server"
 import { normalizeCivility, normalizeName, normalizePhone } from "@/lib/auth/validation"
+import { DEFAULT_COUNTRY_CODE, getCountry, normalizeCountryPhone } from "@/lib/auth/countries"
 
 function profileError(message: string): never {
   redirect(`${AUTH_PATHS.profile}?error=${encodeURIComponent(message)}`)
@@ -31,13 +32,21 @@ export async function createLandlordProfile(formData: FormData) {
   }
 
   const currentUser = await getCurrentUser()
+  // Legacy phone-auth accounts (frozen, ADR-010) carry a verified Benin
+  // number in their claims: it wins over the form. Google-only signups pick
+  // their country in the form; the number is validated against the registry's
+  // numbering plan (ADR-008).
   const claimPhone = normalizePhone(claims.phone ?? null)
   const userPhone = normalizePhone(currentUser?.phone ?? null)
-  const formPhone = normalizePhone(formData.get("phone"))
+  const country =
+    getCountry(String(formData.get("country") ?? "")) ?? getCountry(DEFAULT_COUNTRY_CODE)!
+  const formPhone = normalizeCountryPhone(country, formData.get("phone"))
   const phone = claimPhone ?? userPhone ?? formPhone
 
   if (!phone) {
-    profileError("Entrez votre numéro local à 10 chiffres.")
+    profileError(
+      `Entrez votre numéro mobile local à ${country.localDigits} chiffres (${country.name}, ex. ${country.placeholder}).`,
+    )
   }
 
   const supabase = await createClient()

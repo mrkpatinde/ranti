@@ -2,8 +2,13 @@ import { describe, it, expect } from "vitest"
 import {
   COUNTRIES,
   DEFAULT_COUNTRY_CODE,
+  countryForPhone,
+  formatCountryLocalPhone,
+  formatPhoneForDisplay,
   getCountry,
+  normalizeCountryPhone,
   supportsPhoneSignup,
+  toCountryLocalPhone,
 } from "../countries"
 
 describe("countries registry", () => {
@@ -63,5 +68,69 @@ describe("mobile numbering plans", () => {
       expect(country.localMobilePattern.source.includes("$")).toBe(true)
       expect(sample.length).toBe(country.localDigits)
     }
+  })
+})
+
+describe("normalizeCountryPhone", () => {
+  const bj = getCountry("BJ")!
+  const sn = getCountry("SN")!
+  const ci = getCountry("CI")!
+
+  it("normalizes a local number to E.164", () => {
+    expect(normalizeCountryPhone(bj, "0197147402")).toBe("+2290197147402")
+    expect(normalizeCountryPhone(sn, "771234567")).toBe("+221771234567")
+    expect(normalizeCountryPhone(ci, "0712345678")).toBe("+2250712345678")
+  })
+
+  it("accepts spaces and the country's own dialing code", () => {
+    expect(normalizeCountryPhone(sn, "77 123 45 67")).toBe("+221771234567")
+    expect(normalizeCountryPhone(sn, "+221 77 123 45 67")).toBe("+221771234567")
+    expect(normalizeCountryPhone(bj, "+229 01 97 14 74 02")).toBe("+2290197147402")
+  })
+
+  it("rejects another country's dialing code", () => {
+    expect(normalizeCountryPhone(sn, "+2290197147402")).toBeNull()
+    expect(normalizeCountryPhone(bj, "+221771234567")).toBeNull()
+    // Togo is not in the registry yet: +228 rejected for every country.
+    expect(normalizeCountryPhone(sn, "+22890123456")).toBeNull()
+  })
+
+  it("rejects invalid mobiles for the selected plan", () => {
+    expect(normalizeCountryPhone(sn, "711234567")).toBeNull() // 71 not allocated
+    expect(normalizeCountryPhone(ci, "0212345678")).toBeNull() // 02 not mobile
+    expect(normalizeCountryPhone(bj, "97147402")).toBeNull() // old 8-digit format
+    expect(normalizeCountryPhone(bj, "")).toBeNull()
+    expect(normalizeCountryPhone(bj, null)).toBeNull()
+  })
+})
+
+describe("phone display helpers", () => {
+  it("countryForPhone resolves stored E.164 numbers", () => {
+    expect(countryForPhone("+2290197147402")?.code).toBe("BJ")
+    expect(countryForPhone("+221771234567")?.code).toBe("SN")
+    expect(countryForPhone("+2250712345678")?.code).toBe("CI")
+    expect(countryForPhone("+22890123456")).toBeNull() // Togo not registered
+    expect(countryForPhone(null)).toBeNull()
+  })
+
+  it("toCountryLocalPhone strips only the matching dialing code", () => {
+    const sn = getCountry("SN")!
+    expect(toCountryLocalPhone(sn, "+221771234567")).toBe("771234567")
+    expect(toCountryLocalPhone(sn, "771234567")).toBe("771234567")
+  })
+
+  it("formatCountryLocalPhone groups digits like the placeholder", () => {
+    expect(formatCountryLocalPhone(getCountry("BJ")!, "0197147402")).toBe("01 97 14 74 02")
+    expect(formatCountryLocalPhone(getCountry("SN")!, "771234567")).toBe("77 123 45 67")
+    expect(formatCountryLocalPhone(getCountry("CI")!, "0712345678")).toBe("07 12 34 56 78")
+    // Partial input keeps partial groups; extra digits are dropped.
+    expect(formatCountryLocalPhone(getCountry("SN")!, "7712")).toBe("77 12")
+    expect(formatCountryLocalPhone(getCountry("SN")!, "77123456789")).toBe("77 123 45 67")
+  })
+
+  it("formatPhoneForDisplay renders known plans and falls back on raw values", () => {
+    expect(formatPhoneForDisplay("+221771234567")).toBe("+221 77 123 45 67")
+    expect(formatPhoneForDisplay("+2290197147402")).toBe("+229 01 97 14 74 02")
+    expect(formatPhoneForDisplay("+22890123456")).toBe("+22890123456")
   })
 })

@@ -2,7 +2,7 @@
 
 ## Statut
 
-Version 1.1 — mise à jour 2026-07-10 : auth Google uniquement (ADR-010).
+Version 1.2 — mise à jour 2026-07-10 : auth Google uniquement (ADR-010) ; téléphone propriétaire multi-pays à l'onboarding (ADR-011).
 
 Ce document décrit l'expérience d'accueil du propriétaire, depuis la première ouverture de Ranti jusqu'au tableau de bord vide.
 
@@ -45,11 +45,12 @@ Il doit avoir l'impression d'entrer dans son cahier de loyers.
 
 Les seules informations demandées au démarrage sont :
 
+- numéro de téléphone mobile (indicatif choisi dans le registre des pays — Bénin par défaut, Sénégal, Côte d'Ivoire ; voir ADR-011) ;
 - civilité ;
 - prénom ;
 - nom.
 
-Aucun email, adresse, pays, devise ou document d'identité n'est demandé dans le MVP Welcome.
+Aucun email, adresse, devise ou document d'identité n'est demandé dans le MVP Welcome. Le pays n'apparaît qu'à travers l'indicatif téléphonique.
 
 ---
 
@@ -59,7 +60,7 @@ Aucun email, adresse, pays, devise ou document d'identité n'est demandé dans l
 2. Il comprend immédiatement que Ranti sert à suivre ses loyers, les retards et les reçus.
 3. Il choisit de commencer.
 4. Il continue avec Google.
-5. Il renseigne son profil minimal : civilité, prénom, nom.
+5. Il renseigne son profil minimal : numéro mobile (indicatif de son pays), civilité, prénom, nom.
 6. Ranti crée son espace propriétaire.
 7. Il arrive sur un tableau de bord vide.
 8. Ranti lui propose une seule prochaine action : ajouter son premier bien.
