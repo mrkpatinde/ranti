@@ -63,7 +63,7 @@ export default async function VerifyReceiptPage({ params }: VerifyPageProps) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-16">
-      <div className="rounded-2xl border border-border bg-card p-7 shadow-[0_14px_50px_-18px_rgba(22,56,40,0.22)]">
+      <div className="rounded-2xl border border-border bg-card p-7 shadow-[0_14px_50px_-18px_rgba(41,41,41,0.22)]">
         <div className="flex items-center justify-between gap-4 border-b border-border pb-5">
           <div className="flex items-center gap-3">
             <RantiLogo size={34} />

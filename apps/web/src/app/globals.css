@@ -2,10 +2,9 @@
 
 /*
  * Design tokens (shadcn-style, HSL triplets) — source de vérité des couleurs.
- * Système visuel Ranti : canevas crème (#faf3e5), encre vert forêt (#163828),
- * accent orange chaud (#f2a33c) réservé aux appels à l'action. Porté depuis
- * le prototype Claude Design (docs/design/) — voir project/_ds/.../tokens/
- * dans le bundle de handoff pour les valeurs hex sources.
+ * Système visuel Ranti, palette Granola (granola.ai) : surface blanc cassé
+ * chaud (#f7f7f2), encre anthracite (#292929), accent vert olive (#5b6f00)
+ * réservé aux appels à l'action, teintes vertes douces pour les états.
  */
 
 @theme inline {
@@ -47,52 +46,51 @@
 }
 
 :root {
-  --background: 40 68% 94%; /* #faf3e5 — canevas crème */
-  --foreground: 152 44% 15%; /* #163828 — encre vert forêt */
+  --background: 60 24% 96%; /* #f7f7f2 — surface blanc cassé chaud */
+  --foreground: 0 0% 16%; /* #292929 — encre anthracite */
   --card: 0 0% 100%; /* #ffffff — surface des cartes */
-  --card-foreground: 152 44% 15%;
-  --border: 41 43% 85%; /* #eae0ca — filet chaud */
-  --input: 41 43% 85%;
-  --ring: 153 44% 25%; /* #235a41 */
-  --primary: 152 44% 15%; /* #163828 */
-  --primary-foreground: 40 68% 94%; /* #faf3e5 */
-  --secondary: 82 33% 94%; /* #f0f4e9 — teinte verte douce */
-  --secondary-foreground: 152 44% 15%;
-  --muted: 60 5% 96%; /* #f5f5f4 */
-  --muted-foreground: 25 5% 45%; /* #78716c */
-  --accent: 34 87% 59%; /* #f2a33c — orange d'appel à l'action */
-  --accent-foreground: 34 78% 13%; /* #3a2407 */
+  --card-foreground: 0 0% 16%;
+  --border: 60 3% 83%; /* #d5d5d2 — filet neutre */
+  --input: 60 3% 83%;
+  --ring: 68 50% 52%; /* #b2c248 — anneau de focus */
+  --primary: 0 0% 16%; /* #292929 */
+  --primary-foreground: 60 40% 98%; /* #fcfcf8 */
+  --secondary: 71 54% 92%; /* #f2f6e1 — teinte verte douce */
+  --secondary-foreground: 0 0% 16%;
+  --muted: 60 19% 94%; /* #f2f2ec */
+  --muted-foreground: 60 2% 44%; /* #72726e */
+  --accent: 71 100% 22%; /* #5b6f00 — vert olive d'appel à l'action */
+  --accent-foreground: 60 40% 98%; /* #fcfcf8 */
   --popover: 0 0% 100%;
-  --popover-foreground: 152 44% 15%;
-  --destructive: 0 72% 51%; /* #dc2626 */
+  --popover-foreground: 0 0% 16%;
+  --destructive: 11 80% 58%; /* #e95d3d */
   --destructive-foreground: 0 0% 100%;
   --radius: 1rem; /* 16px — rayon standard des cartes */
 }
 
-/* Le système Ranti n'a pas de variante sombre définie (canevas crème partout) ;
-   ce thème sombre garde l'esprit de la marque (fond vert forêt, texte crème)
-   pour les écrans pas encore migrés. */
+/* Variante sombre alignée sur les neutres Granola (anthracite, blanc cassé,
+   accent olive éclairci) pour les écrans pas encore migrés. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: 152 45% 11%; /* #102a1e */
-    --foreground: 40 68% 94%; /* #faf3e5 */
-    --card: 155 44% 19%; /* #1b4634 */
-    --card-foreground: 40 68% 94%;
-    --border: 155 30% 25%;
-    --input: 155 30% 28%;
-    --ring: 34 87% 59%;
-    --primary: 40 68% 94%;
-    --primary-foreground: 152 45% 11%;
-    --secondary: 155 30% 20%;
-    --secondary-foreground: 40 60% 90%;
-    --muted: 155 25% 18%;
-    --muted-foreground: 30 6% 68%;
-    --accent: 34 87% 59%;
-    --accent-foreground: 34 78% 13%;
-    --popover: 152 45% 11%;
-    --popover-foreground: 40 68% 94%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 40 68% 94%;
+    --background: 0 0% 12%; /* #1e1e1e */
+    --foreground: 60 40% 98%; /* #fcfcf8 */
+    --card: 0 0% 16%; /* #292929 */
+    --card-foreground: 60 40% 98%;
+    --border: 60 1% 25%;
+    --input: 60 1% 28%;
+    --ring: 70 74% 32%; /* #788c15 */
+    --primary: 60 40% 98%;
+    --primary-foreground: 0 0% 12%;
+    --secondary: 60 1% 21%;
+    --secondary-foreground: 60 2% 90%;
+    --muted: 60 1% 18%;
+    --muted-foreground: 60 2% 62%; /* #9e9e99 */
+    --accent: 70 74% 32%; /* #788c15 — olive éclairci */
+    --accent-foreground: 60 40% 98%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 60 40% 98%;
+    --destructive: 11 80% 58%;
+    --destructive-foreground: 60 40% 98%;
   }
 }
 
@@ -135,7 +133,7 @@
   display: block;
   height: 1.02em;
   line-height: 1.02;
-  color: #b87413; /* orange profond de la marque — attire l'œil sur le verbe Ranti */
+  color: #788c15; /* vert olive de la marque — attire l'œil sur le verbe Ranti */
 }
 @keyframes lp-roll {
   0%, 27% { transform: translateY(0); }
