@@ -412,7 +412,7 @@ export default function Landing() {
           <div className="mx-auto max-w-6xl overflow-hidden rounded-[28px] bg-[#292929] p-8 text-[#f7f7f2] shadow-[0_30px_90px_rgba(41,41,41,0.24)] md:p-12">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <div>
-                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#5b6f00]">Pourquoi Ranti</p>
+                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#94f27f]">Pourquoi Ranti</p>
                 <h2 className="font-display mt-4 max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] md:text-5xl [text-wrap:balance]">
                   Vous oubliez moins. Vous encaissez plus.
                 </h2>

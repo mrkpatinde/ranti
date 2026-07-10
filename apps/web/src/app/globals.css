@@ -86,7 +86,7 @@
     --muted: 60 1% 18%;
     --muted-foreground: 60 2% 62%; /* #9e9e99 */
     --accent: 70 74% 32%; /* #788c15 — olive éclairci */
-    --accent-foreground: 60 40% 98%;
+    --accent-foreground: 0 0% 12%; /* #1e1e1e — contraste AA sur olive */
     --popover: 0 0% 12%;
     --popover-foreground: 60 40% 98%;
     --destructive: 11 80% 58%;
