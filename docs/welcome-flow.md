@@ -2,7 +2,7 @@
 
 ## Statut
 
-Version 1.0 — approuvée pour Sprint 2.
+Version 1.1 — mise à jour 2026-07-10 : auth Google uniquement (ADR-010).
 
 Ce document décrit l'expérience d'accueil du propriétaire, depuis la première ouverture de Ranti jusqu'au tableau de bord vide.
 
@@ -24,24 +24,22 @@ Il doit avoir l'impression d'entrer dans son cahier de loyers.
 
 ### Pays
 
-- L'inscription propose un choix de pays : Bénin (par défaut), Sénégal, Côte d'Ivoire.
-- Au Sénégal et en Côte d'Ivoire, l'inscription se fait via Google uniquement pour le moment (voir ADR-008).
+- Aucun choix de pays à l'inscription : l'inscription et la connexion passent uniquement par Google, quel que soit le pays (voir ADR-010).
+- Le registre des pays (ADR-008) reste utilisé pour les numéros de téléphone des locataires.
 
 ### Authentification
 
-- L'identifiant principal est le téléphone (au Bénin ; email Google au Sénégal et en Côte d'Ivoire tant que l'OTP SMS n'y est pas disponible).
-- Le mot de passe est obligatoire.
-- L'OTP sert uniquement à vérifier le numéro lors de la première inscription.
-- L'OTP pourra aussi servir plus tard pour la récupération de compte ou une action sensible.
-- Il n'y a pas d'OTP à chaque connexion.
-- L'authentification est gérée par Supabase Auth.
-- Ranti ne stocke pas les mots de passe dans les tables métier.
+- L'identifiant principal est l'email Google (ADR-010).
+- Pas de mot de passe, pas d'OTP dans le parcours normal.
+- Les parcours téléphone + mot de passe et OTP sont gelés, pas supprimés — le code reste prêt pour un dégel pays par pays (ADR-010).
+- L'authentification est gérée par Supabase Auth (OAuth Google).
+- Ranti ne stocke pas de secrets d'authentification dans les tables métier.
 
 ### Propriétaire
 
 - La table métier `landlords` est liée à `auth.users` par `auth_user_id`.
 - Aucun propriétaire métier n'est créé automatiquement au moment brut de création du compte auth.
-- Le propriétaire métier est créé seulement après vérification du téléphone et saisie du profil minimal.
+- Le propriétaire métier est créé seulement après connexion Google et saisie du profil minimal.
 
 ### Profil minimal
 
@@ -60,25 +58,22 @@ Aucun email, adresse, pays, devise ou document d'identité n'est demandé dans l
 1. Le propriétaire ouvre Ranti.
 2. Il comprend immédiatement que Ranti sert à suivre ses loyers, les retards et les reçus.
 3. Il choisit de commencer.
-4. Il saisit son numéro de téléphone.
-5. Il choisit un mot de passe.
-6. Ranti vérifie son numéro une seule fois.
-7. Il renseigne son profil minimal : civilité, prénom, nom.
-8. Ranti crée son espace propriétaire.
-9. Il arrive sur un tableau de bord vide.
-10. Ranti lui propose une seule prochaine action : ajouter son premier bien.
+4. Il continue avec Google.
+5. Il renseigne son profil minimal : civilité, prénom, nom.
+6. Ranti crée son espace propriétaire.
+7. Il arrive sur un tableau de bord vide.
+8. Ranti lui propose une seule prochaine action : ajouter son premier bien.
 
 ---
 
 ## Parcours — Propriétaire existant
 
 1. Le propriétaire ouvre Ranti.
-2. Il saisit son numéro de téléphone.
-3. Il saisit son mot de passe.
-4. Ranti reconnaît son espace.
-5. Il arrive directement sur son tableau de bord.
+2. Il continue avec Google.
+3. Ranti reconnaît son espace.
+4. Il arrive directement sur son tableau de bord.
 
-Aucune vérification OTP ne doit être demandée lors d'une connexion normale.
+Aucune saisie de mot de passe ni vérification OTP dans la connexion normale.
 
 ---
 
@@ -102,15 +97,17 @@ Aucune autre action ne doit concurrencer ce premier pas.
 
 ## Cas particuliers
 
-### Numéro déjà connu
+### Compte Google déjà connu
 
-Si le numéro existe déjà, Ranti propose une connexion par téléphone et mot de passe.
+Si le compte Google existe déjà, la connexion Google ramène directement à l'espace existant — inscription et connexion sont le même geste.
 
-### Mot de passe oublié
+### Récupération de compte
 
-Le propriétaire peut demander une récupération de compte.
+Gérée par Google (pas de mot de passe Ranti). Les pages `/recover` et `/signup/verify` redirigent vers la connexion.
 
-La récupération peut utiliser OTP, mais elle ne fait pas partie du flux normal de connexion.
+### Comptes historiques téléphone + mot de passe
+
+Ne peuvent plus se connecter tant que l'auth téléphone est gelée (voir ADR-010).
 
 ### Profil incomplet
 
@@ -123,7 +120,7 @@ Si un utilisateur auth existe mais que le profil propriétaire n'est pas complet
 Le Sprint 2 est réussi si :
 
 - un nouveau propriétaire peut créer son espace en moins de 2 minutes ;
-- un propriétaire existant peut revenir sans OTP ;
+- un propriétaire existant revient d'un seul geste Google ;
 - un propriétaire ne voit jamais les données d'un autre propriétaire ;
 - le tableau de bord vide est clair et rassurant ;
 - le propriétaire sait immédiatement quoi faire ensuite ;

@@ -49,6 +49,8 @@ Livrables :
 
 Note : flux codé et testé via Playwright en mode auth local. L'envoi réel des OTP par SMS nécessite un provider SMS configuré dans Supabase Auth.
 
+Mise à jour 2026-07-10 (ADR-010) : l'auth téléphone + mot de passe est gelée. Inscription et connexion passent uniquement par Google, tous pays. Le code téléphone/OTP est conservé pour un dégel futur.
+
 ## Sprint 3 - Properties
 
 Objectif : permettre au propriétaire de créer son premier lieu à suivre.
