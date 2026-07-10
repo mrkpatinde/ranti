@@ -218,7 +218,7 @@ export default function Landing() {
               Se connecter
             </Link>
             <Link href={SIGNUP_HREF} className="rounded-full bg-[#5b6f00] px-5 py-2.5 text-sm font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:bg-[#4c5616]">
-              Créer mon espace
+              Gérer mes loyers
             </Link>
           </div>
         </div>
@@ -253,7 +253,7 @@ export default function Landing() {
 
               <div className="lp-rise lp-rise-3 mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link href={SIGNUP_HREF} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-7 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:bg-[#4c5616]">
-                  Créer mon espace
+                  Gérer mes loyers
                   <ArrowRight size={18} strokeWidth={1.8} />
                 </Link>
                 <a href="#fonctionnement" className="inline-flex items-center justify-center rounded-full border border-[#292929] px-7 py-4 text-base font-semibold text-[#292929] transition hover:bg-[#f2f6e1]">
@@ -463,7 +463,7 @@ export default function Landing() {
               Deux minutes pour créer votre espace. Votre premier bail suivi dès aujourd'hui.
             </p>
             <Link href={SIGNUP_HREF} className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-8 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:bg-[#4c5616]">
-              Créer mon espace
+              Gérer mes loyers
               <ArrowRight size={18} strokeWidth={1.8} />
             </Link>
             <p className="mt-4 text-sm text-[#acada8]">Gratuit pendant le pilote. Aucune carte demandée.</p>
