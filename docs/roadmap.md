@@ -126,6 +126,11 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Corrections
 - [ ] Première beta privée
 
+## Recent (2026-07-10)
+
+- Refonte du code couleur sur la palette Granola (granola.ai) : surface blanc cassé #f7f7f2, encre anthracite #292929, accent vert olive #5b6f00 (CTA), teintes vertes douces pour les états. Tokens globals.css (light + dark), landing, écrans app, favicon, logo, PDF quittance alignés. Correctifs contraste AA (panneau sombre, dark mode).
+- CTA landing : « Gérer mes loyers » remplace « Créer mon espace » (verbe orienté action métier).
+
 ## Recent (2026-07-05)
 
 - Alias PI-SPI (Tier 1) : le propriétaire renseigne son alias de paiement PI-SPI
