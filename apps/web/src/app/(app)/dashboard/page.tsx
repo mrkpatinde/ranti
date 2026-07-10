@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { VoiceCapture } from "./_components/voice-capture"
 import { isLocalAuthEnabled } from "@/lib/auth"
 import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
@@ -168,6 +169,8 @@ export default async function DashboardPage() {
           </ol>
           <p className="text-sm leading-6 text-muted-foreground">ⓘ Le registre se construit dans cet ordre : un lieu contient des logements, un logement se loue à un locataire par un bail, et le bail activé génère les loyers à suivre. Touchez une étape pour la gérer.</p>
         </div>
+
+        {hasActiveLease ? <VoiceCapture /> : null}
 
         {hasActiveLease ? (
           <div className="space-y-5">
