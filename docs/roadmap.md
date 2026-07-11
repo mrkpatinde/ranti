@@ -139,6 +139,16 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
   ADR-012 : Gemini flash-lite Structured Outputs, `lease_id` re-validé serveur,
   aucune écriture en base) + `lib/sms`. Restant : bottom-sheet + page journal +
   design monochrome. `GEMINI_API_KEY` déjà en prod.
+- ADR-014 (suite) — **Accueil journal unifié** livré (PR #110, 2026-07-12).
+  `/dashboard` rend désormais la timeline chronologique : en-tête sobre + deux
+  gestes de capture (vocal + collage SMS MoMo) + flux. Supprimés : bandeau
+  d'étapes et blocs de statistiques. Propriétaire sans bail actif → geste
+  d'accueil unique (welcome-flow.md verrouillé). `/journal` redirige vers
+  `/dashboard` (route dédoublée retirée, pas de boucle) ; nav « Suivi » nettoyée.
+  Timeline enrichie du lien `wa.me` sortant par ligne d'encaissement : migration
+  `20260711170000_journal_feed_counterparty_phone.sql` (colonne `counterparty_phone`
+  ajoutée en fin de vue, `security_invoker` préservé, grant re-émis) **appliquée
+  live** (ref `pcxkxeesgusorrpmrkaj`, vérifiée). Gate inchangé : Google + ≥ 1 bail actif.
 
 - Landing alignée sur la nouvelle architecture (ADR-012 + ADR-013) : hero,
   piliers (vocal / relances / preuve à deux voix), parcours en 4 temps (dictez →
