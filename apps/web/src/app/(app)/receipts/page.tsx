@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordReceipts } from "@/lib/receipts"
-import type { ReceiptStatus } from "@/lib/receipts"
+import type { ReceiptStatus, TenantAck } from "@/lib/receipts"
 
 type ReceiptsPageProps = {
   searchParams?: Promise<{ notice?: string; error?: string }>
@@ -10,6 +10,15 @@ type ReceiptsPageProps = {
 const statusLabels: Record<ReceiptStatus, string> = {
   issued: "Émise",
   cancelled: "Annulée",
+}
+
+// ADR-013 — acquittement locataire. On ne montre un badge que quand il y a un
+// signal (ouvert / certifié / contesté) ; `unilateral` reste silencieux.
+const ackBadge: Record<TenantAck, { label: string; cls: string } | null> = {
+  unilateral: null,
+  read: { label: "Ouvert", cls: "border-amber-300 text-amber-700" },
+  certified: { label: "Certifié", cls: "border-primary/30 text-primary" },
+  disputed: { label: "Contesté", cls: "border-red-300 text-red-700" },
 }
 
 const kindLabels = {
@@ -29,6 +38,7 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
   const landlord = await requireLandlordProfile()
   await searchParams
   const receipts = await getLandlordReceipts(landlord.id)
+  const disputedCount = receipts.filter((r) => r.tenant_ack === "disputed").length
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
@@ -51,6 +61,15 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
             Une quittance est générée depuis un encaissement confirmé.
           </p>
         </div>
+
+        {disputedCount > 0 ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+            {disputedCount === 1
+              ? "1 reçu est contesté par un locataire."
+              : `${disputedCount} reçus sont contestés par des locataires.`}{" "}
+            Ouvrez-les pour voir la version du locataire.
+          </div>
+        ) : null}
 
         {receipts.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-6">
@@ -84,9 +103,16 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
                       {kindLabels[receipt.kind]} · {receipt.receipt_number} · {formatDate(receipt.issued_at)}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80">
-                    {statusLabels[receipt.status]}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <span className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80">
+                      {statusLabels[receipt.status]}
+                    </span>
+                    {ackBadge[receipt.tenant_ack] ? (
+                      <span className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${ackBadge[receipt.tenant_ack]!.cls}`}>
+                        {ackBadge[receipt.tenant_ack]!.label}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </Link>
             ))}

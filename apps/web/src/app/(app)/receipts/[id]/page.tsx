@@ -1,10 +1,11 @@
+import { headers } from "next/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
 import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { cancelReceipt, getReceipt } from "@/lib/receipts"
-import type { ReceiptStatus } from "@/lib/receipts"
+import type { ReceiptStatus, TenantAck } from "@/lib/receipts"
 import { RantiLogo } from "@/components/ranti-logo"
 
 type ReceiptDetailPageProps = {
@@ -34,6 +35,14 @@ const noticeLabels: Record<string, string> = {
   receipt_cancelled: "Document annulé. L’encaissement lié reste intact dans le registre.",
 }
 
+// ADR-013 — acquittement locataire, vu côté propriétaire.
+const ackBadge: Record<TenantAck, { label: string; cls: string }> = {
+  unilateral: { label: "En attente d’ouverture", cls: "border-border text-muted-foreground" },
+  read: { label: "Ouvert, non confirmé", cls: "border-amber-300 text-amber-700" },
+  certified: { label: "Certifié par le locataire", cls: "border-primary/30 text-primary" },
+  disputed: { label: "Contesté par le locataire", cls: "border-red-300 text-red-700" },
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
 }
@@ -52,6 +61,17 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
   const snap = receipt.snapshot ?? {}
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
+
+  // Lien public à partager au locataire (ADR-013). Origine résolue depuis les
+  // en-têtes, comme l'OAuth callback — marche en dev et en prod.
+  const h = await headers()
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? ""
+  const proto = h.get("x-forwarded-proto") ?? "https"
+  const shareUrl = host ? `${proto}://${host}/recu/${receipt.tenant_token}` : `/recu/${receipt.tenant_token}`
+  const ack = ackBadge[receipt.tenant_ack]
+  const waText = encodeURIComponent(
+    `Voici votre reçu de loyer (${kindLabels[receipt.kind]}). Ouvrez-le et confirmez son exactitude : ${shareUrl}`,
+  )
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-6 py-8">
@@ -85,7 +105,8 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               <p className="font-display text-lg font-extrabold tracking-tight text-foreground">{kindLabels[receipt.kind]}</p>
               <p className="text-sm text-foreground/70">N° {receipt.receipt_number}</p>
               <p className="text-sm text-muted-foreground">Émise le {formatDate(receipt.issued_at)}</p>
-              {receipt.status === "cancelled" ? <span className="mt-1 inline-flex rounded-lg border border-red-300 px-2 py-0.5 text-xs font-medium text-red-700">{statusLabels[receipt.status]}</span> : null}
+              <span className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-xs font-medium ${ack.cls}`}>{ack.label}</span>
+              {receipt.status === "cancelled" ? <span className="mt-1 ml-1 inline-flex rounded-lg border border-red-300 px-2 py-0.5 text-xs font-medium text-red-700">{statusLabels[receipt.status]}</span> : null}
             </div>
           </div>
 
@@ -134,6 +155,38 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
             <div className="text-center"><div className="w-40 border-t border-border pt-1.5 text-xs text-muted-foreground">Signature du propriétaire</div></div>
           </div>
         </article>
+
+        {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+            <p className="font-medium">Le locataire conteste ce reçu.</p>
+            <p className="mt-1">
+              {receipt.contest_nature === "not_paid" && "Il déclare ne pas avoir payé ce loyer."}
+              {receipt.contest_nature === "amount" &&
+                `Il déclare avoir payé ${receipt.contested_amount != null ? formatFcfa(receipt.contested_amount) : "un autre montant"}.`}
+              {receipt.contest_nature === "date" &&
+                `Il indique une autre période : ${receipt.contested_period || "non précisée"}.`}
+            </p>
+            <p className="mt-2 text-xs text-red-700">Votre déclaration reste conservée. Corrigez le reçu (remplacement) si le locataire a raison.</p>
+          </div>
+        ) : null}
+
+        {receipt.status === "issued" ? (
+          <section className="space-y-3 rounded-2xl border border-border bg-card p-6">
+            <p className="text-sm font-medium text-foreground">Partager au locataire</p>
+            <p className="text-sm text-muted-foreground">
+              Envoyez ce lien : le locataire ouvre le reçu et confirme son exactitude (ou signale une erreur). C’est la deuxième voix qui rend le reçu certifié.
+            </p>
+            <p className="break-all rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground/80">{shareUrl}</p>
+            <a
+              href={`https://wa.me/?text=${waText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+            >
+              Partager sur WhatsApp
+            </a>
+          </section>
+        ) : null}
 
         {receipt.status === "cancelled" ? <p className="text-sm text-muted-foreground">Motif d&apos;annulation : {receipt.cancellation_reason ?? "Motif non renseigné avant correction."}</p> : null}
 

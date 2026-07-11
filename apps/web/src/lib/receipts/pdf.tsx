@@ -16,6 +16,21 @@ const kindLabels: Record<string, string> = {
   receipt: "Reçu de paiement",
 }
 
+// ADR-013 — bandeau d'acquittement locataire (deux voix). Couleurs sobres,
+// mentions strictement factuelles : Ranti documente, n'arbitre pas.
+const ackBanner: Record<string, { bg: string; fg: string; label: string }> = {
+  unilateral: { bg: "#F5F5F4", fg: "#525252", label: "Déclaration du propriétaire — non confirmée par le locataire." },
+  read: { bg: "#F5F5F4", fg: "#525252", label: "Reçu ouvert par le locataire, non encore confirmé." },
+  certified: { bg: "#ECF6E8", fg: "#3A6B22", label: "Certifié — le locataire a confirmé l'exactitude de ce reçu." },
+  disputed: { bg: "#FBEAEA", fg: "#A32D2D", label: "Contesté — le locataire déclare une version différente (ci-dessous)." },
+}
+
+const contestNatureLabels: Record<string, string> = {
+  amount: "Montant contesté",
+  date: "Période contestée",
+  not_paid: "Paiement contesté",
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
 }
@@ -38,6 +53,9 @@ const s = StyleSheet.create({
   qr: { width: 70, height: 70 },
   qrBox: { width: 70, height: 70, borderWidth: 1, borderColor: "#D4D4D4", alignItems: "center", justifyContent: "center" },
   sigLine: { width: 160, borderTopWidth: 1, borderTopColor: "#D4D4D4", paddingTop: 4, fontSize: 8, color: "#A3A3A3", textAlign: "center" },
+  ackBand: { borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 14 },
+  contestBox: { borderWidth: 1, borderColor: "#E7C3C3", backgroundColor: "#FBEAEA", borderRadius: 4, padding: 12, marginTop: 4, marginBottom: 10 },
+  fingerprint: { fontSize: 7, color: "#A3A3A3", marginTop: 8, lineHeight: 1.4 },
 })
 
 export function ReceiptPdf({
@@ -51,6 +69,7 @@ export function ReceiptPdf({
 }) {
   const snap = receipt.snapshot ?? {}
   const kind = kindLabels[receipt.kind] ?? "Document"
+  const ack = ackBanner[receipt.tenant_ack] ?? ackBanner.unilateral
 
   return (
     <Document title={`${kind} ${receipt.receipt_number}`}>
@@ -73,6 +92,10 @@ export function ReceiptPdf({
             <Text style={[s.muted, { textAlign: "right" }]}>Émise le {formatDate(receipt.issued_at)}</Text>
             {receipt.status === "cancelled" ? <Text style={[{ textAlign: "right", color: "#A32D2D" }]}>Annulée</Text> : null}
           </View>
+        </View>
+
+        <View style={[s.ackBand, { backgroundColor: ack.bg }]}>
+          <Text style={{ color: ack.fg }}>{ack.label}</Text>
         </View>
 
         <View style={[s.row, s.block]}>
@@ -114,6 +137,31 @@ export function ReceiptPdf({
         </View>
 
         <Text style={s.mention}>{receipt.kind === "quittance" ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé." : "Reçu de paiement pour la somme ci-dessus. Le loyer n'est pas intégralement soldé : ce document ne vaut pas quittance."}</Text>
+
+        {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
+          <View style={s.contestBox}>
+            <Text style={[s.label, { color: "#A32D2D" }]}>
+              {contestNatureLabels[receipt.contest_nature] ?? "Contestation"} — version du locataire
+            </Text>
+            <Text style={{ color: "#A32D2D" }}>
+              {receipt.contest_nature === "not_paid"
+                ? "Le locataire déclare ne pas avoir payé ce loyer."
+                : receipt.contest_nature === "amount"
+                  ? `Le locataire déclare avoir payé ${receipt.contested_amount != null ? formatFcfa(receipt.contested_amount) : "un autre montant"}.`
+                  : `Le locataire indique une autre période : ${receipt.contested_period || "non précisée"}.`}
+            </Text>
+            <Text style={[s.muted, { marginTop: 4 }]}>
+              La déclaration du propriétaire ci-dessus est conservée. Ranti documente le désaccord, ne le tranche pas.
+            </Text>
+          </View>
+        ) : null}
+
+        {receipt.tenant_ack === "certified" && receipt.sha256_fingerprint ? (
+          <Text style={s.fingerprint}>
+            Empreinte d&apos;intégrité (SHA-256), certifiée par le locataire le{" "}
+            {receipt.tenant_certified_at ? formatDate(receipt.tenant_certified_at) : ""} : {receipt.sha256_fingerprint}
+          </Text>
+        ) : null}
 
         <View style={[s.row, { alignItems: "flex-end", marginTop: 8 }]}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
