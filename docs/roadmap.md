@@ -128,6 +128,13 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-11)
 
+- Landing alignée sur la nouvelle architecture (ADR-012 + ADR-013) : hero,
+  piliers (vocal / relances / preuve à deux voix), parcours en 4 temps (dictez →
+  l'IA remplit → vous validez → le locataire confirme), comparatif (lignes
+  vocal + preuve à deux voix), section « Pourquoi Ranti » et FAQ (comment
+  dicter, l'IA peut-elle se tromper, contestation locataire). Copie seule, aucun
+  changement de logique/DB. Formulaire manuel toujours présenté comme filet.
+
 - ADR-012 — Saisie vocale des encaissements (effet Granola). Bouton micro
   push-to-talk sur le tableau de bord → `POST /api/voice/collection` →
   Gemini 2.5 Flash-lite (Structured Outputs) résout la phrase vers UN bail
