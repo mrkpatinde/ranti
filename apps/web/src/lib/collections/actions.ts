@@ -36,6 +36,7 @@ function readAllocations(formData: FormData): CollectionAllocation[] {
 }
 
 function collectionErrorMessage(message: string): string {
+  if (message.includes("DUPLICATE_PAYMENT")) return "Cet encaissement a déjà été enregistré."
   if (message.includes("allocations_exceed")) return "La somme allouée dépasse le montant reçu."
   if (message.includes("allocation_exceeds_due")) return "Une allocation dépasse le reste dû de l'échéance."
   if (message.includes("allocation_required")) return "Affectez l'encaissement à au moins une échéance."
@@ -123,6 +124,91 @@ export async function recordCollection(formData: FormData) {
   }
 
   redirect(`/collections?notice=collection_confirmed_document_pending`)
+}
+
+// ── Fast-Log SMS : encaissement non affecté (ADR-014) ────────────────────────
+
+export interface RecordSmsCollectionInput {
+  /** Bail résolu par /api/sms/collection (déjà re-validé serveur). */
+  leaseId: string
+  /** Montant reçu en FCFA (entier). */
+  amount: number
+  /** Référence d'opérateur pour la déduplication ; vide → non dédupliqué. */
+  reference: string
+  /** Nom de l'émetteur lu dans le SMS (traçabilité, mis en note). */
+  senderName: string
+  /** Téléphone du contact ancré, s'il a été choisi. */
+  contactPhone: string | null
+}
+
+export type RecordSmsCollectionResult =
+  | { ok: true }
+  | { ok: false; reason?: "duplicate"; message: string }
+
+// Enregistre un encaissement SMS comme crédit NON AFFECTÉ (allocations vides).
+// Passe par le pipeline existant record_collection → confirm_collection →
+// generate_receipt : aucun chemin d'écriture parallèle (ADR-014). L'allocation
+// aux échéances se fera plus tard depuis le journal.
+export async function recordSmsCollection(
+  input: RecordSmsCollectionInput,
+): Promise<RecordSmsCollectionResult> {
+  await requireLandlordProfile()
+
+  if (!Number.isInteger(input.amount) || input.amount <= 0) {
+    return { ok: false, message: "Indiquez un montant valide." }
+  }
+
+  const supabase = await createClient()
+
+  // Résout tenant/unit depuis le bail (la RLS restreint au propriétaire).
+  const { data: lease, error: leaseError } = await supabase
+    .from("leases")
+    .select("tenant_id, unit_id")
+    .eq("id", input.leaseId)
+    .is("deleted_at", null)
+    .maybeSingle()
+
+  if (leaseError || !lease) return { ok: false, message: "Bail introuvable." }
+
+  const reference = input.reference.trim() || null
+  const noteParts = ["Collage SMS Mobile Money"]
+  if (input.senderName.trim()) noteParts.push(`de ${input.senderName.trim()}`)
+  if (input.contactPhone?.trim()) noteParts.push(`(${input.contactPhone.trim()})`)
+
+  const { data: receptionId, error } = await supabase.rpc("record_collection", {
+    p_tenant_id: lease.tenant_id,
+    p_unit_id: lease.unit_id,
+    p_amount: input.amount,
+    p_method: "mobile_money",
+    p_received_at: null,
+    p_note: noteParts.join(" "),
+    p_allocations: [],
+    p_reference: reference,
+  })
+
+  if (error || !receptionId) {
+    if (error?.message.includes("DUPLICATE_PAYMENT")) {
+      return { ok: false, reason: "duplicate", message: "Cet encaissement a déjà été enregistré." }
+    }
+    return { ok: false, message: collectionErrorMessage(error?.message ?? "") }
+  }
+
+  const { error: confirmError } = await supabase.rpc("confirm_collection", {
+    p_reception_id: receptionId,
+  })
+
+  if (confirmError) {
+    await supabase.rpc("cancel_collection", {
+      p_reception_id: receptionId,
+      p_reason: "Annulation auto : confirmation échouée (SMS).",
+    })
+    return { ok: false, message: "Encaissement non confirmé. Réessayez." }
+  }
+
+  await generateDocumentForConfirmedCollection(String(receptionId))
+  revalidateCollectionProofPaths()
+
+  return { ok: true }
 }
 
 export async function confirmCollection(formData: FormData) {
