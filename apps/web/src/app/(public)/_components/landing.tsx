@@ -239,8 +239,8 @@ export default function Landing() {
       </header>
 
       <main>
-        <section className="px-6 pb-20 pt-32 md:pb-28 md:pt-40">
-          <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.02fr_0.98fr]">
+        <section className="px-6 pb-28 pt-36 md:pb-44 md:pt-56">
+          <div className="mx-auto grid max-w-6xl items-center gap-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-20">
             <div>
               <h1 className="lp-rise font-display max-w-3xl text-5xl font-extrabold leading-[1.06] tracking-[-0.03em] text-[#292929] sm:text-6xl md:text-7xl">
                 Qui a payé. Qui doit.
@@ -266,11 +266,11 @@ export default function Landing() {
               </p>
 
               <div className="lp-rise lp-rise-3 mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href={SIGNUP_HREF} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-7 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:bg-[#4c5616]">
+                <Link href={SIGNUP_HREF} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-7 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-[#4c5616] hover:shadow-[0_16px_34px_-12px_rgba(91,111,0,0.55)]">
                   Gérer mes loyers
                   <ArrowRight size={18} strokeWidth={1.8} />
                 </Link>
-                <a href="#fonctionnement" className="inline-flex items-center justify-center rounded-full border border-[#292929] px-7 py-4 text-base font-semibold text-[#292929] transition hover:bg-[#f2f6e1]">
+                <a href="#fonctionnement" className="inline-flex items-center justify-center rounded-full border border-[#292929] px-7 py-4 text-base font-semibold text-[#292929] transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[#f2f6e1]">
                   Voir comment ça marche
                 </a>
               </div>
@@ -285,14 +285,14 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="lp-rise lp-rise-3">
+            <div className="lp-slide-in">
               <ProductPreview />
             </div>
           </div>
         </section>
 
-        <section id="confiance" className="px-6 py-10">
-          <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
+        <section id="confiance" className="px-6 py-16 md:py-24">
+          <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3 md:gap-6">
             {pillars.map((item) => (
               <div key={item.title} className="rounded-2xl border border-[#d5d5d2] bg-white p-7 shadow-[0_1px_2px_rgba(41,41,41,0.06)]">
                 <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#e5eacd] text-[#292929]">
@@ -305,7 +305,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="fonctionnement" className="px-6 py-24">
+        <section id="fonctionnement" className="px-6 py-24 md:py-32">
           <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Simple au quotidien</p>
@@ -333,7 +333,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="comparaison" className="px-6 py-24">
+        <section id="comparaison" className="px-6 py-24 md:py-32">
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Vous avez déjà une méthode</p>
@@ -476,7 +476,7 @@ export default function Landing() {
             <p className="mx-auto mt-4 max-w-xl text-base leading-8 text-[#72726e]">
               Deux minutes pour créer votre espace. Votre premier bail suivi dès aujourd'hui.
             </p>
-            <Link href={SIGNUP_HREF} className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-8 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:bg-[#4c5616]">
+            <Link href={SIGNUP_HREF} className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-8 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-[#4c5616] hover:shadow-[0_16px_34px_-12px_rgba(91,111,0,0.55)]">
               Gérer mes loyers
               <ArrowRight size={18} strokeWidth={1.8} />
             </Link>

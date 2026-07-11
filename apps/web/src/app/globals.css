@@ -110,13 +110,21 @@
    glisse derrière un masque (jamais de fondu croisé), façon ligne de
    registre. Désactivées si l'utilisateur préfère réduire les animations. */
 @keyframes lp-rise {
-  from { opacity: 0; transform: translateY(8px) scale(0.995); }
+  from { opacity: 0; transform: translateY(14px) scale(0.994); }
   to { opacity: 1; transform: none; }
 }
-.lp-rise { animation: lp-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.lp-rise-2 { animation-delay: 0.1s; }
-.lp-rise-3 { animation-delay: 0.2s; }
-.lp-rise-4 { animation-delay: 0.3s; }
+/* Cascade plus lente et ample — laisse la page respirer à l'entrée (façon granola.ai). */
+.lp-rise { animation: lp-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.lp-rise-2 { animation-delay: 0.14s; }
+.lp-rise-3 { animation-delay: 0.28s; }
+.lp-rise-4 { animation-delay: 0.42s; }
+
+/* La carte produit entre par un glissement latéral subtil, après le texte. */
+@keyframes lp-slide-in {
+  from { opacity: 0; transform: translateX(28px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+.lp-slide-in { animation: lp-slide-in 1s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both; }
 
 .lp-roll {
   display: inline-block;
@@ -142,6 +150,6 @@
   100% { transform: translateY(-3.06em); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lp-rise, .lp-rise-2, .lp-rise-3, .lp-rise-4 { animation: none; }
+  .lp-rise, .lp-rise-2, .lp-rise-3, .lp-rise-4, .lp-slide-in { animation: none; }
   .lp-roll-track { animation: none; }
 }
