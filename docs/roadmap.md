@@ -128,6 +128,17 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-11)
 
+- ADR-012 — Saisie vocale des encaissements (effet Granola). Bouton micro
+  push-to-talk sur le tableau de bord → `POST /api/voice/collection` →
+  Gemini 2.5 Flash-lite (Structured Outputs) résout la phrase vers UN bail
+  actif du portefeuille. Le serveur **re-valide** que le `lease_id` renvoyé
+  appartient au propriétaire (jamais de confiance aveugle au modèle) ; carte de
+  validation, aucune écriture en base — l'écriture reste `/collections/new`
+  (record → confirm → generate_receipt). Audio non conservé, clé
+  `GEMINI_API_KEY` serveur uniquement. Fallback systématique vers le formulaire
+  manuel (pas de micro, refus, échec Gemini, clé absente). Prérequis prod :
+  définir `GEMINI_API_KEY` dans Vercel (sinon dégradation propre vers manuel).
+
 - ADR-013 — Contestation locataire & statuts probants du reçu (Sprint 8 Proof
   Engine). Nouveau cycle d'acquittement `receipts.tenant_ack`
   (`unilateral`/`read`/`certified`/`disputed`), orthogonal au cycle de vie
