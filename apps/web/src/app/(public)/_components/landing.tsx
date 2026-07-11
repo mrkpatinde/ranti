@@ -4,9 +4,9 @@ import {
   ArrowRight,
   Bell,
   Check,
-  FileText,
-  Home,
+  Mic,
   MessageCircle,
+  ShieldCheck,
   X,
 } from "lucide-react";
 
@@ -87,9 +87,9 @@ function ProductPreview() {
 
 const pillars = [
   {
-    icon: <Home size={18} strokeWidth={1.8} />,
-    title: "Un registre clair",
-    body: "Vos logements, baux, locataires et échéances dans un seul espace simple à comprendre.",
+    icon: <Mic size={18} strokeWidth={1.8} />,
+    title: "Vous dictez, l'IA prépare",
+    body: "Dites « Koffi a payé juillet ». L'IA remplit la fiche depuis votre bail. Vous relisez, vous validez. Aucun formulaire à saisir.",
   },
   {
     icon: <Bell size={18} strokeWidth={1.8} />,
@@ -97,43 +97,51 @@ const pillars = [
     body: "Ranti sait quand relancer. Les rappels partent au bon moment, sans que vous y pensiez.",
   },
   {
-    icon: <FileText size={18} strokeWidth={1.8} />,
-    title: "Des reçus conservés",
-    body: "Chaque validation garde une trace. Les corrections sont visibles, jamais cachées.",
+    icon: <ShieldCheck size={18} strokeWidth={1.8} />,
+    title: "Une preuve à deux voix",
+    body: "Le locataire confirme le reçu à son tour. Deux voix concordantes : une quittance que personne ne réécrit seul.",
   },
 ];
 
 const steps = [
   {
-    title: "Renseignez vos logements, locataires et baux.",
-    detail: "Une fois. Loyer, date d'échéance, numéro du locataire.",
-  },
-  {
-    title: "Ranti génère les échéances du mois.",
-    detail: "Chaque bail actif produit ses loyers attendus, sans saisie.",
+    title: "Renseignez vos baux une fois.",
+    detail: "Loyer, échéance, numéro du locataire. Ranti génère les échéances du mois, sans saisie.",
   },
   {
     title: "Les relances partent automatiquement.",
     detail: "Avant l'échéance, puis en cas de retard. Vous n'y pensez plus.",
   },
   {
-    title: "Vous confirmez l'encaissement, la quittance est prête.",
-    detail: "Un document numéroté, daté, conservé dans le registre.",
+    title: "Dites qui a payé — l'IA remplit, vous validez.",
+    detail: "Une note vocale ou deux mots. L'IA reconnaît le bail et prépare l'encaissement. Rien n'est écrit sans votre validation.",
+  },
+  {
+    title: "Le locataire confirme : la quittance est certifiée.",
+    detail: "Il ouvre le reçu et confirme l'exactitude. Deux voix, un document daté que personne ne réécrit seul.",
   },
 ];
 
 const faq = [
+  [
+    "Comment j'enregistre un paiement ?",
+    "Vous le dites, tout simplement : « Koffi a payé juillet ». L'IA reconnaît le bail dans votre registre et prépare l'encaissement. Vous relisez et validez. Pas de micro ? Le formulaire reste là.",
+  ],
+  [
+    "L'IA peut-elle se tromper ?",
+    "Elle propose, vous disposez. Rien n'est écrit sans votre validation, et Ranti vérifie toujours que le bail reconnu est bien l'un des vôtres. Un doute : vous corrigez avant de valider.",
+  ],
+  [
+    "Le locataire peut-il contester un reçu ?",
+    "Oui. Il confirme l'exactitude (le reçu devient certifié) ou signale une erreur. Les deux versions coexistent sur le document. Ranti documente le désaccord, il ne tranche pas.",
+  ],
   [
     "Ranti encaisse-t-il l'argent ?",
     "Non. L'argent reste entre vous et votre locataire : cash, Mobile Money ou virement. Ranti organise le suivi et les preuves.",
   ],
   [
     "Le locataire doit-il créer un compte ?",
-    "Non. Le propriétaire garde son espace privé. Le locataire peut recevoir un lien simple quand une action est nécessaire.",
-  ],
-  [
-    "Pourquoi un registre de loyer ?",
-    "Parce que les loyers deviennent vite sensibles : retards, preuves, reçus, oublis. Ranti garde une mémoire propre.",
+    "Non. Le propriétaire garde son espace privé. Le locataire reçoit un lien simple pour confirmer un paiement ou un reçu.",
   ],
 ];
 
@@ -165,10 +173,16 @@ const comparisonRows = [
     excel: "no",
   },
   {
-    feature: "Quittance générée après votre validation",
+    feature: "Encaissement dicté à la voix, rempli par l'IA",
     ranti: "yes",
-    cahier: "À écrire à la main",
-    excel: "À écrire à la main",
+    cahier: "no",
+    excel: "no",
+  },
+  {
+    feature: "Reçu confirmé par le locataire (preuve à deux voix)",
+    ranti: "yes",
+    cahier: "Parole contre parole",
+    excel: "no",
   },
   {
     feature: "Historique fiable, corrections toujours visibles",
@@ -248,7 +262,7 @@ export default function Landing() {
               </h1>
 
               <p className="lp-rise lp-rise-2 mt-7 max-w-xl text-lg leading-8 text-[#72726e]">
-                Le registre de loyer des propriétaires africains. Vous renseignez le bail une fois : Ranti suit les échéances, relance au bon moment et garde chaque quittance.
+                Le registre de loyer des propriétaires africains. Vous dictez qui a payé, l'IA rédige le reçu, le locataire confirme. Ranti suit les échéances, relance au bon moment et garde chaque quittance, certifiée à deux voix.
               </p>
 
               <div className="lp-rise lp-rise-3 mt-9 flex flex-col gap-3 sm:flex-row">
@@ -419,9 +433,9 @@ export default function Landing() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
-                  ["Relances", "Elles partent automatiquement au bon moment. Vous voyez ce que Ranti a déjà relancé."],
-                  ["Preuves", "Les confirmations, reçus et annulations restent historisés."],
-                  ["Contrôle", "Ranti ne touche jamais votre argent sans votre validation."],
+                  ["Vitesse", "Vous dictez, l'IA remplit. Un loyer enregistré en quelques secondes, sans formulaire."],
+                  ["Preuve à deux voix", "Le locataire confirme le reçu. Certifié, contesté ou en attente : chaque statut est visible."],
+                  ["Contrôle", "L'IA propose, vous validez. Ranti ne touche jamais votre argent."],
                   ["Clarté", "Un propriétaire comprend son mois en quelques secondes."],
                 ].map(([title, body]) => (
                   <div key={title} className="rounded-2xl border border-[#f7f7f2]/10 bg-[#f7f7f2]/5 p-5">
