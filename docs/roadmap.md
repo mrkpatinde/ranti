@@ -126,6 +126,24 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Corrections
 - [ ] Première beta privée
 
+## Recent (2026-07-11)
+
+- ADR-013 — Contestation locataire & statuts probants du reçu (Sprint 8 Proof
+  Engine). Nouveau cycle d'acquittement `receipts.tenant_ack`
+  (`unilateral`/`read`/`certified`/`disputed`), orthogonal au cycle de vie
+  `issued`/`cancelled`. Accès public par token : route `/(public)/recu/[token]`
+  + 3 RPC `SECURITY DEFINER` (`get_receipt_by_token` pose `read` à la 1re
+  ouverture, `certify_receipt_by_token` → `certified` + empreinte SHA-256 UTC
+  déterministe, `contest_receipt_by_token` → `disputed`, version locataire
+  isolée, non re-contestable). L'anon n'accède à aucune table. PDF « deux voix »
+  (bandeau par statut, bloc version locataire, empreinte si certifié). Écran
+  propriétaire : badge d'acquittement + partage WhatsApp du lien `/recu/token`.
+  Liste des reçus : badges Ouvert/Certifié/Contesté + alerte contestation.
+  Coexiste avec ADR-005 (remplacement → nouveau token, `unilateral`).
+  Migration `20260711120000` validée contre le schéma live (transaction
+  rollback). Validation extraite en fonction pure testable (`lib/receipts/contest.ts`,
+  9 tests). Build OK, 143 tests verts, lint 0.
+
 ## Recent (2026-07-10)
 
 - Refonte du code couleur sur la palette Granola (granola.ai) : surface blanc cassé #f7f7f2, encre anthracite #292929, accent vert olive #5b6f00 (CTA), teintes vertes douces pour les états. Tokens globals.css (light + dark), landing, écrans app, favicon, logo, PDF quittance alignés. Correctifs contraste AA (panneau sombre, dark mode).
