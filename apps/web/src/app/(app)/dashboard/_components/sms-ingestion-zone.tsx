@@ -9,6 +9,7 @@ import {
   ValidationBottomSheet,
   type AnchoredContact,
   type CollectionDraft,
+  type CompleteResult,
 } from "./validation-bottom-sheet"
 
 // Zone de collage SMS Mobile Money (ADR-014), sœur de <VoiceCapture />.
@@ -75,8 +76,15 @@ export function SmsIngestionZone(): React.JSX.Element {
 
   // Persistance finale, déclenchée par la carte de validation.
   const onComplete = useCallback(
-    async ({ draft, contact }: { draft: CollectionDraft; contact: AnchoredContact | null }) => {
-      if (!response?.match) return
+    async ({
+      draft,
+      contact,
+    }: {
+      draft: CollectionDraft
+      contact: AnchoredContact | null
+    }): Promise<CompleteResult> => {
+      if (!response?.match) return { ok: false, message: "Bail introuvable." }
+
       const result = await recordSmsCollection({
         leaseId: response.match.lease_id,
         amount: draft.amount,
@@ -86,15 +94,18 @@ export function SmsIngestionZone(): React.JSX.Element {
       })
 
       if (!result.ok) {
-        // Rejet propre (doublon = violation d'index unique, ou autre) : on ferme
-        // le tiroir et on affiche une note discrète, sans casser l'écran.
-        setSheetOpen(false)
-        setNotice(
-          result.reason === "duplicate"
-            ? "Cet encaissement a déjà été enregistré."
-            : result.message,
-        )
-        return
+        // On NE ferme PAS le tiroir : on renvoie le message pour qu'il s'affiche
+        // dans la carte. Le doublon (index unique) porte la référence.
+        if (result.reason === "duplicate") {
+          const ref = draft.transactionRef.trim()
+          return {
+            ok: false,
+            message: ref
+              ? `Ce paiement (Réf : ${ref}) a déjà été enregistré dans le journal.`
+              : "Ce paiement a déjà été enregistré dans le journal.",
+          }
+        }
+        return { ok: false, message: result.message }
       }
 
       // Succès : ferme, vide le champ, rafraîchit le journal (vue journal_feed).
@@ -104,6 +115,7 @@ export function SmsIngestionZone(): React.JSX.Element {
       setStatus("idle")
       setNotice("Encaissement enregistré.")
       router.refresh()
+      return { ok: true }
     },
     [response, router],
   )

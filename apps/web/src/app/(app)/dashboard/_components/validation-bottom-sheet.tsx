@@ -41,11 +41,18 @@ export interface ValidationBottomSheetProps {
    * Validation finale : brouillon corrigé + contact ancré (ou null si l'étape
    * a été passée / non supportée). Le parent persiste puis referme le tiroir.
    */
+  /**
+   * Validation finale. Renvoie le résultat pour que le tiroir reste ouvert et
+   * affiche l'erreur en cas d'échec (ex. doublon), au lieu de se fermer.
+   * En cas de succès, le parent referme le tiroir (open=false).
+   */
   onComplete: (result: {
     draft: CollectionDraft
     contact: AnchoredContact | null
-  }) => void | Promise<void>
+  }) => Promise<CompleteResult>
 }
+
+export type CompleteResult = { ok: true } | { ok: false; message: string }
 
 // ── Contact Picker API (non typée dans lib.dom) ──────────────────────────────
 
@@ -96,6 +103,7 @@ export function ValidationBottomSheet({
   const [values, setValues] = useState<CollectionDraft>(draft)
   const [manualPhone, setManualPhone] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState("")
   const [dragY, setDragY] = useState(0)
   const [dragging, setDragging] = useState(false)
 
@@ -115,6 +123,7 @@ export function ValidationBottomSheet({
       setManualPhone("")
       setDragY(0)
       setSubmitting(false)
+      setSubmitError("")
       setEntered(false)
     } else {
       setEntered(false)
@@ -182,6 +191,7 @@ export function ValidationBottomSheet({
 
   const updateField = useCallback(
     (field: Exclude<EditableField, null>, raw: string) => {
+      setSubmitError("") // une correction efface l'erreur précédente
       setValues((v) => {
         if (field === "amount") {
           const digits = raw.replace(/[^\d]/g, "")
@@ -194,12 +204,16 @@ export function ValidationBottomSheet({
   )
 
   // ── Phase 2 : ancrage contact ─────────────────────────────────────────────
+  // On garde le tiroir ouvert et on affiche l'erreur si onComplete échoue (ex.
+  // doublon) ; en cas de succès le parent referme via open=false, donc on laisse
+  // submitting actif jusqu'au démontage.
   const finish = useCallback(
     async (contact: AnchoredContact | null) => {
       setSubmitting(true)
-      try {
-        await onComplete({ draft: values, contact })
-      } finally {
+      setSubmitError("")
+      const result = await onComplete({ draft: values, contact })
+      if (!result.ok) {
+        setSubmitError(result.message)
         setSubmitting(false)
       }
     },
@@ -335,6 +349,16 @@ export function ValidationBottomSheet({
             onCommit={commitEdit}
           />
         </dl>
+
+        {/* Erreur de persistance (ex. doublon) — monochrome, tiroir maintenu */}
+        {submitError ? (
+          <p
+            role="alert"
+            className="mt-4 rounded-xl border border-border bg-secondary px-4 py-3 text-sm leading-5 text-foreground"
+          >
+            {submitError}
+          </p>
+        ) : null}
 
         {/* Zone d'action, morphing review → anchor → manual */}
         <div className="pt-5">
