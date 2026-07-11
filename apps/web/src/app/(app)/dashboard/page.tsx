@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { VoiceCapture } from "./_components/voice-capture"
+import { SmsIngestionZone } from "./_components/sms-ingestion-zone"
 import { isLocalAuthEnabled } from "@/lib/auth"
 import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
@@ -171,6 +172,8 @@ export default async function DashboardPage() {
         </div>
 
         {hasActiveLease ? <VoiceCapture /> : null}
+
+        {hasActiveLease ? <SmsIngestionZone /> : null}
 
         {hasActiveLease ? (
           <div className="space-y-5">
