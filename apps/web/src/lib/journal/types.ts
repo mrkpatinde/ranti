@@ -22,6 +22,8 @@ export interface JournalEvent {
   ref_id: string
   /** Locataire concerné, ou null. */
   counterparty: string | null
+  /** Téléphone du locataire (+229…), pour le lien wa.me sortant, ou null. */
+  counterparty_phone: string | null
   /** Logement concerné, ou null. */
   unit_label: string | null
   /** Référence d'opérateur (encaissement SMS), ou null. */
