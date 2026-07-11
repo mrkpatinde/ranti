@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-07-10
+Dernière mise à jour : 2026-07-11
 
 ## Phase 0 - Foundation
 
@@ -127,6 +127,18 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Première beta privée
 
 ## Recent (2026-07-11)
+
+- ADR-014 — Journal de bord + collage SMS MoMo (briques base). Appliqué live
+  (migration `20260711140000_sms_paste_and_journal_feed.sql`) : vue de projection
+  `journal_feed` (`security_invoker=true` + grant `authenticated`) unionnant
+  leases / rent_dues / rent_receptions / receipts / reminders + reminder_events
+  en flux chronologique — **pas** de table `journal_events`, zéro double écriture.
+  Dédup du SMS collé deux fois via index unique partiel `(landlord_id,
+  payment_reference)` — réutilise la colonne `payment_reference` existante,
+  aucune colonne ajoutée. Route `POST /api/sms/collection` (jumelle du vocal
+  ADR-012 : Gemini flash-lite Structured Outputs, `lease_id` re-validé serveur,
+  aucune écriture en base) + `lib/sms`. Restant : bottom-sheet + page journal +
+  design monochrome. `GEMINI_API_KEY` déjà en prod.
 
 - Landing alignée sur la nouvelle architecture (ADR-012 + ADR-013) : hero,
   piliers (vocal / relances / preuve à deux voix), parcours en 4 temps (dictez →
