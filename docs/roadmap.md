@@ -128,6 +128,16 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-12)
 
+- Corrections terrain vocal + onboarding (PR #121, ADR-016). (1) Vocal : le
+  montant entendu (« 80 000 en complément ») est désormais porté jusqu'au
+  formulaire d'encaissement (pré-remplissage + ventilation plus ancienne
+  échéance d'abord) — avant il était perdu. (2) Garde-fou anti-hallucination :
+  un nom absent de la base ne génère plus de quittance pour le mauvais
+  locataire (le nom entendu doit recouper le locataire du bail). (3+4) Flux
+  création raccourci : loyer/jour par défaut sur le logement (migration
+  `20260712030000`, défaut de saisie — le bail reste maître) pré-remplissent le
+  bail ; `/units/new` gagne un interrupteur « déjà occupé » qui crée
+  locataire + bail en un écran via `bulk_onboard_portfolio`.
 - Landing réécrite en voix « je » : le propriétaire se projette (« Je dicte ou je
   colle mon SMS MoMo, l'IA écrit, mon locataire confirme »). Flux ADR-014 intégré
   (collage SMS MoMo, journal de bord). Cadrage relances corrigé partout, meta
