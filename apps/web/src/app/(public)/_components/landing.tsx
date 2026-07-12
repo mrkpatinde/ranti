@@ -89,7 +89,7 @@ const pillars = [
   {
     icon: <Mic size={18} strokeWidth={1.8} />,
     title: "Vous dictez, l'IA prépare",
-    body: "Dites « Koffi a payé juillet ». L'IA remplit la fiche depuis votre bail. Vous relisez, vous validez. Aucun formulaire à saisir.",
+    body: "Dites « Koffi a payé son loyer de juillet ». L'IA remplit la fiche depuis votre bail. Vous relisez, vous validez. Aucun formulaire à saisir.",
   },
   {
     icon: <Bell size={18} strokeWidth={1.8} />,
@@ -125,7 +125,7 @@ const steps = [
 const faq = [
   [
     "Comment j'enregistre un paiement ?",
-    "Vous le dites, tout simplement : « Koffi a payé juillet ». L'IA reconnaît le bail dans votre registre et prépare l'encaissement. Vous relisez et validez. Pas de micro ? Le formulaire reste là.",
+    "Vous le dites, tout simplement : « Koffi a payé son loyer de juillet ». L'IA reconnaît le bail dans votre registre et prépare l'encaissement. Vous relisez et validez. Pas de micro ? Le formulaire reste là.",
   ],
   [
     "L'IA peut-elle se tromper ?",

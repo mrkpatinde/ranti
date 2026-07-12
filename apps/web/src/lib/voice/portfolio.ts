@@ -5,7 +5,7 @@ import type { VoicePortfolioLease } from "./types"
 
 // Contexte "effet Granola" : les baux actifs du propriétaire, aplatis avec le
 // nom du locataire et du logement, pour que Gemini résolve une phrase libre
-// ("Koffi a payé juillet") vers un lease_id précis.
+// ("Koffi a payé son loyer de juillet") vers un lease_id précis.
 export async function getVoicePortfolio(landlordId: string): Promise<VoicePortfolioLease[]> {
   const [leases, units, tenants] = await Promise.all([
     getLandlordLeases(landlordId),
