@@ -27,6 +27,7 @@ export function SmsIngestionZone(): React.JSX.Element {
   const [response, setResponse] = useState<SmsCollectionResponse | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [notice, setNotice] = useState("")
+  const [successReceiptId, setSuccessReceiptId] = useState<string | null>(null)
 
   // Analyse le SMS collé. Déclenché au collage (onPaste) et à la soumission
   // manuelle. Ouvre le tiroir seulement si un bail a été résolu.
@@ -36,6 +37,7 @@ export function SmsIngestionZone(): React.JSX.Element {
     setStatus("loading")
     setError("")
     setNotice("")
+    setSuccessReceiptId(null)
     try {
       const res = await fetch("/api/sms/collection", {
         method: "POST",
@@ -113,7 +115,10 @@ export function SmsIngestionZone(): React.JSX.Element {
       setResponse(null)
       setText("")
       setStatus("idle")
-      setNotice("Encaissement enregistré.")
+      // Reçu généré : on invite à envoyer le lien de confirmation au locataire
+      // (preuve à deux voix ADR-013) au lieu d'un simple « enregistré ».
+      setSuccessReceiptId(result.receiptId)
+      setNotice(result.receiptId ? "" : "Encaissement enregistré.")
       router.refresh()
       return { ok: true }
     },
@@ -153,6 +158,21 @@ export function SmsIngestionZone(): React.JSX.Element {
           Analyser
         </button>
       </div>
+
+      {successReceiptId ? (
+        <div className="mt-3 space-y-2 rounded-xl border border-primary/20 bg-secondary px-4 py-3">
+          <p className="text-sm font-medium text-foreground">Encaissement enregistré — reçu généré.</p>
+          <p className="text-sm text-muted-foreground">
+            Envoyez le lien au locataire : il confirme le reçu et télécharge le PDF (preuve à deux voix).
+          </p>
+          <Link
+            href={`/receipts/${successReceiptId}`}
+            className="inline-flex rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+          >
+            Envoyer au locataire
+          </Link>
+        </div>
+      ) : null}
 
       {status === "error" ? (
         <div className="mt-3 space-y-2">
