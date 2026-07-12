@@ -3,6 +3,18 @@ import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { archiveProperty, getProperty } from "@/lib/properties"
+import { getLandlordUnits } from "@/lib/units"
+
+const unitTypeLabels: Record<string, string> = {
+  room: "Chambre",
+  apartment: "Appartement",
+  house: "Maison",
+  shop: "Boutique",
+  store: "Magasin",
+  office: "Bureau",
+  warehouse: "Entrepôt",
+  other: "Logement",
+}
 
 type PropertyDetailPageProps = {
   params: Promise<{ id: string }>
@@ -25,6 +37,9 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
   const property = await getProperty(landlord.id, id)
 
   if (!property) notFound()
+
+  const allUnits = await getLandlordUnits(landlord.id)
+  const units = allUnits.filter((u) => u.property_id === property.id)
 
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
 
@@ -63,6 +78,34 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
         <div className="rounded-2xl border border-border bg-card p-6">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Note</p>
           <p className="mt-3 text-base leading-7 text-foreground/70">{property.notes ?? "Aucune note pour ce lieu."}</p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Logements</h2>
+            <Link href={`/units/new?property_id=${property.id}`} className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+              Ajouter un logement
+            </Link>
+          </div>
+          {units.length === 0 ? (
+            <p className="rounded-2xl border border-border bg-card px-5 py-4 text-sm text-foreground/70">
+              Aucun logement dans ce lieu. Ajoutez-en un pour lui rattacher un locataire et un bail.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {units.map((unit) => (
+                <Link key={unit.id} href={`/units/${unit.id}`} className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-5 py-4 transition hover:border-primary">
+                  <div>
+                    <p className="font-medium text-foreground">{unit.name}</p>
+                    <p className="text-sm text-muted-foreground">{unitTypeLabels[unit.unit_type] ?? "Logement"}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-lg border px-2 py-0.5 text-xs font-medium ${unit.availability_status === "occupied" ? "border-primary/30 text-primary" : "border-border text-muted-foreground"}`}>
+                    {unit.availability_status === "occupied" ? "Occupé" : "Vacant"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-3">
