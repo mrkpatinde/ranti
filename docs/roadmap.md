@@ -135,6 +135,8 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
   WhatsApp (`wa.me` sortant) — plus de « relances automatiques ».
 - ADR-015 versionnée : authentification WhatsApp proposée, recommandation
   Option A (Google-only conservé, WhatsApp exclusivement sortant).
+- Outillage npm → bun (PR #118) : scripts racine, `bun.lock` unique (Vercel et
+  CI installent pareil), CI sur `setup-bun` — lint+test+build en 33 s.
 
 ## Recent (2026-07-11)
 
