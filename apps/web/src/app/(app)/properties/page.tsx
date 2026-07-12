@@ -26,10 +26,10 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Ranti</p>
-          <p className="mt-2 text-sm text-muted-foreground">Vos lieux</p>
+          <p className="mt-2 text-sm text-muted-foreground">Baux · vos lieux</p>
         </div>
-        <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+        <Link href="/receipts" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
+          Quittances
         </Link>
       </header>
 

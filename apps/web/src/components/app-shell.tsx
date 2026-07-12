@@ -6,27 +6,26 @@ import type { Landlord } from "@/lib/landlords"
 import { RantiLogo } from "@/components/ranti-logo"
 import { SUPPORT_EMAIL_URL, SUPPORT_WHATSAPP_URL } from "@/lib/support"
 
-const TRACKING_NAV = [
+// Nav aplatie autour du bail (clé de voûte). « Baux » ouvre l'arbre
+// Lieu → Logement → Locataire/bail (hub = /properties). Les quittances sont
+// accessibles depuis chaque bail dans l'arbre, plus en entrée globale.
+const MAIN_NAV = [
   { href: "/dashboard", label: "Accueil" },
   { href: "/collections", label: "Encaissements" },
   { href: "/reminders", label: "Relances" },
-  { href: "/receipts", label: "Quittances" },
+  { href: "/properties", label: "Baux" },
 ]
 
-const REGISTER_NAV = [
-  { href: "/properties", label: "Lieux" },
-  { href: "/units", label: "Logements" },
-  { href: "/tenants", label: "Locataires" },
-  { href: "/leases", label: "Baux" },
-]
+const MOBILE_NAV = MAIN_NAV
 
-const MOBILE_NAV = [
-  ...TRACKING_NAV,
-  ...REGISTER_NAV,
-]
+// Routes de l'arbre « Baux » : la tuile Baux reste active sur tout le drill-down.
+const BAUX_TREE_PREFIXES = ["/properties", "/units", "/tenants", "/leases", "/receipts"]
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === href
+  if (href === "/properties") {
+    return BAUX_TREE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+  }
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
@@ -44,17 +43,6 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
     >
       {label}
     </Link>
-  )
-}
-
-function NavSection({ title, items, pathname }: { title: string; items: Array<{ href: string; label: string }>; pathname: string }) {
-  return (
-    <div className="space-y-1">
-      <p className="px-3.5 pb-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
-      {items.map((item) => (
-        <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
-      ))}
-    </div>
   )
 }
 
@@ -77,9 +65,10 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
           </div>
         </Link>
 
-        <nav className="space-y-6 border-t border-border pt-5">
-          <NavSection title="Suivi" items={TRACKING_NAV} pathname={pathname} />
-          <NavSection title="Registre" items={REGISTER_NAV} pathname={pathname} />
+        <nav className="space-y-1 border-t border-border pt-5">
+          {MAIN_NAV.map((item) => (
+            <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
+          ))}
         </nav>
 
         <div className="mt-auto space-y-2 border-t border-border pt-4">
