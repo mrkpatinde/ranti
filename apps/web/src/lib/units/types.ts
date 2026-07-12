@@ -18,6 +18,10 @@ export type Unit = {
   name: string
   unit_type: UnitType
   availability_status: "available" | "occupied"
+  // Défauts de pré-remplissage du bail (ADR-016). Pas source de vérité : le
+  // bail reste maître pour la génération des échéances (domain-model 002).
+  default_rent_amount: number | null
+  default_due_day: number | null
   notes: string | null
   created_at: string
   updated_at: string

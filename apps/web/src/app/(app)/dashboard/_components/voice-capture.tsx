@@ -266,7 +266,9 @@ export function VoiceCapture() {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href={`/collections/new?lease_id=${result.match.lease_id}`}
+                  href={`/collections/new?lease_id=${result.match.lease_id}${
+                    result.match.amount > 0 ? `&amount=${result.match.amount}` : ""
+                  }`}
                   className="inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
                 >
                   Valider l&rsquo;encaissement

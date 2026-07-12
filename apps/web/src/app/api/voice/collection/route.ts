@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { extractCollectionFromAudio, getVoicePortfolio } from "@/lib/voice"
 import type { VoiceCollectionResponse } from "@/lib/voice"
+import { hintMatchesTenant } from "@/lib/voice/name-match"
 
 // POST /api/voice/collection
 // Reçoit un court audio, le résout vers un bail actif via Gemini + le
@@ -46,8 +47,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   // Ne jamais faire confiance au lease_id du modèle : re-valider contre le
-  // portefeuille réel du propriétaire.
-  const lease = portfolio.find((l) => l.lease_id === extraction.lease_id)
+  // portefeuille réel du propriétaire, PUIS exiger que le nom entendu recoupe
+  // le locataire du bail (sinon un nom absent de la base génèrerait une
+  // quittance pour le mauvais locataire).
+  const matched = portfolio.find((l) => l.lease_id === extraction.lease_id)
+  const hint = extraction.tenant_hint ?? ""
+  const lease = matched && hintMatchesTenant(hint, matched.tenant_name) ? matched : undefined
 
   const response: VoiceCollectionResponse = lease
     ? {

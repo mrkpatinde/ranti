@@ -41,6 +41,8 @@ function buildPrompt(portfolio: VoicePortfolioLease[]): string {
     "Règles :",
     '- "lease_id" DOIT être exactement l\'un des lease_id listés. Si aucun ne',
     '  correspond avec certitude, renvoie lease_id="".',
+    "- Ne devine JAMAIS : si le nom prononcé ne correspond à aucun locataire de",
+    '  la liste, renvoie lease_id="" — même s\'il n\'existe qu\'un seul bail.',
     '- "amount" = montant en FCFA entendu (entier). 0 si non dit. "60k" = 60000.',
     '- "period" = mois évoqué en clair ("juillet", "2026-07") ou "" si absent.',
     '- "tenant_hint" = le nom de locataire entendu, même si non résolu.',

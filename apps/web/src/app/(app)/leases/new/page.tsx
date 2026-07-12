@@ -4,6 +4,7 @@ import { requireLandlordProfile } from "@/lib/landlords"
 import { createLease } from "@/lib/leases"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
+import { LeaseUnitFields } from "./lease-unit-fields"
 
 type NewLeasePageProps = {
   searchParams?: Promise<{ error?: string; unit_id?: string; tenant_id?: string }>
@@ -101,18 +102,15 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
         <form action={createLease} className="space-y-5">
           <input type="hidden" name="currency" value="XOF" />
 
-          <div className="space-y-2">
-            <label htmlFor="unit_id" className={labelClass}>
-              Logement <span className="text-red-700">*</span>
-            </label>
-            <select id="unit_id" name="unit_id" required defaultValue={params?.unit_id ?? units[0]?.id} className={inputClass}>
-              {units.map((unit) => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <LeaseUnitFields
+            units={units.map((u) => ({
+              id: u.id,
+              name: u.name,
+              default_rent_amount: u.default_rent_amount,
+              default_due_day: u.default_due_day,
+            }))}
+            defaultUnitId={params?.unit_id ?? units[0]?.id ?? ""}
+          />
 
           <div className="space-y-2">
             <label htmlFor="tenant_id" className={labelClass}>
@@ -125,38 +123,6 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="monthly_rent_amount" className={labelClass}>
-              Loyer mensuel (FCFA) <span className="text-red-700">*</span>
-            </label>
-            <input
-              id="monthly_rent_amount"
-              name="monthly_rent_amount"
-              type="text"
-              inputMode="numeric"
-              required
-              placeholder="Ex. 50000"
-              className={inputClass}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="due_day" className={labelClass}>
-              Jour d&apos;échéance (1 à 31) <span className="text-red-700">*</span>
-            </label>
-            <input
-              id="due_day"
-              name="due_day"
-              type="number"
-              min={1}
-              max={31}
-              required
-              placeholder="Ex. 5"
-              className={inputClass}
-            />
-            <p className="text-sm leading-6 text-muted-foreground">ⓘ C&apos;est ce jour qui pilote le suivi : rappel automatique avant l&apos;échéance, relance en cas de retard. Choisissez le jour réellement convenu avec le locataire.</p>
           </div>
 
           <div className="space-y-2">

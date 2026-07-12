@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server"
 import { getUnit } from "./queries"
 import {
   normalizeAvailability,
+  normalizeDefaultDueDay,
+  normalizeDefaultRent,
   normalizeOptionalUnitText,
   normalizeUnitName,
   normalizeUnitType,
@@ -28,6 +30,8 @@ export async function createUnit(formData: FormData) {
   const name = normalizeUnitName(formData.get("name"))
   const unitType = normalizeUnitType(formData.get("unit_type"))
   const notes = normalizeOptionalUnitText(formData.get("notes"), 500)
+  const defaultRent = normalizeDefaultRent(formData.get("default_rent_amount"))
+  const defaultDueDay = normalizeDefaultDueDay(formData.get("default_due_day"))
 
   if (typeof propertyId !== "string" || !propertyId) {
     unitError("Choisissez le lieu de ce logement.")
@@ -63,6 +67,8 @@ export async function createUnit(formData: FormData) {
       name,
       unit_type: unitType,
       availability_status: "available",
+      default_rent_amount: defaultRent,
+      default_due_day: defaultDueDay,
       notes,
     })
     .select("id")
