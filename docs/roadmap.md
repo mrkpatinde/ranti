@@ -126,6 +126,16 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Corrections
 - [ ] Première beta privée
 
+## Recent (2026-07-12)
+
+- Landing réécrite en voix « je » : le propriétaire se projette (« Je dicte ou je
+  colle mon SMS MoMo, l'IA écrit, mon locataire confirme »). Flux ADR-014 intégré
+  (collage SMS MoMo, journal de bord). Cadrage relances corrigé partout, meta
+  description incluse : Ranti prépare le message, le propriétaire l'envoie via
+  WhatsApp (`wa.me` sortant) — plus de « relances automatiques ».
+- ADR-015 versionnée : authentification WhatsApp proposée, recommandation
+  Option A (Google-only conservé, WhatsApp exclusivement sortant).
+
 ## Recent (2026-07-11)
 
 - ADR-014 — Journal de bord + collage SMS MoMo (briques base). Appliqué live
