@@ -128,6 +128,15 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-12)
 
+- Corrections terrain profil + preuve (PR #122). (1) Civilité retirée de l'UI.
+  (2) Déconnexion accessible sur mobile (bouton sur `/settings/profile` ; il
+  n'existait que dans la sidebar desktop masquée en mobile). (3) Entrée
+  « Profil » renommée « Paramètres » (desktop + mobile). (4) Preuve à deux voix
+  après collage SMS MoMo : le flux surface désormais « Envoyer au locataire »
+  (partage du lien `/recu/[token]`), et le locataire peut télécharger le PDF
+  via la nouvelle route publique `/recu/[token]/pdf` (même frontière de
+  confiance token que la page, RPC SECURITY DEFINER, aucun service-role).
+  Vérifié live : le PDF token renvoie `200 application/pdf`.
 - Corrections terrain vocal + onboarding (PR #121, ADR-016). (1) Vocal : le
   montant entendu (« 80 000 en complément ») est désormais porté jusqu'au
   formulaire d'encaissement (pré-remplissage + ventilation plus ancienne
