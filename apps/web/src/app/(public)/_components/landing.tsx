@@ -71,8 +71,8 @@ function ProductPreview() {
             <MessageCircle size={16} strokeWidth={1.8} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#292929]">Relance envoyée à Rachidatou</p>
-            <p className="text-xs text-[#72726e]">Automatique · SMS · il y a 2 h</p>
+            <p className="text-sm font-semibold text-[#292929]">Relance prête pour Rachidatou</p>
+            <p className="text-xs text-[#72726e]">Message préparé · à envoyer sur WhatsApp</p>
           </div>
         </div>
 
@@ -88,60 +88,68 @@ function ProductPreview() {
 const pillars = [
   {
     icon: <Mic size={18} strokeWidth={1.8} />,
-    title: "Vous dictez, l'IA prépare",
-    body: "Dites « Koffi a payé son loyer de juillet ». L'IA remplit la fiche depuis votre bail. Vous relisez, vous validez. Aucun formulaire à saisir.",
+    title: "Je dicte ou je colle, l'IA prépare",
+    body: "Je dis « Koffi a payé son loyer de juillet » — ou je colle le SMS Mobile Money reçu. L'IA remplit la fiche depuis mon bail. Je relis, je valide. Aucun formulaire à saisir.",
   },
   {
     icon: <Bell size={18} strokeWidth={1.8} />,
-    title: "Des relances automatiques",
-    body: "Ranti sait quand relancer. Les rappels partent au bon moment, sans que vous y pensiez.",
+    title: "La relance est prête, j'envoie d'un geste",
+    body: "Ranti sait quand relancer, depuis le bail, et me prépare le message. Je l'envoie sur WhatsApp en un geste — la relation reste entre mon locataire et moi.",
   },
   {
     icon: <ShieldCheck size={18} strokeWidth={1.8} />,
     title: "Une preuve à deux voix",
-    body: "Le locataire confirme le reçu à son tour. Deux voix concordantes : une quittance que personne ne réécrit seul.",
+    body: "Mon locataire confirme le reçu à son tour. Deux voix concordantes : une quittance que personne ne réécrit seul.",
   },
 ];
 
 const steps = [
   {
-    title: "Renseignez vos baux une fois.",
+    title: "Je renseigne mes baux une fois.",
     detail: "Loyer, échéance, numéro du locataire. Ranti génère les échéances du mois, sans saisie.",
   },
   {
-    title: "Les relances partent automatiquement.",
-    detail: "Avant l'échéance, puis en cas de retard. Vous n'y pensez plus.",
+    title: "Ranti me prépare la relance au bon moment.",
+    detail: "Avant l'échéance, puis en cas de retard, le message est prêt. Je l'envoie sur WhatsApp, avec mes mots si je veux.",
   },
   {
-    title: "Dites qui a payé — l'IA remplit, vous validez.",
-    detail: "Une note vocale ou deux mots. L'IA reconnaît le bail et prépare l'encaissement. Rien n'est écrit sans votre validation.",
+    title: "Je dicte — ou je colle le SMS MoMo. L'IA remplit, je valide.",
+    detail: "Une note vocale, deux mots, ou le SMS Mobile Money collé tel quel. L'IA reconnaît le bail et prépare l'encaissement. Rien n'est écrit sans ma validation.",
   },
   {
-    title: "Le locataire confirme : la quittance est certifiée.",
+    title: "Mon locataire confirme : la quittance est certifiée.",
     detail: "Il ouvre le reçu et confirme l'exactitude. Deux voix, un document daté que personne ne réécrit seul.",
+  },
+  {
+    title: "Mon journal de bord garde tout.",
+    detail: "Baux, paiements, retards, reçus, relances : un seul fil chronologique. Tout est là, daté, dans l'ordre.",
   },
 ];
 
 const faq = [
   [
     "Comment j'enregistre un paiement ?",
-    "Vous le dites, tout simplement : « Koffi a payé son loyer de juillet ». L'IA reconnaît le bail dans votre registre et prépare l'encaissement. Vous relisez et validez. Pas de micro ? Le formulaire reste là.",
+    "Je le dis, tout simplement : « Koffi a payé son loyer de juillet ». Ou je colle le SMS Mobile Money reçu — l'IA en extrait le montant, la date et la référence. Dans les deux cas, elle reconnaît le bail dans mon registre et prépare l'encaissement. Je relis et je valide. Pas de micro ? Le formulaire reste là.",
+  ],
+  [
+    "Et si je reçois le loyer par Mobile Money ?",
+    "Je copie le SMS de confirmation MoMo et je le colle dans Ranti. L'IA retrouve le bail, la référence de transaction est conservée avec l'encaissement, et un même SMS collé deux fois est rejeté. Aucune double saisie possible.",
   ],
   [
     "L'IA peut-elle se tromper ?",
-    "Elle propose, vous disposez. Rien n'est écrit sans votre validation, et Ranti vérifie toujours que le bail reconnu est bien l'un des vôtres. Un doute : vous corrigez avant de valider.",
+    "Elle propose, je dispose. Rien n'est écrit sans ma validation, et Ranti vérifie toujours que le bail reconnu est bien l'un des miens. Un doute : je corrige avant de valider.",
   ],
   [
-    "Le locataire peut-il contester un reçu ?",
+    "Mon locataire peut-il contester un reçu ?",
     "Oui. Il confirme l'exactitude (le reçu devient certifié) ou signale une erreur. Les deux versions coexistent sur le document. Ranti documente le désaccord, il ne tranche pas.",
   ],
   [
     "Ranti encaisse-t-il l'argent ?",
-    "Non. L'argent reste entre vous et votre locataire : cash, Mobile Money ou virement. Ranti organise le suivi et les preuves.",
+    "Non. L'argent reste entre mon locataire et moi : cash, Mobile Money ou virement. Ranti organise le suivi et les preuves.",
   ],
   [
-    "Le locataire doit-il créer un compte ?",
-    "Non. Le propriétaire garde son espace privé. Le locataire reçoit un lien simple pour confirmer un paiement ou un reçu.",
+    "Mon locataire doit-il créer un compte ?",
+    "Non. Je garde mon espace privé. Mon locataire reçoit un lien simple pour confirmer un paiement ou un reçu.",
   ],
 ];
 
@@ -161,9 +169,9 @@ const comparisonRows = [
     excel: "Saisie manuelle",
   },
   {
-    feature: "Relances envoyées au bon moment, sans y penser",
+    feature: "Relance prête au bon moment, à envoyer sur WhatsApp",
     ranti: "yes",
-    cahier: "Vous devez y penser",
+    cahier: "Je dois y penser et tout rédiger",
     excel: "no",
   },
   {
@@ -173,7 +181,7 @@ const comparisonRows = [
     excel: "no",
   },
   {
-    feature: "Encaissement dicté à la voix, rempli par l'IA",
+    feature: "Encaissement dicté à la voix ou collé depuis le SMS MoMo",
     ranti: "yes",
     cahier: "no",
     excel: "no",
@@ -249,22 +257,22 @@ export default function Landing() {
                   Ranti{" "}
                   <span className="lp-roll" aria-hidden="true">
                     <span className="lp-roll-track">
-                      <span>relance</span>
                       <span>suit</span>
+                      <span>prépare</span>
                       <span>prouve</span>
-                      <span>relance</span>
+                      <span>suit</span>
                     </span>
                   </span>
-                  <span className="sr-only">relance</span>
+                  <span className="sr-only">suit, prépare et prouve</span>
                 </span>
                 <br />
-                pour vous.
+                pour moi.
               </h1>
 
               <p className="lp-rise lp-rise-2 mt-7 max-w-md text-lg leading-8 text-[#72726e]">
                 Le registre de loyer des propriétaires africains.
                 <br />
-                Vous dictez, l&rsquo;IA écrit, le locataire confirme.
+                Je dicte ou je colle mon SMS MoMo, l&rsquo;IA écrit, mon locataire confirme.
               </p>
 
               <div className="lp-rise lp-rise-3 mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
@@ -314,10 +322,10 @@ export default function Landing() {
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Simple au quotidien</p>
               <h2 className="font-display mt-4 text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
-                Pas un logiciel lourd. Un rituel clair pour vos loyers.
+                Pas un logiciel lourd. Un rituel clair pour mes loyers.
               </h2>
               <p className="mt-5 text-base leading-8 text-[#72726e]">
-                L'objectif n'est pas de transformer un propriétaire en comptable. Ranti garde juste la mémoire fiable des loyers, des retards et des reçus.
+                Je ne deviens pas comptable. Ranti garde juste la mémoire fiable de mes loyers, de mes retards et de mes reçus — dans un journal de bord que je lis d'un coup d'œil.
               </p>
             </div>
 
@@ -340,12 +348,12 @@ export default function Landing() {
         <section id="comparaison" className="px-6 py-24 md:py-32">
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Vous avez déjà une méthode</p>
+              <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">J'ai déjà une méthode</p>
               <h2 className="font-display mt-4 text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
                 Ranti remplace le cahier, sans en perdre la simplicité.
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#72726e]">
-                Cahier, WhatsApp, Excel : ça tient jusqu'au premier oubli ou au premier litige. Voici ce que Ranti garde à votre place.
+                Cahier, WhatsApp, Excel : ça tient jusqu'au premier oubli ou au premier litige. Voici ce que Ranti garde à ma place.
               </p>
             </div>
 
@@ -421,7 +429,7 @@ export default function Landing() {
             </div>
 
             <p className="mt-5 text-center text-sm text-[#acada8]">
-              Ranti ne touche jamais votre argent. Vous validez, Ranti garde la mémoire.
+              Ranti ne touche jamais mon argent. Je valide, Ranti garde la mémoire.
             </p>
           </div>
         </section>
@@ -432,15 +440,15 @@ export default function Landing() {
               <div>
                 <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#94f27f]">Pourquoi Ranti</p>
                 <h2 className="font-display mt-4 max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] md:text-5xl [text-wrap:balance]">
-                  Vous oubliez moins. Vous encaissez plus.
+                  J'oublie moins. J'encaisse plus.
                 </h2>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
-                  ["Vitesse", "Vous dictez, l'IA remplit. Un loyer enregistré en quelques secondes, sans formulaire."],
-                  ["Preuve à deux voix", "Le locataire confirme le reçu. Certifié, contesté ou en attente : chaque statut est visible."],
-                  ["Contrôle", "L'IA propose, vous validez. Ranti ne touche jamais votre argent."],
-                  ["Clarté", "Un propriétaire comprend son mois en quelques secondes."],
+                  ["Vitesse", "Je dicte ou je colle le SMS MoMo, l'IA remplit. Un loyer enregistré en quelques secondes, sans formulaire."],
+                  ["Preuve à deux voix", "Mon locataire confirme le reçu. Certifié, contesté ou en attente : chaque statut est visible."],
+                  ["Contrôle", "L'IA propose, je valide. Ranti ne touche jamais mon argent."],
+                  ["Clarté", "J'ouvre mon journal de bord et je comprends mon mois en quelques secondes."],
                 ].map(([title, body]) => (
                   <div key={title} className="rounded-2xl border border-[#f7f7f2]/10 bg-[#f7f7f2]/5 p-5">
                     <p className="font-display font-extrabold tracking-tight">{title}</p>
@@ -475,10 +483,10 @@ export default function Landing() {
         <section className="px-6 pb-24">
           <div className="mx-auto max-w-4xl rounded-[28px] border border-[#d5d5d2] bg-white px-8 py-14 text-center shadow-[0_8px_28px_-14px_rgba(41,41,41,0.25)]">
             <h2 className="font-display mx-auto max-w-2xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
-              Ouvrez votre registre de loyer.
+              J'ouvre mon registre de loyer.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base leading-8 text-[#72726e]">
-              Deux minutes pour créer votre espace. Votre premier bail suivi dès aujourd'hui.
+              Deux minutes pour créer mon espace. Mon premier bail suivi dès aujourd'hui.
             </p>
             <Link href={SIGNUP_HREF} className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-8 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-[#4c5616] hover:shadow-[0_16px_34px_-12px_rgba(91,111,0,0.55)]">
               Gérer mes loyers
