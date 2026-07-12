@@ -8,7 +8,17 @@ import { getLandlordTenants, getTenant } from "@/lib/tenants"
 import { getLandlordUnits, getUnit } from "@/lib/units"
 
 type NewCollectionPageProps = {
-  searchParams?: Promise<{ lease_id?: string; error?: string }>
+  searchParams?: Promise<{ lease_id?: string; error?: string; amount?: string }>
+}
+
+// Montant pré-rempli depuis la saisie vocale (ADR-012 V1.1). On ne fait jamais
+// confiance aveuglément : c'est un défaut relu et modifiable, jamais une écriture.
+function parsePrefillAmount(raw: string | undefined): number | null {
+  if (typeof raw !== "string") return null
+  const digits = raw.replace(/\s/g, "")
+  if (!/^\d+$/.test(digits)) return null
+  const n = Number.parseInt(digits, 10)
+  return Number.isInteger(n) && n > 0 ? n : null
 }
 
 const inputClass =
@@ -118,11 +128,26 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
     getLeaseDueBalances(landlord.id, lease.id),
   ])
   // Remaining = amount_due - already-paid; only dues still owing something.
+  // Trié par date d'échéance croissante : on solde d'abord la plus ancienne.
   const unpaid = dues
     .filter((d) => d.status === "expected" || d.status === "overdue")
     .map((d) => ({ ...d, remaining: Math.max(0, d.amount_due - d.amount_paid) }))
     .filter((d) => d.remaining > 0)
+    .sort((a, b) => a.due_date.localeCompare(b.due_date))
   const total = unpaid.reduce((sum, d) => sum + d.remaining, 0)
+
+  // Montant entendu à la voix (ex. « 80 000 en complément »). S'il est fourni,
+  // il pré-remplit le champ « Montant reçu » et se ventile sur les échéances de
+  // la plus ancienne à la plus récente. Sinon, on propose le total dû.
+  const prefill = parsePrefillAmount(params.amount)
+  const amountDefault = prefill ?? total
+  let leftover = amountDefault
+  const allocationDefault = new Map<string, number>()
+  for (const due of unpaid) {
+    const alloc = Math.min(due.remaining, Math.max(0, leftover))
+    allocationDefault.set(due.id, alloc)
+    leftover -= alloc
+  }
 
   return (
     <Shell subtitle="Confirmer un paiement reçu">
@@ -167,7 +192,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
               type="text"
               inputMode="numeric"
               required
-              defaultValue={String(total)}
+              defaultValue={String(amountDefault)}
               className={inputClass}
             />
           </div>
@@ -207,7 +232,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
                   name="allocation_amount"
                   type="text"
                   inputMode="numeric"
-                  defaultValue={String(due.remaining)}
+                  defaultValue={String(allocationDefault.get(due.id) ?? due.remaining)}
                   aria-label={`Montant alloué à l'échéance du ${formatDate(due.due_date)}`}
                   className="w-32 rounded-xl border border-border bg-card px-3 py-2 text-base outline-none transition focus:border-primary"
                 />

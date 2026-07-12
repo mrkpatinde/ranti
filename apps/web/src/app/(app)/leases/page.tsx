@@ -34,7 +34,9 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
         (params.leases && params.leases !== "0"
           ? `, ${params.leases} bail/baux activé(s) — loyers générés.`
           : ".")
-      : null
+      : params?.notice === "unit_occupied_created"
+        ? "Logement, locataire et bail créés — loyers générés."
+        : null
   const [leases, units, tenants] = await Promise.all([
     getLandlordLeases(landlord.id),
     getLandlordUnits(landlord.id),

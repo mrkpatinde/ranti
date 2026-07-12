@@ -1,27 +1,16 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { SubmitButton } from "@/components/submit-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordProperties } from "@/lib/properties"
-import { createUnit } from "@/lib/units"
+import { UnitCreateForm } from "./unit-create-form"
 
 type NewUnitPageProps = {
   searchParams?: Promise<{
     error?: string
     property_id?: string
+    occupied?: string
   }>
 }
-
-const UNIT_TYPE_OPTIONS = [
-  { value: "room", label: "Chambre" },
-  { value: "apartment", label: "Appartement" },
-  { value: "house", label: "Maison" },
-  { value: "shop", label: "Boutique" },
-  { value: "store", label: "Magasin" },
-  { value: "office", label: "Bureau" },
-  { value: "warehouse", label: "Entrepôt" },
-  { value: "other", label: "Autre" },
-]
 
 const examples = ["Chambre 1", "Appartement haut", "Boutique droite", "Magasin A"]
 
@@ -34,12 +23,9 @@ export default async function NewUnitPage({ searchParams }: NewUnitPageProps) {
   }
 
   const params = await searchParams
-  const selectedPropertyId = params?.property_id ?? properties[0]?.id
+  const selectedPropertyId = params?.property_id ?? properties[0]?.id ?? ""
   const errorMessage = params?.error
-
-  const inputClass =
-    "w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
-  const labelClass = "block text-sm font-medium text-foreground"
+  const occupiedDefault = params?.occupied === "1"
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
@@ -81,94 +67,17 @@ export default async function NewUnitPage({ searchParams }: NewUnitPageProps) {
           ))}
         </div>
 
-        <form action={createUnit} className="space-y-5">
-          <div className="space-y-2">
-            <label htmlFor="property_id" className={labelClass}>
-              Lieu <span className="text-red-700">*</span>
-            </label>
-            <select
-              id="property_id"
-              name="property_id"
-              required
-              defaultValue={selectedPropertyId}
-              className={inputClass}
-            >
-              {properties.map((property) => (
-                <option key={property.id} value={property.id}>
-                  {property.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="name" className={labelClass}>
-              Nom du logement <span className="text-red-700">*</span>
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              placeholder="Ex. Chambre 1"
-              className={inputClass}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="unit_type" className={labelClass}>
-              Type <span className="text-red-700">*</span>
-            </label>
-            <select
-              id="unit_type"
-              name="unit_type"
-              required
-              defaultValue="room"
-              className={inputClass}
-            >
-              {UNIT_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="notes" className={labelClass}>
-              Note <span className="text-muted-foreground">(optionnel)</span>
-            </label>
-            <textarea
-              id="notes"
-              name="notes"
-              rows={3}
-              placeholder="Ex. au fond de la cour"
-              className={inputClass}
-            />
-          </div>
-
-          {errorMessage ? (
-            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {errorMessage}
-            </p>
-          ) : null}
-
-          <SubmitButton
-            className="w-full rounded-full bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-          >
-            Ajouter ce logement
-          </SubmitButton>
-
-          <p className="text-center text-sm text-foreground/70">
-            Plusieurs logements à ajouter ?{" "}
-            <Link
-              href="/units/bulk"
-              className="font-medium text-primary underline-offset-4 hover:underline"
-            >
-              Les ajouter en une fois
-            </Link>
+        {errorMessage ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
           </p>
-        </form>
+        ) : null}
+
+        <UnitCreateForm
+          properties={properties.map((p) => ({ id: p.id, name: p.name }))}
+          selectedPropertyId={selectedPropertyId}
+          occupiedDefault={occupiedDefault}
+        />
       </section>
     </main>
   )

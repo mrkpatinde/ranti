@@ -32,6 +32,27 @@ export function normalizeOptionalUnitText(
   return normalizeText(value, maxLength)
 }
 
+// Loyer par défaut du logement (FCFA). Optionnel : null si non renseigné.
+// Miroir de normalizeRentAmount (leases) — un défaut de saisie, pas le bail.
+export function normalizeDefaultRent(value: FormDataEntryValue | null): number | null {
+  if (typeof value !== "string") return null
+  const raw = value.replace(/\s/g, "")
+  if (!raw) return null
+  if (!/^\d+$/.test(raw)) return null
+  const n = Number.parseInt(raw, 10)
+  return Number.isInteger(n) && n > 0 ? n : null
+}
+
+// Jour d'échéance par défaut (1..31). null si absent/invalide.
+export function normalizeDefaultDueDay(value: FormDataEntryValue | null): number | null {
+  if (typeof value !== "string") return null
+  const raw = value.trim()
+  if (!raw) return null
+  if (!/^\d+$/.test(raw)) return null
+  const n = Number.parseInt(raw, 10)
+  return Number.isInteger(n) && n >= 1 && n <= 31 ? n : null
+}
+
 export type Availability = "available" | "occupied"
 
 export function normalizeAvailability(value: FormDataEntryValue | null): Availability | null {
