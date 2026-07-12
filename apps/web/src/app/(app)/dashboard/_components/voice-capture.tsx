@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { Mic, Square } from "lucide-react"
 import { useCallback, useRef, useState, useSyncExternalStore } from "react"
 
 const noopSubscribe = () => () => {}
@@ -204,9 +205,10 @@ export function VoiceCapture() {
           <button
             type="button"
             onClick={start}
-            className="shrink-0 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:brightness-95"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:brightness-95"
           >
-            🎙 Parler
+            <Mic size={16} strokeWidth={1.8} />
+            Parler
           </button>
         ) : null}
 
@@ -214,9 +216,10 @@ export function VoiceCapture() {
           <button
             type="button"
             onClick={stop}
-            className="shrink-0 animate-pulse rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:brightness-95"
+            className="inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:brightness-95"
           >
-            ⏹ Terminer
+            <Square size={15} strokeWidth={2} fill="currentColor" />
+            Terminer
           </button>
         ) : null}
 
