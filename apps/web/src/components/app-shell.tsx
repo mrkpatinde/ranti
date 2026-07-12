@@ -102,7 +102,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
               Écrire un email
             </a>
           </div>
-          <NavLink href="/settings/profile" label="Profil" pathname={pathname} />
+          <NavLink href="/settings/profile" label="Paramètres" pathname={pathname} />
           <div className="px-3.5 py-2">
             <p className="truncate text-sm font-medium">{ownerName}</p>
             <p className="text-xs text-muted-foreground">Propriétaire</p>
@@ -120,7 +120,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
           <div className="flex items-center justify-between gap-3">
             <Link href="/dashboard" className="font-display text-lg font-extrabold tracking-tight">Ranti</Link>
             <Link href="/settings/profile" className="rounded-full border border-border px-3.5 py-2 text-sm font-medium">
-              Profil
+              Paramètres
             </Link>
           </div>
           <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">

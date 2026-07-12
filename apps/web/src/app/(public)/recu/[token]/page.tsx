@@ -131,6 +131,15 @@ export default async function RecuPage({
           N° {receipt.receipt_number} · émis le {formatDate(receipt.issued_at)}
         </p>
 
+        {receipt.status !== "cancelled" ? (
+          <a
+            href={`/recu/${token}/pdf`}
+            className="mt-4 inline-flex rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition hover:border-foreground"
+          >
+            Télécharger le PDF
+          </a>
+        ) : null}
+
         {/* Bandeau d'acquittement */}
         <div className={`mt-6 rounded-2xl border px-5 py-4 text-sm ${ack.cls}`}>
           {ack.text}

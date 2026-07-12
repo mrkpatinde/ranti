@@ -142,7 +142,7 @@ export interface RecordSmsCollectionInput {
 }
 
 export type RecordSmsCollectionResult =
-  | { ok: true }
+  | { ok: true; receiptId: string | null }
   | { ok: false; reason?: "duplicate"; message: string }
 
 // Enregistre un encaissement SMS comme crédit NON AFFECTÉ (allocations vides).
@@ -205,10 +205,12 @@ export async function recordSmsCollection(
     return { ok: false, message: "Encaissement non confirmé. Réessayez." }
   }
 
-  await generateDocumentForConfirmedCollection(String(receptionId))
+  const receiptId = await generateDocumentForConfirmedCollection(String(receptionId))
   revalidateCollectionProofPaths()
 
-  return { ok: true }
+  // On renvoie l'id du reçu : le collage SMS propose ensuite d'envoyer le lien
+  // de confirmation à deux voix au locataire (ADR-013), qui n'était pas surfacé.
+  return { ok: true, receiptId }
 }
 
 export async function confirmCollection(formData: FormData) {

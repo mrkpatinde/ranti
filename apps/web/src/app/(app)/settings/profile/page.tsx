@@ -7,13 +7,6 @@ type ProfileSettingsPageProps = {
   searchParams?: Promise<{ error?: string }>
 }
 
-const civilityLabels: Record<string, string> = {
-  mr: "Monsieur",
-  mrs: "Madame",
-  miss: "Mademoiselle",
-  not_specified: "Non renseignée",
-}
-
 function ProfileRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card px-4 py-3">
@@ -26,7 +19,6 @@ function ProfileRow({ label, value }: { label: string; value: string }) {
 export default async function ProfileSettingsPage({ searchParams }: ProfileSettingsPageProps) {
   const landlord = await requireLandlordProfile()
   const params = await searchParams
-  const civility = civilityLabels[landlord.civility ?? "not_specified"] ?? "Non renseignée"
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
@@ -55,7 +47,6 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
         ) : null}
 
         <div className="space-y-3">
-          <ProfileRow label="Civilité" value={civility} />
           <ProfileRow label="Prénom" value={landlord.first_name} />
           <ProfileRow label="Nom" value={landlord.last_name} />
           <ProfileRow label="Téléphone" value={formatPhoneForDisplay(landlord.phone)} />
@@ -108,6 +99,17 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
               <p className="mt-1 text-base font-medium text-foreground">{SUPPORT_EMAIL}</p>
             </a>
           </div>
+        </div>
+
+        <div className="border-t border-border pt-6">
+          <form action="/auth/signout" method="post">
+            <button
+              type="submit"
+              className="w-full rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-foreground"
+            >
+              Se déconnecter
+            </button>
+          </form>
         </div>
       </section>
     </main>

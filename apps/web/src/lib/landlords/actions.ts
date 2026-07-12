@@ -5,7 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AUTH_PATHS } from "@/lib/auth/paths"
 import { getCurrentUser, requireAuth } from "@/lib/auth/server"
-import { normalizeCivility, normalizeName, normalizePhone } from "@/lib/auth/validation"
+import { normalizeName, normalizePhone } from "@/lib/auth/validation"
 import { DEFAULT_COUNTRY_CODE, getCountry, normalizeCountryPhone } from "@/lib/auth/countries"
 
 function profileError(message: string): never {
@@ -25,7 +25,6 @@ export async function createLandlordProfile(formData: FormData) {
 
   const firstName = normalizeName(formData.get("first_name"))
   const lastName = normalizeName(formData.get("last_name"))
-  const civility = normalizeCivility(formData.get("civility"))
 
   if (!firstName || !lastName) {
     profileError("Indiquez votre prénom et votre nom.")
@@ -56,7 +55,7 @@ export async function createLandlordProfile(formData: FormData) {
     phone,
     first_name: firstName,
     last_name: lastName,
-    civility: civility ?? "not_specified",
+    civility: "not_specified",
   })
 
   if (error) {
