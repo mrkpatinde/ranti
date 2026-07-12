@@ -128,6 +128,15 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-12)
 
+- Navigation en arbre « Baux » (PR #123). Top-nav réduit à 4 : Accueil ·
+  Encaissements · Relances · Baux. « Baux » ouvre le drill-down Lieu
+  (/properties) → Logement (/properties/[id]) → Locataire/bail (/units/[id]),
+  quittances accessibles depuis chaque bail. Les listes plates restent des
+  routes valides, retirées du top-nav.
+- ADR-017 : lecture directe des SMS impossible en web/PWA → décision de recevoir
+  les notifications de paiement côté serveur (webhook opérateur MTN/Moov/Wave/
+  PI-SPI), dans le pipeline existant avec validation humaine ; collage SMS gardé
+  en filet. Réception ≠ initiation (agrément BCEAO Tier 2 à confirmer).
 - Corrections terrain profil + preuve (PR #122). (1) Civilité retirée de l'UI.
   (2) Déconnexion accessible sur mobile (bouton sur `/settings/profile` ; il
   n'existait que dans la sidebar desktop masquée en mobile). (3) Entrée
