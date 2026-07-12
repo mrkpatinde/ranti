@@ -197,7 +197,7 @@ export function VoiceCapture() {
         <div>
           <h2 className="font-display text-lg font-extrabold tracking-tight">Déclarer à la voix</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            « Koffi a payé juillet » — Ranti remplit la fiche, vous validez.
+            « Koffi a payé son loyer de juillet » — Ranti remplit la fiche, vous validez.
           </p>
         </div>
 
