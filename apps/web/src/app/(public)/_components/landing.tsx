@@ -88,8 +88,8 @@ function ProductPreview() {
 const pillars = [
   {
     icon: <Mic size={18} strokeWidth={1.8} />,
-    title: "Je dicte ou je colle, l'IA prépare",
-    body: "Je dis « Koffi a payé son loyer de juillet » — ou je colle le SMS Mobile Money reçu. L'IA remplit la fiche depuis mon bail. Je relis, je valide. Aucun formulaire à saisir.",
+    title: "Je dicte ou je colle, Ranti prépare",
+    body: "Je dis « Koffi a payé son loyer de juillet » — ou je colle le SMS Mobile Money reçu. Ranti remplit la fiche depuis mon bail. Je relis, je valide. Aucun formulaire à saisir.",
   },
   {
     icon: <Bell size={18} strokeWidth={1.8} />,
@@ -113,8 +113,8 @@ const steps = [
     detail: "Avant l'échéance, puis en cas de retard, le message est prêt. Je l'envoie sur WhatsApp, avec mes mots si je veux.",
   },
   {
-    title: "Je dicte — ou je colle le SMS MoMo. L'IA remplit, je valide.",
-    detail: "Une note vocale, deux mots, ou le SMS Mobile Money collé tel quel. L'IA reconnaît le bail et prépare l'encaissement. Rien n'est écrit sans ma validation.",
+    title: "Je dicte — ou je colle le SMS MoMo. Ranti remplit, je valide.",
+    detail: "Une note vocale, deux mots, ou le SMS Mobile Money collé tel quel. Ranti reconnaît le bail et prépare l'encaissement. Rien n'est écrit sans ma validation.",
   },
   {
     title: "Mon locataire confirme : la quittance est certifiée.",
@@ -129,15 +129,15 @@ const steps = [
 const faq = [
   [
     "Comment j'enregistre un paiement ?",
-    "Je le dis, tout simplement : « Koffi a payé son loyer de juillet ». Ou je colle le SMS Mobile Money reçu — l'IA en extrait le montant, la date et la référence. Dans les deux cas, elle reconnaît le bail dans mon registre et prépare l'encaissement. Je relis et je valide. Pas de micro ? Le formulaire reste là.",
+    "Je le dis, tout simplement : « Koffi a payé son loyer de juillet ». Ou je colle le SMS Mobile Money reçu — Ranti en extrait le montant, la date et la référence. Dans les deux cas, il reconnaît le bail dans mon registre et prépare l'encaissement. Je relis et je valide. Pas de micro ? Le formulaire reste là.",
   ],
   [
     "Et si je reçois le loyer par Mobile Money ?",
-    "Je copie le SMS de confirmation MoMo et je le colle dans Ranti. L'IA retrouve le bail, la référence de transaction est conservée avec l'encaissement, et un même SMS collé deux fois est rejeté. Aucune double saisie possible.",
+    "Je copie le SMS de confirmation MoMo et je le colle dans Ranti. Ranti retrouve le bail, la référence de transaction est conservée avec l'encaissement, et un même SMS collé deux fois est rejeté. Aucune double saisie possible.",
   ],
   [
-    "L'IA peut-elle se tromper ?",
-    "Elle propose, je dispose. Rien n'est écrit sans ma validation, et Ranti vérifie toujours que le bail reconnu est bien l'un des miens. Un doute : je corrige avant de valider.",
+    "Ranti peut-il se tromper ?",
+    "Ranti propose, je dispose. Rien n'est écrit sans ma validation, et Ranti vérifie toujours que le bail reconnu est bien l'un des miens. Un doute : je corrige avant de valider.",
   ],
   [
     "Mon locataire peut-il contester un reçu ?",
@@ -272,7 +272,7 @@ export default function Landing() {
               <p className="lp-rise lp-rise-2 mt-7 max-w-md text-lg leading-8 text-[#72726e]">
                 Le registre de loyer des propriétaires africains.
                 <br />
-                Je dicte ou je colle mon SMS MoMo, l&rsquo;IA écrit, mon locataire confirme.
+                Je dicte ou je colle mon SMS MoMo, Ranti écrit, mon locataire confirme.
               </p>
 
               <div className="lp-rise lp-rise-3 mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
@@ -445,9 +445,9 @@ export default function Landing() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
-                  ["Vitesse", "Je dicte ou je colle le SMS MoMo, l'IA remplit. Un loyer enregistré en quelques secondes, sans formulaire."],
+                  ["Vitesse", "Je dicte ou je colle le SMS MoMo, Ranti remplit. Un loyer enregistré en quelques secondes, sans formulaire."],
                   ["Preuve à deux voix", "Mon locataire confirme le reçu. Certifié, contesté ou en attente : chaque statut est visible."],
-                  ["Contrôle", "L'IA propose, je valide. Ranti ne touche jamais mon argent."],
+                  ["Contrôle", "Ranti propose, je valide. Ranti ne touche jamais mon argent."],
                   ["Clarté", "J'ouvre mon journal de bord et je comprends mon mois en quelques secondes."],
                 ].map(([title, body]) => (
                   <div key={title} className="rounded-2xl border border-[#f7f7f2]/10 bg-[#f7f7f2]/5 p-5">
