@@ -239,7 +239,7 @@ export default function Landing() {
       </header>
 
       <main>
-        <section className="px-6 pb-28 pt-36 md:pb-44 md:pt-56">
+        <section className="overflow-hidden px-6 pb-28 pt-36 md:pb-44 md:pt-56">
           <div className="mx-auto grid max-w-6xl items-center gap-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-20">
             <div>
               <h1 className="lp-rise font-display max-w-3xl text-5xl font-extrabold leading-[1.06] tracking-[-0.03em] text-[#292929] sm:text-6xl md:text-7xl">
@@ -261,16 +261,18 @@ export default function Landing() {
                 pour vous.
               </h1>
 
-              <p className="lp-rise lp-rise-2 mt-7 max-w-xl text-lg leading-8 text-[#72726e]">
-                Le registre de loyer des propriétaires africains. Vous dictez qui a payé, l'IA rédige le reçu, le locataire confirme. Ranti suit les échéances, relance au bon moment et garde chaque quittance, certifiée à deux voix.
+              <p className="lp-rise lp-rise-2 mt-7 max-w-md text-lg leading-8 text-[#72726e]">
+                Le registre de loyer des propriétaires africains.
+                <br />
+                Vous dictez, l&rsquo;IA écrit, le locataire confirme.
               </p>
 
-              <div className="lp-rise lp-rise-3 mt-9 flex flex-col gap-3 sm:flex-row">
+              <div className="lp-rise lp-rise-3 mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
                 <Link href={SIGNUP_HREF} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-7 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-[#4c5616] hover:shadow-[0_16px_34px_-12px_rgba(91,111,0,0.55)]">
                   Gérer mes loyers
                   <ArrowRight size={18} strokeWidth={1.8} />
                 </Link>
-                <a href="#fonctionnement" className="inline-flex items-center justify-center rounded-full border border-[#292929] px-7 py-4 text-base font-semibold text-[#292929] transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[#f2f6e1]">
+                <a href="#fonctionnement" className="text-base font-semibold text-[#72726e] underline-offset-4 transition hover:text-[#292929] hover:underline">
                   Voir comment ça marche
                 </a>
               </div>
@@ -285,7 +287,9 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="lp-slide-in">
+            {/* Visuel produit ambiant, façon granola : déborde vers la droite
+                et légère inclinaison, plutôt qu'une carte contenue et droite. */}
+            <div className="lp-slide-in lg:translate-x-6 lg:rotate-[1.5deg] lg:will-change-transform xl:-mr-20">
               <ProductPreview />
             </div>
           </div>
