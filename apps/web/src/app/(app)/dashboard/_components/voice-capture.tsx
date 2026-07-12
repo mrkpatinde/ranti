@@ -309,7 +309,7 @@ export function VoiceCapture() {
       {/* Séparateur « ou » vers la seconde modalité (collage SMS). Porté par le
           bloc vocal : si le micro n'est pas supporté, ce composant renvoie null
           et aucun « ou » orphelin ne s'affiche au-dessus du collage. */}
-      <div className="mt-5 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="my-5 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
         ou
         <span className="h-px flex-1 bg-border" />
