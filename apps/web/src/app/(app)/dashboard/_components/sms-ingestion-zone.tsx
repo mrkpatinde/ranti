@@ -121,7 +121,7 @@ export function SmsIngestionZone(): React.JSX.Element {
   )
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div>
       <label htmlFor="sms-paste" className="block text-sm font-medium text-foreground">
         Coller un SMS de paiement
       </label>

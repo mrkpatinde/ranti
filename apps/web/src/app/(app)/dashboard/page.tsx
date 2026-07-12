@@ -107,8 +107,9 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      {/* Les deux gestes de capture ambiants, en tête du flux (ADR-014). */}
-      <section className="space-y-4">
+      {/* Entrée de capture unique (ADR-014) : deux modalités — dictée vocale
+          ou collage d'un SMS Mobile Money — réunies dans un même bloc. */}
+      <section className="rounded-2xl border border-primary/20 bg-secondary/40 p-5 shadow-sm">
         <VoiceCapture />
         <SmsIngestionZone />
       </section>
