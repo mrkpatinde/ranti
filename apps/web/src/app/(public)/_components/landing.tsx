@@ -27,6 +27,28 @@ function StatusBadge({ tone, children }: { tone: "paid" | "late" | "declared"; c
   );
 }
 
+// Emplacement de la démo vidéo. Tant que DEMO_VIDEO_SRC est null, le hero
+// montre la carte produit (page vivante). Déposer la vidéo dans
+// apps/web/public/ (ex. demo.mp4) puis passer DEMO_VIDEO_SRC à "/demo.mp4".
+const DEMO_VIDEO_SRC: string | null = null;
+
+function HeroMedia() {
+  if (!DEMO_VIDEO_SRC) return <ProductPreview />;
+  return (
+    <div className="overflow-hidden rounded-[20px] border border-[#d5d5d2] bg-black shadow-[0_14px_50px_-18px_rgba(41,41,41,0.22)]">
+      <video
+        className="aspect-video w-full"
+        controls
+        playsInline
+        preload="metadata"
+        poster="/demo-poster.jpg"
+      >
+        <source src={DEMO_VIDEO_SRC} type="video/mp4" />
+      </video>
+    </div>
+  );
+}
+
 // La carte du mois — l'écran que promet le produit, avec des données Bénin.
 function ProductPreview() {
   const rows = [
@@ -272,7 +294,7 @@ export default function Landing() {
               <p className="lp-rise lp-rise-2 mt-7 max-w-md text-lg leading-8 text-[#72726e]">
                 Le registre de loyer des propriétaires africains.
                 <br />
-                Je dicte ou je colle mon SMS MoMo, Ranti écrit, mon locataire confirme.
+                Je suis mes loyers, mes reçus se créent seuls, je récupère mon temps.
               </p>
 
               <div className="lp-rise lp-rise-3 mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
@@ -295,10 +317,10 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Visuel produit ambiant, façon granola : déborde vers la droite
-                et légère inclinaison, plutôt qu'une carte contenue et droite. */}
+            {/* Démo au centre : la vidéo (quand fournie) sinon la carte produit
+                ambiante, façon granola — déborde à droite, légère inclinaison. */}
             <div className="lp-slide-in lg:translate-x-6 lg:rotate-[1.5deg] lg:will-change-transform xl:-mr-20">
-              <ProductPreview />
+              <HeroMedia />
             </div>
           </div>
         </section>
