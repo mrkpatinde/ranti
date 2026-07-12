@@ -2,10 +2,10 @@
   "name": "ranti",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix apps/web run dev",
-    "build": "npm --prefix apps/web run build",
-    "start": "npm --prefix apps/web run start",
-    "lint": "npm --prefix apps/web run lint",
-    "test:e2e": "npm --prefix apps/web run test:e2e"
+    "dev": "bun --cwd apps/web dev",
+    "build": "bun --cwd apps/web build",
+    "start": "bun --cwd apps/web start",
+    "lint": "bun --cwd apps/web lint",
+    "test:e2e": "bun --cwd apps/web test:e2e"
   }
 }

@@ -1,5 +1,5 @@
 
-# Dependencies (npm workspaces install at the repo root)
+# Dependencies
 node_modules/
 
 # OS
@@ -9,3 +9,6 @@ node_modules/
 supabase/.branches/
 supabase/.temp/
 .gstack/
+
+# Editor
+.vscode/
