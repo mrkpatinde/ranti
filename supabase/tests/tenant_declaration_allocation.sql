@@ -219,7 +219,8 @@ begin
     'db000000-0000-0000-0000-000000000001',
     'da000000-0000-0000-0000-000000000001',
     20000, 'cash', now(), null,
-    jsonb_build_array(jsonb_build_object('rent_due_id', v_due2.id, 'amount_allocated', 20000))
+    jsonb_build_array(jsonb_build_object('rent_due_id', v_due2.id, 'amount_allocated', 20000)),
+    null::text -- p_reference : lève l'ambiguïté entre les deux surcharges
   );
   perform public.confirm_collection(v_reception_id);
 
