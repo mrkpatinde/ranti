@@ -149,7 +149,45 @@
   66%, 93% { transform: translateY(-2.04em); }
   100% { transform: translateY(-3.06em); }
 }
+/* ── Moment magique de la carte hero (.lp-paste) ──────────────────────────
+   Le badge rejoue en boucle « SMS MoMo collé… » → « Déclaré » : même
+   technique de colonne masquée que .lp-roll, chaque étiquette est une
+   pastille complète (le fond roule avec le texte). */
+.lp-paste {
+  display: inline-block;
+  overflow: hidden;
+  height: 1.85em;
+  border-radius: 9999px;
+}
+.lp-paste-track {
+  display: flex;
+  flex-direction: column;
+  animation: lp-paste 6s cubic-bezier(0.7, 0, 0.2, 1) infinite;
+}
+.lp-paste-track > span {
+  display: flex;
+  align-items: center;
+  height: 1.85em;
+  padding: 0 0.75rem;
+  border-radius: 9999px;
+}
+.lp-paste-sms {
+  background: #f2f2ec;
+  color: #72726e;
+}
+.lp-paste-done {
+  background: #e5eacd;
+  color: #292929;
+}
+@keyframes lp-paste {
+  0%, 30% { transform: translateY(0); }
+  38%, 88% { transform: translateY(-1.85em); }
+  100% { transform: translateY(-3.7em); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lp-rise, .lp-rise-2, .lp-rise-3, .lp-rise-4, .lp-slide-in { animation: none; }
   .lp-roll-track { animation: none; }
+  /* Sans animation, on fige le badge sur l'état final « Déclaré ». */
+  .lp-paste-track { animation: none; transform: translateY(-1.85em); }
 }

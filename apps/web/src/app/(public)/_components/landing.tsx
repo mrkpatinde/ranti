@@ -14,11 +14,10 @@ const SIGNUP_HREF = "/signup";
 
 import { RantiLogo } from "@/components/ranti-logo";
 
-function StatusBadge({ tone, children }: { tone: "paid" | "late" | "declared"; children: React.ReactNode }) {
+function StatusBadge({ tone, children }: { tone: "paid" | "late"; children: React.ReactNode }) {
   const tones = {
     paid: "bg-[#e5eacd] text-[#292929]",
     late: "bg-[#ffe7e2] text-[#bd4a30]",
-    declared: "bg-[#f2f2ec] text-[#72726e]",
   };
   return (
     <span className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${tones[tone]}`}>
@@ -50,11 +49,12 @@ function HeroMedia() {
 }
 
 // La carte du mois — l'écran que promet le produit, avec des données Bénin.
+// La ligne « Cosme » rejoue en boucle le moment magique : le SMS Mobile Money
+// collé devient une réception déclarée, sans saisie (statuts rent_receptions).
 function ProductPreview() {
   const rows = [
     { name: "Adjovi H.", unit: "Villa 3 ch — Fidjrossè", status: "Payé le 2 juil.", tone: "paid" as const },
     { name: "Rachidatou A.", unit: "Appt 2 ch — Gbégamey", status: "En retard — 12 j", tone: "late" as const },
-    { name: "Cosme D.", unit: "Boutique — Ganhi", status: "Déclaré le 5 juil.", tone: "declared" as const },
   ];
 
   return (
@@ -88,6 +88,27 @@ function ProductPreview() {
           </div>
         ))}
 
+        {/* Moment magique animé : SMS MoMo collé → réception déclarée. */}
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-[#f2f2ec] px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e5eacd] text-sm font-bold text-[#292929]">
+              C
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#292929]">Cosme D.</p>
+              <p className="text-xs text-[#72726e]">Boutique — Ganhi</p>
+            </div>
+          </div>
+          <span className="lp-paste shrink-0 whitespace-nowrap text-xs font-semibold">
+            <span className="lp-paste-track">
+              <span className="lp-paste-sms">SMS MoMo collé…</span>
+              <span className="lp-paste-done">Déclaré le 5 juil.</span>
+              <span className="lp-paste-sms">SMS MoMo collé…</span>
+            </span>
+            <span className="sr-only">SMS Mobile Money collé, réception déclarée le 5 juillet</span>
+          </span>
+        </div>
+
         <div className="flex items-center gap-3 rounded-xl bg-[#f2f6e1] px-4 py-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#292929] text-[#f7f7f2]">
             <MessageCircle size={16} strokeWidth={1.8} />
@@ -111,40 +132,32 @@ const pillars = [
   {
     icon: <Mic size={18} strokeWidth={1.8} />,
     title: "Je dicte ou je colle, Ranti prépare",
-    body: "Je dis « Koffi a payé son loyer de juillet » — ou je colle le SMS Mobile Money reçu. Ranti remplit la fiche depuis mon bail. Je relis, je valide. Aucun formulaire à saisir.",
+    body: "« Koffi a payé juillet » — ou le SMS Mobile Money collé tel quel. Ranti remplit depuis le bail, je valide. Aucun formulaire.",
   },
   {
     icon: <Bell size={18} strokeWidth={1.8} />,
     title: "La relance est prête, j'envoie d'un geste",
-    body: "Ranti sait quand relancer, depuis le bail, et me prépare le message. Je l'envoie sur WhatsApp en un geste — la relation reste entre mon locataire et moi.",
+    body: "Ranti sait quand relancer, depuis le bail. J'envoie sur WhatsApp — la relation reste entre mon locataire et moi.",
   },
   {
     icon: <ShieldCheck size={18} strokeWidth={1.8} />,
     title: "Une preuve à deux voix",
-    body: "Mon locataire confirme le reçu à son tour. Deux voix concordantes : une quittance que personne ne réécrit seul.",
+    body: "Mon locataire confirme le reçu. Deux voix concordantes : une quittance que personne ne réécrit seul.",
   },
 ];
 
 const steps = [
   {
     title: "Je renseigne mes baux une fois.",
-    detail: "Loyer, échéance, numéro du locataire. Ranti génère les échéances du mois, sans saisie.",
+    detail: "Loyer, échéance, numéro du locataire. Ranti génère les échéances chaque mois, tout seul.",
   },
   {
-    title: "Ranti me prépare la relance au bon moment.",
-    detail: "Avant l'échéance, puis en cas de retard, le message est prêt. Je l'envoie sur WhatsApp, avec mes mots si je veux.",
+    title: "La relance part au bon moment, sur WhatsApp.",
+    detail: "Avant l'échéance, puis en cas de retard, le message est prêt. J'envoie d'un geste.",
   },
   {
-    title: "Je dicte — ou je colle le SMS MoMo. Ranti remplit, je valide.",
-    detail: "Une note vocale, deux mots, ou le SMS Mobile Money collé tel quel. Ranti reconnaît le bail et prépare l'encaissement. Rien n'est écrit sans ma validation.",
-  },
-  {
-    title: "Mon locataire confirme : la quittance est certifiée.",
-    detail: "Il ouvre le reçu et confirme l'exactitude. Deux voix, un document daté que personne ne réécrit seul.",
-  },
-  {
-    title: "Mon journal de bord garde tout.",
-    detail: "Baux, paiements, retards, reçus, relances : un seul fil chronologique. Tout est là, daté, dans l'ordre.",
+    title: "Je dicte ou je colle le SMS MoMo — la quittance suit.",
+    detail: "Ranti remplit, je valide, mon locataire confirme. Tout reste daté dans mon journal de bord.",
   },
 ];
 
@@ -308,6 +321,10 @@ export default function Landing() {
               </div>
 
               <div className="lp-rise lp-rise-4 mt-7 flex flex-wrap gap-3 text-sm text-[#72726e]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#292929] px-3 py-2 font-semibold text-[#f7f7f2]">
+                  <ShieldCheck size={15} strokeWidth={1.8} className="text-[#94f27f]" />
+                  Ranti ne touche jamais mon argent
+                </span>
                 {["Gratuit pendant le pilote", "Sans carte bancaire"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-2 rounded-full border border-[#d5d5d2] bg-white px-3 py-2">
                     <Check size={15} strokeWidth={1.8} className="text-[#5b6f00]" />
@@ -456,27 +473,47 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="px-6 pb-24">
+        {/* Preuve sociale honnête du pilote : pas de faux témoignages — la
+            confiance se montre par l'artefact du produit, la quittance
+            certifiée, numérotée et vérifiable par lien public (/verifier). */}
+        <section id="preuve" className="px-6 pb-24">
           <div className="mx-auto max-w-6xl overflow-hidden rounded-[28px] bg-[#292929] p-8 text-[#f7f7f2] shadow-[0_30px_90px_rgba(41,41,41,0.24)] md:p-12">
-            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
               <div>
-                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#94f27f]">Pourquoi Ranti</p>
+                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#94f27f]">Pilote en cours au Bénin</p>
                 <h2 className="font-display mt-4 max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] md:text-5xl [text-wrap:balance]">
-                  J'oublie moins. J'encaisse plus.
+                  La confiance ne se raconte pas. Elle se vérifie.
                 </h2>
+                <p className="mt-5 max-w-lg text-base leading-8 text-[#acada8]">
+                  Chaque quittance Ranti porte un numéro unique, la confirmation du locataire et un lien public de vérification. N'importe qui — une banque, un juge, un futur locataire — peut contrôler qu'elle est authentique.
+                </p>
+                <p className="mt-4 text-sm text-[#72726e]">
+                  Ranti est en pilote avec des propriétaires de 1 à 20 logements. Leurs mots arriveront ici — pas avant.
+                </p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  ["Vitesse", "Je dicte ou je colle le SMS MoMo, Ranti remplit. Un loyer enregistré en quelques secondes, sans formulaire."],
-                  ["Preuve à deux voix", "Mon locataire confirme le reçu. Certifié, contesté ou en attente : chaque statut est visible."],
-                  ["Contrôle", "Ranti propose, je valide. Ranti ne touche jamais mon argent."],
-                  ["Clarté", "J'ouvre mon journal de bord et je comprends mon mois en quelques secondes."],
-                ].map(([title, body]) => (
-                  <div key={title} className="rounded-2xl border border-[#f7f7f2]/10 bg-[#f7f7f2]/5 p-5">
-                    <p className="font-display font-extrabold tracking-tight">{title}</p>
-                    <p className="mt-2 text-sm leading-6 text-[#acada8]">{body}</p>
+
+              <div className="rounded-2xl border border-[#f7f7f2]/10 bg-white p-6 text-[#292929] shadow-[0_18px_60px_-20px_rgba(0,0,0,0.6)]">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#9e9e99]">Quittance N° RNT-2026-0184</p>
+                    <p className="font-display mt-1 text-lg font-extrabold tracking-tight">Villa 3 ch — Fidjrossè</p>
+                    <p className="text-sm text-[#72726e]">Juillet 2026 · Adjovi H.</p>
                   </div>
-                ))}
+                  <RantiLogo size={24} />
+                </div>
+                <div className="mt-5 flex items-baseline justify-between border-t border-dashed border-[#d5d5d2] pt-4">
+                  <span className="text-sm text-[#72726e]">Loyer soldé</span>
+                  <span className="font-display text-xl font-extrabold tracking-tight [font-variant-numeric:tabular-nums]">60 000 F</span>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e5eacd] px-3 py-1 text-xs font-semibold text-[#292929]">
+                    <Check size={13} strokeWidth={2.4} className="text-[#5b6f00]" />
+                    Certifiée par le locataire · 6 juil.
+                  </span>
+                  <span className="rounded-full bg-[#f2f2ec] px-3 py-1 text-xs font-semibold text-[#72726e]">
+                    Vérifiable par lien public
+                  </span>
+                </div>
               </div>
             </div>
           </div>
