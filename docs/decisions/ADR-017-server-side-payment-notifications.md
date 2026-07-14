@@ -3,7 +3,9 @@
 ## Statut
 
 Proposé (2026-07-12). Direction validée par le CEO ; implémentation par étapes,
-dépend de l'accès aux API opérateurs.
+dépend de l'accès aux API opérateurs. ADR-018 (2026-07-14) implémente ce
+modèle pour le rail Kkiapay : webhook signé → ingestion seule, la validation
+humaine du propriétaire reste obligatoire avant toute écriture de réception.
 
 ## Contexte
 
