@@ -7,5 +7,6 @@
     "start": "bun --cwd apps/web start",
     "lint": "bun --cwd apps/web lint",
     "test:e2e": "bun --cwd apps/web test:e2e"
-  }
+  },
+  "version": "0.1.0.0"
 }

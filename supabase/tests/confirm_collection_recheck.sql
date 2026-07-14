@@ -61,13 +61,15 @@ begin
     'eb000000-0000-0000-0000-000000000001',
     'ea000000-0000-0000-0000-000000000001',
     v_due.amount_due, 'cash', now(), 'brouillon 1',
-    jsonb_build_array(jsonb_build_object('rent_due_id', v_due.id, 'amount_allocated', v_due.amount_due))
+    jsonb_build_array(jsonb_build_object('rent_due_id', v_due.id, 'amount_allocated', v_due.amount_due)),
+    null::text -- p_reference : lève l'ambiguïté entre les deux surcharges
   );
   v_r2 := public.record_collection(
     'eb000000-0000-0000-0000-000000000001',
     'ea000000-0000-0000-0000-000000000001',
     v_due.amount_due, 'cash', now(), 'brouillon 2',
-    jsonb_build_array(jsonb_build_object('rent_due_id', v_due.id, 'amount_allocated', v_due.amount_due))
+    jsonb_build_array(jsonb_build_object('rent_due_id', v_due.id, 'amount_allocated', v_due.amount_due)),
+    null::text -- p_reference : lève l'ambiguïté entre les deux surcharges
   );
 
   -- Confirmation du premier : OK, échéance payée.

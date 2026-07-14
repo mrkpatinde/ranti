@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-07-11
+Dernière mise à jour : 2026-07-14
 
 ## Phase 0 - Foundation
 
@@ -125,6 +125,39 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Tests terrain
 - [ ] Corrections
 - [ ] Première beta privée
+
+## Recent (2026-07-14)
+
+- Étude comparative PSP Bénin (ADR-018 v3) : Kkiapay vs FedaPay vs FeexPay sur
+  le cycle cash-in → cash-out. **Reco : FedaPay** (payin MoMo 1,8 %, payout API
+  vers MoMo d'un tiers **gratuit**, zéro abonnement, sandbox + webhooks +
+  `merchant_reference` idempotente). Kkiapay disqualifié : pas de payout API
+  standard (reversement manuel vers son propre compte) + 14 900 F/mois.
+  FeexPay = repli (payin 1,7 % à la charge du locataire + payout 1 %). Split
+  retenu : **1,8 % PSP + 1,2 % Ranti = 3,0 %** (défauts 180/120 bp, à
+  verrouiller au contrat). Ledger repassé en deux composants
+  (`psp_fee`/`platform_fee`), provider extensible
+  (`fedapay`/`feexpay`/`kkiapay`). Architecture « Ranti = interface » : fonds
+  dans le wallet marchand du PSP agréé, jamais chez Ranti.
+- Cœur transactionnel PSP (ADR-018, révisé v2 le jour même) : ledger
+  `payment_transactions` (montants FCFA entiers ; commission Ranti **3,0 %**
+  configurable, `platform_fee_bp` stocké sur la ligne, floor + net par
+  soustraction, CHECKs arithmétiques inviolables ; frais Kkiapay ~1,9 % payés
+  par le locataire côté widget, hors système). Machine à états
+  `pending → verified → paid_out` (+ `rejected` terminal). Le webhook signé
+  HMAC `POST /api/payments/notification` **ingère seulement** ; `verified` =
+  **validation du propriétaire** (RPC `verify_payment_transaction` accordée à
+  authenticated avec garde d'appartenance) qui déclenche le pipeline existant
+  record/confirm/quittance en une transaction ; `paid_out` = reversement
+  effectué (ops, service_role). Domaine TS `src/lib/payments/`
+  (`calculatePayout`, service, repository, action serveur de validation) +
+  intégration isolée `src/lib/kkiapay/`. `recorded_by='psp'` ajouté. Pivot
+  documenté : supersède partiellement ADR-009 ; ADR-017 pleinement respecté
+  (validation humaine). ⚠️ **Non activé en prod avant validation juridique
+  BCEAO** (détention transitoire de fonds — voir caveat ADR-018). 30 tests
+  vitest + suite SQL (garde ownership, machine à états, idempotence, dédup
+  cross-rail, assertions GRANTs) verts ; cycle complet vérifié E2E sur DB
+  locale.
 
 ## Recent (2026-07-12)
 

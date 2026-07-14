@@ -235,6 +235,51 @@ Champs : `id`, `landlord_id`, `actor_user_id`, `actor_role`, `action`, `entity_t
 
 Contraintes : append-only autant que possible ; pas de modification par flux utilisateur standard ; pas de données sensibles inutiles en clair.
 
+### `payment_transactions` (ADR-018 v3, live)
+
+Ledger du rail PSP : une ligne par notification de paiement, jamais droppée
+(un montant inattendu est enregistré `rejected` avec raison). Le locataire
+paie exactement le loyer ; 3,0 % sont prélevés sur le brut (frais PSP +
+commission Ranti), le net (97 %) est reversé au propriétaire via l'API payout
+du PSP. Les fonds vivent dans le wallet marchand chez le PSP agréé (reco :
+FedaPay — comparatif dans ADR-018).
+
+Champs : `id`, `landlord_id`, `lease_id`, `provider`
+(`fedapay`/`feexpay`/`kkiapay`), `provider_reference` (unique par provider —
+clé d'idempotence), `amount_received` (brut, FCFA entier), `psp_fee_bp`
+(défaut 180) et `platform_fee_bp` (défaut 120) — taux en basis points stockés
+sur la ligne, `psp_fee`, `platform_fee`, `net_amount` (reversé au
+propriétaire), `currency` (`XOF`), `status`
+(`pending`/`verified`/`paid_out`/`rejected`), `rejection_reason`,
+`rent_reception_id`, `payload`, `created_at`, `verified_at`, `paid_out_at`.
+
+Machine à états : `pending` (webhook ingéré) → `verified` (**validation du
+propriétaire** — déclenche réception + quittance) → `paid_out` (net reversé,
+ops) ; `rejected` terminal depuis `pending`. Aucun retour en arrière.
+
+Contraintes : CHECKs arithmétiques (`fee = floor(montant × bp / 10000)` par
+composant, `net = montant − psp_fee − platform_fee` — la ligne balance par
+construction) ;
+`verified`/`paid_out` ⇒ `rent_reception_id` non nul ; `paid_out` ⇔
+`paid_out_at` non nul. Écritures uniquement via RPC SECURITY DEFINER :
+`ingest_payment_notification` / `reject_payment_transaction` /
+`mark_payment_transaction_paid_out` = `service_role` seul ;
+`verify_payment_transaction` = `authenticated` avec garde d'appartenance
+(`landlord_id = private.current_landlord_id()`). `authenticated` = SELECT seul
+sous RLS. La validation passe par le pipeline existant
+`record_collection_core → confirm_collection_core → generate_receipt_core`
+(aucune voie d'écriture parallèle, ADR-017) avec `recorded_by = 'psp'` et la
+référence PSP en `payment_reference` (déduplication cross-rail avec le
+collage SMS). `record_collection_core` n'a qu'une seule signature (11 args,
+`p_reference default null`) : la surcharge 10 args héritée de
+20260703230000 est supprimée par 20260714120000 — sa coexistence rendait
+ambigus tous les appels à 10 arguments (wrapper legacy `record_collection`
+7 args, `ops_record_collection`).
+
+Note de dérive : en live, `rent_receptions.recorded_by` accepte
+`('landlord', 'operator', 'tenant', 'psp')` — ce document décrivait
+initialement un modèle antérieur.
+
 ## Tables Post-MVP
 
 ### `notification_deliveries`

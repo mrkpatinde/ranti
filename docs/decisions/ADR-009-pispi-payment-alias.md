@@ -2,7 +2,9 @@
 
 ## Statut
 
-Acceptée — 2026-07-05.
+Acceptée — 2026-07-05. Partiellement supersédée par ADR-018 (2026-07-14) :
+l'invariant « Ranti ne détient jamais les fonds » n'est plus la cible produit ;
+l'alias P2P reste le filet universel.
 
 ## Contexte
 
