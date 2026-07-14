@@ -3,6 +3,22 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.1.0.1] - 2026-07-14
+
+### Changed
+
+- Landing : la ligne « Cosme D. » de la carte hero rejoue en boucle le moment
+  magique du produit — « SMS MoMo collé… » devient « Déclaré » (animation CSS,
+  figée sur l'état final en `prefers-reduced-motion`).
+- Landing : la section « Pourquoi Ranti » devient la preuve sociale honnête du
+  pilote — pas de faux témoignages : une quittance certifiée, numérotée et
+  vérifiable par lien public, avec la mention « leurs mots arriveront ici —
+  pas avant ».
+- Landing : badge « Ranti ne touche jamais mon argent » remonté dans le hero ;
+  piliers et étapes resserrés (3 étapes au lieu de 5).
+- Nettoyage : variante `declared` de StatusBadge devenue morte, supprimée ;
+  dernier warning lint (variable inutilisée dans un test) corrigé.
+
 ## [0.1.0.0] - 2026-07-14
 
 ### Added
