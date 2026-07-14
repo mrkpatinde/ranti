@@ -251,9 +251,19 @@ Les actions suivantes doivent être idempotentes ou protégées contre le double
 - confirmation de réception de loyer ;
 - génération automatique de reçu/quittance ;
 - remplacement de reçu/quittance ;
-- webhooks futurs de paiement.
+- webhook de paiement PSP (`POST /api/payments/notification`, live ADR-018).
 
-Convention : utiliser `Idempotency-Key` quand l'action peut être rejouée par le client ou un prestataire.
+Convention : utiliser `Idempotency-Key` quand l'action peut être rejouée par le client ou un prestataire. Exception webhook PSP : l'idempotence est portée par la paire `(provider, provider_reference)` (contrainte unique du ledger `payment_transactions`), pas par un header — un replay renvoie `outcome: "duplicate"`.
+
+### Webhook PSP — `POST /api/payments/notification`
+
+Endpoint appelé par le PSP (rail ADR-018), hors convention d'enveloppe `data`/`error` (contrat dicté par l'appelant externe) :
+
+- authentification : HMAC-SHA256 du corps brut, header `x-kkiapay-signature` → 401 si invalide ;
+- forme invalide (JSON ou champs requis) → 400 ;
+- échec PSP explicite (`FAILED`, `DECLINED`…) → 200 `{ ok, outcome: "ignored" }`, aucune écriture ;
+- tout autre statut (succès, inconnu, absent) → ingestion `pending` dans le ledger ; la validation propriétaire (ADR-017) reste la porte ;
+- 500 réservé aux pannes techniques (le PSP rejoue).
 
 ## Transactions
 

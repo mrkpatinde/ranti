@@ -161,16 +161,19 @@ utilisateurs.
 ## Conséquences
 
 - Preuve de paiement automatique (plus de collage pour les baux sur ce rail).
-- Monétisation transactionnelle : 1,5 % Ranti par loyer encaissé.
-- Nouvelle responsabilité : détention transitoire de fonds → exigence
-  juridique ci-dessus, et processus ops de reversement à outiller.
+- Monétisation transactionnelle : commission Ranti 1,2 % (120 bp, configurable
+  par ligne) + frais PSP 1,8 % (180 bp) = 3,0 % sur le brut.
+- Posture v3 : Ranti = interface, jamais détenteur — les fonds vivent dans le
+  wallet marchand au nom de Ranti chez le PSP (caveat BCEAO ci-dessus), et le
+  processus ops de reversement reste à outiller.
 - L'alias P2P (ADR-009) et le collage SMS (ADR-014) restent les filets
   universels pour les propriétaires sans rail connecté.
 
 ## Hors périmètre (cet ADR)
 
-- Automatisation du reversement (disbursement Kkiapay).
+- Automatisation du reversement (payout FedaPay — ou PSP retenu au contrat).
 - Surface checkout locataire (widget sur la page `/confirmer`) et vue
   `/transactions` propriétaire — le ledger est prêt à les accueillir.
-- Autres PSP (Wave, MTN Collections direct) : `provider` est contraint à
-  `'kkiapay'` tant qu'un second rail n'est pas contractualisé.
+- Autres PSP (Wave, MTN Collections direct) : le schéma accepte déjà
+  `('fedapay', 'feexpay', 'kkiapay')` (default `'fedapay'`), mais un seul rail
+  sera câblé tant qu'un second n'est pas contractualisé.
