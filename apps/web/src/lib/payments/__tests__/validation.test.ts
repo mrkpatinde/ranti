@@ -35,7 +35,8 @@ describe("normalizeKkiapayPayload", () => {
 
   it("status non-string ou absent → UNKNOWN (jamais un crash)", () => {
     expect(normalizeKkiapayPayload({ ...valid, status: 42 })?.providerStatus).toBe("UNKNOWN")
-    const { status: _status, ...noStatus } = valid
+    const noStatus: Record<string, unknown> = { ...valid }
+    delete noStatus.status
     expect(normalizeKkiapayPayload(noStatus)?.providerStatus).toBe("UNKNOWN")
   })
 
