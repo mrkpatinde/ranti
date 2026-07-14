@@ -2,12 +2,11 @@ import Link from "next/link"
 import type { JournalEvent } from "@/lib/journal"
 import { buildTenantPaymentWaLink } from "@/lib/journal/whatsapp"
 import { formatFcfa } from "@/lib/format"
-import { AllocateAffordance } from "./allocate-affordance"
 
 // Timeline chronologique (ADR-014), esthétique « Granola » : colonne date à
 // chiffre serif, filet vertical coloré par nature d'évènement, séparation
-// pointillée entre les jours. Rendu serveur ; seule l'affordance d'allocation
-// des Fast-Log non alloués est cliente.
+// pointillée entre les jours. Rendu serveur intégral : « Affecter » mène à
+// /collections/allocate/[id], « Notifier » ouvre un lien profond wa.me.
 
 // Détail derrière chaque ligne (les écrans de gestion sont le détail du journal).
 const DETAIL_HREF: Record<JournalEvent["ref_table"], (id: string) => string> = {
@@ -66,8 +65,12 @@ function groupByDay(events: JournalEvent[]): DayGroup[] {
 
 export function JournalTimeline({
   events,
+  origin,
 }: {
   events: JournalEvent[]
+  /** Origine absolue (https://…) : le lien /recu/[token] envoyé au locataire par
+   *  WhatsApp doit être cliquable hors de l'app, donc absolu. */
+  origin?: string
 }): React.JSX.Element {
   const groups = groupByDay(events)
 
@@ -110,6 +113,7 @@ export function JournalTimeline({
               <EventRow
                 key={`${event.ref_table}:${event.ref_id}`}
                 event={event}
+                origin={origin}
               />
             ))}
           </ol>
@@ -119,10 +123,21 @@ export function JournalTimeline({
   )
 }
 
-function EventRow({ event }: { event: JournalEvent }): React.JSX.Element {
+function EventRow({
+  event,
+  origin,
+}: {
+  event: JournalEvent
+  origin?: string
+}): React.JSX.Element {
   const href = DETAIL_HREF[event.ref_table]?.(event.ref_id) ?? "#"
   const isPayment = event.event_type === "rent_reception"
   const unallocated = isPayment && event.allocated === false
+
+  // Lien public du reçu (ADR-013) : le locataire confirme l'exactitude et
+  // télécharge le PDF. Absolu, sinon il n'est pas cliquable depuis WhatsApp.
+  const receiptUrl =
+    origin && event.receipt_token ? `${origin}/recu/${event.receipt_token}` : null
 
   // Notification WhatsApp sortante (étape 6) : lien wa.me pré-rempli vers le
   // locataire, uniquement sur un encaissement doté d'un montant et d'un numéro.
@@ -132,6 +147,7 @@ function EventRow({ event }: { event: JournalEvent }): React.JSX.Element {
           phone: event.counterparty_phone,
           tenantName: event.counterparty,
           amount: event.amount,
+          receiptUrl,
         })
       : null
 
@@ -195,7 +211,15 @@ function EventRow({ event }: { event: JournalEvent }): React.JSX.Element {
               Notifier sur WhatsApp
             </a>
           ) : null}
-          {unallocated ? <AllocateAffordance refId={event.ref_id} /> : null}
+          {unallocated ? (
+            <Link
+              href={`/collections/allocate/${event.ref_id}`}
+              className="text-xs font-medium text-amber-600 underline-offset-4 transition-colors hover:underline dark:text-amber-300"
+              aria-label="Affecter cet encaissement à une échéance"
+            >
+              Affecter
+            </Link>
+          ) : null}
         </div>
       ) : null}
     </li>

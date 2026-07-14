@@ -213,6 +213,41 @@ export async function recordSmsCollection(
   return { ok: true, receiptId }
 }
 
+// Affecter un encaissement Fast-Log déjà confirmé (crédit non alloué, ADR-014)
+// à une ou plusieurs échéances. Passe par la RPC allocate_reception, qui
+// réutilise les invariants de record_collection (montant ≤ reste dû, somme des
+// allocations ≤ montant reçu) et recalcule le statut des échéances. Aucune
+// nouvelle réception n'est créée : pas de double comptage.
+export async function allocateReception(formData: FormData) {
+  await requireLandlordProfile()
+
+  const receptionId = readString(formData, "reception_id")
+  const allocations = readAllocations(formData)
+
+  const back = (msg: string): never =>
+    redirect(
+      receptionId
+        ? `/collections/allocate/${receptionId}?error=${encodeURIComponent(msg)}`
+        : `/collections?error=${encodeURIComponent(msg)}`,
+    )
+
+  if (!receptionId) back("Encaissement introuvable.")
+  if (allocations.length === 0) back("Affectez au moins une échéance (montant supérieur à 0).")
+
+  const supabase = await createClient()
+  const { error } = await supabase.rpc("allocate_reception", {
+    p_reception_id: receptionId,
+    p_allocations: allocations,
+  })
+
+  if (error) back(collectionErrorMessage(error.message))
+
+  revalidateCollectionProofPaths()
+  revalidatePath("/collections/allocate")
+
+  redirect("/dashboard?notice=reception_allocated")
+}
+
 export async function confirmCollection(formData: FormData) {
   await requireLandlordProfile()
 

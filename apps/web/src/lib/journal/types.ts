@@ -30,4 +30,6 @@ export interface JournalEvent {
   reference: string | null
   /** Encaissement : true = affecté à une échéance, false = Fast-Log non alloué. */
   allocated: boolean | null
+  /** Token du reçu émis, pour le lien public /recu/[token] (ADR-013), ou null. */
+  receipt_token: string | null
 }
