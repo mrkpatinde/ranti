@@ -128,6 +128,16 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-12)
 
+- « Affecter » câblé + lien de confirmation dans le wa.me (PR #124). (1) Le
+  bouton « Affecter » du journal était un placeholder mort ; il passe par la
+  nouvelle RPC `allocate_reception` (migration 20260712040000, SECURITY INVOKER,
+  anon révoqué) qui affecte après coup un encaissement Fast-Log confirmé mais
+  non alloué à ses échéances — mêmes invariants que `record_collection_core`,
+  aucune réception créée (pas de double comptage), écran
+  `/collections/allocate/[id]`. (2) Le message WhatsApp au locataire ne portait
+  AUCUN lien : `journal_feed` expose désormais `receipt_token` et le wa.me
+  contient l'URL absolue `/recu/[token]` — le locataire confirme le reçu
+  (deuxième voix ADR-013) et télécharge son PDF.
 - Navigation en arbre « Baux » (PR #123). Top-nav réduit à 4 : Accueil ·
   Encaissements · Relances · Baux. « Baux » ouvre le drill-down Lieu
   (/properties) → Logement (/properties/[id]) → Locataire/bail (/units/[id]),
