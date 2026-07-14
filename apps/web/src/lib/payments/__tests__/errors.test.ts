@@ -15,8 +15,9 @@ describe("paymentErrorCodeFromMessage — correspondances non triviales", () => 
     )
   })
 
-  it("les codes purement TS (signature, frais) ne sont PAS mappés : technical", () => {
-    // Ces codes naissent dans la couche route/fees, jamais dans un message RPC.
+  it("libellés hors domaine (signature, frais) : retombée technical", () => {
+    // Ces libellés n'existent plus comme codes du domaine (code mort retiré
+    // le 2026-07-14) — un message RPC qui les contiendrait retombe en technical.
     expect(paymentErrorCodeFromMessage("signature_invalid")).toBe("technical")
     expect(paymentErrorCodeFromMessage("fee_computation_mismatch")).toBe("technical")
   })
@@ -36,8 +37,6 @@ describe("paymentErrorMessage — table complète", () => {
     "transaction_not_pending",
     "provider_invalid",
     "payout_not_applicable",
-    "fee_computation_mismatch",
-    "signature_invalid",
     "invalid_body",
     "technical",
   ]

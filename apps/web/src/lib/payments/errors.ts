@@ -13,8 +13,6 @@ const MESSAGES: Record<PaymentErrorCode, string> = {
   transaction_not_pending: "Cette transaction a déjà été traitée.",
   provider_invalid: "Fournisseur de paiement inconnu.",
   payout_not_applicable: "Reversement impossible pour cette transaction.",
-  fee_computation_mismatch: "Erreur technique de calcul des frais. Réessayez.",
-  signature_invalid: "Signature invalide.",
   invalid_body: "Requête invalide.",
   technical: "Opération impossible. Réessayez.",
 }

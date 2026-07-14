@@ -41,8 +41,6 @@ export type PaymentErrorCode =
   | "transaction_not_pending"
   | "provider_invalid"
   | "payout_not_applicable"
-  | "fee_computation_mismatch"
-  | "signature_invalid"
   | "invalid_body"
   | "technical"
 
