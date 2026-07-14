@@ -13,6 +13,12 @@ export interface TenantPaymentNotice {
   tenantName: string | null
   /** Montant net reçu en FCFA (entier). */
   amount: number
+  /**
+   * URL publique ABSOLUE du reçu partagé (/recu/[token], ADR-013) : le locataire
+   * y confirme l'exactitude du reçu et télécharge le PDF. Absente si aucun reçu
+   * n'a encore été émis pour cet encaissement.
+   */
+  receiptUrl?: string | null
 }
 
 // Construit le lien wa.me pré-rempli, ou null si le numéro est inexploitable.
@@ -23,9 +29,17 @@ export function buildTenantPaymentWaLink(input: TenantPaymentNotice): string | n
 
   const name = input.tenantName?.trim()
   const greeting = name ? `Bonjour ${name}, ` : "Bonjour, "
+  const receiptUrl = input.receiptUrl?.trim()
+
+  // Le message porte le lien de confirmation : sans lui, le locataire ne peut ni
+  // confirmer le reçu (deuxième voix) ni télécharger sa quittance en PDF.
+  const proof = receiptUrl
+    ? ` Confirmez votre reçu et téléchargez-le en PDF ici : ${receiptUrl}`
+    : ""
+
   const message = `${greeting}nous confirmons la réception de votre paiement de ${formatFcfa(
     input.amount,
-  )}. Merci.`
+  )}.${proof} Merci.`
 
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
 }

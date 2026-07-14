@@ -1,3 +1,4 @@
+import { headers } from "next/headers"
 import Link from "next/link"
 import { VoiceCapture } from "./_components/voice-capture"
 import { SmsIngestionZone } from "./_components/sms-ingestion-zone"
@@ -38,7 +39,15 @@ function buildNextAction(
 // Contrôle d'accès : layout (app) → requireAuth() (Google, ADR-010) ; ici
 // requireLandlordProfile() → profil complet ou redirection onboarding. Le flux
 // journal ne s'affiche qu'avec ≥ 1 bail actif ; sinon, geste d'accueil unique.
-export default async function DashboardPage() {
+const NOTICE_LABELS: Record<string, string> = {
+  reception_allocated: "Encaissement affecté. Les échéances concernées sont à jour.",
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ notice?: string }>
+}) {
   const landlord = await requireLandlordProfile()
   const isLocalMode = isLocalAuthEnabled()
 
@@ -89,12 +98,28 @@ export default async function DashboardPage() {
   const events = await getJournalFeed()
   const monthCount = countThisMonth(events)
 
+  // Origine absolue pour le lien /recu/[token] porté par la notification
+  // WhatsApp : il est ouvert par le locataire hors de l'app, donc jamais relatif.
+  const h = await headers()
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? ""
+  const proto = h.get("x-forwarded-proto") ?? "https"
+  const origin = host ? `${proto}://${host}` : undefined
+
+  const sp = await searchParams
+  const notice = sp?.notice ? NOTICE_LABELS[sp.notice] : null
+
   return (
     <main className="mx-auto w-full max-w-2xl space-y-8 px-6 py-12">
       {isLocalMode ? (
         <section className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent-foreground">
           Mode local actif. Développement sans provider SMS.
         </section>
+      ) : null}
+
+      {notice ? (
+        <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
+          {notice}
+        </p>
       ) : null}
 
       {/* En-tête sobre : titre + résumé discret du mois. */}
@@ -115,7 +140,7 @@ export default async function DashboardPage() {
       </section>
 
       {/* Le flux — timeline chronologique en lecture. */}
-      <JournalTimeline events={events} />
+      <JournalTimeline events={events} origin={origin} />
     </main>
   )
 }
