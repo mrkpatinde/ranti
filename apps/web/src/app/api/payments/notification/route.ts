@@ -25,19 +25,29 @@ import { PaymentError } from "@/lib/payments"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-// Statuts PSP considérés comme un paiement réussi. Un événement signé mais
-// non réussi (FAILED, PENDING côté PSP…) n'est PAS un paiement : il est
-// ignoré sans écriture. "UNKNOWN" (statut absent du payload) reste accepté
-// tant que le vocabulaire exact n'est pas verrouillé avec la doc du PSP.
-const SUCCESS_STATUSES = new Set(["SUCCESS", "SUCCESSFUL", "APPROVED", "UNKNOWN"])
+// Politique statut (décision 2026-07-14, vocabulaire PSP non verrouillé) :
+// seul un échec EXPLICITE est ignoré ; tout le reste — succès, statut
+// inconnu, statut absent — est ingéré en `pending`. La validation
+// propriétaire (ADR-017) reste la porte réelle, et le ledger ne droppe
+// jamais un mouvement signé (ADR-018). À resserrer après le sandbox.
+const FAILURE_STATUSES = new Set([
+  "FAILED",
+  "FAILURE",
+  "DECLINED",
+  "CANCELLED",
+  "CANCELED",
+  "REFUSED",
+  "EXPIRED",
+])
 
 export async function POST(request: Request) {
   const secret = process.env.KKIAPAY_WEBHOOK_SECRET
   if (!secret) {
-    return Response.json(
-      { error: "KKIAPAY_WEBHOOK_SECRET not configured" },
-      { status: 500 },
-    )
+    // Détail en log serveur seulement : ne pas révéler l'état de la
+    // configuration à un appelant non authentifié (la vérification de
+    // signature n'a pas encore eu lieu).
+    console.error("[WEBHOOK] kkiapay misconfigured: KKIAPAY_WEBHOOK_SECRET missing")
+    return Response.json({ error: "internal" }, { status: 500 })
   }
 
   // Corps BRUT obligatoire : la signature porte sur les octets reçus,
@@ -61,24 +71,23 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid_body" }, { status: 400 })
   }
 
-  // Défense en profondeur : ne jamais ingérer un événement dont le PSP
-  // annonce lui-même l'échec — sinon une transaction fantôme 'pending'
-  // pourrait être validée par le propriétaire sans argent réellement reçu.
-  if (!SUCCESS_STATUSES.has(event.providerStatus.toUpperCase())) {
+  // Seul un échec explicite du PSP est écarté : pas d'argent bougé, rien à
+  // tracer. Tout autre statut (succès, inconnu, absent) entre en `pending`
+  // et sera arbitré par le propriétaire — un vrai paiement au vocabulaire
+  // imprévu ne doit jamais être perdu derrière un 200 non rejoué.
+  if (FAILURE_STATUSES.has(event.providerStatus.toUpperCase())) {
     console.log(
       `[WEBHOOK] kkiapay ref=${event.reference} ignored provider_status=${event.providerStatus}`,
     )
-    return Response.json({ ok: true, outcome: "ignored", reason: "provider_status_not_success" })
+    return Response.json({ ok: true, outcome: "ignored", reason: "provider_status_failure" })
   }
 
   // Client service_role : le webhook n'a pas de session utilisateur et les
   // RPC du ledger ne sont accordées qu'à service_role.
   const supabase = createAdminClient()
   if (!supabase) {
-    return Response.json(
-      { error: "SUPABASE_SECRET_KEY not configured" },
-      { status: 500 },
-    )
+    console.error("[WEBHOOK] kkiapay misconfigured: SUPABASE_SECRET_KEY missing")
+    return Response.json({ error: "internal" }, { status: 500 })
   }
 
   try {
@@ -93,7 +102,9 @@ export async function POST(request: Request) {
     console.log(
       `[WEBHOOK] kkiapay ref=${event.reference} outcome=${result.outcome} tx=${result.transactionId}`,
     )
-    return Response.json({ ok: true, ...result })
+    // Contrat de réponse explicite : ne jamais épandre le type interne
+    // (ProcessPaymentResult) dans le corps renvoyé au PSP.
+    return Response.json({ ok: true, outcome: result.outcome })
   } catch (err) {
     // Bail introuvable : événement traité (le retry PSP ne changera rien),
     // loggé pour investigation ops. Le reste = panne technique → 500 → retry.

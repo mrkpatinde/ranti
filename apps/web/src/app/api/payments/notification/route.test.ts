@@ -82,17 +82,44 @@ describe("POST /api/payments/notification", () => {
     expect(processPayment).not.toHaveBeenCalled()
   })
 
-  it("statut PSP non réussi → 200 ignoré, aucune ingestion", async () => {
-    const failed = JSON.stringify({
-      transactionId: "KKP-FAILED",
+  it("échec PSP explicite → 200 ignoré, aucune ingestion (même en minuscules)", async () => {
+    for (const status of ["FAILED", "declined"]) {
+      const failed = JSON.stringify({
+        transactionId: `KKP-${status}`,
+        amount: 60000,
+        status,
+        stateData: { lease_id: LEASE },
+      })
+      const res = await POST(makeRequest(failed, sign(failed)))
+      expect(res.status).toBe(200)
+      expect(await res.json()).toMatchObject({ ok: true, outcome: "ignored" })
+    }
+    expect(processPayment).not.toHaveBeenCalled()
+  })
+
+  it("statut ABSENT → ingéré en pending (politique : le proprio arbitre)", async () => {
+    const noStatus = JSON.stringify({
+      transactionId: "KKP-NOSTATUS",
       amount: 60000,
-      status: "FAILED",
       stateData: { lease_id: LEASE },
     })
-    const res = await POST(makeRequest(failed, sign(failed)))
+    const res = await POST(makeRequest(noStatus, sign(noStatus)))
     expect(res.status).toBe(200)
-    expect(await res.json()).toMatchObject({ ok: true, outcome: "ignored" })
-    expect(processPayment).not.toHaveBeenCalled()
+    expect(await res.json()).toMatchObject({ ok: true, outcome: "pending" })
+    expect(processPayment).toHaveBeenCalled()
+  })
+
+  it("statut INCONNU (vocabulaire imprévu) → ingéré, jamais perdu derrière un 200", async () => {
+    const unknown = JSON.stringify({
+      transactionId: "KKP-COMPLETED",
+      amount: 60000,
+      status: "COMPLETED",
+      stateData: { lease_id: LEASE },
+    })
+    const res = await POST(makeRequest(unknown, sign(unknown)))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ ok: true, outcome: "pending" })
+    expect(processPayment).toHaveBeenCalled()
   })
 
   it("200 chemin nominal : processPayment appelé avec l'événement normalisé", async () => {
@@ -125,24 +152,23 @@ describe("POST /api/payments/notification", () => {
     expect(res.status).toBe(500)
   })
 
-  it("200 pour rejected : événement traité, le PSP ne doit PAS retenter", async () => {
+  it("200 pour rejected : événement traité, réponse SANS détails internes", async () => {
     vi.mocked(processPayment).mockResolvedValueOnce({
       outcome: "rejected",
       transactionId: "tx-r",
     })
     const res = await POST(makeRequest(VALID_BODY, sign(VALID_BODY)))
     expect(res.status).toBe(200)
-    expect(await res.json()).toMatchObject({
-      ok: true,
-      outcome: "rejected",
-      transactionId: "tx-r",
-    })
+    const body = await res.json()
+    expect(body).toEqual({ ok: true, outcome: "rejected" })
+    expect(body).not.toHaveProperty("transactionId")
   })
 
   it("200 pour duplicate (replay) : idempotence visible dans la réponse", async () => {
     vi.mocked(processPayment).mockResolvedValueOnce({
       outcome: "duplicate",
       transactionId: "tx-1",
+      status: "pending",
     })
     const res = await POST(makeRequest(VALID_BODY, sign(VALID_BODY)))
     expect(res.status).toBe(200)
