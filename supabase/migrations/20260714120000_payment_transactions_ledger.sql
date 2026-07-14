@@ -22,6 +22,11 @@
 --     authenticated avec garde d'appartenance explicite.
 --   * Aucune voie d'écriture parallèle : verify passe par
 --     record_collection_core → confirm_collection_core → generate_receipt_core.
+--
+-- Rollback : forward-only (pas de down). Aucune donnée détruite ; le retour
+-- arrière = niveau applicatif (cesser d'appeler les nouvelles RPC). Ordre de
+-- déploiement : cette migration DOIT être appliquée en prod AVANT le deploy
+-- Vercel du code payments (les RPC ingest/verify n'existent pas encore côté prod).
 
 begin;
 
@@ -51,8 +56,11 @@ begin
   end if;
 
   -- Division entière Postgres sur positifs = floor, comme Math.floor côté TS.
-  v_psp := (p_amount * p_psp_bp) / 10000;
-  v_platform := (p_amount * p_platform_bp) / 10000;
+  -- Cast bigint : amount*bp dépasse int4 dès ~11,9M FCFA à 180 bp — le
+  -- résultat final retient dans integer (frais < montant), seul le produit
+  -- intermédiaire doit être élargi. Côté TS les valeurs restent < 2^53.
+  v_psp := ((p_amount::bigint * p_psp_bp) / 10000)::integer;
+  v_platform := ((p_amount::bigint * p_platform_bp) / 10000)::integer;
 
   return query select v_psp, v_platform, p_amount - v_psp - v_platform;
 end;
@@ -90,9 +98,9 @@ create table public.payment_transactions (
   paid_out_at timestamptz,
   -- Le ledger balance par construction : impossible à violer même par une RPC boguée.
   constraint payment_transactions_psp_fee_check
-    check (psp_fee = (amount_received * psp_fee_bp) / 10000),
+    check (psp_fee = ((amount_received::bigint * psp_fee_bp) / 10000)::integer),
   constraint payment_transactions_platform_fee_check
-    check (platform_fee = (amount_received * platform_fee_bp) / 10000),
+    check (platform_fee = ((amount_received::bigint * platform_fee_bp) / 10000)::integer),
   constraint payment_transactions_net_check
     check (net_amount = amount_received - psp_fee - platform_fee),
   constraint payment_transactions_provider_ref_uq
@@ -103,10 +111,18 @@ create table public.payment_transactions (
     check ((status = 'paid_out') = (paid_out_at is not null))
 );
 
-create index payment_transactions_landlord_idx on public.payment_transactions (landlord_id);
+-- Composite (landlord, created desc) : sert directement le pattern dominant
+-- « mes transactions, plus récentes d'abord » (RLS landlord + ORDER BY),
+-- et remplace deux index mono-colonne qui forçaient filter-then-sort.
+create index payment_transactions_landlord_created_idx
+  on public.payment_transactions (landlord_id, created_at desc);
 create index payment_transactions_lease_idx on public.payment_transactions (lease_id);
 create index payment_transactions_status_idx on public.payment_transactions (status);
-create index payment_transactions_created_idx on public.payment_transactions (created_at desc);
+-- FK indexée : lookups réception → transaction et updates/deletes sur
+-- rent_receptions sans seq-scan du ledger.
+create index payment_transactions_rent_reception_idx
+  on public.payment_transactions (rent_reception_id)
+  where rent_reception_id is not null;
 
 -- RLS + grants explicites (leçon revue 2026-07-05 : policy sans GRANT = invisible,
 -- et les tests SQL en postgres ne le voient pas — assertions dédiées dans
@@ -128,9 +144,12 @@ for each row execute function private.log_audit();
 -- 3. recorded_by = 'psp' (rail vérifié) : contrainte table + garde du cœur.
 -- -----------------------------------------------------------------------------
 
+-- Un seul ALTER (drop if exists + add) : pas de fenêtre sans contrainte, et
+-- rejouable sur une base où la contrainte aurait déjà sauté. L'ADD valide
+-- toutes les lignes sous ACCESS EXCLUSIVE — acceptable à la taille actuelle ;
+-- passer par NOT VALID + VALIDATE si la table devient grosse.
 alter table public.rent_receptions
-  drop constraint rent_receptions_recorded_by_check;
-alter table public.rent_receptions
+  drop constraint if exists rent_receptions_recorded_by_check,
   add constraint rent_receptions_recorded_by_check
   check (recorded_by in ('landlord', 'operator', 'tenant', 'psp'));
 

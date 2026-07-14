@@ -112,6 +112,14 @@ begin
     raise exception 'FAIL fees 33: % % %', v_fees.psp_fee, v_fees.platform_fee, v_fees.net_amount;
   end if;
 
+  -- Parité TS/SQL au-delà d'int4 intermédiaire : 123 456 789 × 180 dépasse
+  -- 2^31 — sans le cast bigint la fonction lèverait 22003 (integer out of
+  -- range). Valeurs = fees.test.ts (garde anti-régression du cast).
+  select * into v_fees from private.compute_payment_fees(123456789, 180, 120);
+  if v_fees.psp_fee <> 2222222 or v_fees.platform_fee <> 1481481 or v_fees.net_amount <> 119753086 then
+    raise exception 'FAIL fees 123456789: % % %', v_fees.psp_fee, v_fees.platform_fee, v_fees.net_amount;
+  end if;
+
   -- Gardes d'entrée de compute_payment_fees : montant nul/négatif/null,
   -- taux négatif → amount_invalid (mêmes règles que le miroir TS fees.ts).
   begin
