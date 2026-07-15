@@ -5,6 +5,10 @@
 Accepté — briques base implémentées et appliquées live 2026-07-11 (voir
 « Statut d'implémentation »). UI (bottom-sheet + page journal) restante.
 
+**Superseded (2026-07-15)** : le collage SMS Mobile Money est retiré du code par
+ADR-019 (rail FeexPay = encaissement unique) ; le journal de bord du dashboard
+est remplacé par le dashboard lecture seule (ADR-020).
+
 ## Contexte
 
 Le brief « Journal de bord » (philosophie Granola / ambient computing) demande :

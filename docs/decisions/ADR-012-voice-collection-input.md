@@ -2,7 +2,9 @@
 
 ## Statut
 
-Accepté (V1 — encaissement uniquement).
+Accepté (V1 — encaissement uniquement). **Superseded par ADR-019 (2026-07-15)** :
+la saisie vocale est retirée du code ; le rail FeexPay devient le chemin
+d'encaissement unique.
 
 ## Contexte
 
