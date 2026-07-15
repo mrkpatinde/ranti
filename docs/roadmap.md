@@ -128,6 +128,12 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Offre affichée : « 3 mois gratuits à l'ouverture de votre registre, puis
+  5 % sur chaque paiement de loyer réussi » (v0.3.1.2, directive CEO) — le
+  framing « gratuit pendant le pilote » disparaît ; arrêt libre dit sans
+  vocabulaire d'abonnement (« Vous arrêtez quand vous voulez », rien à
+  résilier) ; nouvelle entrée FAQ « Combien ça coûte ? ».
+
 - Tarif affiché comme unique (v0.3.1.1, directive CEO) : « 5 % sur chaque
   paiement de loyer réussi », FAQ sans optionnalité d'encaissement ;
   suppression des mentions « sans carte bancaire », « aucune carte demandée »
