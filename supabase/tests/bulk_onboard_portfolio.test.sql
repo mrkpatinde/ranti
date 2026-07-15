@@ -37,7 +37,7 @@ values ('a3333333-3333-3333-3333-333333333333',
 -- -> déterministe) + 1 logement vacant.
 -- ---------------------------------------------------------------------------
 select public.bulk_onboard_portfolio(
-  'a3333333-3333-3333-3333-333333333333',
+  '{"id":"a3333333-3333-3333-3333-333333333333"}'::jsonb,
   '[
      {"unit_name":"U1","unit_type":"room","first_name":"Aline","last_name":"Un","phone":"+2290100000001","monthly_rent_amount":"50000","due_day":"5","start_date":"2023-01-05","end_date":"2023-03-31"},
      {"unit_name":"U2","unit_type":"room","first_name":"Koffi","last_name":"Deux","phone":"+2290100000002","monthly_rent_amount":"60000","due_day":"10","start_date":"2023-02-10","end_date":"2023-03-31"},
@@ -82,7 +82,7 @@ declare raised boolean := false; n int; msg text;
 begin
   begin
     perform public.bulk_onboard_portfolio(
-      'a3333333-3333-3333-3333-333333333333',
+      '{"id":"a3333333-3333-3333-3333-333333333333"}'::jsonb,
       '[{"unit_name":"DupX","unit_type":"room"},{"unit_name":"DupX","unit_type":"room"}]'::jsonb);
   exception when others then
     raised := true;
@@ -105,12 +105,58 @@ declare raised boolean := false;
 begin
   begin
     perform public.bulk_onboard_portfolio(
-      '99999999-9999-9999-9999-999999999999',
+      '{"id":"99999999-9999-9999-9999-999999999999"}'::jsonb,
       '[{"unit_name":"X","unit_type":"room"}]'::jsonb);
   exception when sqlstate 'P0002' then raised := true;
   end;
   if not raised then raise exception 'SECURITY FAIL: propriété étrangère acceptée' using errcode='90001'; end if;
   raise notice 'OK sécurité : propriété étrangère rejetée (P0002)';
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Lieu créé INLINE (ADR-020) : p_property = {name, city} -> propriété créée
+-- dans la même transaction, rattachée au landlord courant.
+-- ---------------------------------------------------------------------------
+do $$
+declare v jsonb; v_prop uuid;
+begin
+  select public.bulk_onboard_portfolio(
+    '{"name":"Cour Inline","city":"Calavi"}'::jsonb,
+    '[{"unit_name":"I1","unit_type":"room","first_name":"Awa","last_name":"Trois","phone":"+2290100000003","monthly_rent_amount":"40000","due_day":"5","start_date":"2023-01-05","end_date":"2023-02-28"}]'::jsonb
+  ) into v;
+
+  select id into v_prop from public.properties
+   where landlord_id='a2222222-2222-2222-2222-222222222222' and name='Cour Inline';
+  if v_prop is null then raise exception 'INLINE FAIL: lieu non créé' using errcode='90001'; end if;
+  if (v->>'property_id')::uuid <> v_prop then
+    raise exception 'INLINE FAIL: property_id retourné incohérent' using errcode='90001'; end if;
+  if jsonb_array_length(v->'lease_ids') <> 1 then
+    raise exception 'INLINE FAIL: lease_ids=% (attendu 1)', v->'lease_ids' using errcode='90001'; end if;
+  if not exists (select 1 from public.rent_dues
+                 where lease_id = ((v->'lease_ids')->>0)::uuid) then
+    raise exception 'INLINE FAIL: aucune échéance générée' using errcode='90001'; end if;
+
+  raise notice 'OK lieu inline : propriété créée + bail actif + échéances';
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Nom de lieu vide -> refus (property_name_required, P0001).
+-- ---------------------------------------------------------------------------
+do $$
+declare raised boolean := false; msg text;
+begin
+  begin
+    perform public.bulk_onboard_portfolio(
+      '{"name":"   "}'::jsonb,
+      '[{"unit_name":"Z","unit_type":"room"}]'::jsonb);
+  exception when others then
+    raised := true;
+    get stacked diagnostics msg = message_text;
+  end;
+  if not raised or msg not like '%property_name_required%' then
+    raise exception 'VALIDATION FAIL: nom vide accepté ou erreur inattendue (%)', msg using errcode='90001';
+  end if;
+  raise notice 'OK validation : nom de lieu vide rejeté (property_name_required)';
 end $$;
 
 rollback;

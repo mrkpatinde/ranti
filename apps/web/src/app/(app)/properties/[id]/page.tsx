@@ -83,8 +83,8 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Logements</h2>
-            <Link href={`/units/new?property_id=${property.id}`} className="text-sm font-medium text-primary underline-offset-4 hover:underline">
-              Ajouter un logement
+            <Link href="/leases/new" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+              Créer un bail
             </Link>
           </div>
           {units.length === 0 ? (

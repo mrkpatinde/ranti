@@ -128,6 +128,16 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Dashboard propriétaire en lecture seule + onboarding bail-centric (v0.3.4.0,
+  ADR-020/ADR-019, PR #142) : l'accueil devient « qui a payé / qui doit »
+  (totaux payé/attendu/retard, liste à encaisser retards d'abord, action unique
+  « Créer un bail ») ; les blocs vocal + collage SMS et le journal disparaissent
+  de l'accueil (encaissement = rail FeexPay). Onboarding recentré sur un écran
+  unique « Créer un bail » (lieu + logement + occupant + loyer en un geste, RPC
+  `bulk_onboard_portfolio` avec lieu inline) ; écrans de création autonomes et
+  server actions orphelines retirés. Audit sécurité isolation propriétaire
+  (`landlord_id`) + test négatif cross-tenant produits en parallèle.
+
 - Copie de la landing en voix propriétaire (v0.3.3.1, directive CEO) : accroche
   « Vous encaissez le loyer. Ranti édite la quittance, votre locataire la
   confirme. » (tirets cadratins retirés, formulations « générées » nettoyées) ;

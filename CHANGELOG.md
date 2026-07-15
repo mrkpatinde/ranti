@@ -3,6 +3,30 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.0] - 2026-07-15
+
+### Changed
+
+- **Dashboard propriétaire en lecture seule (ADR-020, ADR-019)** : l'accueil
+  répond à « qui a payé / qui doit » et rien d'autre. Trois totaux (payé /
+  attendu / retard), la liste « à encaisser » (retards d'abord, chaque ligne
+  ouvre le bail), le compteur de locataires à jour, et une seule action :
+  « Créer un bail ». Fini la saisie sur l'accueil : l'encaissement passe par le
+  rail FeexPay (ADR-019).
+- **Onboarding recentré sur le bail** : un écran unique « Créer un bail » (lieu,
+  logement, occupant et loyer en un geste) génère les échéances aussitôt. La RPC
+  `bulk_onboard_portfolio` accepte désormais le lieu en ligne (nouvelle
+  signature, ancienne supprimée dans la même migration).
+
+### Removed
+
+- Blocs de capture de l'accueil : « Déclarer à la voix » (vocal) et « Coller un
+  SMS de paiement », ainsi que le journal chronologique en page d'accueil —
+  remplacés par le tableau lecture seule (ADR-019 retire vocal + SMS).
+- Écrans de création autonomes (lieu / logement / locataire séparés) et les
+  server actions orphelines correspondantes : le bail est l'entrée de création
+  unique.
+
 ## [0.3.3.1] - 2026-07-15
 
 ### Changed

@@ -4,33 +4,10 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
-import {
-  validateBulkOnboarding,
-  type BulkRawRow,
-  type BulkShared,
-  type RowError,
-} from "./validation"
-
-export type BulkOnboardState = {
-  formError?: string
-  rowErrors?: RowError[]
-}
+import { validateBailForm, type BailFormInput } from "./validation"
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value : ""
-}
-
-function toRawRow(value: unknown): BulkRawRow {
-  const r = (value ?? {}) as Record<string, unknown>
-  return {
-    unitName: asString(r.unitName),
-    firstName: asString(r.firstName),
-    lastName: asString(r.lastName),
-    phone: asString(r.phone),
-    email: asString(r.email),
-    monthlyRentAmount: asString(r.monthlyRentAmount),
-    startDate: asString(r.startDate),
-  }
 }
 
 // error.code = SQLSTATE remonté par la RPC ; message = "row N: <détail>".
@@ -55,103 +32,55 @@ function mapRpcError(error: { code?: string; message?: string }): string {
   }
 }
 
-// Création d'un logement DÉJÀ OCCUPÉ en un seul écran (ADR-016) : logement +
-// locataire + bail actif, sans ressortir créer chacun séparément. Réutilise la
-// validation et la RPC atomique de l'onboarding groupé avec une seule ligne —
-// aucun chemin d'écriture parallèle. Redirect-based (comme createUnit).
-export async function createOccupiedUnit(formData: FormData) {
+// Écran unique « Créer un bail » (ADR-020) : lieu (créé inline OU pioché) +
+// logement + occupant + bail, en un geste atomique → échéances générées. Une
+// seule RPC (bulk_onboard_portfolio étendue). Redirect-based comme createLease :
+// erreurs renvoyées via ?error=.
+export async function createBail(formData: FormData) {
   await requireLandlordProfile()
 
-  const propertyId = asString(formData.get("property_id"))
-
-  const back = (message: string): never =>
-    redirect(
-      `/units/new?occupied=1&error=${encodeURIComponent(message)}` +
-        (propertyId ? `&property_id=${encodeURIComponent(propertyId)}` : ""),
-    )
-
-  const shared: BulkShared = {
-    propertyId,
+  const input: BailFormInput = {
+    propertyMode: asString(formData.get("property_mode")),
+    propertyId: asString(formData.get("property_id")),
+    propertyName: asString(formData.get("property_name")),
+    propertyCity: asString(formData.get("property_city")),
+    unitName: asString(formData.get("unit_name")),
     unitType: asString(formData.get("unit_type")),
-    dueDay: asString(formData.get("due_day")),
-  }
-
-  const row: BulkRawRow = {
-    unitName: asString(formData.get("name")),
     firstName: asString(formData.get("first_name")),
     lastName: asString(formData.get("last_name")),
     phone: asString(formData.get("phone")),
     email: asString(formData.get("email")),
     monthlyRentAmount: asString(formData.get("monthly_rent_amount")),
+    dueDay: asString(formData.get("due_day")),
     startDate: asString(formData.get("start_date")),
   }
 
-  const result = validateBulkOnboarding(shared, [row])
-  if (!result.ok) {
-    back(result.formError ?? result.rowErrors[0]?.message ?? "Vérifiez les champs et réessayez.")
-  }
+  const back = (message: string): never =>
+    redirect(`/leases/new?error=${encodeURIComponent(message)}`)
 
-  const supabase = await createClient()
-  const { error } = await supabase.rpc("bulk_onboard_portfolio", {
-    p_property_id: shared.propertyId,
-    p_rows: (result as { ok: true; rows: unknown[] }).rows,
-  })
-
-  if (error) {
-    console.error("createOccupiedUnit: RPC failed", error.code, error.message)
-    back(mapRpcError(error))
-  }
-
-  revalidatePath("/dashboard")
-  revalidatePath("/units")
-  revalidatePath("/leases")
-  redirect("/leases?notice=unit_occupied_created")
-}
-
-export async function bulkOnboard(
-  _prev: BulkOnboardState,
-  formData: FormData,
-): Promise<BulkOnboardState> {
-  await requireLandlordProfile()
-
-  const shared: BulkShared = {
-    propertyId: asString(formData.get("property_id")),
-    unitType: asString(formData.get("unit_type")),
-    dueDay: asString(formData.get("due_day")),
-  }
-
-  let rawRows: BulkRawRow[]
-  try {
-    const parsed = JSON.parse(asString(formData.get("rows")) || "[]")
-    if (!Array.isArray(parsed)) throw new Error("rows is not an array")
-    rawRows = parsed.map(toRawRow)
-  } catch {
-    return { formError: "Données du formulaire invalides. Réessayez." }
-  }
-
-  const result = validateBulkOnboarding(shared, rawRows)
-  if (!result.ok) {
-    return { formError: result.formError, rowErrors: result.rowErrors }
-  }
+  const result = validateBailForm(input)
+  if (!result.ok) return back(result.formError)
 
   const supabase = await createClient()
   const { data, error } = await supabase.rpc("bulk_onboard_portfolio", {
-    p_property_id: shared.propertyId,
-    p_rows: result.rows,
+    p_property: result.property,
+    p_rows: [result.row],
   })
 
   if (error) {
-    console.error("bulkOnboard: RPC failed", error.code, error.message)
-    return { formError: mapRpcError(error) }
+    console.error("createBail: RPC failed", error.code, error.message)
+    return back(mapRpcError(error))
   }
 
-  const counts = (data ?? {}) as { units?: number; leases?: number }
+  const leaseIds = ((data ?? {}) as { lease_ids?: string[] }).lease_ids ?? []
 
   revalidatePath("/dashboard")
-  revalidatePath("/units")
   revalidatePath("/leases")
+  revalidatePath("/units")
 
   redirect(
-    `/leases?notice=bulk_created&units=${counts.units ?? 0}&leases=${counts.leases ?? 0}`,
+    leaseIds[0]
+      ? `/leases/${leaseIds[0]}?notice=bail_created`
+      : "/leases?notice=bail_created",
   )
 }

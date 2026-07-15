@@ -52,15 +52,12 @@ describe.skipIf(!SERVER_UP)("API Integration — protection des routes", () => {
   const protectedRoutes = [
     "/dashboard",
     "/properties",
-    "/properties/new",
     "/leases",
     "/leases/new",
     "/collections",
     "/collections/new",
     "/receipts",
     "/tenants",
-    "/tenants/new",
-    "/units/new",
     "/onboarding/profile",
   ]
 
