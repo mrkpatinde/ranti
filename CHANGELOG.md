@@ -3,6 +3,31 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.3.0] - 2026-07-15
+
+### Changed
+
+- Landing minimale : la page d'accueil se réduit à un titre, une phrase, un
+  bouton « Gérer vos loyers » — et le produit lui-même : la quittance. Le
+  visuel n'est pas une maquette mais le vrai document `ReceiptPdf` rendu avec
+  les données de démonstration de `/verifier/demo` (n° RNT-2026-DEMO),
+  filigrané « SPÉCIMEN — SANS VALEUR PROBANTE » pour rester sans valeur pour
+  un faussaire hors-ligne. Cliquer le document ouvre sa vérification en ligne.
+  Le tarif verrouillé (« 3 mois gratuits, puis 5 % sur chaque paiement de
+  loyer réussi ») reste visible sous le bouton.
+
+### Removed
+
+- Sections « Fonctionnement », « Preuve », tarif détaillé, FAQ et second appel
+  à l'action de la landing — le document parle à leur place. Les animations
+  correspondantes (`lp-roll`, `lp-paste`, `lp-slide-in`) disparaissent du CSS.
+
+### Added
+
+- Script `apps/web/scripts/generate-demo-quittance.tsx` : regénère l'image de
+  la quittance de démonstration depuis le vrai composant PDF (recadrage sur le
+  contenu + filigrane spécimen, dates en UTC).
+
 ## [0.3.2.2] - 2026-07-15
 
 ### Added

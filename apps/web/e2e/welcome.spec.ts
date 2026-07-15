@@ -18,12 +18,15 @@ test("the demo verification page is static and honest about being an example", a
   await expect(page.getByText("Document authentique", { exact: true })).toHaveCount(0)
 })
 
-test("the landing links to the demo verification page", async ({ page }) => {
+test("the landing shows the quittance and links to the demo verification page", async ({ page }) => {
   await page.goto("/")
-  await expect(page.getByRole("link", { name: /Vérifier un exemple de quittance/ })).toHaveAttribute(
-    "href",
-    "/verifier/demo",
-  )
+  await expect(page.getByRole("img", { name: /Quittance de loyer Ranti/ })).toBeVisible()
+  await expect(
+    page.getByRole("link", { name: /Vérifier cette quittance d'exemple en ligne/ }),
+  ).toHaveAttribute("href", "/verifier/demo")
+  await expect(
+    page.getByRole("link", { name: /vérifier ce document en ligne/ }),
+  ).toHaveAttribute("href", "/verifier/demo")
 })
 
 test("signup offers Google only", async ({ page }) => {
