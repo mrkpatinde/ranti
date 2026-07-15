@@ -3,6 +3,17 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.2.1] - 2026-07-15
+
+### Changed
+
+- Développement uniquement : en mode auth locale (`RANTI_LOCAL_AUTH`, jamais en
+  production), le client Supabase serveur forge un jeton `authenticated` signé
+  avec le secret JWT du stack local. Les écrans authentifiés (dashboard,
+  journal) se rendent enfin en local et en QA/e2e, avec la RLS respectée (pas
+  de contournement). Aucun effet en production : triple garde
+  (`NODE_ENV ≠ production` + flag + secret présent).
+
 ## [0.3.2.0] - 2026-07-15
 
 ### Changed
