@@ -128,6 +128,14 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Split fiscal TVA (18 %) de la commission 5 % sur le ledger paiements
+  (v0.3.2.0, ADR-018 v5). Chaque ligne archive `commission_ht` + `tva_amount`
+  (= `service_fee`, taux archivé par ligne) : arrondi entier XOF, floor sur le
+  HT, somme exacte par `CHECK`. Vision comptabilité invisible du propriétaire
+  (grants colonne) — l'écran ne montre que le net et « 5 % tout inclus ».
+  Fonctionnalité dormante (rail Kkiapay bloqué juridique BCEAO). Tests
+  miroir TS/SQL, 239 vitest verts + suites SQL vertes.
+
 - Offre affichée : « 3 mois gratuits à l'ouverture de votre registre, puis
   5 % sur chaque paiement de loyer réussi » (v0.3.1.2, directive CEO) — le
   framing « gratuit pendant le pilote » disparaît ; arrêt libre dit sans

@@ -3,6 +3,22 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.2.2] - 2026-07-15
+
+### Added
+
+- Split fiscal (TVA 18 %) de la commission « 5 % tout inclus » sur le ledger
+  des paiements. Chaque ligne archive `commission_ht` + `tva_amount`
+  (= `service_fee`, taux `tva_rate_bp` archivé par ligne) : arrondi entier
+  XOF (`floor` sur le HT, la TVA absorbe le reste — jamais sous-évaluée),
+  somme exacte garantie par contraintes `CHECK`. Vision comptabilité, invisible
+  du propriétaire (grants par colonne) : l'écran ne montre que le net et
+  « Frais de service Ranti (5 % tout inclus) ». Nouvelle signature
+  `private.compute_transaction_details` (5 paramètres, ancienne supprimée dans
+  la même migration) ; `ingest_payment_notification` archive le split.
+  Fonctionnalité dormante (rail Kkiapay bloqué juridique BCEAO — sandbox
+  uniquement).
+
 ## [0.3.2.1] - 2026-07-15
 
 ### Changed

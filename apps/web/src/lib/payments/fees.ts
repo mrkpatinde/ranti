@@ -32,6 +32,10 @@ export const TRANSACTION_RATES_BP = {
   payout: 100,
 } as const
 
+/** TVA Bénin sur la commission (18 % = 1800 bp). Archivé par ligne du ledger :
+ *  un changement de taux légal ne casse ni l'historique ni les CHECKs. */
+export const TVA_RATE_BP = 1800
+
 export interface TransactionRatesBp {
   service: number
   payin: number
@@ -56,9 +60,17 @@ export interface TransactionDetails {
   /** Rentabilité réelle : rantiServiceFee − payinCost − payoutCost. */
   netRantiMargin: number
 
+  // ── Split fiscal de la commission TTC (BDD/compta, jamais UI) ─────────────
+  /** Commission hors taxes : floor(fee × 10000 / (10000 + tvaBp)). */
+  commissionHT: number
+  /** TVA collectée : rantiServiceFee − commissionHT (floor sur le HT ⇒ la TVA
+   *  absorbe le reste — jamais sous-évaluée, somme exacte par construction). */
+  tvaAmount: number
+
   serviceFeeBp: number
   payinCostBp: number
   payoutCostBp: number
+  tvaRateBp: number
 }
 
 function feeFor(amount: number, bp: number): number {
@@ -72,6 +84,7 @@ function feeFor(amount: number, bp: number): number {
 export function calculateTransactionDetails(
   grossAmount: number,
   rates: TransactionRatesBp = TRANSACTION_RATES_BP,
+  tvaBp: number = TVA_RATE_BP,
 ): TransactionDetails {
   if (!Number.isInteger(grossAmount) || grossAmount <= 0) {
     throw new PaymentError("amount_invalid")
@@ -80,9 +93,11 @@ export function calculateTransactionDetails(
     !Number.isInteger(rates.service) ||
     !Number.isInteger(rates.payin) ||
     !Number.isInteger(rates.payout) ||
+    !Number.isInteger(tvaBp) ||
     rates.service < 0 ||
     rates.payin < 0 ||
-    rates.payout < 0
+    rates.payout < 0 ||
+    tvaBp < 0
   ) {
     throw new PaymentError("amount_invalid")
   }
@@ -97,6 +112,10 @@ export function calculateTransactionDetails(
   const netToLandlord = grossAmount - rantiServiceFee
   const payinCost = feeFor(grossAmount, rates.payin)
   const payoutCost = feeFor(netToLandlord, rates.payout)
+  // Split fiscal de la commission TTC : floor sur le HT, la TVA absorbe le
+  // reste — HT + TVA = rantiServiceFee par construction.
+  const commissionHT = Math.floor((rantiServiceFee * 10000) / (10000 + tvaBp))
+  const tvaAmount = rantiServiceFee - commissionHT
 
   return {
     grossAmount,
@@ -105,8 +124,11 @@ export function calculateTransactionDetails(
     payinCost,
     payoutCost,
     netRantiMargin: rantiServiceFee - payinCost - payoutCost,
+    commissionHT,
+    tvaAmount,
     serviceFeeBp: rates.service,
     payinCostBp: rates.payin,
     payoutCostBp: rates.payout,
+    tvaRateBp: tvaBp,
   }
 }

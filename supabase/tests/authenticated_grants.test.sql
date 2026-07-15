@@ -101,9 +101,9 @@ begin
   -- compute_transaction_details expose la décomposition coûts/marge (vision
   -- compta) : le revoke de 20260714230000 doit tenir pour authenticated ET anon.
   if has_function_privilege('authenticated',
-       'private.compute_transaction_details(integer,integer,integer,integer)', 'execute')
+       'private.compute_transaction_details(integer,integer,integer,integer,integer)', 'execute')
      or has_function_privilege('anon',
-       'private.compute_transaction_details(integer,integer,integer,integer)', 'execute') then
+       'private.compute_transaction_details(integer,integer,integer,integer,integer)', 'execute') then
     raise exception 'FAIL grants: compute_transaction_details exécutable par authenticated/anon';
   end if;
 

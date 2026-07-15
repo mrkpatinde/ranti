@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { calculateTransactionDetails } from "../fees"
+import { TRANSACTION_RATES_BP, calculateTransactionDetails } from "../fees"
 import { PaymentError } from "../types"
 
 // Complète fees.test.ts : chaque disjonction de la garde de taux (payin,
@@ -66,6 +66,28 @@ describe("calculateTransactionDetails — gardes de taux (branches restantes)", 
         payout: 100,
       }),
     ).toThrowError(PaymentError)
+  })
+
+  it("rejette un tvaBp négatif avec le code amount_invalid (parité SQL)", () => {
+    try {
+      calculateTransactionDetails(100_000, TRANSACTION_RATES_BP, -1)
+      expect.unreachable("tvaBp négatif accepté")
+    } catch (e) {
+      expect(e).toBeInstanceOf(PaymentError)
+      expect((e as PaymentError).code).toBe("amount_invalid")
+    }
+  })
+
+  it("rejette un tvaBp non entier, NaN et Infinity avec le code amount_invalid", () => {
+    for (const bad of [18.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      try {
+        calculateTransactionDetails(100_000, TRANSACTION_RATES_BP, bad)
+        expect.unreachable(`tvaBp ${bad} accepté`)
+      } catch (e) {
+        expect(e).toBeInstanceOf(PaymentError)
+        expect((e as PaymentError).code).toBe("amount_invalid")
+      }
+    }
   })
 
   it("taux zéro partout : accepté (bp >= 0), tout à zéro, net = brut", () => {
