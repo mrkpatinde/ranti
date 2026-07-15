@@ -56,7 +56,6 @@ begin
       ('public.reminders',                  'SELECT'),
       -- déjà couverts par leurs propres migrations, re-vérifiés ici
       ('public.reminder_events',            'SELECT'),
-      ('public.payment_transactions',       'SELECT'),
       ('public.journal_feed',               'SELECT'),
       ('public.rent_due_balances',          'SELECT')
     ) as t(tbl, priv)
@@ -65,6 +64,16 @@ begin
       raise exception 'FAIL grants: authenticated sans % sur %', v_priv.priv, v_priv.tbl;
     end if;
   end loop;
+
+  -- payment_transactions : SELECT par COLONNE depuis v4 (All-Inclusive 5 %) —
+  -- la vision reçu est lisible, la vision comptabilité (marge Ranti) jamais.
+  -- Les assertions détaillées vivent dans payment_transactions.test.sql bloc 8.
+  if not has_column_privilege('authenticated', 'public.payment_transactions', 'net_amount', 'SELECT') then
+    raise exception 'FAIL grants: authenticated sans SELECT colonne sur payment_transactions';
+  end if;
+  if has_column_privilege('authenticated', 'public.payment_transactions', 'net_margin', 'SELECT') then
+    raise exception 'FAIL grants: net_margin (marge Ranti) visible du propriétaire';
+  end if;
 end $$;
 
 -- ---------------------------------------------------------------------------
@@ -88,6 +97,15 @@ begin
       raise exception 'FAIL grants: authenticated sans execute sur %', v_fn.sig;
     end if;
   end loop;
+
+  -- compute_transaction_details expose la décomposition coûts/marge (vision
+  -- compta) : le revoke de 20260714230000 doit tenir pour authenticated ET anon.
+  if has_function_privilege('authenticated',
+       'private.compute_transaction_details(integer,integer,integer,integer)', 'execute')
+     or has_function_privilege('anon',
+       'private.compute_transaction_details(integer,integer,integer,integer)', 'execute') then
+    raise exception 'FAIL grants: compute_transaction_details exécutable par authenticated/anon';
+  end if;
 
   -- La surcharge 10 args doit avoir disparu (20260714120000) : sa présence
   -- rendait ambigus tous les appels à 10 arguments (wrapper legacy, ops).
@@ -206,7 +224,7 @@ begin
   select count(*) into v_count from public.receipts;
   select count(*) into v_count from public.reminders;
   select count(*) into v_count from public.reminder_events;
-  select count(*) into v_count from public.payment_transactions;
+  select count(id) into v_count from public.payment_transactions; -- count(id) : SELECT par colonne (v4)
   select count(*) into v_count from public.journal_feed;
   select count(*) into v_count from public.rent_due_balances;
 

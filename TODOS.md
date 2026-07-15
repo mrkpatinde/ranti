@@ -23,6 +23,12 @@ Le server action `verifyPaymentTransaction` et `listPaymentTransactions()`
 sont prêts (src/lib/payments/) ; il manque la carte de validation dans
 `/collections` et une vue ledger propriétaire.
 
+### Modéliser la fiscalité dans le ledger (TVA/TPS)
+**Priority:** P2
+Après avis de l'expert-comptable (TVA 18 % si CA > 50 M FCFA, régime TPS
+probable au démarrage) : ajouter un taux `tax_bp` par ligne, même pattern que
+les autres taux — petite migration. Décision fiscale = prérequis, pas le code.
+
 ### Rate-limiting du webhook
 **Priority:** P3
 `POST /api/payments/notification` n'a pas de rate-limiting applicatif

@@ -23,6 +23,28 @@ signature du contrat PSP. Architecture « Ranti = interface » : les fonds
 vivent dans le wallet marchand chez le PSP agréé, Ranti n'exécute que des
 appels API (cash-in locataire → wallet PSP → payout du net au propriétaire).
 
+Révisé le 2026-07-14 — v4 (CEO) : modèle économique **« All-Inclusive 5 % »**
+(migration `20260714230000_all_inclusive_5pct`). Deux visions sur chaque
+transaction, séparées **en base** par des grants au niveau colonne :
+
+- **Vision reçu (propriétaire)** : `service_fee` = 5 % du brut (500 bp), tout
+  compris — `net_amount` = 95 % reversé. C'est tout ce que le propriétaire
+  voit ; les frais PSP ont disparu de son reçu.
+- **Vision comptabilité (interne, service_role uniquement)** : les frais PSP
+  deviennent des **dépenses de Ranti** — `payin_cost` sur le brut,
+  `payout_cost` sur le net reversé, `net_margin = service_fee − payin_cost −
+  payout_cost` = rentabilité réelle par transaction, suivie en temps réel.
+  **Décision CEO (2026-07-14) : FeexPay retenu** (« le moins cher sur tous
+  les plans » — appréciation terrain intégrant des éléments hors grille
+  publique). Défauts : 170 bp payin, 100 bp payout → marge nette ≈ 2,35 %.
+  Taux archivés par ligne : un changement de PSP resterait sans impact sur
+  l'historique.
+  `net_margin` peut être négatif : information de pilotage, pas une erreur.
+
+Exemple canon (100 000 F) : reçu = 5 000 / 95 000 ; compta = 1 700 + 950 →
+marge 2 350. TS : `calculateTransactionDetails(grossAmount)` (miroir de
+`private.compute_transaction_details`).
+
 Supersède partiellement ADR-009 (la position « Tier 1 uniquement, Ranti ne
 détient jamais les fonds » n'est plus la cible produit ; l'alias P2P reste le
 filet universel). Amende ADR-017 (voir « Auto-confirmation »).

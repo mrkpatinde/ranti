@@ -3,6 +3,32 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.2.0.0] - 2026-07-14
+
+### Changed
+
+- Modèle économique « All-Inclusive 5 % » (ADR-018 v4) : le propriétaire voit
+  désormais une commission unique de 5 % tout compris et reçoit 95 % du loyer
+  — les frais du PSP ont disparu de son reçu, ils deviennent des dépenses
+  internes de Ranti.
+- Rentabilité en temps réel : chaque transaction porte sa marge nette
+  (`net_margin` = commission − coût d'encaissement sur le brut − coût de
+  reversement sur le net), calculée en entiers FCFA et verrouillée par
+  contraintes. Une marge négative est une information de pilotage, pas une
+  erreur. PSP retenu : FeexPay (décision CEO) — taux archivés par ligne, un
+  changement de prestataire n'altère pas l'historique.
+- `calculateTransactionDetails(grossAmount)` (TS) remplace `calculatePayout`,
+  miroir exact du calcul SQL, et retourne les deux visions (reçu + compta).
+
+### Security
+
+- Les deux visions sont séparées **en base** par des privilèges au niveau
+  colonne : un propriétaire connecté ne peut pas lire la marge de Ranti ni
+  les coûts PSP (`permission denied` testé sous le rôle `authenticated` dans
+  la suite SQL, en plus des assertions de privilèges).
+- La migration refuse de s'appliquer si le ledger contient déjà des lignes
+  (le reshape suppose une table vide — garde fail-fast).
+
 ## [0.1.0.1] - 2026-07-14
 
 ### Changed

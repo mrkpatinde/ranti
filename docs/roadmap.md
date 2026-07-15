@@ -128,6 +128,16 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-14)
 
+- Modèle économique « All-Inclusive 5 % » (ADR-018 v4) : le propriétaire voit
+  une commission unique de 5 % (net 95 %), les frais PSP deviennent des
+  dépenses internes de Ranti — `net_margin` par transaction (≈ 2,35 % avec
+  les coûts FeexPay retenus, taux archivés par ligne) pour suivre la
+  rentabilité réelle en temps réel. Deux visions séparées EN BASE : grants
+  par colonne (le propriétaire ne peut pas lire `net_margin`/`payin_cost` —
+  permission denied testée). `calculateTransactionDetails` (TS) miroir de
+  `compute_transaction_details` (SQL), migration `20260714230000`, suites
+  SQL + vitest adaptées.
+
 - Étude comparative PSP Bénin (ADR-018 v3) : Kkiapay vs FedaPay vs FeexPay sur
   le cycle cash-in → cash-out. **Reco : FedaPay** (payin MoMo 1,8 %, payout API
   vers MoMo d'un tiers **gratuit**, zéro abonnement, sandbox + webhooks +
