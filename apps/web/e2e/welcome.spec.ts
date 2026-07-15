@@ -7,6 +7,7 @@ test("landing shows the primary call to action", async ({ page }) => {
   ).toBeVisible()
   await expect(page.getByRole("link", { name: "Gérer vos loyers" }).first()).toBeVisible()
   await expect(page.getByRole("link", { name: "Se connecter" }).first()).toBeVisible()
+  await expect(page.getByText("3 mois gratuits").first()).toBeVisible()
 })
 
 test("the demo verification page is static and honest about being an example", async ({ page }) => {
