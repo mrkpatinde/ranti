@@ -3,6 +3,19 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.1.3] - 2026-07-15
+
+### Changed
+
+- Les petits intitulés en majuscules au-dessus des titres (« Simple au
+  quotidien », « Tarif », « Questions fréquentes ») disparaissent — le titre
+  porte seul. La section tarif gagne deux lignes plus directes : « Le meilleur
+  outil, c'est celui qu'on oublie » et « Si vous ne gagnez rien, nous ne
+  gagnons rien ». Aucune promesse nouvelle : rien encaissé, rien à payer.
+- `DESIGN.md` fixe désormais une règle explicite contre ces intitulés et
+  contre tout élément fabriqué (faux témoignages, chiffres inventés, promesses
+  non tenues).
+
 ## [0.3.1.2] - 2026-07-15
 
 ### Changed

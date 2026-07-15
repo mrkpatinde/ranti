@@ -49,6 +49,11 @@
 - **Easing :** enter ease-out · exit ease-in · move ease-in-out.
 - **Durée :** micro 50–100ms · short 150–250ms · medium 250–400ms · long 400–700ms.
 
+## Interdits (anti-slop IA — préférence CEO verrouillée)
+- **Pas d'eyebrow / kicker** : jamais de petit label majuscule au-dessus d'un titre (`SIMPLE AU QUOTIDIEN`, `TARIF`, `LE POURQUOI`…). C'est le tell n°1 du slop IA. Le titre porte seul.
+- **Rien qui « fait généré »** : pas de témoignages/logos/chiffres fabriqués, pas de métriques inventées (« 2h → 30s », « 1 200 propriétaires »), pas de claims non tenus (encaissement automatique tant que BCEAO gate, apps natives inexistantes, multi-pays hors pilote).
+- Bannis aussi : gradients violets, grille 3-colonnes d'icônes en pastilles, tout-centré uniforme, bulles partout, CTA en gradient, hero stock-photo.
+
 ## Contraintes de marque (verrouillées)
 - Voix **« vous »** partout (ADR-014 supersédé).
 - Ne jamais dire « IA » sur les surfaces publiques (Ranti = sujet visible, IA sous le capot).
