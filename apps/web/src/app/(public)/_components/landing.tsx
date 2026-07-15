@@ -7,7 +7,7 @@ import quittanceDemo from "../../../../public/quittance-demo.png";
 
 const SIGNUP_HREF = "/signup";
 
-// Landing minimale : un titre, une phrase, un bouton — puis le produit.
+// Landing minimale : un titre, une phrase, un bouton, puis le produit.
 // Le visuel n'est pas une maquette : public/quittance-demo.png est rendu
 // par le vrai composant ReceiptPdf avec les données de /verifier/demo
 // (regénérer via apps/web/scripts/generate-demo-quittance.tsx).
@@ -35,7 +35,7 @@ export default function Landing() {
         </h1>
 
         <p className="lp-rise lp-rise-2 mx-auto mt-6 max-w-xl text-lg leading-8 text-[#72726e]">
-          Chaque loyer laisse une quittance certifiée — confirmée par votre locataire, vérifiable par tous.
+          Vous encaissez le loyer. Ranti édite la quittance, votre locataire la confirme.
         </p>
 
         <div className="lp-rise lp-rise-3 mt-9">
@@ -60,7 +60,7 @@ export default function Landing() {
             <div className="overflow-hidden rounded-[10px] border border-[#d5d5d2] bg-white shadow-[0_24px_80px_-28px_rgba(41,41,41,0.32)] transition duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_32px_90px_-28px_rgba(41,41,41,0.38)]">
               <Image
                 src={quittanceDemo}
-                alt="Quittance de loyer Ranti n° RNT-2026-DEMO (spécimen) — certifiée, confirmée par le locataire, avec QR de vérification"
+                alt="Quittance de loyer Ranti n° RNT-2026-DEMO (spécimen), certifiée par le locataire, avec QR de vérification"
                 priority
                 sizes="(max-width: 768px) 100vw, 672px"
                 className="h-auto w-full"
@@ -68,9 +68,9 @@ export default function Landing() {
             </div>
           </Link>
           <p className="mt-5 text-sm text-[#72726e]">
-            Quittance d'exemple n° RNT-2026-DEMO ·{" "}
-            <Link href="/verifier/demo" className="font-semibold text-[#5b6f00] underline-offset-4 hover:underline">
-              vérifier ce document en ligne
+            Quittance d'exemple n° RNT-2026-DEMO. La vôtre vous attend.{" "}
+            <Link href={SIGNUP_HREF} className="font-semibold text-[#5b6f00] underline-offset-4 hover:underline">
+              Créer votre compte
             </Link>
           </p>
         </div>
