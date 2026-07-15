@@ -3,6 +3,17 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.1] - 2026-07-15
+
+### Changed
+
+- Navigation mobile rangée : la barre d'onglets (Accueil / Encaissements /
+  Relances / Baux) qui débordait est repliée dans un bouton menu en haut à
+  droite ; à côté, l'avatar profil ouvre **Paramètres** et **Se déconnecter**
+  (déconnexion rouge, visible d'un tap). Le bouton « Paramètres » séparé et le
+  menu compte propre au dashboard disparaissent — un seul profil, présent sur
+  toutes les pages. La barre latérale desktop est inchangée.
+
 ## [0.3.4.0] - 2026-07-15
 
 ### Changed
