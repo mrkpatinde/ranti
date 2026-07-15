@@ -107,7 +107,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
   const notice = params?.notice ? noticeLabels[params.notice] : null
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Vos encaissements</p>
@@ -122,7 +122,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
 
       <section className="flex flex-1 flex-col gap-8 py-12">
         <div className="space-y-3">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground sm:text-4xl">
             Les loyers que vous avez reçus
           </h1>
           <p className="max-w-xl text-base leading-7 text-foreground/70">

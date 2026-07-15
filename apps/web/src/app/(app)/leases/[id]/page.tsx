@@ -74,7 +74,7 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Bail</p>
@@ -89,7 +89,7 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
         <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="font-display text-2xl font-extrabold tracking-tight text-foreground">{formatAmount(lease.monthly_rent_amount)} / mois</h1>
+              <h1 className="font-display text-2xl font-extrabold tracking-tight lg:text-3xl text-foreground">{formatAmount(lease.monthly_rent_amount)} / mois</h1>
               <p className="mt-1 text-sm text-muted-foreground">{tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"} — {unit?.name ?? "Logement"}</p>
               <p className="mt-1 text-sm text-muted-foreground">Échéance le {lease.due_day} · début {formatDate(lease.start_date)}{lease.end_date ? ` · fin ${formatDate(lease.end_date)}` : ""}</p>
             </div>

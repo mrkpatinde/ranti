@@ -58,7 +58,7 @@ export default async function RemindersPage() {
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
       <header className="space-y-2">
-        <h1 className="font-display text-2xl font-extrabold tracking-tight text-foreground">
+        <h1 className="font-display text-2xl font-extrabold tracking-tight lg:text-3xl text-foreground">
           Relances
         </h1>
         <p className="text-sm leading-6 text-foreground/70">

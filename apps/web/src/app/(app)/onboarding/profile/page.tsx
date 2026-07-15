@@ -52,7 +52,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             Ranti
           </p>
           <div className="space-y-2">
-            <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
+            <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground">
               Votre profil
             </h1>
             <p className="text-base leading-7 text-foreground/70">

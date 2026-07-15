@@ -22,7 +22,7 @@ export default async function EditPropertyPage({ params, searchParams }: EditPro
   if (!property) notFound()
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Modifier le lieu</p>
@@ -34,7 +34,7 @@ export default async function EditPropertyPage({ params, searchParams }: EditPro
 
       <section className="flex flex-1 flex-col gap-8 py-10">
         <div className="space-y-3">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">Corriger ce lieu</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground">Corriger ce lieu</h1>
           <p className="text-base leading-7 text-foreground/70">
             Gardez un nom simple : maison, cour, immeuble ou boutique.
           </p>
