@@ -128,6 +128,11 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Fix contraste badge « Attendu » + encadrés info (v0.3.4.6, retour CEO) : le
+  texte `text-accent-foreground` (encre/crème, pour texte sur olive plein)
+  devenait invisible sur `bg-accent/10` dans les deux thèmes → passé à
+  `text-accent`. 6 fichiers (badge échéance + 5 encadrés info).
+
 - CTA en pill à gauche sur desktop (v0.3.4.5, directive CEO) : les actions/
   soumissions qui s'étiraient pleine largeur dans les pages `flex-col` prennent
   leur largeur de contenu au-delà de lg (`lg:w-fit`, 7 CTA), comme le dashboard.
