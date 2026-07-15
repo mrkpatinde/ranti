@@ -8,7 +8,7 @@ La boucle propriétaire est livrée de bout en bout : propriétés, logements, l
 
 Les relances sont automatiques à partir des échéances : cron quotidien (`/api/cron/reminders`, planifié par `apps/web/vercel.json`), templates SMS, confirmation locataire par lien public à token (`/confirmer/[token]`). Le locataire ne crée pas de compte : il déclare avoir payé, le propriétaire valide.
 
-Ranti n'encaisse pas l'argent. Le propriétaire valide les paiements reçus hors Ranti.
+Ranti ne détient jamais les fonds. Par défaut, l'argent circule directement entre le locataire et le propriétaire (cash, Mobile Money, virement) et le propriétaire valide les paiements reçus hors Ranti. L'encaissement optionnel via le partenaire de paiement agréé (ADR-018, commission 5 % tout compris, 95 % reversés) est codé mais non activé en production tant que la validation juridique BCEAO n'est pas obtenue (2026-07-15).
 
 Limites actuelles :
 
@@ -71,7 +71,8 @@ Livré :
 - RLS activé ;
 - dashboard mensuel de synthèse ;
 - relances automatiques (cron + SMS sandbox) ;
-- confirmation locataire par lien public.
+- confirmation locataire par lien public ;
+- vérification publique des quittances (`/verifier/[id]`, exemple statique `/verifier/demo`).
 
 À compléter :
 
