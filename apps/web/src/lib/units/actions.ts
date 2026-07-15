@@ -7,79 +7,14 @@ import { createClient } from "@/lib/supabase/server"
 import { getUnit } from "./queries"
 import {
   normalizeAvailability,
-  normalizeDefaultDueDay,
-  normalizeDefaultRent,
   normalizeOptionalUnitText,
   normalizeUnitName,
   normalizeUnitType,
 } from "./validation"
 
-function unitError(message: string): never {
-  redirect(`/units/new?error=${encodeURIComponent(message)}`)
-}
-
 function readUnitId(formData: FormData): string | null {
   const id = formData.get("id")
   return typeof id === "string" && id ? id : null
-}
-
-export async function createUnit(formData: FormData) {
-  const landlord = await requireLandlordProfile()
-
-  const propertyId = formData.get("property_id")
-  const name = normalizeUnitName(formData.get("name"))
-  const unitType = normalizeUnitType(formData.get("unit_type"))
-  const notes = normalizeOptionalUnitText(formData.get("notes"), 500)
-  const defaultRent = normalizeDefaultRent(formData.get("default_rent_amount"))
-  const defaultDueDay = normalizeDefaultDueDay(formData.get("default_due_day"))
-
-  if (typeof propertyId !== "string" || !propertyId) {
-    unitError("Choisissez le lieu de ce logement.")
-  }
-
-  if (!name) {
-    unitError("Donnez un nom simple à ce logement.")
-  }
-
-  if (!unitType) {
-    unitError("Choisissez le type de logement.")
-  }
-
-  const supabase = await createClient()
-
-  const { data: property } = await supabase
-    .from("properties")
-    .select("id")
-    .eq("id", propertyId)
-    .eq("landlord_id", landlord.id)
-    .is("deleted_at", null)
-    .maybeSingle()
-
-  if (!property) {
-    unitError("Lieu introuvable. Créez d'abord un lieu.")
-  }
-
-  const { data, error } = await supabase
-    .from("units")
-    .insert({
-      landlord_id: landlord.id,
-      property_id: propertyId,
-      name,
-      unit_type: unitType,
-      availability_status: "available",
-      default_rent_amount: defaultRent,
-      default_due_day: defaultDueDay,
-      notes,
-    })
-    .select("id")
-    .single()
-
-  if (error || !data) {
-    unitError("Impossible de créer ce logement. Réessayez.")
-  }
-
-  revalidatePath("/dashboard")
-  redirect(`/tenants/new?unit_id=${data.id}`)
 }
 
 export async function updateUnit(formData: FormData) {

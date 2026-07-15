@@ -7,47 +7,9 @@ import { createClient } from "@/lib/supabase/server"
 import { getProperty } from "./queries"
 import { normalizeOptionalPropertyText, normalizePropertyName } from "./validation"
 
-function propertyError(message: string): never {
-  redirect(`/properties/new?error=${encodeURIComponent(message)}`)
-}
-
 function readPropertyId(formData: FormData): string | null {
   const id = formData.get("id")
   return typeof id === "string" && id ? id : null
-}
-
-export async function createProperty(formData: FormData) {
-  const landlord = await requireLandlordProfile()
-
-  const name = normalizePropertyName(formData.get("name"))
-  const city = normalizeOptionalPropertyText(formData.get("city"), 80)
-  const address = normalizeOptionalPropertyText(formData.get("address"), 160)
-  const notes = normalizeOptionalPropertyText(formData.get("notes"), 500)
-
-  if (!name) {
-    propertyError("Donnez un nom simple à ce lieu.")
-  }
-
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from("properties")
-    .insert({
-      landlord_id: landlord.id,
-      name,
-      city,
-      address,
-      notes,
-    })
-    .select("id")
-    .single()
-
-  if (error || !data) {
-    propertyError("Impossible de créer ce lieu. Réessayez.")
-  }
-
-  revalidatePath("/dashboard")
-  redirect(`/units/new?property_id=${data.id}`)
 }
 
 export async function updateProperty(formData: FormData) {

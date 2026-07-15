@@ -17,11 +17,6 @@ function readTenantId(formData: FormData): string | null {
   return typeof id === "string" && id ? id : null
 }
 
-function readString(formData: FormData, key: string): string | null {
-  const value = formData.get(key)
-  return typeof value === "string" && value.trim() ? value.trim() : null
-}
-
 function withError(path: string, message: string) {
   const separator = path.includes("?") ? "&" : "?"
   return `${path}${separator}error=${encodeURIComponent(message)}`
@@ -55,41 +50,6 @@ function readTenantInput(formData: FormData, errorPath: string): TenantInput {
   }
 
   return { firstName, lastName, phone, email, notes }
-}
-
-export async function createTenant(formData: FormData) {
-  const landlord = await requireLandlordProfile()
-  const nextUnitId = readString(formData, "next_unit_id")
-  const errorPath = nextUnitId ? `/tenants/new?unit_id=${encodeURIComponent(nextUnitId)}` : "/tenants/new"
-  const input = readTenantInput(formData, errorPath)
-
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from("tenants")
-    .insert({
-      landlord_id: landlord.id,
-      first_name: input.firstName,
-      last_name: input.lastName,
-      phone: input.phone,
-      email: input.email,
-      notes: input.notes,
-    })
-    .select("id")
-    .single()
-
-  if (error || !data) {
-    redirect(withError(errorPath, "Impossible de créer ce locataire. Réessayez."))
-  }
-
-  revalidatePath("/dashboard")
-  revalidatePath("/tenants")
-
-  const leaseUrl = nextUnitId
-    ? `/leases/new?unit_id=${encodeURIComponent(nextUnitId)}&tenant_id=${encodeURIComponent(data.id)}`
-    : `/leases/new?tenant_id=${encodeURIComponent(data.id)}`
-
-  redirect(leaseUrl)
 }
 
 export async function updateTenant(formData: FormData) {
