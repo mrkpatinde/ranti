@@ -45,6 +45,22 @@ Exemple canon (100 000 F) : reçu = 5 000 / 95 000 ; compta = 1 700 + 950 →
 marge 2 350. TS : `calculateTransactionDetails(grossAmount)` (miroir de
 `private.compute_transaction_details`).
 
+Révisé le 2026-07-15 — v5 : **split fiscal (TVA 18 %) de la commission**
+(migration `20260715120000_tva_split_ledger`). La commission montrée au
+propriétaire (`service_fee`) est TTC ; chaque ligne archive sa décomposition
+pour la comptabilité et la fiscalité béninoises : `commission_ht` +
+`tva_amount` = `service_fee`, au taux `tva_rate_bp` (1800 bp) archivé par
+ligne comme les autres taux. Arithmétique entière XOF : `commission_ht =
+floor(service_fee × 10000 / (10000 + tva_rate_bp))`, `tva_amount =
+service_fee − commission_ht` (floor sur le HT ⇒ la TVA absorbe le reste,
+jamais sous-évaluée ; somme exacte par contrainte `CHECK`). `commission_ht`
+et `tva_amount` rejoignent la **vision comptabilité** : invisibles du
+propriétaire par grants au niveau colonne (l'écran ne montre que le net et
+« Frais de service Ranti — 5 % tout inclus »). Signature
+`private.compute_transaction_details` portée à 5 paramètres (`p_tva_bp`),
+l'ancienne supprimée dans la même migration. Exemple 100 000 F : commission
+5 000 → HT 4 237 + TVA 763.
+
 Supersède partiellement ADR-009 (la position « Tier 1 uniquement, Ranti ne
 détient jamais les fonds » n'est plus la cible produit ; l'alias P2P reste le
 filet universel). Amende ADR-017 (voir « Auto-confirmation »).
