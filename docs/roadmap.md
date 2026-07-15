@@ -128,6 +128,14 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Durcissement du ledger après review du ship v0.2.0.0 (migration
+  `20260715070000`) : les replays de webhook divergents (même référence PSP
+  mais montant ou bail différent) lèvent désormais `reference_conflict` au
+  lieu d'être absorbés en silence — décision documentée dans ADR-018 ; GRANT
+  SELECT explicite `service_role` sur `payment_transactions` (vision
+  comptabilité) ; garde `service_bp > 10000` des deux côtés (SQL + TS) pour
+  garder le miroir floor exact. Section frais v3 de l'ADR-018 retitrée
+  « historique (supersédé par v4) ».
 - Refonte de la landing en voix « vous » (v0.3.0.0, décision CEO 2026-07-14 —
   supersède la voix « je » du 2026-07-12 sur ce point) : héro recentré sur
   « Le registre de loyer des propriétaires africains », badge de confiance
