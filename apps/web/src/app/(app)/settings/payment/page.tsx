@@ -18,7 +18,7 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
   const aliasType = landlord.payment_alias_type ?? "phone"
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Recevoir les loyers</p>
@@ -30,7 +30,7 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
 
       <section className="flex flex-1 flex-col gap-6 py-10">
         <div className="space-y-3">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">Votre alias PI-SPI</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground">Votre alias PI-SPI</h1>
           <p className="text-base leading-7 text-foreground/70">
             Renseignez l&apos;alias sur lequel vos locataires paient le loyer. Ils envoient
             directement depuis leur appli (MTN, Moov, banque) — c&apos;est instantané et gratuit.

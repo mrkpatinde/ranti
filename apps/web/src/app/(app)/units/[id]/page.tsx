@@ -60,7 +60,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Détail du logement</p>
@@ -73,7 +73,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
         {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{sp.error}</p> : null}
 
         <div className="space-y-3">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">{unit.name}</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground sm:text-4xl">{unit.name}</h1>
           <p className="max-w-xl text-base leading-7 text-foreground/70">{property?.name ?? "Lieu"}</p>
         </div>
 

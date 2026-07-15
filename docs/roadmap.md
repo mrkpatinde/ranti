@@ -128,6 +128,11 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Refonte desktop « Granola » propagée à toutes les pages (v0.3.4.4, CEO
+  « c'est bon, propage ») : respiration desktop (`lg:py-14`) + titres éditoriaux
+  (`lg:text-4xl`) sur les ~20 écrans (app). Les listes gardent `max-w-3xl`, les
+  formulaires `max-w-md` ; mobile inchangé. Suite du flagship v0.3.4.3.
+
 - Refonte desktop éditoriale « Granola » — flagship dashboard (v0.3.4.3,
   directive CEO) : le desktop passait un écran mobile (colonne 448 px) dans un
   canevas large → colonne centrée confortable (672 px) au-delà de lg, « Bonjour »

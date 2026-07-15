@@ -42,7 +42,7 @@ function formatDate(iso: string): string {
 
 function Shell({ subtitle, children }: { subtitle: string; children: React.ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <h1 className="font-display text-xl font-extrabold tracking-tight">{subtitle}</h1>

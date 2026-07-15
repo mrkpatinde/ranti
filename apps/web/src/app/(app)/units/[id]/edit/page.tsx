@@ -37,7 +37,7 @@ export default async function EditUnitPage({ params, searchParams }: EditUnitPag
   if (!unit) notFound()
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Modifier le logement</p>
@@ -47,7 +47,7 @@ export default async function EditUnitPage({ params, searchParams }: EditUnitPag
 
       <section className="flex flex-1 flex-col gap-8 py-10">
         <div className="space-y-3">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">Corriger ce logement</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground">Corriger ce logement</h1>
           <p className="text-base leading-7 text-foreground/70">Le lieu est affiché pour contexte. Pour le déplacer, créez plutôt un nouveau logement.</p>
         </div>
 

@@ -62,7 +62,7 @@ export default async function AllocateReceptionPage({ params, searchParams }: Al
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <h1 className="font-display text-xl font-extrabold tracking-tight">Affecter cet encaissement</h1>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/60 underline-offset-4 hover:underline">
@@ -75,7 +75,7 @@ export default async function AllocateReceptionPage({ params, searchParams }: Al
           <p className="text-sm font-semibold text-muted-foreground">
             {tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"} — {unit?.name ?? "Logement"}
           </p>
-          <p className="font-display text-3xl font-extrabold tracking-tight">
+          <p className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl">
             {formatAmount(reception.amount_received)}
           </p>
           <p className="text-base leading-7 text-foreground/70">

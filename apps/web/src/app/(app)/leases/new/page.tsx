@@ -16,7 +16,7 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
   const params = await searchParams
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Nouveau bail</p>
@@ -28,7 +28,7 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
 
       <section className="flex-1 space-y-8 py-8">
         <div className="space-y-3">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground">
             Créer un bail
           </h1>
           <p className="text-base leading-7 text-foreground/70">

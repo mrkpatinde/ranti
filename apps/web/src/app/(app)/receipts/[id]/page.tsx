@@ -74,7 +74,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
   )
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-6 py-8">
+    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <p className="mt-2 text-sm text-muted-foreground">{kindLabels[receipt.kind]}</p>
@@ -141,7 +141,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               <p className="text-sm text-muted-foreground">Total payé</p>
               {snap.reception ? <p className="text-sm text-foreground/70">{methodLabels[snap.reception.payment_method] ?? snap.reception.payment_method} · reçu le {formatDate(snap.reception.received_at)}</p> : null}
             </div>
-            <p className="font-display text-3xl font-extrabold tracking-tight text-foreground [font-variant-numeric:tabular-nums]">{formatFcfa(receipt.total_amount)}</p>
+            <p className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground [font-variant-numeric:tabular-nums]">{formatFcfa(receipt.total_amount)}</p>
           </div>
 
           <p className="py-4 text-sm leading-6 text-foreground/70">{receipt.kind === "quittance" ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé." : "Reçu de paiement pour la somme ci-dessus. Le loyer n’est pas intégralement soldé : ce document ne vaut pas quittance."}</p>
