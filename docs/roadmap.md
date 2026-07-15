@@ -126,6 +126,14 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Corrections
 - [ ] Première beta privée
 
+## Recent (2026-07-16)
+
+- ADR-019 « Rail FeexPay obligatoire » consignée (v0.3.4.7) : formalise en docs
+  la décision CEO du 2026-07-15 (FeexPay = PSP ; rail = seul cash-in, 0 surcharge
+  locataire, 95 % reversé ; fractionné/SMS/vocal abandonnés ; alias en filet ;
+  activation gatée BCEAO). Docs-first avant d'aligner le wording paiement de
+  l'app — à valider CEO, puis alignement app en suivant.
+
 ## Recent (2026-07-15)
 
 - Fix contraste badge « Attendu » + encadrés info (v0.3.4.6, retour CEO) : le
