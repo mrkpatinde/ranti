@@ -105,91 +105,17 @@
   }
 }
 
-/* ── Animations du hero de la landing (.lp-*) ─────────────────────────────
-   Fondu d'entrée échelonné + « mot-roulant » de marque : une colonne rigide
-   glisse derrière un masque (jamais de fondu croisé), façon ligne de
-   registre. Désactivées si l'utilisateur préfère réduire les animations. */
+/* ── Animation d'entrée de la landing (.lp-rise) ──────────────────────────
+   Fondu d'entrée échelonné : titre, phrase, bouton. La quittance (élément
+   LCP) peint sans animation. Désactivé sous prefers-reduced-motion. */
 @keyframes lp-rise {
   from { opacity: 0; transform: translateY(14px) scale(0.994); }
   to { opacity: 1; transform: none; }
 }
-/* Cascade plus lente et ample — laisse la page respirer à l'entrée (façon granola.ai). */
 .lp-rise { animation: lp-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .lp-rise-2 { animation-delay: 0.14s; }
 .lp-rise-3 { animation-delay: 0.28s; }
-.lp-rise-4 { animation-delay: 0.42s; }
-
-/* La carte produit entre par un glissement latéral subtil, après le texte. */
-@keyframes lp-slide-in {
-  from { opacity: 0; transform: translateX(28px) scale(0.985); }
-  to { opacity: 1; transform: none; }
-}
-.lp-slide-in { animation: lp-slide-in 1s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both; }
-
-.lp-roll {
-  display: inline-block;
-  overflow: hidden;
-  height: 1.1em;
-  vertical-align: -0.16em; /* pose le mot sur la ligne de base du sous-titre */
-}
-.lp-roll-track {
-  display: flex;
-  flex-direction: column;
-  animation: lp-roll 6s cubic-bezier(0.7, 0, 0.2, 1) infinite;
-}
-.lp-roll-track > span {
-  display: block;
-  height: 1.1em;
-  line-height: 1.1;
-  font-weight: 600;
-  color: #788c15; /* vert olive de la marque — attire l'œil sur le verbe */
-}
-/* Deux états seulement : suit → prouve → suit (la 3e étiquette duplique la
-   1re pour un bouclage sans à-coup). */
-@keyframes lp-roll {
-  0%, 42% { transform: translateY(0); }
-  50%, 92% { transform: translateY(-1.1em); }
-  100% { transform: translateY(-2.2em); }
-}
-/* ── Moment magique de la carte hero (.lp-paste) ──────────────────────────
-   Le badge rejoue en boucle « SMS MoMo collé… » → « Déclaré » : même
-   technique de colonne masquée que .lp-roll, chaque étiquette est une
-   pastille complète (le fond roule avec le texte). */
-.lp-paste {
-  display: inline-block;
-  overflow: hidden;
-  height: 1.85em;
-  border-radius: 9999px;
-}
-.lp-paste-track {
-  display: flex;
-  flex-direction: column;
-  animation: lp-paste 6s cubic-bezier(0.7, 0, 0.2, 1) infinite;
-}
-.lp-paste-track > span {
-  display: flex;
-  align-items: center;
-  height: 1.85em;
-  padding: 0 0.75rem;
-  border-radius: 9999px;
-}
-.lp-paste-sms {
-  background: #f2f2ec;
-  color: #72726e;
-}
-.lp-paste-done {
-  background: #e5eacd;
-  color: #292929;
-}
-@keyframes lp-paste {
-  0%, 30% { transform: translateY(0); }
-  38%, 88% { transform: translateY(-1.85em); }
-  100% { transform: translateY(-3.7em); }
-}
 
 @media (prefers-reduced-motion: reduce) {
-  .lp-rise, .lp-rise-2, .lp-rise-3, .lp-rise-4, .lp-slide-in { animation: none; }
-  .lp-roll-track { animation: none; }
-  /* Sans animation, on fige le badge sur l'état final « Déclaré ». */
-  .lp-paste-track { animation: none; transform: translateY(-1.85em); }
+  .lp-rise, .lp-rise-2, .lp-rise-3 { animation: none; }
 }
