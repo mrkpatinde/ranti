@@ -148,7 +148,7 @@ export function BailForm({
         </div>
       </section>
 
-      <SubmitButton className="w-full rounded-full bg-accent px-5 py-4 text-base font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60">
+      <SubmitButton className="w-full rounded-full bg-accent px-5 py-4 text-base font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60 lg:w-fit">
         Créer le bail
       </SubmitButton>
     </form>

@@ -42,7 +42,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Aucun locataire pour le moment</h2>
             <p className="mt-2 text-base leading-7 text-foreground/70">Ajoutez votre premier locataire pour pouvoir créer un bail.</p>
-            <Link href="/leases/new" className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition hover:brightness-95">Créer un bail</Link>
+            <Link href="/leases/new" className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition hover:brightness-95 lg:w-fit">Créer un bail</Link>
           </div>
         ) : (
           <div className="space-y-4">
