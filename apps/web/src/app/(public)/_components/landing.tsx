@@ -147,7 +147,7 @@ const faq = [
   ],
   [
     "Ranti encaisse-t-il l'argent ?",
-    "Comme vous voulez. Par défaut, l'argent circule directement entre vous et votre locataire (cash, Mobile Money, virement) et Ranti garde le suivi et les preuves. Si vous préférez, Ranti peut encaisser pour vous : votre locataire paie via notre partenaire de paiement agréé, qui vous reverse 95 % du loyer, et la quittance certifiée se génère toute seule. Dans les deux cas, Ranti ne détient jamais vos fonds.",
+    "Oui. Votre locataire paie via notre partenaire de paiement agréé, qui vous reverse 95 % du loyer — la quittance certifiée se génère toute seule. Ranti ne détient jamais vos fonds : ils vont du locataire au partenaire agréé, puis à vous.",
   ],
   [
     "Votre locataire doit-il créer un compte ?",
@@ -219,7 +219,7 @@ export default function Landing() {
                   <ShieldCheck size={15} strokeWidth={1.8} className="text-[#94f27f]" />
                   Ranti ne détient jamais vos fonds
                 </span>
-                {["Gratuit pendant le pilote", "Sans carte bancaire"].map((item) => (
+                {["Gratuit pendant le pilote"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-2 rounded-full border border-[#d5d5d2] bg-white px-3 py-2">
                     <Check size={15} strokeWidth={1.8} className="text-[#5b6f00]" />
                     {item}
@@ -289,16 +289,16 @@ export default function Landing() {
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Tarif</p>
             <h2 className="font-display mx-auto mt-4 max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
-              Vous ne payez que sur les loyers encaissés via Ranti.
+              Un tarif unique : 5 % sur chaque paiement de loyer réussi.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#72726e]">
-              Pas d'abonnement, pas de carte bancaire. Un seul prélèvement, tout compris.
+              Pas d'abonnement, pas de frais cachés. Un seul prélèvement, tout compris.
             </p>
           </div>
 
           <div className="mx-auto mt-12 max-w-lg rounded-[28px] border border-[#d5d5d2] bg-white p-8 text-center shadow-[0_8px_28px_-14px_rgba(41,41,41,0.25)] md:p-10">
             <p className="font-display text-6xl font-extrabold tracking-tight text-[#292929] md:text-7xl">5%</p>
-            <p className="mt-2 text-base font-semibold text-[#292929]">par loyer encaissé, quittance comprise</p>
+            <p className="mt-2 text-base font-semibold text-[#292929]">par paiement de loyer réussi, quittance comprise</p>
 
             <div className="mt-7 space-y-3 border-t border-dashed border-[#d5d5d2] pt-6 text-left">
               <div className="flex items-center justify-between gap-3">
@@ -320,7 +320,7 @@ export default function Landing() {
             </p>
 
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {["Sans abonnement", "Sans carte", "Sans frais fixes"].map((item) => (
+              {["Sans abonnement", "Sans frais fixes"].map((item) => (
                 <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-[#d5d5d2] bg-[#f7f7f2] px-3 py-1.5 text-xs font-semibold text-[#72726e]">
                   <Check size={13} strokeWidth={2} className="text-[#5b6f00]" />
                   {item}
@@ -329,9 +329,6 @@ export default function Landing() {
             </div>
           </div>
 
-          <p className="mx-auto mt-6 max-w-lg text-center text-sm text-[#acada8]">
-            Pas de paiement encaissé, pas de commission. Le suivi de vos baux et de vos relances reste gratuit pendant le pilote.
-          </p>
         </section>
 
         <section id="faq" className="px-6 pb-28">
@@ -366,7 +363,7 @@ export default function Landing() {
               Gérer vos loyers
               <ArrowRight size={18} strokeWidth={1.8} />
             </Link>
-            <p className="mt-4 text-sm text-[#acada8]">Gratuit pendant le pilote. Aucune carte demandée.</p>
+            <p className="mt-4 text-sm text-[#acada8]">Gratuit pendant le pilote.</p>
           </div>
         </section>
       </main>
