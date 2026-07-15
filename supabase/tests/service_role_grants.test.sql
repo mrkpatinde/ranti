@@ -27,7 +27,10 @@ begin
       ('public.reminders', 'INSERT'),
       ('public.tenants',   'SELECT'),
       ('public.units',     'SELECT'),
-      ('public.receipts',  'SELECT')
+      ('public.receipts',  'SELECT'),
+      -- Vision comptabilité du ledger (20260715070000) : la compta interne
+      -- lit net_margin/payin_cost/payout_cost en service_role uniquement.
+      ('public.payment_transactions', 'SELECT')
     ) as t(tbl, priv)
   loop
     if not has_table_privilege('service_role', v_priv.tbl, v_priv.priv) then
