@@ -3,6 +3,15 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.1.1] - 2026-07-15
+
+### Changed
+
+- Tarif affiché comme unique et sans option : « 5 % sur chaque paiement de
+  loyer réussi » — la FAQ ne présente plus l'encaissement comme un choix, et
+  les mentions « sans carte bancaire », « aucune carte demandée » et « pas de
+  paiement encaissé, pas de commission » disparaissent de la landing.
+
 ## [0.3.1.0] - 2026-07-15
 
 ### Security
