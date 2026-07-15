@@ -86,19 +86,21 @@ cash-out API (le reversement standard ne va que vers le compte du marchand).
 FeexPay est le repli (payin 1,7 % mais à la charge du locataire — il paierait
 plus que son loyer — et payout à 1 %).
 
-### Frais — 3,0 % total, deux composants (v3)
+### Frais — historique v3 (SUPERSÉDÉ par v4, conservé pour trace)
 
-- **Cash-in** : le locataire paie exactement 100 % du loyer (pas de
-  sur-facturation côté widget). Les frais PSP sont prélevés sur le brut.
-- **Répartition** : `psp_fee = floor(montant × psp_bp / 10000)` et
-  `platform_fee = floor(montant × platform_bp / 10000)`. Défauts : **180 bp
-  PSP + 120 bp Ranti = 300 bp** — taux **stockés sur chaque ligne**
-  (`psp_fee_bp`, `platform_fee_bp`) : configurables sans invalider
-  l'historique ni les contraintes CHECK. À verrouiller au contrat PSP.
-- **Cash-out** : `net_amount = montant − psp_fee − platform_fee` = 97 % au
-  propriétaire (déterministe, XOF entier — jamais de flottants ; le reste
-  d'arrondi ≤ 1 FCFA par composant revient au propriétaire). Le ledger
-  balance exactement par construction. Payout FedaPay vers MoMo : 0 F.
+> ⚠️ Cette section décrit le modèle v3 à deux composants visibles
+> (`psp_fee`/`platform_fee`, 1,8 % + 1,2 % = 3,0 %). La migration
+> `20260714230000_all_inclusive_5pct` a **supprimé ces colonnes** au profit du
+> modèle v4 « All-Inclusive 5 % » (voir la révision v4 en tête d'ADR) :
+> `service_fee` = 5 % du brut montré au propriétaire (net 95 %), coûts PSP
+> (`payin_cost` sur le brut, `payout_cost` sur le net) = dépenses INTERNES de
+> Ranti, `net_margin` par ligne. Ce qui reste vrai en v4 : le locataire paie
+> exactement 100 % du loyer, XOF entiers avec floor par composant, taux en bp
+> archivés sur chaque ligne, ledger balancé par construction (CHECKs).
+
+- (v3, obsolète) Cash-in : frais PSP prélevés sur le brut ; répartition
+  `psp_fee`/`platform_fee` 180 bp + 120 bp = 300 bp stockés par ligne ;
+  cash-out `net_amount` = 97 % au propriétaire.
 
 ### Machine à états
 
@@ -152,6 +154,19 @@ document est la conséquence de la validation). La contestation locataire
   fait autorité.
 - Webhook `POST /api/payments/notification` : HMAC-SHA256 sur le corps brut,
   comparaison à temps constant, idempotent sur `(provider, provider_reference)`.
+- **Replays divergents refusés** (décision 2026-07-15, migration
+  `20260715070000`) : l'idempotence ne vaut que si le replay raconte la même
+  histoire. Une même `(provider, provider_reference)` avec un **montant ou un
+  bail différent** lève `reference_conflict` (P0001) — le webhook répond en
+  erreur, l'anomalie (PSP qui recycle une référence, bug amont, tentative
+  d'empoisonnement de référence) devient visible au lieu d'être absorbée en
+  silence, et la ligne d'origine fait foi. Alternative écartée : marqueur de
+  divergence en base (colonne dédiée) — plus lourd (schéma) pour le même
+  signal, reconsidérer si un PSP recycle légitimement des références.
+- La vision comptabilité (`net_margin`, `payin_cost`, `payout_cost`,
+  `payload`) est invisible du propriétaire par **grants par colonne** ;
+  `service_role` a un GRANT SELECT table explicite (ne pas dépendre des
+  default privileges — leçon 2026-07-05).
 - Zéro IA dans ce chemin de code : logique pure déterministe.
 
 ### Reversement (payout)
@@ -183,11 +198,13 @@ utilisateurs.
 ## Conséquences
 
 - Preuve de paiement automatique (plus de collage pour les baux sur ce rail).
-- Monétisation transactionnelle : commission Ranti 1,2 % (120 bp, configurable
-  par ligne) + frais PSP 1,8 % (180 bp) = 3,0 % sur le brut.
-- Posture v3 : Ranti = interface, jamais détenteur — les fonds vivent dans le
-  wallet marchand au nom de Ranti chez le PSP (caveat BCEAO ci-dessus), et le
-  processus ops de reversement reste à outiller.
+- Monétisation transactionnelle (v4) : commission unique **5 % tout compris**
+  (500 bp) montrée au propriétaire, net 95 % reversé ; coûts PSP = dépenses
+  internes de Ranti, marge nette tracée par ligne (`net_margin` ≈ 2,35 % aux
+  taux FeexPay retenus). ~~v3 : 1,2 % Ranti + 1,8 % PSP = 3,0 %~~ (supersédé).
+- Posture inchangée : Ranti = interface, jamais détenteur — les fonds vivent
+  dans le wallet marchand au nom de Ranti chez le PSP (caveat BCEAO
+  ci-dessus), et le processus ops de reversement reste à outiller.
 - L'alias P2P (ADR-009) et le collage SMS (ADR-014) restent les filets
   universels pour les propriétaires sans rail connecté.
 

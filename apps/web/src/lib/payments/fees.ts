@@ -86,6 +86,12 @@ export function calculateTransactionDetails(
   ) {
     throw new PaymentError("amount_invalid")
   }
+  // Un service > 100 % rendrait le net négatif : la division entière SQL
+  // (troncature vers zéro) divergerait alors de Math.floor — on interdit
+  // l'entrée des deux côtés pour garder le miroir exact sur positifs.
+  if (rates.service > 10000) {
+    throw new PaymentError("amount_invalid")
+  }
 
   const rantiServiceFee = feeFor(grossAmount, rates.service)
   const netToLandlord = grossAmount - rantiServiceFee

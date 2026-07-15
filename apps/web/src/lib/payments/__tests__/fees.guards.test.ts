@@ -26,6 +26,23 @@ describe("calculateTransactionDetails — gardes de taux (branches restantes)", 
     }
   })
 
+  it("rejette un service > 10000 bp (net négatif : troncature SQL ≠ Math.floor)", () => {
+    try {
+      calculateTransactionDetails(100_000, { service: 10_001, payin: 170, payout: 100 })
+      expect.unreachable("service > 100 % accepté")
+    } catch (e) {
+      expect(e).toBeInstanceOf(PaymentError)
+      expect((e as PaymentError).code).toBe("amount_invalid")
+    }
+  })
+
+  it("accepte service = 10000 bp exactement (net 0, floor et troncature confondus)", () => {
+    const d = calculateTransactionDetails(100_000, { service: 10_000, payin: 170, payout: 100 })
+    expect(d.rantiServiceFee).toBe(100_000)
+    expect(d.netToLandlord).toBe(0)
+    expect(d.payoutCost).toBe(0)
+  })
+
   it("rejette un payin non entier", () => {
     expect(() =>
       calculateTransactionDetails(100_000, { service: 500, payin: 170.5, payout: 100 }),

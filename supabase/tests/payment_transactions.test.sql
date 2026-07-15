@@ -161,6 +161,40 @@ begin
     raise exception 'FAIL: details taux négatif accepté';
   exception when sqlstate 'P0001' then null;
   end;
+  -- Chaque disjonction de la garde des taux, en miroir de fees.guards.test.ts.
+  begin
+    perform private.compute_transaction_details(60000, -1, 170, 100);
+    raise exception 'FAIL: details service_bp négatif accepté';
+  exception when sqlstate 'P0001' then null;
+  end;
+  begin
+    perform private.compute_transaction_details(60000, 500, 170, -1);
+    raise exception 'FAIL: details payout_bp négatif accepté';
+  exception when sqlstate 'P0001' then null;
+  end;
+  begin
+    perform private.compute_transaction_details(60000, null, 170, 100);
+    raise exception 'FAIL: details service_bp null accepté';
+  exception when sqlstate 'P0001' then null;
+  end;
+  begin
+    perform private.compute_transaction_details(60000, 500, null, 100);
+    raise exception 'FAIL: details payin_bp null accepté';
+  exception when sqlstate 'P0001' then null;
+  end;
+  begin
+    perform private.compute_transaction_details(60000, 500, 170, null);
+    raise exception 'FAIL: details payout_bp null accepté';
+  exception when sqlstate 'P0001' then null;
+  end;
+  -- service > 100 % : net négatif → troncature SQL ≠ Math.floor, entrée interdite
+  -- des deux côtés (20260715070000).
+  begin
+    perform private.compute_transaction_details(60000, 10001, 170, 100);
+    raise exception 'FAIL: details service_bp > 10000 accepté';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'amount_invalid' then raise exception 'FAIL details >10000 code: %', sqlerrm; end if;
+  end;
 
   -- Insert direct avec frais faux → CHECK doit refuser.
   begin
@@ -243,6 +277,30 @@ begin
   select count(*) into v_count from public.payment_transactions
   where provider_reference = 'PSP-001';
   if v_count <> 1 then raise exception 'FAIL replay: % lignes', v_count; end if;
+
+  -- Replay DIVERGENT (20260715070000) : même référence mais montant ou bail
+  -- différent = 'reference_conflict', la ligne d'origine reste intacte.
+  begin
+    perform public.ingest_payment_notification(
+      'fedapay', 'PSP-001', v_lease, 61000, '{"src":"poison"}'::jsonb);
+    raise exception 'FAIL: replay divergent (montant) accepté';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'reference_conflict' then raise exception 'FAIL divergent code: %', sqlerrm; end if;
+  end;
+  begin
+    perform public.ingest_payment_notification(
+      'fedapay', 'PSP-001', v_lease_draft, 60000, null);
+    raise exception 'FAIL: replay divergent (bail) accepté';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'reference_conflict' then raise exception 'FAIL divergent bail code: %', sqlerrm; end if;
+  end;
+  select count(*) into v_count from public.payment_transactions
+  where provider_reference = 'PSP-001';
+  if v_count <> 1 then raise exception 'FAIL divergent: % lignes (origine altérée ?)', v_count; end if;
+  -- La même référence chez un AUTRE provider reste une transaction distincte.
+  select * into v_ing2 from public.ingest_payment_notification(
+    'feexpay', 'PSP-001', v_lease, 60000, null);
+  if not v_ing2.created then raise exception 'FAIL cross-provider: created=false'; end if;
 
   -- =========================================================================
   -- 4. Montant inattendu / bail inactif → rejected, jamais droppé
@@ -482,20 +540,27 @@ begin
     raise exception 'FAIL grants: authenticated a un grant TABLE entier (attendu: colonnes seules)';
   end if;
 
+  -- Set-equality BIDIRECTIONNELLE avec la liste blanche « vision reçu » —
+  -- exactement les 16 colonnes que queries.ts sélectionne. Une colonne en
+  -- moins = page paiements en permission denied ; une colonne en plus
+  -- (payload, coûts, marge…) = fuite de la vision comptabilité.
   select count(*) into v_count from information_schema.role_column_grants
   where table_schema = 'public' and table_name = 'payment_transactions'
     and grantee = 'authenticated' and privilege_type = 'SELECT'
-    and column_name in ('id', 'amount_received', 'service_fee', 'net_amount', 'status');
-  if v_count <> 5 then
-    raise exception 'FAIL grants: colonnes vision reçu manquantes pour authenticated (%: policy sans grant !)', v_count;
+    and column_name in (
+      'id', 'landlord_id', 'lease_id', 'provider', 'provider_reference',
+      'amount_received', 'service_fee_bp', 'service_fee', 'net_amount',
+      'currency', 'status', 'rejection_reason', 'rent_reception_id',
+      'created_at', 'verified_at', 'paid_out_at');
+  if v_count <> 16 then
+    raise exception 'FAIL grants: vision reçu incomplète pour authenticated (% / 16 : policy sans grant !)', v_count;
   end if;
 
   select count(*) into v_count from information_schema.role_column_grants
   where table_schema = 'public' and table_name = 'payment_transactions'
-    and grantee = 'authenticated'
-    and column_name in ('payin_cost_bp', 'payout_cost_bp', 'payin_cost', 'payout_cost', 'net_margin');
-  if v_count <> 0 then
-    raise exception 'FAIL grants: la vision comptabilité (marge Ranti) est visible du propriétaire';
+    and grantee = 'authenticated' and privilege_type = 'SELECT';
+  if v_count <> 16 then
+    raise exception 'FAIL grants: % colonnes accordées à authenticated (attendu 16 exactement — fuite vision compta ?)', v_count;
   end if;
 
   select count(*) into v_count from information_schema.role_table_grants
