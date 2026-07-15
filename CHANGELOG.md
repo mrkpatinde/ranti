@@ -3,6 +3,17 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.1.2] - 2026-07-15
+
+### Changed
+
+- L'offre affichée devient « 3 mois gratuits à l'ouverture de votre registre,
+  puis 5 % sur chaque paiement de loyer réussi » — le framing « gratuit
+  pendant le pilote » disparaît. L'arrêt est libre et dit sans vocabulaire
+  d'abonnement : « Vous arrêtez quand vous voulez », rien à résilier, vos
+  baux et quittances restent à vous (nouvelle entrée FAQ « Combien ça
+  coûte ? »).
+
 ## [0.3.1.1] - 2026-07-15
 
 ### Changed
