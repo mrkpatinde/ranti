@@ -128,6 +128,13 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Copie de la landing en voix propriétaire (v0.3.3.1, directive CEO) : accroche
+  « Vous encaissez le loyer. Ranti édite la quittance, votre locataire la
+  confirme. » (tirets cadratins retirés, formulations « générées » nettoyées) ;
+  la légende sous le document convertit désormais — « La vôtre vous attend.
+  Créer votre compte » mène à `/signup`, le document reste cliquable vers sa
+  vérification.
+
 - Landing minimale (v0.3.3.0, directive CEO) : la page d'accueil se réduit à
   un titre, une phrase, le CTA « Gérer vos loyers » — et le produit : la
   quittance elle-même, rendue depuis le vrai composant `ReceiptPdf` avec les
