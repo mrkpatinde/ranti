@@ -5,7 +5,9 @@ import { redirect } from "next/navigation"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import {
+  validateBailForm,
   validateBulkOnboarding,
+  type BailFormInput,
   type BulkRawRow,
   type BulkShared,
   type RowError,
@@ -153,5 +155,58 @@ export async function bulkOnboard(
 
   redirect(
     `/leases?notice=bulk_created&units=${counts.units ?? 0}&leases=${counts.leases ?? 0}`,
+  )
+}
+
+// Écran unique « Créer un bail » (ADR-020) : lieu (créé inline OU pioché) +
+// logement + occupant + bail, en un geste atomique → échéances générées. Une
+// seule RPC (bulk_onboard_portfolio étendue). Redirect-based comme createLease :
+// erreurs renvoyées via ?error=.
+export async function createBail(formData: FormData) {
+  await requireLandlordProfile()
+
+  const input: BailFormInput = {
+    propertyMode: asString(formData.get("property_mode")),
+    propertyId: asString(formData.get("property_id")),
+    propertyName: asString(formData.get("property_name")),
+    propertyCity: asString(formData.get("property_city")),
+    unitName: asString(formData.get("unit_name")),
+    unitType: asString(formData.get("unit_type")),
+    firstName: asString(formData.get("first_name")),
+    lastName: asString(formData.get("last_name")),
+    phone: asString(formData.get("phone")),
+    email: asString(formData.get("email")),
+    monthlyRentAmount: asString(formData.get("monthly_rent_amount")),
+    dueDay: asString(formData.get("due_day")),
+    startDate: asString(formData.get("start_date")),
+  }
+
+  const back = (message: string): never =>
+    redirect(`/leases/new?error=${encodeURIComponent(message)}`)
+
+  const result = validateBailForm(input)
+  if (!result.ok) return back(result.formError)
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("bulk_onboard_portfolio", {
+    p_property: result.property,
+    p_rows: [result.row],
+  })
+
+  if (error) {
+    console.error("createBail: RPC failed", error.code, error.message)
+    return back(mapRpcError(error))
+  }
+
+  const leaseIds = ((data ?? {}) as { lease_ids?: string[] }).lease_ids ?? []
+
+  revalidatePath("/dashboard")
+  revalidatePath("/leases")
+  revalidatePath("/units")
+
+  redirect(
+    leaseIds[0]
+      ? `/leases/${leaseIds[0]}?notice=bail_created`
+      : "/leases?notice=bail_created",
   )
 }

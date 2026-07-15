@@ -167,6 +167,7 @@ begin
 
   return jsonb_build_object(
     'property_id', v_prop,
+    'lease_ids', to_jsonb(v_lease_ids),
     'units', v_units,
     'tenants', v_tenants,
     'leases', v_leases,
