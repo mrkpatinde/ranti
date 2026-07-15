@@ -2,6 +2,9 @@
 
 Registre de loyer pour propriétaires africains. Lire `docs/` avant tout code — le code doit rester 100% conforme aux docs.
 
+## Design System
+Toujours lire `DESIGN.md` avant toute décision visuelle ou UI. Polices, couleurs, espacement et direction esthétique y sont définis. Ne pas dévier sans validation explicite. En QA, signaler tout code non conforme à `DESIGN.md`.
+
 ## Skill routing
 
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.

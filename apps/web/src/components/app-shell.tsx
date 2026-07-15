@@ -55,7 +55,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
   const ownerName = `${landlord.first_name} ${landlord.last_name}`
 
   return (
-    <div className="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[240px_1fr]">
+    <div className="min-h-screen bg-background text-foreground [font-variant-numeric:tabular-nums] lg:grid lg:grid-cols-[240px_1fr]">
       <aside className="hidden min-h-screen border-r border-border bg-card px-4 py-5 lg:flex lg:flex-col">
         <Link href="/dashboard" className="flex items-center gap-3 px-2 pb-5">
           <RantiLogo size={36} />
@@ -73,7 +73,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
 
         <div className="mt-auto space-y-2 border-t border-border pt-4">
           <div className="space-y-1">
-            <p className="px-3.5 pb-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Aide</p>
+            <p className="px-3.5 pb-1 text-[11px] font-medium text-muted-foreground">Aide</p>
             {SUPPORT_WHATSAPP_URL && (
               <a
                 href={SUPPORT_WHATSAPP_URL}

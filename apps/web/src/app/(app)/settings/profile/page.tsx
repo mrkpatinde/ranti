@@ -10,7 +10,7 @@ type ProfileSettingsPageProps = {
 function ProfileRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-1 text-base font-medium text-foreground">{value}</p>
     </div>
   )
@@ -24,7 +24,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Ranti</p>
+          <p className="text-sm font-medium text-muted-foreground">Ranti</p>
           <p className="mt-2 text-sm text-muted-foreground">Profil propriétaire</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
@@ -62,7 +62,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
             href="/settings/payment"
             className="block rounded-2xl border border-border bg-card px-4 py-3 transition hover:bg-secondary"
           >
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Alias PI-SPI</p>
+            <p className="text-xs text-muted-foreground">Alias PI-SPI</p>
             <p className="mt-1 text-base font-medium text-foreground">
               {landlord.payment_alias ? landlord.payment_alias : "Ajouter votre alias de paiement"}
             </p>
@@ -87,7 +87,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
                 rel="noopener noreferrer"
                 className="block rounded-2xl border border-border bg-card px-4 py-3 transition hover:bg-secondary"
               >
-                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">WhatsApp</p>
+                <p className="text-xs text-muted-foreground">WhatsApp</p>
                 <p className="mt-1 text-base font-medium text-foreground">Écrire au WhatsApp de Ranti</p>
               </a>
             )}
@@ -95,7 +95,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
               href={SUPPORT_EMAIL_URL}
               className="block rounded-2xl border border-border bg-card px-4 py-3 transition hover:bg-secondary"
             >
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Email</p>
+              <p className="text-xs text-muted-foreground">Email</p>
               <p className="mt-1 text-base font-medium text-foreground">{SUPPORT_EMAIL}</p>
             </a>
           </div>

@@ -242,8 +242,7 @@ export default function Landing() {
 
         <section id="fonctionnement" className="px-6 py-24 md:py-32">
           <div className="mx-auto max-w-5xl text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Simple au quotidien</p>
-            <h2 className="font-display mx-auto mt-4 max-w-3xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
+            <h2 className="font-display mx-auto max-w-3xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
               Vos loyers se suivent en trois gestes simples.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#72726e]">
@@ -264,7 +263,7 @@ export default function Landing() {
           </ol>
 
           <p className="mx-auto mt-12 max-w-2xl text-center text-base leading-8 text-[#72726e]">
-            <span className="font-semibold text-[#292929]">Ranti remplace le cahier, WhatsApp et Excel</span>, sans en perdre la simplicité.
+            <span className="font-semibold text-[#292929]">Le meilleur outil, c'est celui qu'on oublie.</span> Ranti garde la mémoire, vous récupérez vos soirées.
           </p>
         </section>
 
@@ -291,12 +290,11 @@ export default function Landing() {
             Exemple canon de la doc : 100 000 F → 5 000 / 95 000. */}
         <section id="tarif" className="px-6 pb-24 pt-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Tarif</p>
-            <h2 className="font-display mx-auto mt-4 max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
+            <h2 className="font-display mx-auto max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
               Un tarif unique : 5 % sur chaque paiement de loyer réussi.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#72726e]">
-              3 mois gratuits à l'ouverture de votre registre, puis un seul prélèvement, tout compris. Vous arrêtez quand vous voulez.
+              3 mois gratuits à l'ouverture de votre registre, puis 5 % sur les loyers encaissés — rien encaissé, rien à payer. Vous arrêtez quand vous voulez.
             </p>
           </div>
 
@@ -333,13 +331,15 @@ export default function Landing() {
             </div>
           </div>
 
+          <p className="mx-auto mt-8 max-w-lg text-center font-display text-lg font-extrabold tracking-tight text-[#292929]">
+            Si vous ne gagnez rien, nous ne gagnons rien.
+          </p>
         </section>
 
         <section id="faq" className="px-6 pb-28">
           <div className="mx-auto max-w-4xl">
             <div className="mb-10 text-center">
-              <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Questions fréquentes</p>
-              <h2 className="font-display mt-4 text-4xl font-extrabold tracking-[-0.02em] text-[#292929]">Les questions qu'on nous pose souvent.</h2>
+              <h2 className="font-display text-4xl font-extrabold tracking-[-0.02em] text-[#292929]">Les questions qu'on nous pose souvent.</h2>
             </div>
             <div className="divide-y divide-[#f2f2ec] rounded-2xl border border-[#d5d5d2] bg-white px-6 shadow-[0_1px_2px_rgba(41,41,41,0.06)]">
               {faq.map(([q, a]) => (
