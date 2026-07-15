@@ -3,6 +3,16 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.5] - 2026-07-15
+
+### Changed
+
+- CTA principales en pill à gauche sur desktop (comme le dashboard) : les
+  boutons d'action et de soumission (« Créer un bail », « Enregistrer »…) qui
+  s'étiraient en barre pleine largeur dans les pages en `flex-col` prennent
+  désormais leur largeur de contenu au-delà de `lg` (`lg:w-fit`), alignés à
+  gauche. Mobile inchangé (pleine largeur, thumb-friendly).
+
 ## [0.3.4.4] - 2026-07-15
 
 ### Changed
