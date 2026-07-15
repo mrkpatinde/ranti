@@ -3,6 +3,22 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.2] - 2026-07-15
+
+### Changed
+
+- Bouton **retour** dans le header mobile (chevron ‹ à gauche de « Ranti »,
+  masqué sur l'accueil) : revient à la page précédente, avec repli sur l'accueil
+  si on a atterri directement sur une page profonde. Répond au besoin de
+  navigation arrière sur mobile.
+
+### Fixed
+
+- « Ranti » n'apparaît plus deux fois en haut des pages : la ligne « Ranti » des
+  en-têtes de page (Encaissements, Relances, Baux, Bail, Logement, Lieu,
+  Locataire, Reçus, Paramètres…) est retirée — le shell l'affiche déjà. La
+  marque « Ranti » du document de quittance reste, elle, intacte.
+
 ## [0.3.4.1] - 2026-07-15
 
 ### Changed

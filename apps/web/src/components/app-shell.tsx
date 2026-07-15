@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { ChevronLeft, Menu, X } from "lucide-react"
 import type { Landlord } from "@/lib/landlords"
 import { RantiLogo } from "@/components/ranti-logo"
 import { AccountMenu } from "@/components/account-menu"
@@ -121,6 +121,14 @@ function MobileNavMenu({ pathname }: { pathname: string }) {
 
 export function AppShell({ children, landlord }: { children: React.ReactNode; landlord: Landlord | null }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  function goBack() {
+    // Retour à la page précédente (comme le bouton natif) ; repli sur l'accueil
+    // si on a atterri directement sur une page profonde (lien partagé, reload).
+    if (typeof window !== "undefined" && window.history.length > 1) router.back()
+    else router.push("/dashboard")
+  }
   const hideShell = pathname.startsWith("/onboarding") || pathname.startsWith("/auth") || !landlord
 
   if (hideShell) return <>{children}</>
@@ -180,7 +188,19 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
       <div className="min-w-0">
         <header className="sticky top-0 z-10 border-b border-border bg-background/85 px-4 py-3 backdrop-blur-md lg:hidden">
           <div className="flex items-center justify-between gap-3">
-            <Link href="/dashboard" className="font-display text-lg font-extrabold tracking-tight">Ranti</Link>
+            <div className="flex items-center gap-2">
+              {pathname !== "/dashboard" ? (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  aria-label="Revenir en arrière"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-secondary"
+                >
+                  <ChevronLeft size={18} strokeWidth={1.8} />
+                </button>
+              ) : null}
+              <Link href="/dashboard" className="font-display text-lg font-extrabold tracking-tight">Ranti</Link>
+            </div>
             <div className="flex items-center gap-2">
               <MobileNavMenu pathname={pathname} />
               <AccountMenu initials={initialsOf(landlord.first_name, landlord.last_name)} ownerName={ownerName} />

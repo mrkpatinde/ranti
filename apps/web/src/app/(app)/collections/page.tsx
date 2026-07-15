@@ -110,7 +110,6 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Ranti</p>
           <p className="mt-2 text-sm text-muted-foreground">Vos encaissements</p>
         </div>
         <Link
