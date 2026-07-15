@@ -16,10 +16,12 @@ export interface PaymentTransaction {
   provider: PaymentProvider
   provider_reference: string
   amount_received: number
-  psp_fee_bp: number
-  platform_fee_bp: number
-  psp_fee: number
-  platform_fee: number
+  /** Vision reçu : commission tout compris (5 % défaut) + net reversé.
+   *  Les colonnes de la vision comptabilité (payin_cost, payout_cost,
+   *  net_margin) sont invisibles pour authenticated — grants par colonne ;
+   *  voir LedgerAccountingRow pour la lecture interne en service_role. */
+  service_fee_bp: number
+  service_fee: number
   net_amount: number
   currency: "XOF"
   status: PaymentTransactionStatus
@@ -28,6 +30,17 @@ export interface PaymentTransaction {
   created_at: string
   verified_at: string | null
   paid_out_at: string | null
+}
+
+/** Vision comptabilité interne (lecture service_role UNIQUEMENT — les grants
+ *  par colonne cachent ces champs au propriétaire). Suivi de rentabilité
+ *  réelle : net_margin = service_fee − payin_cost − payout_cost. */
+export interface LedgerAccountingRow extends PaymentTransaction {
+  payin_cost_bp: number
+  payout_cost_bp: number
+  payin_cost: number
+  payout_cost: number
+  net_margin: number
 }
 
 // Codes levés par les RPC (P0001/P0002, message = code) ou par la couche TS.
