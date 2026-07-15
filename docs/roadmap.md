@@ -128,6 +128,13 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Refonte desktop éditoriale « Granola » — flagship dashboard (v0.3.4.3,
+  directive CEO) : le desktop passait un écran mobile (colonne 448 px) dans un
+  canevas large → colonne centrée confortable (672 px) au-delà de lg, « Bonjour »
+  agrandi (Fraunces), carte stats focale, lignes aérées, CTA en pill à gauche.
+  Mobile inchangé. Référence à propager aux autres pages (Encaissements, Baux,
+  détails…) après validation CEO du rendu flagship.
+
 - Retour mobile + fin du « Ranti » doublé (v0.3.4.2, retour CEO) : bouton
   retour (‹) dans le header mobile (repli accueil si pas d'historique), et la
   ligne « Ranti » redondante retirée des en-têtes de page (le shell la porte

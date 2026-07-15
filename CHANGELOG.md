@@ -3,6 +3,19 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.3] - 2026-07-15
+
+### Changed
+
+- Dashboard desktop en composition éditoriale (référence « refonte Granola ») :
+  la colonne passe d'une largeur téléphone (448 px) à une colonne centrée
+  confortable (672 px) au-delà de `lg`, avec un « Bonjour » agrandi (Fraunces),
+  une carte de stats focale (grands chiffres), des lignes « à encaisser » plus
+  aérées, et un CTA « Créer un bail » en pill à gauche plutôt qu'une barre
+  pleine largeur. Le vide autour lit désormais comme du calme, plus comme de
+  l'inachevé. Le rendu mobile est inchangé (variantes `lg:` uniquement). Les
+  autres pages suivront ce même système.
+
 ## [0.3.4.2] - 2026-07-15
 
 ### Changed
