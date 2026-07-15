@@ -3,6 +3,17 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.7] - 2026-07-16
+
+### Docs
+
+- ADR-019 « Rail FeexPay obligatoire (cash-in unique) » consignée : formalise la
+  décision CEO du 2026-07-15 (FeexPay = PSP retenu ; rail = seul chemin
+  d'encaissement, 0 surcharge locataire, 95 % net reversé ; fractionné, collage
+  SMS et vocal abandonnés ; alias PI-SPI en filet). Supersède ADR-012/ADR-014,
+  amende ADR-009/ADR-018. Activation prod gatée BCEAO. Aucun changement de code —
+  mise au clair de la base avant d'aligner le wording de l'app.
+
 ## [0.3.4.6] - 2026-07-15
 
 ### Fixed
