@@ -128,6 +128,15 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Landing minimale (v0.3.3.0, directive CEO) : la page d'accueil se réduit à
+  un titre, une phrase, le CTA « Gérer vos loyers » — et le produit : la
+  quittance elle-même, rendue depuis le vrai composant `ReceiptPdf` avec les
+  données de `/verifier/demo` (n° RNT-2026-DEMO), filigranée « SPÉCIMEN —
+  SANS VALEUR PROBANTE » (anti-contrefaçon hors-ligne, revue adversariale),
+  cliquable vers sa vérification en ligne. Sections fonctionnement / preuve /
+  tarif détaillé / FAQ retirées ; le tarif verrouillé reste en microcopie sous
+  le CTA. Script de regénération `apps/web/scripts/generate-demo-quittance.tsx`.
+
 - Split fiscal TVA (18 %) de la commission 5 % sur le ledger paiements
   (v0.3.2.0, ADR-018 v5). Chaque ligne archive `commission_ht` + `tva_amount`
   (= `service_fee`, taux archivé par ligne) : arrondi entier XOF, floor sur le
