@@ -5,6 +5,28 @@
 - **Statut** : retenu, implémenté (`apps/web/src/app/(app)/dashboard/page.tsx`), à valider terrain.
 - **Écran concerné** : Dashboard propriétaire (`/dashboard`).
 
+## Révision v2 — 2026-07-15 (ADR-020, lecture seule)
+
+Le modèle produit a changé : l'encaissement passe par le rail FeexPay (ADR-019),
+le propriétaire ne saisit plus rien. Le dashboard devient **lecture seule** —
+« qui a payé / qui doit », rien de plus.
+
+- **Contenu** : résumé du mois (Payé / Attendu / Retard), liste « À encaisser »
+  (qui doit, retard d'abord ; les payés résumés en « N à jour » pour tenir sans
+  scroll), une action unique.
+- **CTA** : « Créer un bail » (`/leases/new`) — remplace « Confirmer un paiement »
+  (collage SMS / saisie vocale / manuelle retirés).
+- **Actions** : menu compte (avatar) = Mon compte · Gérer les baux · Se déconnecter.
+  Archiver un bail = bouton **visible** sur le détail (`/leases/[id]`), jamais un
+  reveal caché.
+- **Données** : `rent_due_balances` agrégé par `lib/dashboard/summary.ts` (pur) ;
+  aucune requête nouvelle.
+- **Style** : tokens DESIGN.md (Fraunces, olive = seul CTA, retard = destructive),
+  esprit iOS natif (aéré), zéro eyebrow.
+
+Supersède les décisions v1 ci-dessous sur le CTA « Confirmer un paiement » et les
+StatCard.
+
 ## Hypothèses UX
 
 - En moins de 5 secondes, le propriétaire doit voir : combien est encaissé ce mois, combien est en retard (et pour combien de locataires), combien reste à venir.
