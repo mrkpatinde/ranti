@@ -1,7 +1,5 @@
 import { headers } from "next/headers"
 import Link from "next/link"
-import { VoiceCapture } from "./_components/voice-capture"
-import { SmsIngestionZone } from "./_components/sms-ingestion-zone"
 import { JournalTimeline } from "../journal/_components/journal-timeline"
 import { isLocalAuthEnabled } from "@/lib/auth"
 import { requireLandlordProfile } from "@/lib/landlords"
@@ -34,9 +32,10 @@ function buildNextAction(
   return { href: "/leases", label: "Activer un bail", title: "Dernière étape : activer le bail", body: "Activez le bail pour générer les loyers attendus." }
 }
 
-// Accueil unifié = journal de bord chronologique (ADR-014). Deux entrées de
-// capture ambiantes en tête (vocal + collage SMS MoMo), puis le flux en lecture.
-// Contrôle d'accès : layout (app) → requireAuth() (Google, ADR-010) ; ici
+// Accueil unifié = journal de bord chronologique en lecture seule : qui a payé /
+// qui doit (ADR-019 : saisie assistée vocale + collage SMS retirée ; l'encaissement
+// passe par le rail FeexPay). Contrôle d'accès : layout (app) → requireAuth()
+// (Google, ADR-010) ; ici
 // requireLandlordProfile() → profil complet ou redirection onboarding. Le flux
 // journal ne s'affiche qu'avec ≥ 1 bail actif ; sinon, geste d'accueil unique.
 const NOTICE_LABELS: Record<string, string> = {
@@ -132,14 +131,7 @@ export default async function DashboardPage({
         </p>
       </header>
 
-      {/* Entrée de capture unique (ADR-014) : deux modalités — dictée vocale
-          ou collage d'un SMS Mobile Money — réunies dans un même bloc. */}
-      <section className="rounded-2xl border border-primary/20 bg-secondary/40 p-5 shadow-sm">
-        <VoiceCapture />
-        <SmsIngestionZone />
-      </section>
-
-      {/* Le flux — timeline chronologique en lecture. */}
+      {/* Le flux — timeline chronologique en lecture (qui a payé / qui doit). */}
       <JournalTimeline events={events} origin={origin} />
     </main>
   )
