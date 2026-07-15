@@ -63,7 +63,7 @@ const statusOrder: Record<CollectionStatus, number> = {
 function statusClasses(status: CollectionStatus): string {
   switch (status) {
     case "draft":
-      return "border-accent/50 bg-accent/10 text-accent-foreground"
+      return "border-accent/50 bg-accent/10 text-accent"
     case "confirmed":
       return "border-primary/20 bg-secondary text-foreground"
     case "cancelled":
@@ -150,7 +150,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
         ) : null}
 
         {draftCount > 0 ? (
-          <p className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent-foreground">
+          <p className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent">
             {draftCount === 1
               ? "1 encaissement en brouillon attend votre confirmation."
               : `${draftCount} encaissements en brouillon attendent votre confirmation.`}
@@ -253,7 +253,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                   ) : (
                     <div className="mt-5 space-y-4">
                       {cancelledReceiptReceptions.has(c.id) ? (
-                        <p className="rounded-xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm leading-6 text-accent-foreground">
+                        <p className="rounded-xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm leading-6 text-accent">
                           ⓘ Le document de cet encaissement a été <strong>annulé</strong>, mais le paiement reste
                           confirmé dans le registre. Générez un document corrigé — ou annulez aussi
                           l&apos;encaissement ci-dessous s&apos;il a été saisi par erreur.

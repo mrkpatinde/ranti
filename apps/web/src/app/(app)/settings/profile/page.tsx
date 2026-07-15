@@ -40,7 +40,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
         </div>
 
         {params?.error ? (
-          <p className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent-foreground">
+          <p className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent">
             {params.error}
           </p>
         ) : null}
