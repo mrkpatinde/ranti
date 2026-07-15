@@ -33,9 +33,8 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
           <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground">Votre alias PI-SPI</h1>
           <p className="text-base leading-7 text-foreground/70">
             Renseignez l&apos;alias sur lequel vos locataires paient le loyer. Ils envoient
-            directement depuis leur appli (MTN, Moov, banque) — c&apos;est instantané et gratuit.
-            Ranti affiche l&apos;alias au locataire mais ne touche jamais l&apos;argent : vous confirmez
-            ensuite l&apos;encaissement comme d&apos;habitude.
+            depuis leur appli (MTN, Moov, banque), en un instant et sans frais pour eux.
+            Vous confirmez ensuite l&apos;encaissement.
           </p>
         </div>
 

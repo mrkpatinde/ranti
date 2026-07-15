@@ -3,6 +3,18 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.8] - 2026-07-16
+
+### Changed
+
+- Wording de la page alias (`/settings/payment`) aligné sur ADR-019 : retrait du
+  claim « Ranti affiche l'alias mais ne touche jamais l'argent » (position
+  abandonnée comme cible produit — le rail FeexPay fait entrer Ranti dans le flux
+  d'argent). On garde ce qui reste vrai dans les deux modèles : paiement en un
+  instant et **sans frais pour le locataire**. Glossaire « Alias PI-SPI » complété :
+  l'alias est désormais le filet de repli, le rail FeexPay est la cible (gatée
+  BCEAO). Aucune mention de FeexPay comme actif : le rail n'est pas branché.
+
 ## [0.3.4.7] - 2026-07-16
 
 ### Docs

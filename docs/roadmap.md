@@ -128,6 +128,12 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-16)
 
+- Wording alias aligné sur ADR-019 (v0.3.4.8, CEO) : `/settings/payment` retire
+  « Ranti ne touche jamais l'argent » (abandonné comme cible produit), garde
+  « en un instant, sans frais pour le locataire » (vrai alias ET rail). Glossaire :
+  alias = filet, rail FeexPay = cible gatée BCEAO. FeexPay non branché → aucune
+  mention de rail actif. Alignement niveau 1 ; bascule complète au go-live rail.
+
 - ADR-019 « Rail FeexPay obligatoire » consignée (v0.3.4.7) : formalise en docs
   la décision CEO du 2026-07-15 (FeexPay = PSP ; rail = seul cash-in, 0 surcharge
   locataire, 95 % reversé ; fractionné/SMS/vocal abandonnés ; alias en filet ;

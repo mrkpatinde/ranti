@@ -88,7 +88,9 @@ Identifiant de paiement du propriétaire dans le système de paiement instantan�
 
 Le propriétaire renseigne son alias ; Ranti l'affiche au locataire pour qu'il paie le loyer directement, instantanément et gratuitement, depuis n'importe quelle banque ou wallet connecté à PI-SPI.
 
-Ranti ne détient jamais les fonds : le paiement reste hors Ranti (de compte à compte), puis est déclaré et encaissé comme tout autre paiement. L'alias n'est donc pas un canal d'agrégation ; c'est une coordonnée affichée.
+Sur ce chemin, le paiement reste hors Ranti (de compte à compte), puis est déclaré et encaissé comme tout autre paiement. L'alias n'est pas un canal d'agrégation ; c'est une coordonnée affichée.
+
+Depuis ADR-019, l'alias est le **filet de repli** : le chemin d'encaissement cible est le **rail FeexPay** (cash-in unique ; le propriétaire reçoit alors 95 % du net, Ranti entre dans le flux d'argent), dont l'activation est gatée BCEAO. La promesse « Ranti ne détient jamais les fonds » n'est donc plus la cible produit — elle ne vaut que pour le filet alias.
 
 ## Preuve de paiement
 
