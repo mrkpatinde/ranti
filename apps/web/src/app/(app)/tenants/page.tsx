@@ -43,7 +43,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Aucun locataire pour le moment</h2>
             <p className="mt-2 text-base leading-7 text-foreground/70">Ajoutez votre premier locataire pour pouvoir créer un bail.</p>
-            <Link href="/tenants/new" className="mt-5 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">Ajouter mon premier locataire</Link>
+            <Link href="/leases/new" className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition hover:brightness-95">Créer un bail</Link>
           </div>
         ) : (
           <div className="space-y-4">
@@ -54,7 +54,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
                 <span className="mt-5 inline-flex text-sm font-medium text-foreground">Voir le détail</span>
               </Link>
             ))}
-            <Link href="/tenants/new" className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Ajouter un autre locataire</Link>
+            <Link href="/leases/new" className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Créer un bail</Link>
           </div>
         )}
       </section>

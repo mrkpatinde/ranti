@@ -4,8 +4,7 @@ import { useState } from "react"
 import { SubmitButton } from "@/components/submit-button"
 import { createBail } from "@/lib/onboarding/actions"
 
-// Mêmes valeurs que l'onboarding groupé (bulk-onboard-form) — une seule source
-// de vérité visuelle pour les types de logement.
+// Types de logement (valeurs UNIT_TYPES) avec libellés FR.
 const UNIT_TYPE_OPTIONS = [
   { value: "room", label: "Chambre" },
   { value: "apartment", label: "Appartement" },
