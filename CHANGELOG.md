@@ -3,6 +3,17 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.3.1] - 2026-07-15
+
+### Changed
+
+- Copie de la landing en voix propriétaire, sans ponctuation « générée » : la
+  phrase d'accroche devient « Vous encaissez le loyer. Ranti édite la
+  quittance, votre locataire la confirme. » (plus de tiret cadratin). Sous le
+  document, la légende invite à l'inscription : « La vôtre vous attend. Créer
+  votre compte » pointe désormais vers `/signup` (au lieu de la vérification
+  du document). Le document lui-même reste cliquable vers sa vérification.
+
 ## [0.3.3.0] - 2026-07-15
 
 ### Changed
