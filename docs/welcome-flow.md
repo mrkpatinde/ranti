@@ -2,6 +2,8 @@
 
 ## Statut
 
+Version 1.3 — mise à jour 2026-07-15 : entrée d'onboarding unique « créer un bail » (ADR-020) ; l'écran bail crée lieu + logement + occupant + bail et génère les échéances immédiatement.
+
 Version 1.2 — mise à jour 2026-07-10 : auth Google uniquement (ADR-010) ; téléphone propriétaire multi-pays à l'onboarding (ADR-011).
 
 Ce document décrit l'expérience d'accueil du propriétaire, depuis la première ouverture de Ranti jusqu'au tableau de bord vide.
@@ -63,7 +65,7 @@ Aucun email, adresse, devise ou document d'identité n'est demandé dans le MVP 
 5. Il renseigne son profil minimal : numéro mobile (indicatif de son pays), civilité, prénom, nom.
 6. Ranti crée son espace propriétaire.
 7. Il arrive sur un tableau de bord vide.
-8. Ranti lui propose une seule prochaine action : ajouter son premier bien.
+8. Ranti lui propose une seule prochaine action : créer un bail (ADR-020) — l'écran bail crée le lieu, le logement, l'occupant et le bail en un geste, et génère les échéances immédiatement.
 
 ---
 

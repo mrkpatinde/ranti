@@ -93,7 +93,7 @@ export async function createOccupiedUnit(formData: FormData) {
 
   const supabase = await createClient()
   const { error } = await supabase.rpc("bulk_onboard_portfolio", {
-    p_property_id: shared.propertyId,
+    p_property: { id: shared.propertyId },
     p_rows: (result as { ok: true; rows: unknown[] }).rows,
   })
 
@@ -136,7 +136,7 @@ export async function bulkOnboard(
 
   const supabase = await createClient()
   const { data, error } = await supabase.rpc("bulk_onboard_portfolio", {
-    p_property_id: shared.propertyId,
+    p_property: { id: shared.propertyId },
     p_rows: result.rows,
   })
 
