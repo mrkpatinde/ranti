@@ -146,6 +146,10 @@ const faq = [
     "Vous le dictez : « Koffi a payé son loyer de juillet ». Ou vous collez le SMS Mobile Money reçu, Ranti en extrait le montant, la date et la référence. Dans les deux cas, il reconnaît le bail et prépare l'encaissement. Vous relisez, vous validez. Pas de micro ? Le formulaire reste là.",
   ],
   [
+    "Combien ça coûte ?",
+    "Vos 3 premiers mois sont offerts à l'ouverture de votre registre. Ensuite, 5 % sur chaque paiement de loyer réussi, quittance comprise — c'est le seul prélèvement. Rien à résilier : vous arrêtez quand vous voulez, et vos baux comme vos quittances restent à vous.",
+  ],
+  [
     "Ranti encaisse-t-il l'argent ?",
     "Oui. Votre locataire paie via notre partenaire de paiement agréé, qui vous reverse 95 % du loyer — la quittance certifiée se génère toute seule. Ranti ne détient jamais vos fonds : ils vont du locataire au partenaire agréé, puis à vous.",
   ],
@@ -219,7 +223,7 @@ export default function Landing() {
                   <ShieldCheck size={15} strokeWidth={1.8} className="text-[#94f27f]" />
                   Ranti ne détient jamais vos fonds
                 </span>
-                {["Gratuit pendant le pilote"].map((item) => (
+                {["3 mois gratuits", "Vous arrêtez quand vous voulez"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-2 rounded-full border border-[#d5d5d2] bg-white px-3 py-2">
                     <Check size={15} strokeWidth={1.8} className="text-[#5b6f00]" />
                     {item}
@@ -292,13 +296,13 @@ export default function Landing() {
               Un tarif unique : 5 % sur chaque paiement de loyer réussi.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#72726e]">
-              Pas d'abonnement, pas de frais cachés. Un seul prélèvement, tout compris.
+              3 mois gratuits à l'ouverture de votre registre, puis un seul prélèvement, tout compris. Vous arrêtez quand vous voulez.
             </p>
           </div>
 
           <div className="mx-auto mt-12 max-w-lg rounded-[28px] border border-[#d5d5d2] bg-white p-8 text-center shadow-[0_8px_28px_-14px_rgba(41,41,41,0.25)] md:p-10">
             <p className="font-display text-6xl font-extrabold tracking-tight text-[#292929] md:text-7xl">5%</p>
-            <p className="mt-2 text-base font-semibold text-[#292929]">par paiement de loyer réussi, quittance comprise</p>
+            <p className="mt-2 text-base font-semibold text-[#292929]">par paiement de loyer réussi, quittance comprise — vos 3 premiers mois sont offerts</p>
 
             <div className="mt-7 space-y-3 border-t border-dashed border-[#d5d5d2] pt-6 text-left">
               <div className="flex items-center justify-between gap-3">
@@ -320,7 +324,7 @@ export default function Landing() {
             </p>
 
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {["Sans abonnement", "Sans frais fixes"].map((item) => (
+              {["3 mois gratuits", "Sans frais fixes", "Vous arrêtez quand vous voulez"].map((item) => (
                 <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-[#d5d5d2] bg-[#f7f7f2] px-3 py-1.5 text-xs font-semibold text-[#72726e]">
                   <Check size={13} strokeWidth={2} className="text-[#5b6f00]" />
                   {item}
@@ -363,7 +367,7 @@ export default function Landing() {
               Gérer vos loyers
               <ArrowRight size={18} strokeWidth={1.8} />
             </Link>
-            <p className="mt-4 text-sm text-[#acada8]">Gratuit pendant le pilote.</p>
+            <p className="mt-4 text-sm text-[#acada8]">Vos 3 premiers mois sont offerts. Vous arrêtez quand vous voulez.</p>
           </div>
         </section>
       </main>
