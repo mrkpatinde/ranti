@@ -59,7 +59,7 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
             <p className="mt-2 text-base leading-7 text-foreground/70">
               Ajoutez d&apos;abord le premier endroit où vous encaissez un loyer.
             </p>
-            <Link href="/leases/new" className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition hover:brightness-95">
+            <Link href="/leases/new" className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition hover:brightness-95 lg:w-fit">
               Créer un bail
             </Link>
           </div>

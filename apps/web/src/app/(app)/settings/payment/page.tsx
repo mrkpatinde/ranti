@@ -86,7 +86,7 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
           </div>
 
           <SubmitButton
-            className="w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:brightness-95 disabled:opacity-60"
+            className="w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:brightness-95 disabled:opacity-60 lg:w-fit"
           >
             Enregistrer
           </SubmitButton>

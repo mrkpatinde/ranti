@@ -128,6 +128,11 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- CTA en pill à gauche sur desktop (v0.3.4.5, directive CEO) : les actions/
+  soumissions qui s'étiraient pleine largeur dans les pages `flex-col` prennent
+  leur largeur de contenu au-delà de lg (`lg:w-fit`, 7 CTA), comme le dashboard.
+  Mobile inchangé. Finalise la refonte desktop Granola.
+
 - Refonte desktop « Granola » propagée à toutes les pages (v0.3.4.4, CEO
   « c'est bon, propage ») : respiration desktop (`lg:py-14`) + titres éditoriaux
   (`lg:text-4xl`) sur les ~20 écrans (app). Les listes gardent `max-w-3xl`, les
