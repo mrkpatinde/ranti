@@ -53,7 +53,7 @@ function dueStatusClasses(status: RentDueStatus): string {
     case "cancelled":
       return "border-border bg-background text-foreground/70"
     default:
-      return "border-accent/50 bg-accent/10 text-accent-foreground"
+      return "border-accent/50 bg-accent/10 text-accent"
   }
 }
 

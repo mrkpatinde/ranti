@@ -82,7 +82,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
           </p>
         </div>
         {active.length === 0 ? (
-          <p className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent-foreground">
+          <p className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent">
             Aucun bail actif. Activez un bail pour générer ses échéances, puis revenez confirmer un paiement.
           </p>
         ) : (

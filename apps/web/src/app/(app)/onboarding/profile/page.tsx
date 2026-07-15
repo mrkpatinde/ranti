@@ -62,7 +62,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
 
         {missingPhone ? (
-          <p className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent-foreground">
+          <p className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent">
             Ajoutez votre numéro pour activer votre espace propriétaire.
           </p>
         ) : null}

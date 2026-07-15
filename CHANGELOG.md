@@ -3,6 +3,18 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.6] - 2026-07-15
+
+### Fixed
+
+- Badge de statut « Attendu » (échéances de loyer) et encadrés info sur fond
+  `bg-accent/10` : le texte utilisait `text-accent-foreground`, une couleur
+  prévue pour le texte sur olive plein (encre #1e1e1e en dark, crème #fcfcf8 en
+  clair). Sur fond olive à 10 % il devenait invisible dans les deux thèmes
+  (encre sur noir / crème sur blanc). Passé à `text-accent` (olive, adapté au
+  thème) → lisible en clair comme en sombre. Corrige aussi 5 encadrés info
+  (paiement, profil, collections, onboarding) qui avaient le même défaut.
+
 ## [0.3.4.5] - 2026-07-15
 
 ### Changed
