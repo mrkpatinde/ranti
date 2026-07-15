@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { TRANSACTION_RATES_BP, TVA_RATE_BP, calculateTransactionDetails } from "../fees"
+import { TVA_RATE_BP as TVA_RATE_BP_FROM_BARREL } from "../index"
 import { PaymentError } from "../types"
 
 describe("calculateTransactionDetails (ADR-018 v4 : All-Inclusive 5 %)", () => {
@@ -157,5 +158,9 @@ describe("calculateTransactionDetails (ADR-018 v4 : All-Inclusive 5 %)", () => {
   it("défauts = 500 service / 170 payin / 100 payout, TVA 1800", () => {
     expect(TRANSACTION_RATES_BP).toEqual({ service: 500, payin: 170, payout: 100 })
     expect(TVA_RATE_BP).toBe(1800)
+  })
+
+  it("le barrel @/lib/payments réexporte TVA_RATE_BP (consommateurs UI/route)", () => {
+    expect(TVA_RATE_BP_FROM_BARREL).toBe(TVA_RATE_BP)
   })
 })
