@@ -95,52 +95,70 @@ declare
   v_r record;
 begin
   -- =========================================================================
-  -- 1. Frais deux composants (180 + 120 bp) + CHECKs inviolables
+  -- 1. All-Inclusive 5 % (v4) : deux visions + CHECKs inviolables
   -- =========================================================================
-  select * into v_fees from private.compute_payment_fees(100000, 180, 120);
-  if v_fees.psp_fee <> 1800 or v_fees.platform_fee <> 1200 or v_fees.net_amount <> 97000 then
-    raise exception 'FAIL fees 100000: % % %', v_fees.psp_fee, v_fees.platform_fee, v_fees.net_amount;
+  -- Exemple canon CEO : 100 000 → reçu 5 000 / 95 000 ; compta 1 700 + 950
+  -- (payout sur le NET) → marge 2 350.
+  select * into v_fees from private.compute_transaction_details(100000, 500, 170, 100);
+  if v_fees.service_fee <> 5000 or v_fees.net_amount <> 95000
+     or v_fees.payin_cost <> 1700 or v_fees.payout_cost <> 950
+     or v_fees.net_margin <> 2350 then
+    raise exception 'FAIL details 100000: % % % % %',
+      v_fees.service_fee, v_fees.net_amount, v_fees.payin_cost, v_fees.payout_cost, v_fees.net_margin;
   end if;
 
-  select * into v_fees from private.compute_payment_fees(6667, 180, 120);
-  if v_fees.psp_fee <> 120 or v_fees.platform_fee <> 80 or v_fees.net_amount <> 6467 then
-    raise exception 'FAIL fees 6667: % % %', v_fees.psp_fee, v_fees.platform_fee, v_fees.net_amount;
+  select * into v_fees from private.compute_transaction_details(6667, 500, 170, 100);
+  if v_fees.service_fee <> 333 or v_fees.net_amount <> 6334
+     or v_fees.payin_cost <> 113 or v_fees.payout_cost <> 63
+     or v_fees.net_margin <> 157 then
+    raise exception 'FAIL details 6667: % % % % %',
+      v_fees.service_fee, v_fees.net_amount, v_fees.payin_cost, v_fees.payout_cost, v_fees.net_margin;
   end if;
 
-  select * into v_fees from private.compute_payment_fees(33, 180, 120);
-  if v_fees.psp_fee <> 0 or v_fees.platform_fee <> 0 or v_fees.net_amount <> 33 then
-    raise exception 'FAIL fees 33: % % %', v_fees.psp_fee, v_fees.platform_fee, v_fees.net_amount;
+  select * into v_fees from private.compute_transaction_details(33, 500, 170, 100);
+  if v_fees.service_fee <> 1 or v_fees.net_amount <> 32 or v_fees.net_margin <> 1 then
+    raise exception 'FAIL details 33: % % %',
+      v_fees.service_fee, v_fees.net_amount, v_fees.net_margin;
   end if;
 
-  -- Parité TS/SQL au-delà d'int4 intermédiaire : 123 456 789 × 180 dépasse
-  -- 2^31 — sans le cast bigint la fonction lèverait 22003 (integer out of
-  -- range). Valeurs = fees.test.ts (garde anti-régression du cast).
-  select * into v_fees from private.compute_payment_fees(123456789, 180, 120);
-  if v_fees.psp_fee <> 2222222 or v_fees.platform_fee <> 1481481 or v_fees.net_amount <> 119753086 then
-    raise exception 'FAIL fees 123456789: % % %', v_fees.psp_fee, v_fees.platform_fee, v_fees.net_amount;
+  -- Parité TS/SQL au-delà d'int4 intermédiaire : 123 456 789 × 500 dépasse
+  -- largement 2^31 — sans le cast bigint la fonction lèverait 22003.
+  -- Valeurs = fees.test.ts (garde anti-régression du cast).
+  select * into v_fees from private.compute_transaction_details(123456789, 500, 170, 100);
+  if v_fees.service_fee <> 6172839 or v_fees.net_amount <> 117283950
+     or v_fees.payin_cost <> 2098765 or v_fees.payout_cost <> 1172839
+     or v_fees.net_margin <> 2901235 then
+    raise exception 'FAIL details 123456789: % % % % %',
+      v_fees.service_fee, v_fees.net_amount, v_fees.payin_cost, v_fees.payout_cost, v_fees.net_margin;
   end if;
 
-  -- Gardes d'entrée de compute_payment_fees : montant nul/négatif/null,
-  -- taux négatif → amount_invalid (mêmes règles que le miroir TS fees.ts).
+  -- Marge négative possible (coûts > commission) : information, pas erreur.
+  select * into v_fees from private.compute_transaction_details(100000, 100, 170, 100);
+  if v_fees.net_margin >= 0 then
+    raise exception 'FAIL details marge négative attendue: %', v_fees.net_margin;
+  end if;
+
+  -- Gardes d'entrée : montant nul/négatif/null, taux négatif → amount_invalid
+  -- (mêmes règles que le miroir TS fees.ts).
   begin
-    perform private.compute_payment_fees(0, 180, 120);
-    raise exception 'FAIL: fees montant 0 accepté';
+    perform private.compute_transaction_details(0, 500, 170, 100);
+    raise exception 'FAIL: details montant 0 accepté';
   exception when sqlstate 'P0001' then
-    if sqlerrm <> 'amount_invalid' then raise exception 'FAIL fees 0 code: %', sqlerrm; end if;
+    if sqlerrm <> 'amount_invalid' then raise exception 'FAIL details 0 code: %', sqlerrm; end if;
   end;
   begin
-    perform private.compute_payment_fees(-100, 180, 120);
-    raise exception 'FAIL: fees montant négatif accepté';
+    perform private.compute_transaction_details(-100, 500, 170, 100);
+    raise exception 'FAIL: details montant négatif accepté';
   exception when sqlstate 'P0001' then null;
   end;
   begin
-    perform private.compute_payment_fees(null, 180, 120);
-    raise exception 'FAIL: fees montant null accepté';
+    perform private.compute_transaction_details(null, 500, 170, 100);
+    raise exception 'FAIL: details montant null accepté';
   exception when sqlstate 'P0001' then null;
   end;
   begin
-    perform private.compute_payment_fees(60000, -1, 120);
-    raise exception 'FAIL: fees taux négatif accepté';
+    perform private.compute_transaction_details(60000, 500, -1, 100);
+    raise exception 'FAIL: details taux négatif accepté';
   exception when sqlstate 'P0001' then null;
   end;
 
@@ -148,10 +166,11 @@ begin
   begin
     insert into public.payment_transactions (
       landlord_id, lease_id, provider, provider_reference,
-      amount_received, psp_fee, platform_fee, net_amount, status
+      amount_received, service_fee, net_amount,
+      payin_cost, payout_cost, net_margin, status
     ) values (
       v_landlord, v_lease, 'fedapay', 'PSP-BADFEES',
-      60000, 999, 999, 58002, 'pending'
+      60000, 999, 59001, 1020, 570, 999, 'pending'
     );
     raise exception 'FAIL: frais incohérents acceptés';
   exception when check_violation then
@@ -163,11 +182,11 @@ begin
   begin
     insert into public.payment_transactions (
       landlord_id, lease_id, provider, provider_reference,
-      amount_received, psp_fee, platform_fee, net_amount,
-      psp_fee_bp, platform_fee_bp, status
+      amount_received, service_fee, net_amount,
+      payin_cost, payout_cost, net_margin, status
     ) values (
       v_landlord, v_lease, 'fedapay', 'PSP-BADSTATE-1',
-      60000, 1080, 720, 58200, 180, 120, 'verified'
+      60000, 3000, 57000, 1020, 570, 1410, 'verified'
     );
     raise exception 'FAIL: verified sans rent_reception_id accepté';
   exception when check_violation then
@@ -176,11 +195,11 @@ begin
   begin
     insert into public.payment_transactions (
       landlord_id, lease_id, provider, provider_reference,
-      amount_received, psp_fee, platform_fee, net_amount,
-      psp_fee_bp, platform_fee_bp, status
+      amount_received, service_fee, net_amount,
+      payin_cost, payout_cost, net_margin, status
     ) values (
       v_landlord, v_lease, 'fedapay', 'PSP-BADSTATE-2',
-      60000, 1080, 720, 58200, 180, 120, 'paid_out'
+      60000, 3000, 57000, 1020, 570, 1410, 'paid_out'
     );
     raise exception 'FAIL: paid_out sans paid_out_at accepté';
   exception when check_violation then
@@ -197,10 +216,11 @@ begin
 
   select * into v_tx from public.payment_transactions where id = v_ing.transaction_id;
   if v_tx.landlord_id <> v_landlord then raise exception 'FAIL landlord dérivé: %', v_tx.landlord_id; end if;
-  if v_tx.psp_fee_bp <> 180 or v_tx.platform_fee_bp <> 120
-     or v_tx.psp_fee <> 1080 or v_tx.platform_fee <> 720 or v_tx.net_amount <> 58200 then
-    raise exception 'FAIL fees ingest: % % % % %',
-      v_tx.psp_fee_bp, v_tx.platform_fee_bp, v_tx.psp_fee, v_tx.platform_fee, v_tx.net_amount;
+  if v_tx.service_fee_bp <> 500 or v_tx.payin_cost_bp <> 170 or v_tx.payout_cost_bp <> 100
+     or v_tx.service_fee <> 3000 or v_tx.net_amount <> 57000
+     or v_tx.payin_cost <> 1020 or v_tx.payout_cost <> 570 or v_tx.net_margin <> 1410 then
+    raise exception 'FAIL details ingest: % % % % %',
+      v_tx.service_fee, v_tx.net_amount, v_tx.payin_cost, v_tx.payout_cost, v_tx.net_margin;
   end if;
 
   -- Provider inconnu refusé.
@@ -453,20 +473,39 @@ begin
     raise exception 'FAIL grants: service_role sans execute sur ingest';
   end if;
 
+  -- v4 : SELECT par COLONNE — le propriétaire ne voit que la vision reçu,
+  -- jamais les coûts PSP ni la marge de Ranti (vision comptabilité interne).
   select count(*) into v_count from information_schema.role_table_grants
   where table_schema = 'public' and table_name = 'payment_transactions'
-    and grantee = 'authenticated' and privilege_type <> 'SELECT';
-  if v_count <> 0 then raise exception 'FAIL grants: authenticated a plus que SELECT'; end if;
+    and grantee = 'authenticated';
+  if v_count <> 0 then
+    raise exception 'FAIL grants: authenticated a un grant TABLE entier (attendu: colonnes seules)';
+  end if;
 
-  select count(*) into v_count from information_schema.role_table_grants
+  select count(*) into v_count from information_schema.role_column_grants
   where table_schema = 'public' and table_name = 'payment_transactions'
-    and grantee = 'authenticated' and privilege_type = 'SELECT';
-  if v_count <> 1 then raise exception 'FAIL grants: authenticated sans SELECT (policy sans grant !)'; end if;
+    and grantee = 'authenticated' and privilege_type = 'SELECT'
+    and column_name in ('id', 'amount_received', 'service_fee', 'net_amount', 'status');
+  if v_count <> 5 then
+    raise exception 'FAIL grants: colonnes vision reçu manquantes pour authenticated (%: policy sans grant !)', v_count;
+  end if;
+
+  select count(*) into v_count from information_schema.role_column_grants
+  where table_schema = 'public' and table_name = 'payment_transactions'
+    and grantee = 'authenticated'
+    and column_name in ('payin_cost_bp', 'payout_cost_bp', 'payin_cost', 'payout_cost', 'net_margin');
+  if v_count <> 0 then
+    raise exception 'FAIL grants: la vision comptabilité (marge Ranti) est visible du propriétaire';
+  end if;
 
   select count(*) into v_count from information_schema.role_table_grants
   where table_schema = 'public' and table_name = 'payment_transactions'
     and grantee = 'anon';
   if v_count <> 0 then raise exception 'FAIL grants: anon a des droits'; end if;
+  select count(*) into v_count from information_schema.role_column_grants
+  where table_schema = 'public' and table_name = 'payment_transactions'
+    and grantee = 'anon';
+  if v_count <> 0 then raise exception 'FAIL grants: anon a des droits colonne'; end if;
 
   -- =========================================================================
   -- 9. Déduplication cross-rail : référence déjà prise par un collage SMS
@@ -592,6 +631,38 @@ begin
     raise exception 'FAIL RLS: un autre propriétaire lit % lignes du ledger', v_count;
   end if;
   raise notice 'RLS OK';
+end $$;
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Vision comptabilité RÉELLEMENT illisible : tentative de lecture des colonnes
+-- internes SOUS le rôle authenticated (pas seulement has_column_privilege —
+-- garde contre une mauvaise configuration PostgREST/grants future).
+-- ---------------------------------------------------------------------------
+set local role authenticated;
+do $$
+begin
+  begin
+    perform (select net_margin from public.payment_transactions limit 1);
+    raise exception 'FAIL: net_margin lisible sous authenticated';
+  exception when insufficient_privilege then
+    null; -- attendu
+  end;
+  begin
+    perform (select payin_cost from public.payment_transactions limit 1);
+    raise exception 'FAIL: payin_cost lisible sous authenticated';
+  exception when insufficient_privilege then
+    null;
+  end;
+  begin
+    perform (select payload from public.payment_transactions limit 1);
+    raise exception 'FAIL: payload lisible sous authenticated';
+  exception when insufficient_privilege then
+    null;
+  end;
+  -- La vision reçu, elle, doit rester lisible.
+  perform (select service_fee from public.payment_transactions limit 1);
+  raise notice 'COLUMN GRANTS OK';
 end $$;
 reset role;
 
