@@ -5,15 +5,10 @@ import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 import { buildDashboardSummary } from "@/lib/dashboard/summary"
-import { AccountMenu } from "./_components/account-menu"
 
 export const metadata = { title: "Ranti" }
 
 const fmt = (n: number) => n.toLocaleString("fr-FR")
-
-function initialsOf(first: string, last: string): string {
-  return (`${first.charAt(0)}${last.charAt(0)}`.toUpperCase() || "R").trim()
-}
 
 // Dashboard propriétaire = lecture seule (ADR-020, dashboard-owner v2) : qui a
 // payé / qui doit, rien de plus. Pas de saisie ici (le rail FeexPay encaisse,
@@ -63,14 +58,11 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto w-full max-w-md space-y-8 px-6 py-10">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-            Bonjour {landlord.first_name}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{month}</p>
-        </div>
-        <AccountMenu initials={initialsOf(landlord.first_name, landlord.last_name)} />
+      <header>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
+          Bonjour {landlord.first_name}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">{month}</p>
       </header>
 
       <div className="flex overflow-hidden rounded-2xl border border-border bg-card">
