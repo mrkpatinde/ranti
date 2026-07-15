@@ -128,6 +128,11 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Retour mobile + fin du « Ranti » doublé (v0.3.4.2, retour CEO) : bouton
+  retour (‹) dans le header mobile (repli accueil si pas d'historique), et la
+  ligne « Ranti » redondante retirée des en-têtes de page (le shell la porte
+  déjà ; la marque du document quittance reste intacte).
+
 - Nav mobile rangée + profil unifié (v0.3.4.1, directive CEO) : la barre
   d'onglets qui débordait (Accueil / Encaissements / Relances / Baux) passe dans
   un bouton menu en haut à droite ; l'avatar profil à côté ouvre Paramètres +
