@@ -128,6 +128,11 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Tarif affiché comme unique (v0.3.1.1, directive CEO) : « 5 % sur chaque
+  paiement de loyer réussi », FAQ sans optionnalité d'encaissement ;
+  suppression des mentions « sans carte bancaire », « aucune carte demandée »
+  et « pas de paiement encaissé, pas de commission » de la landing.
+
 - Durcissement du ledger après review du ship v0.2.0.0 (migration
   `20260715070000`) : les replays de webhook divergents (même référence PSP
   mais montant ou bail différent) lèvent désormais `reference_conflict` au
