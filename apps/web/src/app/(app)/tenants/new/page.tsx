@@ -24,7 +24,7 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Ranti</p>
+          <p className="text-sm font-medium text-muted-foreground">Ranti</p>
           <p className="mt-2 text-sm text-muted-foreground">Nouveau locataire</p>
         </div>
         <Link
@@ -37,7 +37,7 @@ export default async function NewTenantPage({ searchParams }: NewTenantPageProps
 
       <section className="flex flex-1 flex-col justify-center gap-8 py-10">
         <div className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">Étape 3 sur 5</p>
+          <p className="text-sm font-medium text-muted-foreground">Étape 3 sur 5</p>
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
             Qui doit recevoir les relances ?
           </h1>

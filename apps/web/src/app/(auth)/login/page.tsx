@@ -18,7 +18,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
       <section className="space-y-8">
         <div className="space-y-3 text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             Ranti
           </p>
           <div className="space-y-2">
