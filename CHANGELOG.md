@@ -3,6 +3,33 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.1.0] - 2026-07-15
+
+### Security
+
+- Une notification de paiement rejouée avec la même référence mais un montant
+  ou un bail différent est désormais refusée (`reference_conflict`) au lieu
+  d'être absorbée en silence : le registre d'origine fait foi et l'anomalie
+  (référence recyclée, bug amont, tentative d'empoisonnement) devient visible.
+- La lecture comptable interne du ledger (`service_role`) repose sur un
+  privilège explicite et testé, plus sur les réglages par défaut de la base.
+- Le garde-fou anti-fuite passe en liste blanche stricte : exactement les
+  16 colonnes de la vision reçu sont lisibles par un propriétaire connecté —
+  une colonne en plus (coûts PSP, marge, payload) ou en moins fait échouer
+  la suite SQL.
+
+### Fixed
+
+- Un taux de service supérieur à 100 % est refusé des deux côtés (TypeScript
+  et SQL) : au-delà, le net devenait négatif et les deux calculs pouvaient
+  diverger d'un franc.
+
+### Changed
+
+- ADR-018 : les passages du modèle v3 (3 %, deux composants) sont marqués
+  supersédés par le modèle « All-Inclusive 5 % » (v4) ; la décision sur les
+  replays divergents y est documentée.
+
 ## [0.3.0.0] - 2026-07-15
 
 ### Added
