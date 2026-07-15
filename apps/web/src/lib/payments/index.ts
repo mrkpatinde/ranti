@@ -1,4 +1,4 @@
-export { TRANSACTION_RATES_BP, calculateTransactionDetails } from "./fees"
+export { TRANSACTION_RATES_BP, TVA_RATE_BP, calculateTransactionDetails } from "./fees"
 export type { TransactionRatesBp, TransactionDetails } from "./fees"
 export { paymentErrorMessage, paymentErrorCodeFromMessage } from "./errors"
 export { normalizeKkiapayPayload } from "./validation"
