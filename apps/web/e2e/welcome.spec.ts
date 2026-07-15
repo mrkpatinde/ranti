@@ -2,9 +2,27 @@ import { expect, test } from "@playwright/test"
 
 test("landing shows the primary call to action", async ({ page }) => {
   await page.goto("/")
-  await expect(page.getByRole("heading", { name: /Qui a payé\. Qui doit\./ })).toBeVisible()
-  await expect(page.getByRole("link", { name: "Gérer mes loyers" }).first()).toBeVisible()
+  await expect(
+    page.getByRole("heading", { name: /Le registre de loyer des propriétaires africains/ }),
+  ).toBeVisible()
+  await expect(page.getByRole("link", { name: "Gérer vos loyers" }).first()).toBeVisible()
   await expect(page.getByRole("link", { name: "Se connecter" }).first()).toBeVisible()
+})
+
+test("the demo verification page is static and honest about being an example", async ({ page }) => {
+  await page.goto("/verifier/demo")
+  await expect(page.getByText("Exemple de démonstration", { exact: true })).toBeVisible()
+  await expect(page.getByText("Exemple — sans valeur probante")).toBeVisible()
+  await expect(page.getByText("RNT-2026-DEMO")).toBeVisible()
+  await expect(page.getByText("Document authentique", { exact: true })).toHaveCount(0)
+})
+
+test("the landing links to the demo verification page", async ({ page }) => {
+  await page.goto("/")
+  await expect(page.getByRole("link", { name: /Vérifier un exemple de quittance/ })).toHaveAttribute(
+    "href",
+    "/verifier/demo",
+  )
 })
 
 test("signup offers Google only", async ({ page }) => {

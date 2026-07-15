@@ -3,6 +3,33 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.0.0] - 2026-07-15
+
+### Added
+
+- Page de vérification de démonstration `/verifier/demo`, liée depuis la
+  landing : chacun peut voir à quoi ressemble le contrôle public d'une
+  quittance avant de créer un compte. La page s'annonce clairement comme un
+  exemple (« sans valeur probante », numéro fictif `RNT-2026-DEMO`) — une
+  fausse quittance ne peut pas s'appuyer sur elle pour paraître authentique.
+- Section « Tarif » sur la landing : 5 % tout compris, uniquement sur les
+  loyers encaissés via Ranti (100 000 F → 5 000 F de frais, 95 000 F reversés).
+
+### Changed
+
+- Refonte de la landing : voix « vous » sur toute la page (supersède la voix
+  « je » d'ADR-014), héro recentré sur « Le registre de loyer des
+  propriétaires africains », nouvelle section « Preuve » (quittance numérotée,
+  confirmée par le locataire, vérifiable par lien public), fonctionnement en
+  trois étapes resserrées ; les piliers et le tableau comparatif disparaissent.
+- Le badge de confiance du héro devient « Ranti ne détient jamais vos fonds »,
+  exact dans les deux modes de paiement (direct ou encaissement via le
+  partenaire agréé) et aligné sur la FAQ.
+- La FAQ « Ranti encaisse-t-il l'argent ? » présente désormais les deux modes ;
+  réponses FAQ en 16 px pour la lecture mobile.
+- La description du site (résultats de recherche, partages) adopte la même
+  voix et le même positionnement que la nouvelle landing.
+
 ## [0.2.0.0] - 2026-07-14
 
 ### Changed

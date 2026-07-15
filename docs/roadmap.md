@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-07-14
+Dernière mise à jour : 2026-07-15
 
 ## Phase 0 - Foundation
 
@@ -125,6 +125,28 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Tests terrain
 - [ ] Corrections
 - [ ] Première beta privée
+
+## Recent (2026-07-15)
+
+- Refonte de la landing en voix « vous » (v0.3.0.0, décision CEO 2026-07-14 —
+  supersède la voix « je » du 2026-07-12 sur ce point) : héro recentré sur
+  « Le registre de loyer des propriétaires africains », badge de confiance
+  « Ranti ne détient jamais vos fonds » (exact dans les deux modes de
+  paiement, aligné sur la FAQ), nouvelle section « Preuve » (quittance
+  numérotée, confirmée par le locataire, vérifiable par lien public),
+  fonctionnement resserré en trois étapes ; piliers et tableau comparatif
+  retirés. Meta description alignée sur la même voix. Copie seule, aucune
+  logique métier / DB touchée.
+- Tarif rendu public sur la landing : section « Tarif » — 5 % tout compris
+  (ADR-018 v4), uniquement sur les loyers encaissés via Ranti
+  (100 000 F → 5 000 F de frais, 95 000 F reversés). Le paiement direct
+  propriétaire ↔ locataire reste gratuit.
+- Page de vérification de démonstration `/verifier/demo`, liée depuis la
+  landing : entièrement statique (le segment statique a priorité sur la route
+  dynamique `/verifier/[id]`, aucune requête base), numéro volontairement
+  fictif `RNT-2026-DEMO`, badge « Exemple — sans valeur probante » — aucun
+  faux verdict « Document authentique », qu'une vraie vérification est seule
+  à afficher.
 
 ## Recent (2026-07-14)
 

@@ -2,12 +2,9 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Bell,
   Check,
-  Mic,
   MessageCircle,
   ShieldCheck,
-  X,
 } from "lucide-react";
 
 const SIGNUP_HREF = "/signup";
@@ -128,132 +125,35 @@ function ProductPreview() {
   );
 }
 
-const pillars = [
-  {
-    icon: <Mic size={18} strokeWidth={1.8} />,
-    title: "Je dicte ou je colle, Ranti prépare",
-    body: "« Koffi a payé juillet » — ou le SMS Mobile Money collé tel quel. Ranti remplit depuis le bail, je valide. Aucun formulaire.",
-  },
-  {
-    icon: <Bell size={18} strokeWidth={1.8} />,
-    title: "La relance est prête, j'envoie d'un geste",
-    body: "Ranti sait quand relancer, depuis le bail. J'envoie sur WhatsApp — la relation reste entre mon locataire et moi.",
-  },
-  {
-    icon: <ShieldCheck size={18} strokeWidth={1.8} />,
-    title: "Une preuve à deux voix",
-    body: "Mon locataire confirme le reçu. Deux voix concordantes : une quittance que personne ne réécrit seul.",
-  },
-];
-
 const steps = [
   {
-    title: "Je renseigne mes baux une fois.",
-    detail: "Loyer, échéance, numéro du locataire. Ranti génère les échéances chaque mois, tout seul.",
+    title: "Renseignez vos baux une seule fois",
+    detail: "Loyer, échéance, numéro du locataire. Ranti génère les échéances chaque mois.",
   },
   {
-    title: "La relance part au bon moment, sur WhatsApp.",
-    detail: "Avant l'échéance, puis en cas de retard, le message est prêt. J'envoie d'un geste.",
+    title: "Ranti prépare la relance au bon moment",
+    detail: "Avant l'échéance, puis en cas de retard. Le message part sur WhatsApp d'un geste.",
   },
   {
-    title: "Je dicte ou je colle le SMS MoMo — la quittance suit.",
-    detail: "Ranti remplit, je valide, mon locataire confirme. Tout reste daté dans mon journal de bord.",
+    title: "Dictez le paiement, la quittance suit",
+    detail: "Vous dictez ou collez le SMS Mobile Money, Ranti remplit et vous validez.",
   },
 ];
 
 const faq = [
   [
-    "Comment j'enregistre un paiement ?",
-    "Je le dis, tout simplement : « Koffi a payé son loyer de juillet ». Ou je colle le SMS Mobile Money reçu — Ranti en extrait le montant, la date et la référence. Dans les deux cas, il reconnaît le bail dans mon registre et prépare l'encaissement. Je relis et je valide. Pas de micro ? Le formulaire reste là.",
-  ],
-  [
-    "Et si je reçois le loyer par Mobile Money ?",
-    "Je copie le SMS de confirmation MoMo et je le colle dans Ranti. Ranti retrouve le bail, la référence de transaction est conservée avec l'encaissement, et un même SMS collé deux fois est rejeté. Aucune double saisie possible.",
-  ],
-  [
-    "Ranti peut-il se tromper ?",
-    "Ranti propose, je dispose. Rien n'est écrit sans ma validation, et Ranti vérifie toujours que le bail reconnu est bien l'un des miens. Un doute : je corrige avant de valider.",
-  ],
-  [
-    "Mon locataire peut-il contester un reçu ?",
-    "Oui. Il confirme l'exactitude (le reçu devient certifié) ou signale une erreur. Les deux versions coexistent sur le document. Ranti documente le désaccord, il ne tranche pas.",
+    "Comment enregistrer un paiement ?",
+    "Vous le dictez : « Koffi a payé son loyer de juillet ». Ou vous collez le SMS Mobile Money reçu, Ranti en extrait le montant, la date et la référence. Dans les deux cas, il reconnaît le bail et prépare l'encaissement. Vous relisez, vous validez. Pas de micro ? Le formulaire reste là.",
   ],
   [
     "Ranti encaisse-t-il l'argent ?",
-    "Non. L'argent reste entre mon locataire et moi : cash, Mobile Money ou virement. Ranti organise le suivi et les preuves.",
+    "Comme vous voulez. Par défaut, l'argent circule directement entre vous et votre locataire (cash, Mobile Money, virement) et Ranti garde le suivi et les preuves. Si vous préférez, Ranti peut encaisser pour vous : votre locataire paie via notre partenaire de paiement agréé, qui vous reverse 95 % du loyer, et la quittance certifiée se génère toute seule. Dans les deux cas, Ranti ne détient jamais vos fonds.",
   ],
   [
-    "Mon locataire doit-il créer un compte ?",
-    "Non. Je garde mon espace privé. Mon locataire reçoit un lien simple pour confirmer un paiement ou un reçu.",
+    "Votre locataire doit-il créer un compte ?",
+    "Non. Votre espace reste privé. Votre locataire reçoit un simple lien pour confirmer un paiement ou un reçu.",
   ],
 ];
-
-// Comparatif honnête : les vraies alternatives du propriétaire (cahier, WhatsApp, Excel).
-// Une valeur "yes" = coche verte, "no" = croix grise, tout le reste = note nuancée.
-const comparisonRows = [
-  {
-    feature: "Voir qui a payé et qui doit, en un coup d'œil",
-    ranti: "yes",
-    cahier: "À recompter à la main",
-    excel: "Si le fichier est à jour",
-  },
-  {
-    feature: "Échéances créées automatiquement depuis le bail",
-    ranti: "yes",
-    cahier: "no",
-    excel: "Saisie manuelle",
-  },
-  {
-    feature: "Relance prête au bon moment, à envoyer sur WhatsApp",
-    ranti: "yes",
-    cahier: "Je dois y penser et tout rédiger",
-    excel: "no",
-  },
-  {
-    feature: "Preuves de paiement rangées avec chaque loyer",
-    ranti: "yes",
-    cahier: "Éparpillées dans WhatsApp",
-    excel: "no",
-  },
-  {
-    feature: "Encaissement dicté à la voix ou collé depuis le SMS MoMo",
-    ranti: "yes",
-    cahier: "no",
-    excel: "no",
-  },
-  {
-    feature: "Reçu confirmé par le locataire (preuve à deux voix)",
-    ranti: "yes",
-    cahier: "Parole contre parole",
-    excel: "no",
-  },
-  {
-    feature: "Historique fiable, corrections toujours visibles",
-    ranti: "yes",
-    cahier: "Ratures et pages perdues",
-    excel: "Écrasé sans trace",
-  },
-];
-
-function CompareCell({ value }: { value: string }) {
-  if (value === "yes") {
-    return (
-      <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-[#e5eacd]">
-        <Check size={16} strokeWidth={2.4} className="text-[#5b6f00]" />
-        <span className="sr-only">Oui</span>
-      </span>
-    );
-  }
-  if (value === "no") {
-    return (
-      <>
-        <X size={17} strokeWidth={2} className="mx-auto text-[#d5d5d2]" />
-        <span className="sr-only">Non</span>
-      </>
-    );
-  }
-  return <span className="block text-xs leading-snug text-[#9e9e99]">{value}</span>;
-}
 
 export default function Landing() {
   return (
@@ -266,8 +166,8 @@ export default function Landing() {
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-[#72726e] md:flex">
             <a href="#fonctionnement" className="transition hover:text-[#292929]">Fonctionnement</a>
-            <a href="#confiance" className="transition hover:text-[#292929]">Avantages</a>
-            <a href="#comparaison" className="transition hover:text-[#292929]">Comparatif</a>
+            <a href="#preuve" className="transition hover:text-[#292929]">Preuve</a>
+            <a href="#tarif" className="transition hover:text-[#292929]">Tarif</a>
             <a href="#faq" className="transition hover:text-[#292929]">Questions</a>
           </nav>
           <div className="flex items-center gap-3">
@@ -275,7 +175,7 @@ export default function Landing() {
               Se connecter
             </Link>
             <Link href={SIGNUP_HREF} className="rounded-full bg-[#5b6f00] px-5 py-2.5 text-sm font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:bg-[#4c5616]">
-              Gérer mes loyers
+              Gérer vos loyers
             </Link>
           </div>
         </div>
@@ -285,34 +185,28 @@ export default function Landing() {
         <section className="overflow-hidden px-6 pb-28 pt-36 md:pb-44 md:pt-56">
           <div className="mx-auto grid max-w-6xl items-center gap-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-20">
             <div>
-              <h1 className="lp-rise font-display max-w-3xl text-5xl font-extrabold leading-[1.06] tracking-[-0.03em] text-[#292929] sm:text-6xl md:text-7xl">
-                Qui a payé. Qui doit.
-                <br />
-                <span className="whitespace-nowrap">
-                  Ranti{" "}
-                  <span className="lp-roll" aria-hidden="true">
-                    <span className="lp-roll-track">
-                      <span>suit</span>
-                      <span>prépare</span>
-                      <span>prouve</span>
-                      <span>suit</span>
-                    </span>
-                  </span>
-                  <span className="sr-only">suit, prépare et prouve</span>
-                </span>
-                <br />
-                pour moi.
+              <h1 className="lp-rise font-display max-w-3xl text-4xl font-extrabold leading-[1.06] tracking-[-0.03em] text-[#292929] sm:text-5xl md:text-6xl">
+                Le registre de loyer des propriétaires africains.
               </h1>
 
-              <p className="lp-rise lp-rise-2 mt-7 max-w-md text-lg leading-8 text-[#72726e]">
-                Le registre de loyer des propriétaires africains.
-                <br />
-                Je suis mes loyers, mes reçus se créent seuls, je récupère mon temps.
+              <p className="lp-rise lp-rise-2 mt-7 max-w-md text-lg leading-[1.35] text-[#72726e]">
+                Chaque loyer, Ranti le{" "}
+                <span className="lp-roll" aria-hidden="true">
+                  <span className="lp-roll-track">
+                    <span>suit.</span>
+                    <span>prouve.</span>
+                    <span>suit.</span>
+                  </span>
+                </span>
+                <span className="sr-only">suit et prouve.</span>
+              </p>
+              <p className="lp-rise lp-rise-3 mt-2 max-w-md text-lg leading-8 text-[#72726e]">
+                Vous validez, Ranti garde la trace de tout.
               </p>
 
               <div className="lp-rise lp-rise-3 mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
                 <Link href={SIGNUP_HREF} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-7 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-[#4c5616] hover:shadow-[0_16px_34px_-12px_rgba(91,111,0,0.55)]">
-                  Gérer mes loyers
+                  Gérer vos loyers
                   <ArrowRight size={18} strokeWidth={1.8} />
                 </Link>
                 <a href="#fonctionnement" className="text-base font-semibold text-[#72726e] underline-offset-4 transition hover:text-[#292929] hover:underline">
@@ -323,7 +217,7 @@ export default function Landing() {
               <div className="lp-rise lp-rise-4 mt-7 flex flex-wrap gap-3 text-sm text-[#72726e]">
                 <span className="inline-flex items-center gap-2 rounded-full bg-[#292929] px-3 py-2 font-semibold text-[#f7f7f2]">
                   <ShieldCheck size={15} strokeWidth={1.8} className="text-[#94f27f]" />
-                  Ranti ne touche jamais mon argent
+                  Ranti ne détient jamais vos fonds
                 </span>
                 {["Gratuit pendant le pilote", "Sans carte bancaire"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-2 rounded-full border border-[#d5d5d2] bg-white px-3 py-2">
@@ -342,188 +236,109 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="confiance" className="px-6 py-16 md:py-24">
-          <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3 md:gap-6">
-            {pillars.map((item) => (
-              <div key={item.title} className="rounded-2xl border border-[#d5d5d2] bg-white p-7 shadow-[0_1px_2px_rgba(41,41,41,0.06)]">
-                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#e5eacd] text-[#292929]">
-                  {item.icon}
-                </div>
-                <h2 className="font-display text-xl font-extrabold tracking-tight text-[#292929]">{item.title}</h2>
-                <p className="mt-3 text-sm leading-7 text-[#72726e]">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
         <section id="fonctionnement" className="px-6 py-24 md:py-32">
-          <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Simple au quotidien</p>
-              <h2 className="font-display mt-4 text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
-                Pas un logiciel lourd. Un rituel clair pour mes loyers.
-              </h2>
-              <p className="mt-5 text-base leading-8 text-[#72726e]">
-                Je ne deviens pas comptable. Ranti garde juste la mémoire fiable de mes loyers, de mes retards et de mes reçus — dans un journal de bord que je lis d'un coup d'œil.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-[#d5d5d2] bg-white p-4 shadow-[0_8px_28px_-14px_rgba(41,41,41,0.25)]">
-              {steps.map((step, index) => (
-                <div key={step.title} className="flex gap-4 rounded-xl p-5 transition hover:bg-[#f7f7f2]">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#292929] text-sm font-semibold text-[#f7f7f2]">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[#292929]">{step.title}</p>
-                    <p className="mt-1 text-sm leading-6 text-[#72726e]">{step.detail}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="comparaison" className="px-6 py-24 md:py-32">
-          <div className="mx-auto max-w-6xl">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">J'ai déjà une méthode</p>
-              <h2 className="font-display mt-4 text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
-                Ranti remplace le cahier, sans en perdre la simplicité.
-              </h2>
-              <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#72726e]">
-                Cahier, WhatsApp, Excel : ça tient jusqu'au premier oubli ou au premier litige. Voici ce que Ranti garde à ma place.
-              </p>
-            </div>
-
-            <div className="mt-12 hidden overflow-hidden rounded-[24px] border border-[#d5d5d2] bg-white shadow-[0_8px_28px_-14px_rgba(41,41,41,0.25)] md:block">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[680px] border-separate border-spacing-0 text-center">
-                  <thead>
-                    <tr className="bg-[#eaebe5]">
-                      <th className="sticky left-0 z-10 bg-[#eaebe5] px-6 py-5 text-left" />
-                      <th className="border-x border-[#e5eacd] px-4 py-5">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-[#292929] px-4 py-2 text-[#f7f7f2]">
-                          <RantiLogo size={16} />
-                          <span className="font-display text-sm font-extrabold tracking-tight">Ranti</span>
-                        </span>
-                      </th>
-                      <th className="px-4 py-5 text-xs font-bold uppercase tracking-[0.1em] text-[#9e9e99]">Cahier + WhatsApp</th>
-                      <th className="px-4 py-5 text-xs font-bold uppercase tracking-[0.1em] text-[#9e9e99]">Tableur Excel</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {comparisonRows.map((row) => (
-                      <tr key={row.feature}>
-                        <th scope="row" className="sticky left-0 z-10 border-t border-[#f2f2ec] bg-white px-6 py-5 text-left text-sm font-semibold text-[#292929]">
-                          {row.feature}
-                        </th>
-                        <td className="border-x border-t border-[#e5eacd] bg-[#f2f6e1] px-4 py-5 align-middle">
-                          <CompareCell value={row.ranti} />
-                        </td>
-                        <td className="border-t border-[#f2f2ec] px-4 py-5 align-middle">
-                          <CompareCell value={row.cahier} />
-                        </td>
-                        <td className="border-t border-[#f2f2ec] px-4 py-5 align-middle">
-                          <CompareCell value={row.excel} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="mt-8 space-y-4 md:hidden">
-              {comparisonRows.map((row) => (
-                <div key={row.feature} className="overflow-hidden rounded-2xl border border-[#d5d5d2] bg-white shadow-[0_1px_2px_rgba(41,41,41,0.06)]">
-                  <p className="border-b border-[#f2f2ec] bg-[#f7f7f2] px-4 py-3 text-sm font-bold text-[#292929]">
-                    {row.feature}
-                  </p>
-                  <div className="divide-y divide-[#f2f2ec]">
-                    <div className="flex items-center justify-between gap-3 bg-[#f2f6e1] px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5">
-                        <RantiLogo size={14} />
-                        <span className="font-display text-sm font-extrabold tracking-tight text-[#292929]">Ranti</span>
-                      </span>
-                      <span className="flex max-w-[52%] shrink-0 items-center justify-end text-right">
-                        <CompareCell value={row.ranti} />
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-3 px-4 py-3">
-                      <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#9e9e99]">Cahier + WhatsApp</span>
-                      <span className="flex max-w-[52%] shrink-0 items-center justify-end text-right">
-                        <CompareCell value={row.cahier} />
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-3 px-4 py-3">
-                      <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#9e9e99]">Tableur Excel</span>
-                      <span className="flex max-w-[52%] shrink-0 items-center justify-end text-right">
-                        <CompareCell value={row.excel} />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-5 text-center text-sm text-[#acada8]">
-              Ranti ne touche jamais mon argent. Je valide, Ranti garde la mémoire.
+          <div className="mx-auto max-w-5xl text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Simple au quotidien</p>
+            <h2 className="font-display mx-auto mt-4 max-w-3xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
+              Vos loyers se suivent en trois gestes simples.
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#72726e]">
+              Vous ne devenez pas comptable. Ranti garde la mémoire fiable de vos loyers, de vos retards et de vos reçus, dans un journal que vous lisez d'un coup d'œil.
             </p>
           </div>
+
+          <ol className="mx-auto mt-14 grid max-w-5xl gap-6 md:grid-cols-3">
+            {steps.map((step, index) => (
+              <li key={step.title} className="rounded-2xl border border-[#d5d5d2] bg-white p-6 shadow-[0_1px_2px_rgba(41,41,41,0.06)]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#292929] text-sm font-semibold text-[#f7f7f2]">
+                  {index + 1}
+                </span>
+                <p className="font-display mt-4 text-lg font-extrabold tracking-tight text-[#292929]">{step.title}</p>
+                <p className="mt-2 text-sm leading-6 text-[#72726e]">{step.detail}</p>
+              </li>
+            ))}
+          </ol>
+
+          <p className="mx-auto mt-12 max-w-2xl text-center text-base leading-8 text-[#72726e]">
+            <span className="font-semibold text-[#292929]">Ranti remplace le cahier, WhatsApp et Excel</span>, sans en perdre la simplicité.
+          </p>
         </section>
 
-        {/* Preuve sociale honnête du pilote : pas de faux témoignages — la
-            confiance se montre par l'artefact du produit, la quittance
-            certifiée, numérotée et vérifiable par lien public (/verifier). */}
         <section id="preuve" className="px-6 pb-24">
-          <div className="mx-auto max-w-6xl overflow-hidden rounded-[28px] bg-[#292929] p-8 text-[#f7f7f2] shadow-[0_30px_90px_rgba(41,41,41,0.24)] md:p-12">
-            <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#94f27f]">Pilote en cours au Bénin</p>
-                <h2 className="font-display mt-4 max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] md:text-5xl [text-wrap:balance]">
-                  La confiance ne se raconte pas. Elle se vérifie.
-                </h2>
-                <p className="mt-5 max-w-lg text-base leading-8 text-[#acada8]">
-                  Chaque quittance Ranti porte un numéro unique, la confirmation du locataire et un lien public de vérification. N'importe qui — une banque, un juge, un futur locataire — peut contrôler qu'elle est authentique.
-                </p>
-                <p className="mt-4 text-sm text-[#72726e]">
-                  Ranti est en pilote avec des propriétaires de 1 à 20 logements. Leurs mots arriveront ici — pas avant.
-                </p>
-              </div>
+          <div className="mx-auto max-w-6xl overflow-hidden rounded-[28px] bg-[#292929] px-8 py-16 text-[#f7f7f2] shadow-[0_30px_90px_rgba(41,41,41,0.24)] md:px-16 md:py-24">
+            <h2 className="font-display max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-[-0.02em] md:text-6xl [text-wrap:balance]">
+              Une quittance que votre locataire confirme, et que tout le monde peut vérifier.
+            </h2>
+            <p className="mt-8 max-w-2xl text-lg leading-9 text-[#acada8]">
+              Chaque quittance porte un numéro et la confirmation de votre locataire. Avec le lien public, une banque, un futur locataire ou un juge contrôle en quelques secondes qu'elle est authentique.
+            </p>
+            <Link
+              href="/verifier/demo"
+              className="group mt-8 inline-flex items-center gap-2 text-base font-semibold text-[#94f27f] underline-offset-4 transition hover:underline"
+            >
+              Vérifier un exemple de quittance
+              <ArrowRight size={18} strokeWidth={2} className="transition group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+        </section>
 
-              <div className="rounded-2xl border border-[#f7f7f2]/10 bg-white p-6 text-[#292929] shadow-[0_18px_60px_-20px_rgba(0,0,0,0.6)]">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#9e9e99]">Quittance N° RNT-2026-0184</p>
-                    <p className="font-display mt-1 text-lg font-extrabold tracking-tight">Villa 3 ch — Fidjrossè</p>
-                    <p className="text-sm text-[#72726e]">Juillet 2026 · Adjovi H.</p>
-                  </div>
-                  <RantiLogo size={24} />
-                </div>
-                <div className="mt-5 flex items-baseline justify-between border-t border-dashed border-[#d5d5d2] pt-4">
-                  <span className="text-sm text-[#72726e]">Loyer soldé</span>
-                  <span className="font-display text-xl font-extrabold tracking-tight [font-variant-numeric:tabular-nums]">60 000 F</span>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e5eacd] px-3 py-1 text-xs font-semibold text-[#292929]">
-                    <Check size={13} strokeWidth={2.4} className="text-[#5b6f00]" />
-                    Certifiée par le locataire · 6 juil.
-                  </span>
-                  <span className="rounded-full bg-[#f2f2ec] px-3 py-1 text-xs font-semibold text-[#72726e]">
-                    Vérifiable par lien public
-                  </span>
-                </div>
+        {/* Tarif — modèle « All-Inclusive 5 % » (ADR-018 v4) : commission unique
+            de 5 % du brut, net 95 % reversé, frais PSP absorbés par Ranti.
+            Exemple canon de la doc : 100 000 F → 5 000 / 95 000. */}
+        <section id="tarif" className="px-6 pb-24 pt-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Tarif</p>
+            <h2 className="font-display mx-auto mt-4 max-w-xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
+              Vous ne payez que sur les loyers encaissés via Ranti.
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#72726e]">
+              Pas d'abonnement, pas de carte bancaire. Un seul prélèvement, tout compris.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-12 max-w-lg rounded-[28px] border border-[#d5d5d2] bg-white p-8 text-center shadow-[0_8px_28px_-14px_rgba(41,41,41,0.25)] md:p-10">
+            <p className="font-display text-6xl font-extrabold tracking-tight text-[#292929] md:text-7xl">5%</p>
+            <p className="mt-2 text-base font-semibold text-[#292929]">par loyer encaissé, quittance comprise</p>
+
+            <div className="mt-7 space-y-3 border-t border-dashed border-[#d5d5d2] pt-6 text-left">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-[#72726e]">Loyer encaissé</span>
+                <span className="font-display text-lg font-extrabold tracking-tight text-[#292929] [font-variant-numeric:tabular-nums]">100 000 F</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-[#72726e]">Frais tout compris (5 %)</span>
+                <span className="text-sm font-semibold text-[#72726e] [font-variant-numeric:tabular-nums]">− 5 000 F</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-[#f2f6e1] px-4 py-3">
+                <span className="text-sm font-semibold text-[#292929]">Vous recevez</span>
+                <span className="font-display text-xl font-extrabold tracking-tight text-[#5b6f00] [font-variant-numeric:tabular-nums]">95 000 F</span>
               </div>
             </div>
+
+            <p className="mt-5 text-sm leading-6 text-[#72726e]">
+              Les 5 % couvrent le paiement Mobile Money (entrée et sortie) et le service Ranti. Le taux que vous voyez est le seul que vous payez.
+            </p>
+
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {["Sans abonnement", "Sans carte", "Sans frais fixes"].map((item) => (
+                <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-[#d5d5d2] bg-[#f7f7f2] px-3 py-1.5 text-xs font-semibold text-[#72726e]">
+                  <Check size={13} strokeWidth={2} className="text-[#5b6f00]" />
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
+
+          <p className="mx-auto mt-6 max-w-lg text-center text-sm text-[#acada8]">
+            Pas de paiement encaissé, pas de commission. Le suivi de vos baux et de vos relances reste gratuit pendant le pilote.
+          </p>
         </section>
 
         <section id="faq" className="px-6 pb-28">
           <div className="mx-auto max-w-4xl">
             <div className="mb-10 text-center">
               <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#788c15]">Questions fréquentes</p>
-              <h2 className="font-display mt-4 text-4xl font-extrabold tracking-[-0.02em] text-[#292929]">Ranti reste volontairement simple.</h2>
+              <h2 className="font-display mt-4 text-4xl font-extrabold tracking-[-0.02em] text-[#292929]">Les questions qu'on nous pose souvent.</h2>
             </div>
             <div className="divide-y divide-[#f2f2ec] rounded-2xl border border-[#d5d5d2] bg-white px-6 shadow-[0_1px_2px_rgba(41,41,41,0.06)]">
               {faq.map(([q, a]) => (
@@ -532,7 +347,7 @@ export default function Landing() {
                     {q}
                     <span className="text-[#788c15] transition group-open:rotate-45">+</span>
                   </summary>
-                  <p className="mt-4 max-w-2xl text-sm leading-7 text-[#72726e]">{a}</p>
+                  <p className="mt-4 max-w-2xl text-base leading-7 text-[#72726e]">{a}</p>
                 </details>
               ))}
             </div>
@@ -542,13 +357,13 @@ export default function Landing() {
         <section className="px-6 pb-24">
           <div className="mx-auto max-w-4xl rounded-[28px] border border-[#d5d5d2] bg-white px-8 py-14 text-center shadow-[0_8px_28px_-14px_rgba(41,41,41,0.25)]">
             <h2 className="font-display mx-auto max-w-2xl text-4xl font-extrabold leading-tight tracking-[-0.02em] text-[#292929] md:text-5xl [text-wrap:balance]">
-              J'ouvre mon registre de loyer.
+              Ouvrez votre registre de loyer.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base leading-8 text-[#72726e]">
-              Deux minutes pour créer mon espace. Mon premier bail suivi dès aujourd'hui.
+              Deux minutes pour créer votre espace. Votre premier bail suivi dès aujourd'hui.
             </p>
             <Link href={SIGNUP_HREF} className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-8 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-[#4c5616] hover:shadow-[0_16px_34px_-12px_rgba(91,111,0,0.55)]">
-              Gérer mes loyers
+              Gérer vos loyers
               <ArrowRight size={18} strokeWidth={1.8} />
             </Link>
             <p className="mt-4 text-sm text-[#acada8]">Gratuit pendant le pilote. Aucune carte demandée.</p>

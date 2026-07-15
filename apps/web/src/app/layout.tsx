@@ -20,7 +20,7 @@ const hankenGrotesk = Hanken_Grotesk({
 export const metadata: Metadata = {
   title: "Ranti — Le registre de loyer des propriétaires africains",
   description:
-    "Qui a payé, qui doit, relances prêtes à envoyer et quittances conservées. Je dicte ou je colle mon SMS MoMo, Ranti suit mes loyers.",
+    "Suivez vos loyers sans effort : relances prêtes au bon moment, quittances numérotées que votre locataire confirme et que tout le monde peut vérifier d'un lien.",
 };
 
 export default function RootLayout({
