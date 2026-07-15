@@ -125,7 +125,7 @@ export default async function RemindersPage() {
                     {statusLabels[reminder.status]}
                   </span>
                 </div>
-                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                   {channelLabels[reminder.channel] ?? reminder.channel} ·{" "}
                   {formatDate(reminder.sent_at)}
                   {due ? ` · échéance du ${formatDate(due.due_date)}` : ""}

@@ -77,7 +77,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-6 py-8">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Ranti</p>
+          <p className="text-sm font-medium text-muted-foreground">Ranti</p>
           <p className="mt-2 text-sm text-muted-foreground">{kindLabels[receipt.kind]}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -112,13 +112,13 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
           <div className="grid grid-cols-2 gap-4 border-b border-border py-5">
             <div>
-              <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">De</p>
+              <p className="text-xs text-muted-foreground">De</p>
               <p className="mt-1.5 text-sm font-medium text-foreground">{landlord.first_name} {landlord.last_name}</p>
               <p className="text-sm text-foreground/70">Propriétaire</p>
               {landlord.phone ? <p className="text-sm text-foreground/70">{landlord.phone}</p> : null}
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">À</p>
+              <p className="text-xs text-muted-foreground">À</p>
               <p className="mt-1.5 text-sm font-medium text-foreground">{snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}` : "Locataire"}</p>
               <p className="text-sm text-foreground/70">Locataire</p>
               {snap.unit ? <p className="text-sm text-foreground/70">{snap.unit.name}</p> : null}

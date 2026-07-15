@@ -25,7 +25,7 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Ranti</p>
+          <p className="text-sm font-medium text-muted-foreground">Ranti</p>
           <p className="mt-2 text-sm text-muted-foreground">Baux · vos lieux</p>
         </div>
         <Link href="/receipts" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">

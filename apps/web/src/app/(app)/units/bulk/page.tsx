@@ -21,7 +21,7 @@ export default async function BulkUnitsPage() {
     <main className="mx-auto flex w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
       <header className="flex items-start justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             Ranti
           </p>
           <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-foreground">

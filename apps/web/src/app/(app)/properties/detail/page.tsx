@@ -32,7 +32,7 @@ export default async function PropertyDetailPage({ searchParams }: PropertyDetai
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             Ranti
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -58,7 +58,7 @@ export default async function PropertyDetailPage({ searchParams }: PropertyDetai
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             Ville
           </p>
           <p className="mt-3 text-lg font-medium text-foreground">
@@ -67,7 +67,7 @@ export default async function PropertyDetailPage({ searchParams }: PropertyDetai
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             Repere
           </p>
           <p className="mt-3 text-lg font-medium text-foreground">
@@ -76,7 +76,7 @@ export default async function PropertyDetailPage({ searchParams }: PropertyDetai
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             Note
           </p>
           <p className="mt-3 text-base leading-7 text-foreground/70">

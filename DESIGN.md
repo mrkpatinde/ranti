@@ -17,14 +17,16 @@
 - **Référence :** obligo.com (éditorial + retenue + illustration monoline).
 
 ## Typography
-- **Display/Hero :** Fraunces — serif old-style variable (opsz+wght), chaleur + gravitas. Remplace l'ancien `font-display` anonyme. Poids 500 (sous-titres) à 700 (héro).
-- **Body / UI :** Instrument Sans — humaniste, du caractère, bonne lisibilité. Swap sécurité si lisibilité Android bas de gamme maximale requise : Source Sans 3.
-- **Data / Tables (ledger) :** Instrument Sans avec `font-variant-numeric: tabular-nums` — colonnes FCFA alignées. Obligatoire sur tout montant.
-- **Code / références :** JetBrains Mono — références PSP, SMS Mobile Money collé, numéros de transaction.
-- **Loading :** Google Fonts (`Fraunces`, `Instrument Sans`, `JetBrains Mono`) ou self-host ; `display=swap`.
+> Réalité prod (source de vérité = `apps/web/src/app/layout.tsx` + `globals.css` `@theme`). Le système est déjà câblé : `--font-display: var(--font-fraunces)`, `--font-sans: var(--font-hanken)`.
+- **Display/Hero :** Fraunces — serif old-style variable, chaleur + gravitas. `font-display` = Fraunces. Poids 500 (sous-titres) à 800 (héro).
+- **Body / UI :** **Hanken Grotesk** — humaniste chaud, excellente lisibilité (y compris Android bas de gamme). C'est la police de marque en prod ; ne pas la remplacer sans raison forte (mon ancienne proposition Instrument Sans est supersédée par la réalité shippée).
+- **Data / Tables (ledger) :** Hanken Grotesk avec **tabular-nums appliqué au niveau du shell app** (`[font-variant-numeric:tabular-nums]` sur le wrapper `AppShell`) — tous les chiffres de l'UI produit sont alignés (choix ledger). Sur la landing marketing, tabular reste au cas par cas sur les montants.
+- **Mono / références :** mono système (`ui-monospace, "SF Mono", Menlo`) — références PSP, SMS Mobile Money collé, numéros de transaction. (JetBrains Mono possible plus tard, non câblé aujourd'hui.)
+- **Loading :** `next/font/google` (Fraunces, Hanken Grotesk) via `layout.tsx`, variables CSS `--font-fraunces` / `--font-hanken`.
 - **Scale (rem, base 16px) :** hero clamp(2.5,7vw,4.75) · h2 2.25–3 · h3 1.375 · lede 1.1875 · body 1 · small 0.875 · micro 0.75. Line-height : titres 1.05, corps 1.55.
 
 ## Color
+> Réalité prod : l'app utilise des **tokens sémantiques HSL** (`globals.css` `@theme`, style shadcn) qui SONT cette palette. Mapping : `--background` = cream #f7f7f2, `--foreground`/`--primary` = encre #292929, `--accent` = olive #5b6f00 (CTA), `--secondary` = teinte verte #f2f6e1, `--destructive` = #e95d3d. Dark mode câblé (accent olive éclairci #788c15). **Utiliser les classes tokens** (`bg-accent`, `text-foreground`, `bg-secondary`…) dans l'app, PAS des hex en dur. La landing, elle, hardcode encore les hex (dette : à migrer vers les tokens un jour).
 - **Approche :** restreinte. L'olive est l'equity de marque — chaud, terre/CFA, africain, démarque du bleu fintech générique.
 - **Primary :** `#5b6f00` (olive) — CTA, liens, marque. Accent vif : `#788c15`.
 - **Secondary / signaux :** `#94f27f` (feuille) = authentifié/confirmé (quittance, badge « ne détient jamais vos fonds »).

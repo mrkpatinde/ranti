@@ -3,6 +3,20 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.2.0] - 2026-07-15
+
+### Changed
+
+- Application du système de design (`DESIGN.md`) à toute l'app : les 51 petits
+  intitulés en majuscules espacées (« À FAIRE », « AIDE »…) disparaissent des
+  31 écrans — les titres et labels se lisent en casse normale, plus rien qui
+  fait « généré ».
+- Les chiffres de l'app (montants, colonnes) s'alignent : figures tabulaires
+  activées sur toute l'interface produit — un registre se lit d'un coup d'œil.
+- `DESIGN.md` réaligné sur la réalité en production : Hanken Grotesk (corps) au
+  lieu d'Instrument Sans, police mono système, et note sur les tokens couleur
+  sémantiques déjà en place. La police d'affichage reste Fraunces.
+
 ## [0.3.1.3] - 2026-07-15
 
 ### Changed

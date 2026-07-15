@@ -81,7 +81,7 @@ export default async function DashboardPage({
         </header>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <p className="text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">À faire</p>
+          <p className="text-sm font-medium text-muted-foreground">À faire</p>
           <h2 className="font-display mt-3 text-xl font-extrabold tracking-tight">{nextAction.title}</h2>
           <p className="mt-2 text-base leading-7 text-foreground/70">{nextAction.body}</p>
           <Link

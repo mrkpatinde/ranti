@@ -63,7 +63,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">Ranti</p>
+          <p className="text-sm font-medium text-muted-foreground">Ranti</p>
           <p className="mt-2 text-sm text-muted-foreground">Détail du logement</p>
         </div>
         <Link href={`/properties/${unit.property_id}`} className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Retour au lieu</Link>
@@ -80,11 +80,11 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-border bg-card p-6">
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Type</p>
+            <p className="text-sm font-medium text-muted-foreground">Type</p>
             <p className="mt-3 text-lg font-medium text-foreground">{unitTypeLabels[unit.unit_type] ?? "Logement"}</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-6">
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Statut</p>
+            <p className="text-sm font-medium text-muted-foreground">Statut</p>
             <p className="mt-3 text-lg font-medium text-foreground">{availabilityLabels[unit.availability_status] ?? unit.availability_status}</p>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Note</p>
+          <p className="text-sm font-medium text-muted-foreground">Note</p>
           <p className="mt-3 text-base leading-7 text-foreground/70">{unit.notes ?? "Aucune note pour ce logement."}</p>
         </div>
 
