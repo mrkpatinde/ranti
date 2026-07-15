@@ -3,6 +3,18 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.4] - 2026-07-15
+
+### Changed
+
+- Propagation de la composition desktop éditoriale (« refonte Granola ») à
+  toutes les pages de l'app : respiration verticale au-delà de `lg` (`lg:py-14`
+  sur les conteneurs) et titres à l'échelle éditoriale (`lg:text-4xl`, détails
+  `lg:text-3xl`, Fraunces) sur Encaissements, Relances, Baux, Lieux, Logements,
+  Locataires, Reçus, Paramètres et les écrans créer/éditer. Les pages liste
+  gardent leur largeur confortable (`max-w-3xl`), les formulaires restent
+  étroits (`max-w-md`). Rendu mobile inchangé (variantes `lg:` uniquement).
+
 ## [0.3.4.3] - 2026-07-15
 
 ### Changed
