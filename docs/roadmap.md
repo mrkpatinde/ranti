@@ -128,6 +128,13 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-15)
 
+- Nav mobile rangée + profil unifié (v0.3.4.1, directive CEO) : la barre
+  d'onglets qui débordait (Accueil / Encaissements / Relances / Baux) passe dans
+  un bouton menu en haut à droite ; l'avatar profil à côté ouvre Paramètres +
+  Se déconnecter (déconnexion visible d'un tap). Bouton « Paramètres » séparé et
+  menu compte du dashboard retirés — un seul profil sur toutes les pages, shell
+  desktop inchangé.
+
 - Dashboard propriétaire en lecture seule + onboarding bail-centric (v0.3.4.0,
   ADR-020/ADR-019, PR #142) : l'accueil devient « qui a payé / qui doit »
   (totaux payé/attendu/retard, liste à encaisser retards d'abord, action unique
