@@ -77,7 +77,6 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-6 py-8">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Ranti</p>
           <p className="mt-2 text-sm text-muted-foreground">{kindLabels[receipt.kind]}</p>
         </div>
         <div className="flex items-center gap-3">
