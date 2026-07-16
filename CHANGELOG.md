@@ -3,6 +3,19 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.5.2] - 2026-07-16
+
+### Removed
+
+- Saisie assistée retirée du code (ADR-019 : le rail FeexPay est l'unique
+  chemin d'encaissement ; collage SMS et vocal abandonnés) : composants
+  dashboard `sms-ingestion-zone` / `voice-capture` / `validation-bottom-sheet`
+  (orphelins depuis le dashboard v2), routes `/api/sms/collection` et
+  `/api/voice/collection`, modules `lib/sms` et `lib/voice` (Gemini), et le
+  bloc `recordSmsCollection` de `lib/collections/actions.ts`. −1 500 lignes,
+  plus aucune dépendance Gemini. PR #141 rebasée (l'ADR-019 de main, livrée
+  en v0.3.4.7, fait autorité — seul le retrait de code est repris).
+
 ## [0.3.5.1] - 2026-07-16
 
 ### Fixed
