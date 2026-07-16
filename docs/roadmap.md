@@ -103,13 +103,17 @@ et la fiche bail (échéances + montant restant), relances visibles globalement
 
 Objectif : Ranti prépare ou automatise les rappels et relances à partir du bail et des échéances.
 
-- [ ] Définir les règles de rappel/relance sur un bail
-- [x] Afficher les règles sur la fiche bail (section « Rappels & relances » sur /leases/[id] : calendrier J-5/J-1/jour J/J+3/J+10 en lecture seule, ADR-006)
-- [x] Générer les relances prévues à partir des échéances (cron quotidien /api/cron/reminders, fenêtres J-5/J-1/J-0/J+3/J+10)
+Tranché par ADR-022 (2026-07-16, option A issue #165) : **l'envoi vit dans
+ranti-ops** (WhatsApp, tracé dans `reminder_events`) ; ce dépôt porte la
+cadence de référence, l'affichage et le filet manuel wa.me. Le cron SMS
+dormant (/api/cron/reminders + lib/reminders/sms.ts) est supprimé.
+
+- [x] Cadence de référence sur la fiche bail (section « Rappels & relances » sur /leases/[id] : calendrier J-5/J-1/jour J/J+3/J+10 en lecture seule, ADR-006)
 - [x] Afficher les relances prévues/envoyées sur le dashboard (bloc « Relances à venir » lecture seule — prochaine fenêtre par échéance impayée, projetée depuis la cadence ; envoyées sur /reminders)
-- [x] Écran Relances (/reminders) : historique des relances envoyées + accès aux déclarations locataires à valider
+- [x] Écran Relances (/reminders) : historique des relances envoyées (reminders ∪ reminder_events) + accès aux déclarations locataires à valider
+- [x] Envoi automatique : opéré par ranti-ops — contrat d'interface documenté (ADR-022)
 - [x] Préparer le message WhatsApp/SMS sans envoi automatique complet au MVP prudent (bouton « Relancer sur WhatsApp » sur /leases/[id] : lien wa.me pré-rempli vers le locataire pour la plus ancienne échéance non soldée, envoi manuel — ADR-006 nuance MVP, pattern wa.me du journal)
-- [ ] Auditer création, annulation, file d'attente et envoi de relance
+- [ ] Règles de rappel/relance par bail (`lease_reminder_rules`) — gaté sur signal terrain
 
 ## Sprint 8 - Proof Engine
 
@@ -130,6 +134,17 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Première beta privée
 
 ## Recent (2026-07-16)
+
+- Reminder Engine tranché : externalisation assumée (v0.3.19.0, ADR-022,
+  issue #165 option A, décision CEO). ranti-ops est le moteur d'envoi officiel
+  (WhatsApp → `reminder_events`, envois live vérifiés) ; ce dépôt porte la
+  cadence de référence (schedule.ts), l'affichage (dashboard, fiche bail,
+  /reminders) et le filet manuel wa.me. Supprimés : le cron SMS dormant
+  (/api/cron/reminders, vercel.json, lib/reminders/sms.ts + test,
+  formatFcfaSms) — code non exécuté qui portait un risque documenté de double
+  relance SMS+WhatsApp. /conditions §6 ne promet plus de réglage non engagé.
+  ADR-006 marquée partiellement supersédée ; architecture.md, database.md et
+  Sprint 7 réalignés.
 
 - État réseau dit calmement (v0.3.18.0, #167 Phase 2) : hook `useOnline`
   (useSyncExternalStore sur online/offline), bandeau global fixe en bas

@@ -2,7 +2,9 @@
 
 ## Statut
 
-Accepté.
+Accepté. Partie « envoi » supersédée par ADR-022 (2026-07-16) : l'envoi est
+opéré par ranti-ops (WhatsApp, tracé dans `reminder_events`) ; la cadence née
+du bail et des échéances reste la référence, portée par ce dépôt.
 
 ## Contexte
 

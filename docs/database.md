@@ -181,7 +181,7 @@ Cette table n'existe pas dans le schéma live. Le détail des périodes et alloc
 
 ### `reminders`
 
-Trace de chaque relance envoyée (schéma live, migration `018_reminders.sql`). La table n'archive que l'envoi ; la planification vit sur `rent_dues` (`last_reminder_at`, `next_reminder_at`, `reminder_count`) et la cadence est codée dans l'app (voir `lease_reminder_rules` ci-dessus).
+Trace de chaque relance envoyée (schéma live, migration `018_reminders.sql`). Depuis ADR-022, l'envoi est opéré par **ranti-ops** qui écrit dans `reminder_events` — cette table `reminders` (canal SMS de l'ancien cron, supprimé) reste pour l'historique et l'union de lecture des écrans. Les colonnes de planification sur `rent_dues` (`last_reminder_at`, `next_reminder_at`, `reminder_count`) sont dormantes ; la cadence de référence est codée dans l'app (voir `lease_reminder_rules` ci-dessus).
 
 Champs réels : `id`, `rent_due_id`, `landlord_id`, `channel`, `template`, `sent_at`, `recipient`, `status`, `message_id`, `created_at`.
 

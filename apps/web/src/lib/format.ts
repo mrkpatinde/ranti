@@ -18,12 +18,8 @@ export function formatFcfa(amount: number): string {
 }
 
 // Sans unité — pour les tuiles de stats qui portent « FCFA » à part.
+// NB : si un canal SMS renaît un jour (ADR-022), lui redonner une variante à
+// espace ASCII — une espace U+202F bascule tout le SMS en UCS-2 (segments x2).
 export function formatFcfaNumber(amount: number): string {
   return groupThousands(amount, NNBSP)
-}
-
-// Variante SMS : espace ASCII uniquement, pour rester en encodage GSM-7
-// (une espace U+202F bascule tout le SMS en UCS-2 → segments facturés x2).
-export function formatFcfaSms(amount: number): string {
-  return `${groupThousands(amount, " ")} FCFA`
 }

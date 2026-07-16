@@ -63,8 +63,8 @@ function dueStatusVariant(status: RentDueStatus): BadgeVariant {
 }
 
 // Cadence appliquée par Ranti à partir de l'échéance (ADR-006 : la fiche bail
-// affiche les règles de rappel/relance). Miroir des fenêtres du cron
-// (getReminderTemplate) — lecture seule, non configurable au MVP.
+// affiche les règles de rappel/relance). Mêmes fenêtres que schedule.ts —
+// l'envoi est opéré par ranti-ops (ADR-022). Lecture seule au MVP.
 const REMINDER_SCHEDULE: { when: string; what: string; late: boolean }[] = [
   { when: "5 jours avant l'échéance", what: "Premier rappel — le loyer approche", late: false },
   { when: "La veille de l'échéance", what: "Rappel — le loyer est dû demain", late: false },

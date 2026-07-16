@@ -1,11 +1,12 @@
 // Projection de la cadence de relance (ADR-006) sur les échéances impayées :
-// « la prochaine relance que Ranti enverra ». Pur, sans I/O. Miroir des points
-// canoniques du cron (getReminderTemplate) exprimés en jours depuis l'échéance.
+// « la prochaine relance que Ranti enverra ». Pur, sans I/O. C'est LA cadence
+// de référence du produit (ADR-022) : l'envoi est opéré par ranti-ops
+// (WhatsApp, tracé dans reminder_events), qui applique ces mêmes fenêtres.
 //
-// On PROJETTE la cadence à partir de la date d'échéance et du jour de référence
-// — on ne lit pas rent_dues.next_reminder_at (maintenu par le cron SMS, dormant
-// en prod : peu fiable). Le résultat est ce que la cadence prévoit, que le cron
-// ait tourné ou non. Dates comparées en chaînes YYYY-MM-DD (sûr côté fuseau).
+// On PROJETTE la cadence à partir de la date d'échéance et du jour de
+// référence — on ne lit pas rent_dues.next_reminder_at (colonne dormante de
+// l'ancien cron SMS, supprimé par ADR-022). Dates comparées en chaînes
+// YYYY-MM-DD (sûr côté fuseau).
 
 import type { RentDueBalance } from "@/lib/rent-dues/types"
 
@@ -22,7 +23,7 @@ export type UpcomingReminder = {
 }
 
 // Points canoniques de la cadence, en jours depuis l'échéance (mêmes fenêtres
-// que le cron et que le calendrier affiché sur la fiche bail).
+// que le calendrier affiché sur la fiche bail — contrat ADR-022).
 const CHECKPOINTS: { off: number; label: string; late: boolean }[] = [
   { off: -5, label: "Rappel J-5", late: false },
   { off: -1, label: "Rappel la veille", late: false },
