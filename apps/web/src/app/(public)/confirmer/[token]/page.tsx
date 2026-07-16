@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { RantiLogo } from "@/components/ranti-logo";
 import { SubmitButton } from "@/components/submit-button";
 import { createClient } from "@/lib/supabase/server";
 import { confirmRentPayment } from "./actions";
@@ -88,9 +89,10 @@ export default async function ConfirmerPage({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-6 py-16">
       <div className="w-full rounded-2xl border border-border bg-card p-8">
-        <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
-          Ranti
-        </p>
+        <div className="flex items-center gap-2.5">
+          <RantiLogo size={28} />
+          <span className="font-display text-lg font-extrabold tracking-tight text-foreground">Ranti</span>
+        </div>
 
         <h1 className="mt-6 font-display text-2xl font-extrabold tracking-tight text-foreground">
           Confirmation de loyer
