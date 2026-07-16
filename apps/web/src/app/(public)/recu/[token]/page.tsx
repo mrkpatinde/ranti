@@ -247,8 +247,8 @@ export default async function RecuPage({
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Ranti documente qui a payé, qui doit, et la preuve. Il ne touche jamais
-          l&apos;argent et ne tranche pas les litiges.
+          Ranti documente qui a payé, qui doit, et la preuve. Il ne tranche pas
+          les litiges.
         </p>
       </div>
     </main>
