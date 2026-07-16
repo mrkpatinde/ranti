@@ -3,6 +3,28 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.4.9] - 2026-07-16
+
+### Fixed
+
+- Unicité du nom de logement par lieu enfin imposée en base : index unique
+  partiel `units(property_id, lower(btrim(name)))` hors logements archivés
+  (migration `20260716090000`). Les deux mappings « un logement porte déjà ce
+  nom dans ce lieu » (création bail, édition logement) reposaient sur une
+  contrainte qui n'existait pas — les homonymes passaient silencieusement.
+- Collision d'errcode `P0001` dans `bulk_onboard_portfolio` : un problème de
+  lieu affichait « Ajoutez au moins un logement ». Les erreurs de forme du lieu
+  passent sous `PR400` ; `P0001` ne signifie plus que `no_rows`. `mapRpcError`
+  gagne le cas `PR400` et aligne le wording (« ce lieu », « Lieu introuvable »).
+
+### Docs
+
+- Audit sécurité de la couche d'isolation propriétaire
+  (`docs/security-audit-2026-07-15.md`) : lecture/insert/update cross-tenant
+  prouvés bloqués sur les 4 tables métier ; écart ADR-002 signalé comme P0
+  séparé. Test négatif rejouable `supabase/tests/cross_tenant_isolation.test.sql`
+  (rollback-wrapped), lignes ledger alignées sur le schéma TVA courant.
+
 ## [0.3.4.8] - 2026-07-16
 
 ### Changed

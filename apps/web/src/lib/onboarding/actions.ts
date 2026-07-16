@@ -18,13 +18,15 @@ function mapRpcError(error: { code?: string; message?: string }): string {
 
   switch (error.code) {
     case "23505":
-      return `${prefix}un logement porte déjà ce nom dans cette propriété.`
+      return `${prefix}un logement porte déjà ce nom dans ce lieu.`
     case "23P01":
       return `${prefix}ce logement a déjà un bail actif sur cette période.`
     case "23514":
       return `${prefix}valeur invalide (loyer ou jour d'échéance).`
+    case "PR400":
+      return "Renseignez le lieu : donnez-lui un nom (2 caractères min.) ou choisissez-en un existant."
     case "P0002":
-      return "Propriété introuvable."
+      return "Lieu introuvable."
     case "P0001":
       return "Ajoutez au moins un logement."
     default:
