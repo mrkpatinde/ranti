@@ -1,8 +1,10 @@
 // Formatage des montants FCFA — SEULE source de vérité (ledger : le même
 // montant doit s'écrire pareil sur tous les écrans, le PDF et WhatsApp).
-// Séparateur de milliers : espace fine insécable (U+202F), la typographie
-// française correcte — le montant ne se coupe jamais en fin de ligne.
-const NNBSP = " "
+// Séparateur de milliers : espace insécable U+00A0 — le montant ne se coupe
+// jamais en fin de ligne. PAS l'espace fine U+202F : absente de l'encodage
+// WinAnsi des polices PDF de base (Helvetica), elle s'imprimait « / » sur la
+// quittance (bug terrain : « 120/000/FCFA »).
+const NBSP = " "
 
 function groupThousands(amount: number, separator: string): string {
   const safeAmount = Number.isFinite(amount) ? Math.trunc(amount) : 0
@@ -14,12 +16,12 @@ function groupThousands(amount: number, separator: string): string {
 }
 
 export function formatFcfa(amount: number): string {
-  return `${groupThousands(amount, NNBSP)}${NNBSP}FCFA`
+  return `${groupThousands(amount, NBSP)}${NBSP}FCFA`
 }
 
 // Sans unité — pour les tuiles de stats qui portent « FCFA » à part.
 // NB : si un canal SMS renaît un jour (ADR-022), lui redonner une variante à
-// espace ASCII — une espace U+202F bascule tout le SMS en UCS-2 (segments x2).
+// espace ASCII — une espace U+00A0 bascule tout le SMS en UCS-2 (segments x2).
 export function formatFcfaNumber(amount: number): string {
-  return groupThousands(amount, NNBSP)
+  return groupThousands(amount, NBSP)
 }

@@ -2,8 +2,8 @@
 
 /*
  * Design tokens (shadcn-style, HSL triplets) — source de vérité des couleurs.
- * Système visuel Ranti, palette Granola (granola.ai) : surface blanc cassé
- * chaud (#f7f7f2), encre anthracite (#292929), accent vert olive (#5b6f00)
+ * Système visuel Ranti, palette Granola (granola.ai) : surface blanc chaud
+ * neutre (#f9f8f6), encre anthracite (#292929), accent vert olive (#5b6f00)
  * réservé aux appels à l'action, teintes vertes douces pour les états.
  */
 
@@ -49,7 +49,8 @@
 }
 
 :root {
-  --background: 60 24% 96%; /* #f7f7f2 — surface blanc cassé chaud */
+  --background: 40 20% 97%; /* #f9f8f6 — blanc chaud neutre. PAS de teinte 60
+     (l'ancien crème #f7f7f2 virait au vert sur les dalles Android terrain) */
   --foreground: 0 0% 16%; /* #292929 — encre anthracite */
   --card: 0 0% 100%; /* #ffffff — surface des cartes */
   --card-foreground: 0 0% 16%;
@@ -60,7 +61,7 @@
   --primary-foreground: 60 40% 98%; /* #fcfcf8 */
   --secondary: 71 54% 92%; /* #f2f6e1 — teinte verte douce */
   --secondary-foreground: 0 0% 16%;
-  --muted: 60 19% 94%; /* #f2f2ec */
+  --muted: 40 12% 94%; /* #f2f0ee — neutre chaud, sans dérive verte */
   --muted-foreground: 60 2% 44%; /* #72726e */
   --accent: 71 100% 22%; /* #5b6f00 — vert olive d'appel à l'action */
   --accent-foreground: 60 40% 98%; /* #fcfcf8 */

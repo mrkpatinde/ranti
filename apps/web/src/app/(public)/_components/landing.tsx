@@ -13,7 +13,7 @@ const SIGNUP_HREF = "/signup";
 // (regénérer via apps/web/scripts/generate-demo-quittance.tsx).
 export default function Landing() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#f7f7f2] text-[#292929]">
+    <div className="flex min-h-screen flex-col bg-[#f9f8f6] text-[#292929]">
       <header className="px-6 py-6">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
