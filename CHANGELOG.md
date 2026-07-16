@@ -3,6 +3,29 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.7.0] - 2026-07-16
+
+### Added
+
+- Changement de statut d'un logement enfin exposé : toggle disponible/occupé
+  sur `/units/[id]` (câble `setUnitAvailability`, jusque-là exportée sans aucun
+  appelant UI ; la notice `availability_updated` était déjà prête).
+
+### Changed
+
+- Archivage (action destructive) harmonisé sur les trois entités (logements,
+  lieux, locataires), aligné sur le pattern des baux :
+  - nouveau composant client `ConfirmArchiveButton` (`window.confirm`, server
+    action passé en prop pour garder `lib/supabase/server` hors du bundle
+    client), tokens `destructive` (DESIGN.md, plus de `red-*` en dur) ;
+  - retrait du reveal caché `<details>` sur logements/locataires (ADR-020 :
+    « jamais de reveal caché ») ; les lieux passent de l'archivage direct sans
+    garde-fou à un panneau visible + confirmation ; explication d'archivage
+    rendue visible partout.
+- `roadmap.md` (Sprint 3/4/6) mis à jour : les écrans modifier/archiver des
+  trois entités étaient déjà livrés (docs en retard sur le code) ; cases
+  cochées, statut logement inclus.
+
 ## [0.3.6.0] - 2026-07-16
 
 ### Added
