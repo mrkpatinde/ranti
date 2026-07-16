@@ -178,6 +178,9 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
         <form action={recordCollection} className="space-y-6">
           <input type="hidden" name="tenant_id" value={lease.tenant_id} />
           <input type="hidden" name="unit_id" value={lease.unit_id} />
+          {/* #167 : clé d'idempotence — un rejeu de ce POST (double-clic,
+              réponse perdue) ne crée jamais un deuxième encaissement. */}
+          <input type="hidden" name="request_id" value={crypto.randomUUID()} />
 
           <div className="space-y-2">
             <label htmlFor="amount_received" className={labelClass}>

@@ -63,6 +63,11 @@ export function BailForm({
   const [rows, setRows] = useState<RowState[]>([{ key: 0, occupied: true }])
   const [nextKey, setNextKey] = useState(1)
 
+  // #167 : clé d'idempotence stable pour la vie du formulaire — un rejeu du
+  // même envoi renvoie le même récap au lieu de recréer les logements. Un
+  // échec ne « brûle » pas la clé (revendication rollbackée côté base).
+  const [requestId] = useState(() => crypto.randomUUID())
+
   // Après une erreur serveur, réaligne la structure (nombre de lignes + statut
   // occupé) sur la saisie renvoyée ; les valeurs reviennent en defaultValue.
   // Pattern React « ajuster l'état pendant le rendu » (pas d'effet) : on ne
@@ -103,6 +108,7 @@ export function BailForm({
       ) : null}
 
       <input type="hidden" name="property_mode" value={propertyMode} />
+      <input type="hidden" name="request_id" value={requestId} />
 
       <section className="space-y-4">
         <h2 className={sectionTitle}>Lieu</h2>

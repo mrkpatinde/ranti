@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { readRequestId } from "@/lib/idempotency"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import { validateBailForm, type BailFormInput, type BailRowInput } from "./validation"
@@ -111,6 +112,8 @@ export async function createBail(
   const { data, error } = await supabase.rpc("bulk_onboard_portfolio", {
     p_property: result.property,
     p_rows: result.rows,
+    // #167 : rejouer ce POST renvoie le MÊME récap — jamais de doublons.
+    p_request_id: readRequestId(formData),
   })
 
   if (error) {

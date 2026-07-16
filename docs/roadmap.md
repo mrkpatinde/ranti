@@ -131,6 +131,21 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-16)
 
+- Idempotence des écritures critiques (v0.3.17.0, #167 Phase 1) : un POST
+  rejoué (double-clic, réponse perdue sur réseau instable) ne crée plus JAMAIS
+  un deuxième encaissement ni un deuxième lot de logements. Table
+  `idempotency_keys` (PK landlord+scope+clé, RLS) ; `record_collection` et
+  `bulk_onboard_portfolio` acceptent `p_request_id` (revendication de la clé
+  en tête de transaction → rejeu = même résultat archivé ; échec = clé
+  libérée) ; anciennes signatures supprimées (leçon surcharges). Champ caché
+  `request_id` (UUID par rendu de formulaire) sur /collections/new et l'écran
+  bail. `confirm_collection` et `generate_receipt` étaient déjà idempotentes —
+  la chaîne record → confirm → quittance est rejouable de bout en bout.
+  Migration `20260716130000` **appliquée live** (vérifiée avant en transaction
+  rollbackée : test SQL 5 scénarios + rejeu post-application OK ; advisors
+  sans nouveau signal). Sans clé, comportement historique inchangé
+  (rétrocompatible avec l'app déployée).
+
 - Saisie en lot + logement vacant dans « Créer un bail » (v0.3.16.0, #166,
   Journeys 4-5) : l'écran unique accepte N lignes logement (« Ajouter un autre
   logement »), chaque ligne « déjà occupé » (occupant + bail activé + échéances)
