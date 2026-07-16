@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { SubmitButton } from "@/components/submit-button"
+import { ConfirmArchiveButton } from "@/components/confirm-archive-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { archiveProperty, getProperty } from "@/lib/properties"
 import { getLandlordUnits } from "@/lib/units"
@@ -111,12 +111,20 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
           <Link href={`/properties/${property.id}/edit`} className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">
             Modifier ce lieu
           </Link>
-          <form action={archiveProperty}>
-            <input type="hidden" name="id" value={property.id} />
-            <SubmitButton className="rounded-full border border-red-300 px-5 py-3 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60">
-              Archiver ce lieu
-            </SubmitButton>
-          </form>
+        </div>
+
+        <div className="space-y-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+          <p className="text-sm leading-6 text-foreground/80">
+            ⓘ Archiver retire le lieu de vos listes, <strong>sans rien effacer</strong> :
+            ses logements et leur historique restent conservés dans le registre.
+            Un lieu dont un logement a un bail actif ne peut pas être archivé : terminez d&apos;abord le bail.
+          </p>
+          <ConfirmArchiveButton
+            id={property.id}
+            action={archiveProperty}
+            label="Archiver ce lieu"
+            confirmMessage="Archiver ce lieu ? Il quitte vos listes ; ses logements et leur historique restent conservés dans le registre."
+          />
         </div>
       </section>
     </main>

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { SubmitButton } from "@/components/submit-button"
+import { ConfirmArchiveButton } from "@/components/confirm-archive-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { archiveTenant, getTenant } from "@/lib/tenants"
 
@@ -59,20 +59,20 @@ export default async function TenantDetailPage({ params, searchParams }: TenantD
 
         <div className="flex flex-wrap gap-3">
           <Link href={`/tenants/${tenant.id}/edit`} className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">Modifier ce locataire</Link>
-          <details>
-            <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground/70 transition hover:border-red-300 hover:text-red-700">Archiver ce locataire…</summary>
-            <div className="mt-3 space-y-3 rounded-2xl border border-border bg-secondary/60 p-4">
-              <p className="text-sm leading-6 text-foreground/80">
-                ⓘ Archiver retire le locataire de vos listes, <strong>sans rien effacer</strong> :
-                ses baux passés, paiements et quittances restent conservés dans le registre — c&apos;est votre preuve en cas de litige.
-                Un locataire avec un bail actif ne peut pas être archivé : terminez d&apos;abord le bail.
-              </p>
-              <form action={archiveTenant}>
-            <input type="hidden" name="id" value={tenant.id} />
-            <SubmitButton className="rounded-full border border-red-300 bg-card px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:border-red-700 disabled:opacity-60">Archiver ce locataire</SubmitButton>
-          </form>
-            </div>
-          </details>
+        </div>
+
+        <div className="space-y-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+          <p className="text-sm leading-6 text-foreground/80">
+            ⓘ Archiver retire le locataire de vos listes, <strong>sans rien effacer</strong> :
+            ses baux passés, paiements et quittances restent conservés dans le registre — c&apos;est votre preuve en cas de litige.
+            Un locataire avec un bail actif ne peut pas être archivé : terminez d&apos;abord le bail.
+          </p>
+          <ConfirmArchiveButton
+            id={tenant.id}
+            action={archiveTenant}
+            label="Archiver ce locataire"
+            confirmMessage="Archiver ce locataire ? Il quitte vos listes ; ses baux, paiements et quittances restent conservés dans le registre."
+          />
         </div>
       </section>
     </main>
