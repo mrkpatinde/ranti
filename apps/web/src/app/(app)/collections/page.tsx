@@ -142,12 +142,20 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Vos encaissements</p>
         </div>
-        <Link
-          href="/dashboard"
-          className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
-        >
-          Tableau de bord
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/transactions"
+            className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
+          >
+            Paiements par le rail
+          </Link>
+          <Link
+            href="/dashboard"
+            className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
+          >
+            Tableau de bord
+          </Link>
+        </div>
       </header>
 
       <section className="flex flex-1 flex-col gap-8 py-12">
