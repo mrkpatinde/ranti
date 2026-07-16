@@ -54,6 +54,35 @@ describe("buildDashboardSummary", () => {
     expect(s.overdue).toBe(30000)
   })
 
+  it("taux de recouvrement du mois : floor(payé / dû du mois), borné 0–100", () => {
+    // Deux échéances du mois : 50000 (payé 20000) + 50000 (payé 0) = 20000/100000.
+    const s = buildDashboardSummary(
+      [
+        due({ id: "a", due_date: "2026-07-05", amount_paid: 20000 }),
+        due({ id: "b", due_date: "2026-07-20", amount_paid: 0 }),
+      ],
+      REF,
+    )
+    expect(s.monthDue).toBe(100000)
+    expect(s.collectionRate).toBe(20)
+  })
+
+  it("recouvrement complet du mois → 100 ; floor n'arrondit pas à 100 s'il reste dû", () => {
+    expect(
+      buildDashboardSummary([due({ due_date: "2026-07-05", amount_paid: 50000 })], REF).collectionRate,
+    ).toBe(100)
+    // 49999/50000 = 99,998 % → floor 99 (jamais « 100 % » tant qu'il reste 1 FCFA).
+    expect(
+      buildDashboardSummary([due({ due_date: "2026-07-05", amount_paid: 49999 })], REF).collectionRate,
+    ).toBe(99)
+  })
+
+  it("aucune échéance du mois (que du retard d'un autre mois) → collectionRate null", () => {
+    const s = buildDashboardSummary([due({ due_date: "2026-06-05" })], REF)
+    expect(s.monthDue).toBe(0)
+    expect(s.collectionRate).toBeNull()
+  })
+
   it("annulée → ignorée ; retard trié en tête", () => {
     const s = buildDashboardSummary(
       [

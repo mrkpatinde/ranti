@@ -92,7 +92,10 @@ Flux boucle de bout en bout (UI + DB). Coeur métier audité (SECURITY INVOKER, 
 - [x] Générer une quittance (generate_receipt depuis encaissement confirmé)
 - [x] Vue quittances (/receipts + /receipts/[id] : détail, périodes réglées, annuler)
 
-Reste : dashboard mensuel de synthèse (payés / en retard / action), gestion visible des retards/relances. (UI modifier/archiver units/properties/tenants livrée — édition + archivage confirmé + statut logement.)
+Reste : gestion visible des retards/relances. (Livré : UI modifier/archiver
+units/properties/tenants — édition + archivage confirmé + statut logement ;
+dashboard mensuel de synthèse — tuiles Payé/Attendu/Retard en FCFA, taux de
+recouvrement du mois, liste « à encaisser ».)
 
 ## Sprint 7 - Reminder Engine
 

@@ -71,6 +71,18 @@ export default async function DashboardPage() {
         <Stat label="Retard" value={summary.overdue} className="text-destructive" divider />
       </div>
 
+      {summary.collectionRate !== null ? (
+        <div className="space-y-1.5">
+          <div className="flex items-baseline justify-between text-xs text-muted-foreground lg:text-sm">
+            <span>Recouvrement de {month}</span>
+            <span className="font-semibold tabular-nums text-foreground">{summary.collectionRate} %</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+            <div className="h-full rounded-full bg-accent" style={{ width: `${summary.collectionRate}%` }} />
+          </div>
+        </div>
+      ) : null}
+
       <section className="space-y-3 lg:space-y-4">
         <h2 className="text-sm font-semibold text-muted-foreground lg:text-base">À encaisser</h2>
 
@@ -101,7 +113,7 @@ export default async function DashboardPage() {
                 <span
                   className={`text-sm font-semibold tabular-nums lg:text-base ${line.late ? "text-destructive" : "text-foreground"}`}
                 >
-                  {fmt(line.remaining)}
+                  {fmt(line.remaining)} <span className="text-xs font-medium text-muted-foreground">FCFA</span>
                 </span>
                 <span aria-hidden className="text-lg leading-none text-muted-foreground">
                   ›
@@ -141,7 +153,10 @@ function Stat({
 }) {
   return (
     <div className={`flex-1 px-3 py-4 text-center ${divider ? "border-l border-border" : ""} lg:py-6`}>
-      <div className={`text-base font-semibold tabular-nums lg:text-3xl ${className}`}>{value.toLocaleString("fr-FR")}</div>
+      <div className={`text-base font-semibold tabular-nums lg:text-3xl ${className}`}>
+        {value.toLocaleString("fr-FR")}
+        <span className="ml-1 text-[11px] font-medium text-muted-foreground lg:text-sm">FCFA</span>
+      </div>
       <div className="mt-1 text-xs text-muted-foreground lg:mt-1.5 lg:text-sm">{label}</div>
     </div>
   )
