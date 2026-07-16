@@ -2,6 +2,8 @@
 
 ## Statut
 
+Version 1.1 — note 2026-07-16 : depuis ADR-019, un second chemin de réception existe à côté du paiement hors Ranti — le rail de paiement (PSP FeexPay, gaté BCEAO). Le Journey 7 couvre les deux : paiement hors Ranti confirmé par le propriétaire, ou paiement par le rail que le propriétaire valide (ADR-017) avant génération de la quittance.
+
 Version 1.0 — approuvé.
 
 Ce document décrit l'expérience vécue par un propriétaire lorsqu'il utilise Ranti.

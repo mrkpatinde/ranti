@@ -26,7 +26,7 @@
 - **Scale (rem, base 16px) :** hero clamp(2.5,7vw,4.75) · h2 2.25–3 · h3 1.375 · lede 1.1875 · body 1 · small 0.875 · micro 0.75. Line-height : titres 1.05, corps 1.55.
 
 ## Color
-> Réalité prod : l'app utilise des **tokens sémantiques HSL** (`globals.css` `@theme`, style shadcn) qui SONT cette palette. Mapping : `--background` = cream #f7f7f2, `--foreground`/`--primary` = encre #292929, `--accent` = olive #5b6f00 (CTA), `--secondary` = teinte verte #f2f6e1, `--destructive` = #e95d3d. Dark mode câblé (accent olive éclairci #788c15). **Utiliser les classes tokens** (`bg-accent`, `text-foreground`, `bg-secondary`…) dans l'app, PAS des hex en dur. La landing, elle, hardcode encore les hex (dette : à migrer vers les tokens un jour).
+> Réalité prod : l'app utilise des **tokens sémantiques HSL** (`globals.css` `@theme`, style shadcn) qui SONT cette palette. Mapping : `--background` = cream #f7f7f2, `--foreground`/`--primary` = encre #292929, `--accent` = olive #5b6f00 (CTA), `--secondary` = teinte verte #f2f6e1, `--destructive` = #e95d3d, `--warning` = #bd4a30 (retard/attention). Dark mode câblé (accent olive éclairci **#aebd4a**, conforme à la section Dark mode ci-dessous). **Utiliser les classes tokens** (`bg-accent`, `text-foreground`, `bg-warning/10`…) dans l'app, PAS des hex en dur ni la palette Tailwind générique (`red-*`, `amber-*` interdites — elles cassent le dark mode). La landing, elle, hardcode encore les hex (dette : à migrer vers les tokens un jour).
 - **Approche :** restreinte. L'olive est l'equity de marque — chaud, terre/CFA, africain, démarque du bleu fintech générique.
 - **Primary :** `#5b6f00` (olive) — CTA, liens, marque. Accent vif : `#788c15`.
 - **Secondary / signaux :** `#94f27f` (feuille) = authentifié/confirmé (quittance, badge « ne détient jamais vos fonds »).
@@ -62,6 +62,12 @@
 - Preuve **honnête** : jamais de faux témoignage, pas de copie de l'échelle Obligo (1M foyers). Ancre de confiance = quittance vérifiable + histoire pilote réelle.
 - Tarif **unique** : « 3 mois gratuits, puis 5 % sur chaque paiement de loyer réussi » ; jamais de vocabulaire d'abonnement/résiliation.
 
+## Composants (source unique)
+- `components/ui/button.tsx` — `buttonClasses`/`Button` : primary (**olive, toujours** — l'encre n'est plus un fond de bouton d'action), secondary (outline), destructive, destructive-outline. Cible tactile ≥ 44 px (py-3).
+- `components/ui/alert.tsx` — `Alert` : error / success / info / warning. Ne plus copier-coller de bannières.
+- `components/ui/badge.tsx` — `badgeClasses`/`Badge` : neutral / success / accent / warning / error, forme pill unique.
+- Montants : `lib/format.ts` uniquement (`formatFcfa` U+202F insécable, `formatFcfaNumber`, `formatFcfaSms` ASCII pour GSM-7). Ne jamais réécrire un formatteur local.
+
 ## Application (séquence, cf. design doc 2026-07-15)
 1. **UI produit d'abord** (surface de conversion terrain n°1), landing ensuite — tokens partagés.
 2. Auditer l'archi de style actuelle landing-vs-app (Tailwind partagé ou séparé ?) avant de promettre « une source de vérité ».
@@ -71,3 +77,4 @@
 | Date | Décision | Rationale |
 |------|----------|-----------|
 | 2026-07-15 | Système de design initial | /design-consultation ; boussole « fiable/sérieux » ; évolution de l'equity olive/cream/serif en prod, saut typo (Fraunces) + motif cachet certifié ; recherche obligo.com |
+| 2026-07-16 | Mise en conformité post-critique | Token `--warning` câblé ; palette Tailwind brute éradiquée (dark mode réparé) ; olive dark aligné sur la spec (#aebd4a) ; primitives `components/ui` (Button/Alert/Badge) + `formatFcfa` unique ; CTA = olive partout ; eyebrows retirés des pages locataire ; cibles tactiles ≥ 44 px ; nav dé-pillée |

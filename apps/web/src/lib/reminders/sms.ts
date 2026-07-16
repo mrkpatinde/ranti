@@ -7,7 +7,11 @@ const AT_API_KEY = process.env.AT_API_KEY || "";
 const AT_USERNAME = process.env.AT_USERNAME || "sandbox"; // 'sandbox' pour les tests
 const AT_BASE_URL = "https://api.africastalking.com/version1";
 
-// Templates de messages par fenêtre de relance
+// Templates de messages par fenêtre de relance.
+// CHOIX INTENTIONNEL : sans accents ni caractères hors GSM-7 — un seul
+// caractère Unicode (é, à, U+202F…) bascule tout le SMS en UCS-2 et double
+// le nombre de segments facturés. Les montants passent par formatFcfaSms
+// (espace ASCII) pour la même raison.
 export const REMINDER_TEMPLATES = {
   "j-5": (montant: string, date: string, lien: string) =>
     `Ranti — Votre loyer de ${montant} arrive a echeance le ${date}. Confirmez votre paiement : ${lien}`,
