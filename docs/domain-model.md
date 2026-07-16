@@ -184,6 +184,43 @@ Le propriétaire ne fabrique pas manuellement les preuves après chaque paiement
 
 Ranti transforme les paiements validés en preuves propres, numérotées, historisées et non modifiables silencieusement.
 
+## Décision de domaine 006 — Le compte courant locatif (grand livre) devient l'objet central
+
+### Statut
+
+Approuvé (ADR-023, 2026-07-16). Transition en cours (phase Expand : le grand
+livre est tenu en miroir, les décisions 001 à 005 restent la mécanique
+opérante jusqu'à la bascule des lectures).
+
+### Décision
+
+Toute somme due ou reçue sur un bail est une **ligne de transaction** d'un
+même grand livre : loyers (générés par le bail — la décision 002 devient la
+règle de naissance des débits `loyer`), charges variables (réparations,
+frais), règlements, contre-passations.
+
+Chaque ligne porte un statut de reconnaissance : `pending` (affirmé par une
+partie), `validated` (certain — indélébile), `disputed` (désaccord
+documenté), `withdrawn` (retiré par son auteur avant validation).
+
+Principe directeur de la validation : **une affirmation faite dans son propre
+intérêt ne devient jamais certaine seule** (matrice complète dans l'ADR-023).
+
+### Pourquoi
+
+Le terrain montre que le problème central n'est pas le reçu mais les impayés,
+les litiges sur les charges variables et l'absence de source de vérité
+partagée entre propriétaire et locataire. L'échéance (décision 001) reste le
+cœur de la mécanique — elle devient un débit daté du grand livre ; le reçu
+(décision 005) reste la preuve — il devient une sortie du grand livre.
+
+### Conséquence métier
+
+Le propriétaire lit trois nombres par bail, jamais fusionnés : le solde
+certain (reconnu par les deux parties ou par le rail de paiement), l'en
+attente (affirmé, pas reconnu), l'en litige (désaccord documenté). L'impayé
+se calcule sur les seules lignes certaines exigibles.
+
 ## Concepts candidats du MVP
 
 Les concepts suivants sont candidats pour le MVP :
@@ -195,6 +232,7 @@ Les concepts suivants sont candidats pour le MVP :
 - Bail ou accord locatif
 - Règle de rappel ou relance
 - Échéance de loyer
+- Transaction du grand livre (ADR-023)
 - Paiement
 - Preuve de paiement
 - Quittance ou reçu

@@ -3,6 +3,64 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.24.0] - 2026-07-16
+
+### Added
+
+- **Grand Livre, phase « différenciant » (ADR-023)** : les charges variables
+  entrent au compte du bail, validées par le locataire. Le propriétaire
+  ajoute une réparation ou des frais depuis la fiche bail (« Charges &
+  frais ») ; la charge naît « en attente » avec un lien signé
+  `/transaction/[token]` que le locataire ouvre sans compte pour **valider**
+  (elle devient certaine et indélébile) ou **contester** (montant faux, dette
+  non reconnue, déjà réglée, autre — sa version est conservée à côté, jamais
+  écrasée) puis, s'il le souhaite, retirer sa contestation. Le propriétaire
+  peut retirer une charge jamais validée (motif tracé dans l'historique) ou
+  la corriger — la version corrigée repart pour validation avec un nouveau
+  lien. Envoi du lien : bouton WhatsApp pré-rempli (le propriétaire relit et
+  envoie) ; l'envoi automatisé passera par ranti-ops via la vue
+  `ops_ledger_notifications` (contrat ADR-022). Création idempotente
+  (double-tap réseau instable), RPC `SECURITY DEFINER` seules voies
+  d'écriture, garde d'égalité restreinte à la projection héritée.
+
+## [0.3.23.0] - 2026-07-16
+
+### Changed
+
+- **Grand Livre, phase « Nouvelle lecture » (ADR-023)** : le dashboard lit
+  désormais le grand livre (vue `lease_balances`, module `lib/ledger`). La
+  liste « À encaisser » devient une ligne **par bail** — dette consolidée en
+  compte courant (une avance sur un mois réduit le dû ; un même locataire
+  n'apparaît plus une fois par échéance), tuile « Retard » sourcée du grand
+  livre, déclarations à confirmer et montants en litige visibles. Le chiffre
+  rouge d'une ligne est l'impayé seul (la somme des lignes rouges recolle
+  avec la tuile « Retard ») ; l'attendu est nommé à part, jamais fusionné.
+  « À jour » signifie désormais bail actif sans dû ni attente ni litige
+  (compte courant), plus « échéances du mois soldées ». « Payé / Attendu »
+  et le taux de recouvrement restent des lentilles mensuelles
+  (`rent_due_balances`), que la cadence des relances lit déjà (ADR-022) —
+  limites connues de la coexistence documentées dans l'ADR-023.
+
+## [0.3.22.0] - 2026-07-16
+
+### Added
+
+- **Grand Livre de Confiance, phase Expand (ADR-023)** : table `transactions`
+  (compte courant locatif — loyers, réparations, frais, règlements,
+  contre-passations) et vue `lease_balances` (solde certain / en attente /
+  en litige / impayé, calculés en base). Les tables héritées restent la
+  source de vérité : le grand livre est tenu à l'identique par triggers
+  miroir (même transaction Postgres) et backfill idempotent, avec une garde
+  d'égalité des soldes qui fait échouer la migration au moindre écart.
+  Machine à états dure en base : une ligne validée est indélébile (toute
+  correction est une contre-passation visible), une ligne retirée est
+  terminale, rien ne se supprime. Aucun changement d'interface : la bascule
+  des lectures viendra à la phase « Nouvelle lecture ».
+- ADR-023 rédigée puis précisée (matrice de validation « qui rend quoi
+  certain », cycle de vie du litige à quatre sorties, correspondance de
+  backfill) ; `vision.md`, `architecture.md`, `domain-model.md`,
+  `database.md` et `glossary.md` alignés sur le pivot.
+
 ## [0.3.21.1] - 2026-07-16
 
 ### Fixed
