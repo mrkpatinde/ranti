@@ -1,8 +1,11 @@
 import Link from "next/link"
+import { Alert } from "@/components/ui/alert"
 import { badgeClasses } from "@/components/ui/badge"
 import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import { getLandlordReminders, type ReminderWithContext } from "@/lib/reminders/queries"
+import { detectReminderSilence, REMINDER_SILENCE_GRACE_DAYS } from "@/lib/reminders/schedule"
 import {
   reminderChannelLabels,
   reminderStatusLabels,
@@ -33,12 +36,20 @@ function tenantName(reminder: ReminderWithContext): string {
 
 export default async function RemindersPage() {
   const landlord = await requireLandlordProfile()
-  const [reminders, collections] = await Promise.all([
+  const [reminders, collections, balances] = await Promise.all([
     getLandlordReminders(landlord.id),
     getLandlordCollections(landlord.id),
+    getLandlordDueBalances(landlord.id),
   ])
 
   const draftCount = collections.filter((c) => c.status === "draft").length
+
+  // Garde-fou ADR-022 : l'envoi vit dans ranti-ops ; si des fenêtres passent
+  // sans envoi tracé, on le dit — plutôt qu'un silence qui ressemble à un bug.
+  const silence = detectReminderSilence(
+    balances,
+    reminders.map((r) => ({ dueId: r.rent_due?.id ?? null, sentAt: r.sent_at })),
+  )
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
@@ -51,6 +62,17 @@ export default async function RemindersPage() {
           l&apos;échéance, le jour J, puis en cas de retard. Voici ce qui a été envoyé.
         </p>
       </header>
+
+      {silence ? (
+        <Alert variant="warning" className="mt-6">
+          {silence.silentDues === 1
+            ? "1 échéance a passé sa fenêtre de relance sans envoi"
+            : `${silence.silentDues} échéances ont passé leur fenêtre de relance sans envoi`}
+          {" "}depuis plus de {REMINDER_SILENCE_GRACE_DAYS} jours. Vous pouvez relancer
+          vous-même depuis la fiche du bail (bouton WhatsApp) — et prévenir
+          l&apos;assistance si cela persiste.
+        </Alert>
+      ) : null}
 
       {draftCount > 0 && (
         <Link

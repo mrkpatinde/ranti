@@ -83,7 +83,7 @@ Ces données ne doivent jamais être exposées publiquement sans lien contrôlé
 
 Cible : à partir du bail et des échéances, Ranti prépare ou automatise les rappels et relances.
 
-Statut : cible documentée. La DB live contient déjà une table `reminders`, mais il manque `lease_reminder_rules` et la génération complète depuis le bail.
+Statut : **tranché par ADR-022** (2026-07-16). La cadence de référence (J-5 / J-1 / jour J / J+3 / J+10) vit dans ce dépôt (`lib/reminders/schedule.ts`, affichée au dashboard et sur la fiche bail) ; **l'envoi est opéré par ranti-ops** (WhatsApp), qui trace chaque envoi dans `reminder_events` — lu par les écrans `/reminders` et la fiche bail. L'ancien cron SMS dormant de ce dépôt est supprimé. `lease_reminder_rules` (règles par bail) reste gaté sur signal terrain.
 
 ### Proof Engine
 
