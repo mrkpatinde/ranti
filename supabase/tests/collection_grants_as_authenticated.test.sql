@@ -40,10 +40,17 @@ declare
   v_rid uuid;
   v_receipt uuid;
 begin
-  select rd.* into v_due from public.rent_dues rd
+  -- Échéance avec du restant à encaisser (≥ 1) : le cap d'allocation
+  -- (record_collection_alloc_cap) rejette toute allocation au-delà du dû.
+  -- Prendre « la dernière » sans regarder le solde rend le test dépendant des
+  -- données (échoue dès qu'elle est soldée — vu en prod le 2026-07-16).
+  select rd.* into v_due
+  from public.rent_dues rd
+  join public.rent_due_balances b on b.id = rd.id
   where rd.deleted_at is null and rd.status <> 'cancelled'
+    and (b.amount_due - b.amount_paid) >= 1
   order by rd.period_start desc limit 1;
-  if v_due.id is null then raise exception 'TEST SETUP: aucune échéance ouverte'; end if;
+  if v_due.id is null then raise exception 'TEST SETUP: aucune échéance avec restant ≥ 1'; end if;
 
   select l.auth_user_id into v_auth from public.landlords l where l.id = v_due.landlord_id;
   if v_auth is null then raise exception 'TEST SETUP: propriétaire sans auth_user_id'; end if;
@@ -54,8 +61,8 @@ begin
   perform set_config('role', 'authenticated', true);
 
   v_rid := public.record_collection(
-    v_due.tenant_id, v_due.unit_id, 1000, 'mobile_money', null, 'test grants',
-    jsonb_build_array(jsonb_build_object('rent_due_id', v_due.id, 'amount_allocated', 1000))
+    v_due.tenant_id, v_due.unit_id, 1, 'mobile_money', null, 'test grants',
+    jsonb_build_array(jsonb_build_object('rent_due_id', v_due.id, 'amount_allocated', 1))
   );
   if v_rid is null then raise exception 'FAIL: record_collection a renvoyé null'; end if;
 
