@@ -1,12 +1,10 @@
-import { buttonClasses } from "@/components/ui/button"
 import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { SubmitButton } from "@/components/submit-button"
 import { Alert } from "@/components/ui/alert"
-import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
+import { badgeClasses } from "@/components/ui/badge"
+import { CollectionCard } from "./collection-card"
 import {
-  cancelCollection,
-  confirmCollection,
   getLandlordCollections,
   type Collection,
   type CollectionStatus,
@@ -20,7 +18,7 @@ import {
   type PaymentProvider,
   type PaymentTransaction,
 } from "@/lib/payments"
-import { generateReceipt, getLandlordReceipts } from "@/lib/receipts"
+import { getLandlordReceipts } from "@/lib/receipts"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 
@@ -38,17 +36,9 @@ const methodLabels: Record<PaymentMethod, string> = {
   other: "Autre",
 }
 
-const statusLabels: Record<CollectionStatus, string> = {
-  draft: "Brouillon — à confirmer",
-  confirmed: "Confirmé",
-  cancelled: "Annulé",
-}
-
 const noticeLabels: Record<string, string> = {
-  collection_confirmed: "Encaissement confirmé.",
   collection_confirmed_document_pending:
     "Encaissement confirmé. Le document n'a pas été généré automatiquement ; vous pouvez le générer depuis l'encaissement.",
-  collection_cancelled: "Encaissement annulé.",
   collection_recorded_unconfirmed:
     "Encaissement enregistré mais non confirmé. Confirmez-le ci-dessous.",
   payment_transaction_verified:
@@ -75,17 +65,6 @@ const statusOrder: Record<CollectionStatus, number> = {
   draft: 0,
   confirmed: 1,
   cancelled: 2,
-}
-
-function statusVariant(status: CollectionStatus): BadgeVariant {
-  switch (status) {
-    case "draft":
-      return "accent"
-    case "confirmed":
-      return "success"
-    case "cancelled":
-      return "neutral"
-  }
 }
 
 export default async function CollectionsPage({ searchParams }: CollectionsPageProps) {
@@ -284,131 +263,19 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
         ) : (
           <div className="space-y-4">
             {sorted.map((c) => (
-              <article
+              <CollectionCard
                 key={c.id}
-                className="rounded-2xl border border-border bg-card p-6"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
-                      {formatFcfa(c.amount_received)}
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {tenantName(c.tenant_id)} — {unitName(c.unit_id)}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {formatDate(c.received_at)} · {methodLabels[c.payment_method]}
-                    </p>
-                  </div>
-                  <span className={badgeClasses(statusVariant(c.status))}>
-                    {statusLabels[c.status]}
-                  </span>
-                </div>
-
-                {c.payment_reference ? (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Réf. transaction : <span className="font-medium text-foreground">{c.payment_reference}</span>
-                  </p>
-                ) : null}
-
-                {c.note ? (
-                  <p className="mt-3 text-sm text-muted-foreground">{c.note}</p>
-                ) : null}
-
-                {c.status === "cancelled" && c.cancellation_reason ? (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Motif : {c.cancellation_reason}
-                  </p>
-                ) : null}
-
-                {c.status === "draft" ? (
-                  <div className="mt-5 space-y-4">
-                    <form action={confirmCollection}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <SubmitButton
-                        className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60"
-                      >
-                        Confirmer
-                      </SubmitButton>
-                    </form>
-
-                    <form action={cancelCollection} className="space-y-2 rounded-2xl border border-border p-4">
-                      <input type="hidden" name="id" value={c.id} />
-                      <label htmlFor={`reason-${c.id}`} className="block text-sm font-medium text-foreground">
-                        Motif d&apos;annulation <span className="text-destructive">*</span>
-                      </label>
-                      <textarea
-                        id={`reason-${c.id}`}
-                        name="reason"
-                        rows={2}
-                        required
-                        minLength={3}
-                        placeholder="Ex. paiement saisi par erreur"
-                        className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
-                      />
-                      <SubmitButton
-                        className={buttonClasses("destructive-outline")}
-                      >
-                        Annuler cet encaissement
-                      </SubmitButton>
-                    </form>
-                  </div>
-                ) : null}
-
-                {c.status === "confirmed" ? (
-                  receiptByReception.has(c.id) ? (
-                    <Link
-                      href={`/receipts/${receiptByReception.get(c.id)!.id}`}
-                      className="mt-5 inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary"
-                    >
-                      Voir le document
-                    </Link>
-                  ) : (
-                    <div className="mt-5 space-y-4">
-                      {cancelledReceiptReceptions.has(c.id) ? (
-                        <p className="rounded-xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm leading-6 text-accent">
-                          ⓘ Le document de cet encaissement a été <strong>annulé</strong>, mais le paiement reste
-                          confirmé dans le registre. Générez un document corrigé — ou annulez aussi
-                          l&apos;encaissement ci-dessous s&apos;il a été saisi par erreur.
-                        </p>
-                      ) : null}
-                      <form action={generateReceipt}>
-                        <input type="hidden" name="reception_id" value={c.id} />
-                        <SubmitButton
-                          className="rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60"
-                        >
-                          {cancelledReceiptReceptions.has(c.id) ? "Générer un document corrigé" : "Générer la quittance ou le reçu"}
-                        </SubmitButton>
-                      </form>
-                      <details>
-                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground/70 transition hover:border-destructive/40 hover:text-destructive">Annuler cet encaissement…</summary>
-                        <form action={cancelCollection} className="mt-3 space-y-2 rounded-2xl border border-destructive/25 bg-destructive/10 p-4">
-                          <input type="hidden" name="id" value={c.id} />
-                          <p className="text-sm leading-6 text-destructive">
-                            L&apos;annulation remet l&apos;échéance en attente (le loyer redevient dû) et reste tracée
-                            dans le registre avec son motif. Elle est impossible tant qu&apos;un document actif existe.
-                          </p>
-                          <label htmlFor={`reason-confirmed-${c.id}`} className="block text-sm font-medium text-destructive">
-                            Motif d&apos;annulation <span className="text-destructive">*</span>
-                          </label>
-                          <textarea
-                            id={`reason-confirmed-${c.id}`}
-                            name="reason"
-                            rows={2}
-                            required
-                            minLength={3}
-                            placeholder="Ex. montant saisi par erreur"
-                            className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
-                          />
-                          <SubmitButton className={buttonClasses("destructive-outline")}>
-                            Annuler cet encaissement
-                          </SubmitButton>
-                        </form>
-                      </details>
-                    </div>
-                  )
-                ) : null}
-              </article>
+                id={c.id}
+                status={c.status}
+                amountLabel={formatFcfa(c.amount_received)}
+                partiesLine={`${tenantName(c.tenant_id)} — ${unitName(c.unit_id)}`}
+                metaLine={`${formatDate(c.received_at)} · ${methodLabels[c.payment_method]}`}
+                paymentReference={c.payment_reference ?? null}
+                note={c.note ?? null}
+                cancellationReason={c.cancellation_reason ?? null}
+                receiptId={receiptByReception.get(c.id)?.id ?? null}
+                receiptCancelled={cancelledReceiptReceptions.has(c.id)}
+              />
             ))}
           </div>
         )}

@@ -135,6 +135,19 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-16)
 
+- Optimistic UI sur confirmer/annuler un encaissement (v0.3.21.0, #167
+  Phase 4 — dernière phase, débloquée par décision CEO) : la carte
+  encaissement (nouveau composant client `collection-card.tsx`,
+  `useOptimistic`) bascule instantanément au tap — badge « Confirmé »/
+  « Annulé » + « Quittance en préparation… » — sans attendre le serveur ;
+  échec → retour automatique à l'état réel + erreur sur la carte (rollback
+  visible, jamais de fausse confirmation persistante) ; succès → la
+  revalidation apporte badge définitif et lien du document. confirmCollection/
+  cancelCollection renvoient un état au lieu de rediriger (le confirm ne
+  quitte plus la liste — on enchaîne plusieurs brouillons sans navigation).
+  6 tests d'actions (mocks RPC). #167 intégralement livré (P1 idempotence,
+  P2 réseau dit, P3 PWA lecture, P4 optimistic UI).
+
 - PWA lecture hors connexion (v0.3.20.0, #167 Phase 3) : le registre reste
   CONSULTABLE en avion — les dernières pages vues se rouvrent, datées.
   Manifest installable SANS prompt in-app (décision CEO : « Ajouter à l'écran
