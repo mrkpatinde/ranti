@@ -12,6 +12,8 @@ export type RentDue = {
   amount_due: number
   currency: string
   status: RentDueStatus
+  /** Jeton public du lien /confirmer/[token] (page locataire, ADR-013). */
+  confirmation_token: string | null
   cancelled_reason: string | null
   created_at: string
   updated_at: string
