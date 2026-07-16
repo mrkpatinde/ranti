@@ -58,20 +58,18 @@ Mise à jour 2026-07-10 (ADR-011) : l'onboarding profil accepte les numéros mob
 Objectif : permettre au propriétaire de créer son premier lieu à suivre.
 
 - [x] Créer une propriété
-- [ ] Modifier une propriété
-- [ ] Archiver une propriété
-
-Note : le Sprint 3 commence par le parcours créer ma première propriété. La modification et l'archivage restent à faire plus tard.
+- [x] Modifier une propriété (UI /properties/[id]/edit)
+- [x] Archiver une propriété (/properties/[id] : panneau visible + confirmation, bloqué si un logement a un bail actif)
 
 ## Sprint 4 - Units
 
-UI : création livrée (units/new). Le reste existe côté logique métier (actions updateUnit, setUnitAvailability, archiveUnit) mais sans écran dédié.
+UI livrée : création (units/new), édition, changement de statut et archivage.
 
 - [x] Créer un logement
 - [x] Ajouter plusieurs logements d'un coup (onboarding groupé /units/bulk, avec locataire+bail+échéances optionnels, RPC atomique bulk_onboard_portfolio)
-- [ ] Modifier un logement (logique prête, UI à faire)
-- [ ] Changer son statut (logique prête, UI à faire)
-- [ ] Archiver un logement (logique prête, UI à faire)
+- [x] Modifier un logement (UI /units/[id]/edit)
+- [x] Changer son statut (toggle disponible/occupé sur /units/[id], setUnitAvailability)
+- [x] Archiver un logement (/units/[id] : panneau visible + confirmation, bloqué si bail actif)
 
 ## Sprint 5 - Tenants and Leases
 
@@ -94,7 +92,7 @@ Flux boucle de bout en bout (UI + DB). Coeur métier audité (SECURITY INVOKER, 
 - [x] Générer une quittance (generate_receipt depuis encaissement confirmé)
 - [x] Vue quittances (/receipts + /receipts/[id] : détail, périodes réglées, annuler)
 
-Reste : UI modifier/archiver (units, properties, tenants), dashboard mensuel de synthèse (payés / en retard / action), gestion visible des retards/relances.
+Reste : dashboard mensuel de synthèse (payés / en retard / action), gestion visible des retards/relances. (UI modifier/archiver units/properties/tenants livrée — édition + archivage confirmé + statut logement.)
 
 ## Sprint 7 - Reminder Engine
 
