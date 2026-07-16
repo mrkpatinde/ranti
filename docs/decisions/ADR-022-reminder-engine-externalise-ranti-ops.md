@@ -44,10 +44,13 @@ rapatrier le moteur (B). Le statu quo — une UI qui promet, un dépôt qui dort
 
 - Le message reste conforme aux contraintes de marque (voix « vous », ton
   calme) et contient le lien `/confirmer/[token]`.
-- **Panne = silence détectable** : si ranti-ops n'envoie plus, `reminder_events`
-  cesse de croître alors que des échéances impayées passent leurs fenêtres —
-  vérifiable d'une requête. La surveillance opérationnelle de ce signal
-  appartient à ranti-ops (cockpit) ; ce dépôt n'alerte pas au MVP.
+- **Panne = silence VISIBLE** : si ranti-ops n'envoie plus, `reminder_events`
+  cesse de croître alors que des échéances impayées passent leurs fenêtres.
+  L'écran `/reminders` porte un garde-fou (`detectReminderSilence`,
+  `lib/reminders/schedule.ts`) : toute échéance impayée dont une fenêtre est
+  passée depuis plus de 2 jours sans envoi tracé déclenche un avertissement
+  sobre — avec le filet manuel wa.me comme action immédiate. La surveillance
+  opérationnelle fine reste côté ranti-ops (cockpit).
 - Le filet manuel reste dans ce dépôt : bouton « Relancer sur WhatsApp »
   (wa.me pré-rempli) sur la fiche bail (#163) — le propriétaire garde la main
   (Principe 12).

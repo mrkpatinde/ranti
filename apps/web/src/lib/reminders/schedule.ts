@@ -81,3 +81,66 @@ export function computeUpcomingReminders(
 
   return out.sort((a, c) => (a.date < c.date ? -1 : a.date > c.date ? 1 : 0))
 }
+
+// ── Garde-fou ADR-022 : rendre la panne d'envoi VISIBLE, pas seulement
+// détectable. L'envoi vit dans ranti-ops ; si le service se tait alors que des
+// échéances passent leurs fenêtres, /reminders doit le dire au propriétaire.
+
+// Délai de tolérance : ranti-ops envoie sous 1-2 jours ; en deçà, silence normal.
+export const REMINDER_SILENCE_GRACE_DAYS = 2
+
+export type ReminderSilence = {
+  /** Nombre d'échéances impayées dont une fenêtre est passée sans envoi. */
+  silentDues: number
+  /** La plus ancienne fenêtre manquée (YYYY-MM-DD). */
+  oldestMissedWindow: string
+}
+
+export type SentReminderRef = {
+  /** rent_due_id de l'envoi, null si inconnu. */
+  dueId: string | null
+  /** sent_at ISO (timestamptz). */
+  sentAt: string
+}
+
+/**
+ * Détecte le silence d'envoi : une échéance impayée dont la dernière fenêtre
+ * de la cadence est passée depuis plus de `graceDays`, sans AUCUN envoi tracé
+ * (reminders ∪ reminder_events) pour cette échéance depuis cette fenêtre.
+ * Renvoie null quand tout va bien — l'écran n'affiche rien.
+ */
+export function detectReminderSilence(
+  balances: RentDueBalance[],
+  sends: SentReminderRef[],
+  ref: Date = new Date(),
+  graceDays: number = REMINDER_SILENCE_GRACE_DAYS,
+): ReminderSilence | null {
+  const cutoff = addDays(ymd(ref), -graceDays)
+  let silentDues = 0
+  let oldestMissedWindow: string | null = null
+
+  for (const b of balances) {
+    if (b.status !== "expected" && b.status !== "overdue") continue
+    if (Math.max(0, b.amount_due - b.amount_paid) === 0) continue
+
+    // Dernière fenêtre de la cadence déjà « due » (passée d'au moins graceDays).
+    const lastActionable = CHECKPOINTS.map((cp) => addDays(b.due_date, cp.off))
+      .filter((date) => date <= cutoff)
+      .at(-1)
+    if (!lastActionable) continue
+
+    const hasSend = sends.some(
+      (s) => s.dueId === b.id && s.sentAt.slice(0, 10) >= lastActionable,
+    )
+    if (hasSend) continue
+
+    silentDues += 1
+    if (oldestMissedWindow === null || lastActionable < oldestMissedWindow) {
+      oldestMissedWindow = lastActionable
+    }
+  }
+
+  return silentDues > 0 && oldestMissedWindow !== null
+    ? { silentDues, oldestMissedWindow }
+    : null
+}

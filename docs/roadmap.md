@@ -144,7 +144,10 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
   formatFcfaSms) — code non exécuté qui portait un risque documenté de double
   relance SMS+WhatsApp. /conditions §6 ne promet plus de réglage non engagé.
   ADR-006 marquée partiellement supersédée ; architecture.md, database.md et
-  Sprint 7 réalignés.
+  Sprint 7 réalignés. Garde-fou sur /reminders : si une échéance impayée passe
+  une fenêtre de relance sans envoi tracé depuis plus de 2 jours
+  (`detectReminderSilence`, 7 tests), un avertissement sobre le dit — la panne
+  d'envoi est visible, pas seulement détectable.
 
 - État réseau dit calmement (v0.3.18.0, #167 Phase 2) : hook `useOnline`
   (useSyncExternalStore sur online/offline), bandeau global fixe en bas
