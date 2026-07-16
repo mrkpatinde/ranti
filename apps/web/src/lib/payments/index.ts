@@ -16,3 +16,4 @@ export type {
   ProcessPaymentResult,
 } from "./types"
 export { listPaymentTransactions } from "./queries"
+export { verifyPaymentTransaction } from "./actions"
