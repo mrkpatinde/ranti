@@ -1,5 +1,6 @@
 "use client";
 
+import { buttonClasses } from "@/components/ui/button";
 import { useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import { contestReceipt } from "./actions";
@@ -91,7 +92,7 @@ export function ContestForm({ token }: { token: string }) {
           Annuler
         </button>
         <SubmitButton
-          className="flex-1 rounded-full bg-destructive px-5 py-3 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90 disabled:opacity-60"
+          className={buttonClasses("destructive", "flex-1")}
           pendingLabel="Envoi…"
         >
           Contester

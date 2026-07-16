@@ -121,7 +121,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           ) : null}
 
           <SubmitButton
-            className="w-full rounded-full bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+            className="w-full rounded-full bg-accent px-4 py-3 text-base font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60"
           >
             Accéder à mon espace
           </SubmitButton>

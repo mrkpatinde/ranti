@@ -108,7 +108,7 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link href={`/properties/${property.id}/edit`} className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">
+          <Link href={`/properties/${property.id}/edit`} className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95">
             Modifier ce lieu
           </Link>
         </div>

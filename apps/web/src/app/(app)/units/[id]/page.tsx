@@ -1,3 +1,4 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
@@ -7,10 +8,6 @@ import { getProperty } from "@/lib/properties"
 import { archiveUnit, getUnit, setUnitAvailability } from "@/lib/units"
 import { getLandlordLeases } from "@/lib/leases"
 import { getLandlordTenants } from "@/lib/tenants"
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
-}
 
 type UnitDetailPageProps = {
   params: Promise<{ id: string }>
@@ -108,7 +105,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
                 <div>
                   <p className="font-medium text-foreground">{tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {formatAmount(lease.monthly_rent_amount)} / mois · échéance le {lease.due_day}
+                    {formatFcfa(lease.monthly_rent_amount)} / mois · échéance le {lease.due_day}
                   </p>
                 </div>
                 <span className={`shrink-0 rounded-lg border px-2 py-0.5 text-xs font-medium ${lease.status === "active" ? "border-primary/30 text-primary" : "border-border text-muted-foreground"}`}>
@@ -123,7 +120,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
           ) : (
             <div className="rounded-2xl border border-border bg-card px-5 py-4">
               <p className="text-sm text-foreground/70">Aucun bail sur ce logement.</p>
-              <Link href={`/leases/new?unit_id=${unit.id}`} className="mt-3 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">
+              <Link href={`/leases/new?unit_id=${unit.id}`} className="mt-3 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95">
                 Créer le bail
               </Link>
             </div>
@@ -136,7 +133,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link href={`/units/${unit.id}/edit`} className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">Modifier ce logement</Link>
+          <Link href={`/units/${unit.id}/edit`} className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95">Modifier ce logement</Link>
         </div>
 
         <div className="space-y-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">

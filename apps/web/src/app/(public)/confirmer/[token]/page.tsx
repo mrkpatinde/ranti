@@ -1,3 +1,4 @@
+import { formatFcfa } from "@/lib/format"
 import { notFound } from "next/navigation";
 import { RantiLogo } from "@/components/ranti-logo";
 import { SubmitButton } from "@/components/submit-button";
@@ -26,10 +27,6 @@ type RentDueByToken = {
   landlord_payment_alias: string | null;
   landlord_payment_alias_type: string | null;
 };
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`;
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -150,7 +147,7 @@ export default async function ConfirmerPage({
                 : "Montant à confirmer"}
             </span>
             <span className="text-lg text-foreground">
-              {formatAmount(rentDue.amount_remaining)}
+              {formatFcfa(rentDue.amount_remaining)}
             </span>
           </div>
         </div>
@@ -166,7 +163,7 @@ export default async function ConfirmerPage({
               Payer par PI-SPI
             </p>
             <p className="mt-1 text-sm leading-6 text-foreground/80">
-              Envoyez {formatAmount(rentDue.amount_remaining)} à l&apos;alias du propriétaire
+              Envoyez {formatFcfa(rentDue.amount_remaining)} à l&apos;alias du propriétaire
               depuis votre appli (MTN, Moov, banque). C&apos;est instantané et gratuit.
             </p>
             <p className="mt-2 text-lg font-bold tracking-wide text-foreground">
@@ -205,14 +202,14 @@ export default async function ConfirmerPage({
               <DeclarationFields />
 
               <SubmitButton
-                className="inline-flex w-full justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+                className="inline-flex w-full justify-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60"
                 pendingLabel="Envoi…"
               >
                 J&apos;ai payé ce loyer
               </SubmitButton>
               <p className="text-center text-xs text-muted-foreground">
                 Le montant déclaré est celui fixé par votre bail
-                ({formatAmount(rentDue.amount_remaining)}). Le propriétaire
+                ({formatFcfa(rentDue.amount_remaining)}). Le propriétaire
                 validera cette déclaration.
               </p>
             </form>

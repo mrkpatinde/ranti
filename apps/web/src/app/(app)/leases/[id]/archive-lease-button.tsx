@@ -1,5 +1,6 @@
 "use client"
 
+import { buttonClasses } from "@/components/ui/button"
 import { SubmitButton } from "@/components/submit-button"
 
 // Archive du bail = action VISIBLE sur le détail (ADR-020, correctif interaction :
@@ -23,7 +24,7 @@ export function ArchiveLeaseButton({
       }}
     >
       <input type="hidden" name="id" value={leaseId} />
-      <SubmitButton className="rounded-full border border-destructive/40 bg-card px-5 py-2.5 text-sm font-semibold text-destructive transition hover:border-destructive disabled:opacity-60">
+      <SubmitButton className={buttonClasses("destructive-outline")}>
         Archiver le bail
       </SubmitButton>
     </form>

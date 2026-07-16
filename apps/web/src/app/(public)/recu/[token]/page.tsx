@@ -1,3 +1,4 @@
+import { formatFcfa } from "@/lib/format"
 import { notFound } from "next/navigation";
 import { RantiLogo } from "@/components/ranti-logo";
 import { SubmitButton } from "@/components/submit-button";
@@ -15,10 +16,6 @@ import { ContestForm } from "./contest-form";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`;
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -190,7 +187,7 @@ export default async function RecuPage({
                   <span className="text-foreground">
                     {formatDate(a.period_start)} – {formatDate(a.period_end)}
                   </span>
-                  <span className="text-foreground">{formatAmount(a.amount_allocated)}</span>
+                  <span className="text-foreground">{formatFcfa(a.amount_allocated)}</span>
                 </div>
               ))}
             </div>
@@ -198,7 +195,7 @@ export default async function RecuPage({
           <div className="flex justify-between border-t border-border pt-3 text-sm font-semibold">
             <span className="text-foreground/80">Total</span>
             <span className="text-lg text-foreground">
-              {formatAmount(receipt.total_amount)}
+              {formatFcfa(receipt.total_amount)}
             </span>
           </div>
         </div>
@@ -215,7 +212,7 @@ export default async function RecuPage({
               {receipt.contest_nature === "amount" &&
                 `Le locataire déclare avoir payé ${
                   receipt.contested_amount != null
-                    ? formatAmount(receipt.contested_amount)
+                    ? formatFcfa(receipt.contested_amount)
                     : "un autre montant"
                 }.`}
               {receipt.contest_nature === "date" &&
@@ -239,7 +236,7 @@ export default async function RecuPage({
           <div className="mt-8 space-y-3">
             <form action={certifyReceipt.bind(null, token)}>
               <SubmitButton
-                className="inline-flex w-full justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+                className="inline-flex w-full justify-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60"
                 pendingLabel="Envoi…"
               >
                 Confirmer l&apos;exactitude

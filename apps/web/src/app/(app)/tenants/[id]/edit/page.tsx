@@ -67,7 +67,7 @@ export default async function EditTenantPage({ params, searchParams }: EditTenan
             <label htmlFor="notes" className={labelClass}>Note <span className="text-muted-foreground">(optionnel)</span></label>
             <textarea id="notes" name="notes" rows={3} defaultValue={tenant.notes ?? ""} className={inputClass} />
           </div>
-          <SubmitButton className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">Enregistrer</SubmitButton>
+          <SubmitButton className="w-full rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60">Enregistrer</SubmitButton>
         </form>
       </section>
     </main>

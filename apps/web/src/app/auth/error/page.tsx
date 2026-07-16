@@ -18,7 +18,7 @@ export default function AuthErrorPage() {
 
         <Link
           href="/login"
-          className="inline-flex rounded-full bg-primary px-4 py-3 text-base font-medium text-primary-foreground transition hover:bg-primary/90"
+          className="inline-flex rounded-full bg-accent px-4 py-3 text-base font-semibold text-accent-foreground transition hover:brightness-95"
         >
           Retour à la connexion
         </Link>

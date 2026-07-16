@@ -1,4 +1,6 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
+import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordReceipts } from "@/lib/receipts"
 import type { ReceiptStatus, TenantAck } from "@/lib/receipts"
@@ -14,21 +16,17 @@ const statusLabels: Record<ReceiptStatus, string> = {
 
 // ADR-013 — acquittement locataire. On ne montre un badge que quand il y a un
 // signal (ouvert / certifié / contesté) ; `unilateral` reste silencieux.
-const ackBadge: Record<TenantAck, { label: string; cls: string } | null> = {
+const ackBadge: Record<TenantAck, { label: string; variant: BadgeVariant } | null> = {
   unilateral: null,
-  read: { label: "Ouvert", cls: "border-warning/50 text-warning" },
-  certified: { label: "Certifié", cls: "border-primary/30 text-primary" },
-  disputed: { label: "Contesté", cls: "border-destructive/40 text-destructive" },
+  read: { label: "Ouvert", variant: "warning" },
+  certified: { label: "Certifié", variant: "success" },
+  disputed: { label: "Contesté", variant: "error" },
 }
 
 const kindLabels = {
   quittance: "Quittance",
   receipt: "Reçu",
 } as const
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
@@ -80,7 +78,7 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
             </p>
             <Link
               href="/collections"
-              className="mt-5 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+              className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
             >
               Voir les encaissements
             </Link>
@@ -96,18 +94,18 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
-                      {formatAmount(receipt.total_amount)}
+                      {formatFcfa(receipt.total_amount)}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {kindLabels[receipt.kind]} · {receipt.receipt_number} · {formatDate(receipt.issued_at)}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <span className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80">
+                    <span className={badgeClasses("neutral")}>
                       {statusLabels[receipt.status]}
                     </span>
                     {ackBadge[receipt.tenant_ack] ? (
-                      <span className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${ackBadge[receipt.tenant_ack]!.cls}`}>
+                      <span className={badgeClasses(ackBadge[receipt.tenant_ack]!.variant)}>
                         {ackBadge[receipt.tenant_ack]!.label}
                       </span>
                     ) : null}

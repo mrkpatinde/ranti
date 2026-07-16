@@ -1,3 +1,4 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { SubmitButton } from "@/components/submit-button"
 import { recordCollection } from "@/lib/collections"
@@ -31,10 +32,6 @@ const PAYMENT_METHODS = [
   { value: "bank_transfer", label: "Virement" },
   { value: "other", label: "Autre" },
 ]
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
@@ -97,7 +94,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
                   {tenantName(lease.tenant_id)} — {unitName(lease.unit_id)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {formatAmount(lease.monthly_rent_amount)} / mois
+                  {formatFcfa(lease.monthly_rent_amount)} / mois
                 </p>
               </Link>
             ))}
@@ -184,7 +181,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
 
           <div className="space-y-2">
             <label htmlFor="amount_received" className={labelClass}>
-              Montant reçu (F CFA)
+              Montant reçu (FCFA)
             </label>
             <input
               id="amount_received"
@@ -221,10 +218,10 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
                 className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-secondary/60 px-4 py-3"
               >
                 <div>
-                  <p className="font-semibold">reste {formatAmount(due.remaining)}</p>
+                  <p className="font-semibold">reste {formatFcfa(due.remaining)}</p>
                   <p className="text-sm text-muted-foreground">
                     échéance {formatDate(due.due_date)}
-                    {due.amount_paid > 0 ? ` · ${formatAmount(due.amount_paid)} déjà reçu` : ""}
+                    {due.amount_paid > 0 ? ` · ${formatFcfa(due.amount_paid)} déjà reçu` : ""}
                   </p>
                 </div>
                 <input type="hidden" name="allocation_due_id" value={due.id} />

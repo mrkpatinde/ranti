@@ -1,3 +1,4 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
@@ -14,10 +15,6 @@ import { getUnit } from "@/lib/units"
 type AllocatePageProps = {
   params: Promise<{ id: string }>
   searchParams?: Promise<{ error?: string }>
-}
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
 }
 
 function formatDate(iso: string): string {
@@ -76,7 +73,7 @@ export default async function AllocateReceptionPage({ params, searchParams }: Al
             {tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"} — {unit?.name ?? "Logement"}
           </p>
           <p className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl">
-            {formatAmount(reception.amount_received)}
+            {formatFcfa(reception.amount_received)}
           </p>
           <p className="text-base leading-7 text-foreground/70">
             Cet argent est déjà enregistré. Indiquez seulement quelles échéances il solde.
@@ -106,7 +103,7 @@ export default async function AllocateReceptionPage({ params, searchParams }: Al
             <div className="space-y-3">
               <p className="block text-sm font-semibold">Échéances à solder</p>
               <p className="text-sm text-muted-foreground">
-                Laissez 0 pour ne pas affecter une échéance. Le total ne peut pas dépasser {formatAmount(reception.amount_received)}.
+                Laissez 0 pour ne pas affecter une échéance. Le total ne peut pas dépasser {formatFcfa(reception.amount_received)}.
               </p>
 
               {unpaid.map((due) => (
@@ -115,10 +112,10 @@ export default async function AllocateReceptionPage({ params, searchParams }: Al
                   className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-secondary/60 px-4 py-3"
                 >
                   <div>
-                    <p className="font-semibold">reste {formatAmount(due.remaining)}</p>
+                    <p className="font-semibold">reste {formatFcfa(due.remaining)}</p>
                     <p className="text-sm text-muted-foreground">
                       échéance {formatDate(due.due_date)}
-                      {due.amount_paid > 0 ? ` · ${formatAmount(due.amount_paid)} déjà reçu` : ""}
+                      {due.amount_paid > 0 ? ` · ${formatFcfa(due.amount_paid)} déjà reçu` : ""}
                     </p>
                   </div>
                   <input type="hidden" name="allocation_due_id" value={due.id} />
@@ -136,7 +133,7 @@ export default async function AllocateReceptionPage({ params, searchParams }: Al
 
             {leftover > 0 ? (
               <p className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning">
-                {formatAmount(leftover)} resteront en crédit non affecté après cette affectation.
+                {formatFcfa(leftover)} resteront en crédit non affecté après cette affectation.
               </p>
             ) : null}
 

@@ -58,7 +58,7 @@ export default async function TenantDetailPage({ params, searchParams }: TenantD
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link href={`/tenants/${tenant.id}/edit`} className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">Modifier ce locataire</Link>
+          <Link href={`/tenants/${tenant.id}/edit`} className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95">Modifier ce locataire</Link>
         </div>
 
         <div className="space-y-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">

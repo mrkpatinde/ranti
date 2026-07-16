@@ -3,6 +3,7 @@
 // Route GET /api/cron/reminders — appelée par Vercel Cron
 // ============================================================
 
+import { formatFcfaSms } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   sendSms,
@@ -13,10 +14,6 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`;
-}
 
 /**
  * Vercel Cron handler.
@@ -152,7 +149,7 @@ async function checkRemindersDue(
         }
       }
 
-      const montant = formatAmount(due.amount_due);
+      const montant = formatFcfaSms(due.amount_due);
       const dateEcheance = dueDate.toLocaleDateString("fr-FR", {
         day: "numeric",
         month: "long",
