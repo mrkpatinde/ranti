@@ -1,7 +1,6 @@
 // ADR-019 — Vérification de signature webhook FeexPay.
-// HMAC-SHA256 du corps BRUT, comparaison à temps constant (même contrat que
-// verifyKkiapaySignature — le webhook porte sur les octets reçus, pas sur un
-// JSON re-sérialisé).
+// HMAC-SHA256 du corps BRUT, comparaison à temps constant (le webhook porte
+// sur les octets reçus, pas sur un JSON re-sérialisé).
 //
 // ⚠️ Nom d'en-tête et encodage à CONFIRMER sur la doc FeexPay au moment du
 // branchement sandbox (isolé ici : fix une ligne). Défaut : `x-feexpay-signature`

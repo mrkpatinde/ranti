@@ -1,4 +1,6 @@
-// ADR-018 v2 — Types du domaine payments (cœur transactionnel Kkiapay).
+// ADR-018 v2 — Types du domaine payments (cœur transactionnel).
+// Rail actif : FeexPay (ADR-019). Le webhook et le client vivent dans
+// src/lib/feexpay ; ce module reste agnostique du PSP.
 
 export type PaymentTransactionStatus =
   | "pending"
@@ -6,6 +8,9 @@ export type PaymentTransactionStatus =
   | "paid_out"
   | "rejected"
 
+// Enum miroir de la colonne `payment_transactions.provider` en base : `kkiapay`
+// et `fedapay` restent des valeurs valides pour l'historique du ledger, même
+// si le seul rail câblé est désormais `feexpay` (ADR-019).
 export type PaymentProvider = "fedapay" | "feexpay" | "kkiapay"
 
 /** Ligne du ledger public.payment_transactions (montants FCFA entiers). */
@@ -65,20 +70,6 @@ export class PaymentError extends Error {
     this.name = "PaymentError"
     this.code = code
   }
-}
-
-/** Événement webhook Kkiapay normalisé (validation.ts). */
-export interface NormalizedKkiapayEvent {
-  /** Référence de transaction Kkiapay — clé d'idempotence. */
-  reference: string
-  /** Bail visé, posé dans les métadonnées au moment du checkout. */
-  leaseId: string
-  /** Montant brut payé (FCFA entier). */
-  amount: number
-  /** Statut brut annoncé par Kkiapay (ex. SUCCESS). */
-  providerStatus: string
-  /** Charge utile brute normalisée, archivée dans payment_transactions.payload. */
-  payload: Record<string, unknown>
 }
 
 export interface IngestResult {

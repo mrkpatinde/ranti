@@ -1,6 +1,6 @@
 // ADR-019 — Normalisation de la charge utile webhook FeexPay.
 // Narrowing manuel (style maison, pas de zod) : renvoie `null` si la forme est
-// invalide → la route répond 400 invalid_body. Miroir de normalizeKkiapayPayload.
+// invalide → la route répond 400 invalid_body.
 //
 // ⚠️ Forme attendue à CONFIRMER sur le sandbox FeexPay. Hypothèse (à ajuster
 // d'une ligne) : { reference, amount, status, callback_info: { lease_id } }.

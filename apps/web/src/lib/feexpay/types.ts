@@ -69,7 +69,7 @@ export interface FeexpayStatusResult {
   raw: Record<string, unknown>
 }
 
-// ── Webhook normalisé (parallèle de NormalizedKkiapayEvent) ──────────────────
+// ── Webhook normalisé (consommé par la route /api/payments/notification) ─────
 
 export interface NormalizedFeexpayEvent {
   /** Référence de transaction FeexPay — clé d'idempotence. */

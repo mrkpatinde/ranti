@@ -1,8 +1,8 @@
 // ADR-019 — Configuration du client FeexPay (rail d'encaissement UNIQUE).
 //
-// Tout ce qui parle à FeexPay vit dans ce dossier (même règle d'isolation que
-// src/lib/kkiapay) ; la logique de calcul/cycle de vie reste dans
-// src/lib/payments. Ce module ne fait qu'assembler la config depuis l'env,
+// Tout ce qui parle à FeexPay vit dans ce dossier (isolation PSP) ; la logique
+// de calcul/cycle de vie reste dans src/lib/payments, agnostique du PSP.
+// Ce module ne fait qu'assembler la config depuis l'env,
 // SERVEUR UNIQUEMENT (clé API + secret webhook = jamais côté client).
 //
 // ⚠️ Activation production gatée BCEAO (ADR-019) : tant que le gate n'est pas
