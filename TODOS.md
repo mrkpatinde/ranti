@@ -9,13 +9,22 @@ Détention transitoire de fonds via wallet marchand PSP = potentiellement
 Piste privilégiée : partenariat/externalisation art. 7 avec le PSP agréé.
 **Bloquant avant toute activation production** — voir caveat ADR-018.
 
-### Ouvrir le compte sandbox FedaPay et rejouer un webhook signé réel
+### Ouvrir le compte sandbox FeexPay et rejouer un webhook signé réel
 **Priority:** P1
-Action CEO : créer le compte test sur fedapay.com. Ensuite : brancher le
-client API (`src/lib/fedapay/` : checkout, payout `POST /v1/payouts`),
-confirmer le nom d'en-tête de signature webhook (isolé dans
-`src/lib/kkiapay/signature.ts`, fix une ligne), rejouer idempotence +
-mauvaise signature contre le vrai sandbox.
+PSP retenu = **FeexPay** (ADR-019, cash-in unique). Le squelette client est en
+place (`src/lib/feexpay/` : `config`, `signature`, `checkout`, `payout` +
+polling V2, `normalize`, `http`) et le webhook `POST /api/payments/notification`
+est câblé sur le rail FeexPay. Action CEO : créer le compte test sur feexpay.me.
+Ensuite, contre le vrai sandbox (chacun isolé, « fix une ligne ») :
+- confirmer la base URL et les chemins checkout/payout/status
+  (`src/lib/feexpay/checkout.ts`, `payout.ts`) ;
+- confirmer les noms de champs du body et de la charge webhook
+  (`src/lib/feexpay/normalize.ts`) ;
+- confirmer le nom d'en-tête de signature (`FEEXPAY_SIGNATURE_HEADER` dans
+  `src/lib/feexpay/signature.ts`, défaut `x-feexpay-signature`) ;
+- rejouer idempotence + mauvaise signature contre le sandbox.
+Env : `FEEXPAY_ENV=sandbox`, `FEEXPAY_API_KEY`, `FEEXPAY_SHOP_ID`,
+`FEEXPAY_WEBHOOK_SECRET`, `FEEXPAY_CALLBACK_URL`.
 
 ### Surface produit : carte de validation + vue transactions
 **Priority:** P2
