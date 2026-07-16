@@ -3,6 +3,24 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.23.0] - 2026-07-16
+
+### Changed
+
+- **Grand Livre, phase « Nouvelle lecture » (ADR-023)** : le dashboard lit
+  désormais le grand livre (vue `lease_balances`, module `lib/ledger`). La
+  liste « À encaisser » devient une ligne **par bail** — dette consolidée en
+  compte courant (une avance sur un mois réduit le dû ; un même locataire
+  n'apparaît plus une fois par échéance), tuile « Retard » sourcée du grand
+  livre, déclarations à confirmer et montants en litige visibles. Le chiffre
+  rouge d'une ligne est l'impayé seul (la somme des lignes rouges recolle
+  avec la tuile « Retard ») ; l'attendu est nommé à part, jamais fusionné.
+  « À jour » signifie désormais bail actif sans dû ni attente ni litige
+  (compte courant), plus « échéances du mois soldées ». « Payé / Attendu »
+  et le taux de recouvrement restent des lentilles mensuelles
+  (`rent_due_balances`), que la cadence des relances lit déjà (ADR-022) —
+  limites connues de la coexistence documentées dans l'ADR-023.
+
 ## [0.3.22.0] - 2026-07-16
 
 ### Added

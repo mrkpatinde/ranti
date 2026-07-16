@@ -298,8 +298,34 @@ qui est opposable devant un médiateur.
    locataire de la ligne 7 s'applique à partir de la bascule, quand le flux
    locataire existe.
 
-3. **Nouvelle lecture** : le dashboard bascule sur `lease_balances`
-   (impayés & soldes). Premier bénéfice visible, sans flux locataire.
+3. **Nouvelle lecture** (livrée) : le dashboard bascule sur `lease_balances`
+   (impayés & soldes) via `lib/ledger` — une ligne par bail, dette consolidée
+   en compte courant (une avance réduit le dû ; un même locataire n'apparaît
+   plus une fois par échéance), tuile « Retard » sourcée du grand livre,
+   déclarations à confirmer et litiges visibles par bail. « Payé / Attendu »
+   et le taux de recouvrement restent des lentilles mensuelles sur
+   `rent_due_balances` (déjà lue pour la cadence ADR-022) — la vue par bail
+   n'a pas de découpage mensuel, et le rapprochement paiement↔mois est un
+   concept d'allocation hérité, pas de compte courant. Premier bénéfice
+   visible, sans flux locataire.
+
+   Règles d'affichage (dérivées du § 6) : le chiffre rouge d'une ligne est
+   l'**impayé seul** — la somme des lignes rouges recolle avec la tuile
+   « Retard » ; l'« attendu » est nommé dans la sous-ligne, jamais fusionné ;
+   un montant en simple attente (déclaration) s'affiche en ton neutre, une
+   attente n'étant pas une dette ; « à jour » signifie désormais *bail actif
+   sans dû, sans attente, sans litige* (compte courant), plus « échéances du
+   mois soldées ».
+
+   Limites connues de la coexistence des lentilles (assumées jusqu'aux
+   phases suivantes) : les **relances** (ADR-022) et la **fiche bail**
+   restent calculées par échéance (`rent_due_balances`) — un crédit affecté
+   par le bailleur à un mois futur alors qu'un mois ancien reste dû peut
+   donc produire un écart visible (liste « aucun retard » côté compte
+   courant, relance de retard côté cadence). Les relances affichent ce que
+   ranti-ops enverra réellement (leçon ADR-022 : l'UI ne promet que ce qui
+   est vrai) ; la réconciliation des lentilles se fait à la bascule de la
+   fiche bail et de la source des relances sur le grand livre.
 4. **Le différenciant** : débits variables, notification WhatsApp,
    Valider/Contester par lien signé, triggers d'indélébilité,
    contre-passation.
@@ -346,9 +372,10 @@ vrai ledger et un meilleur dashboard d'impayés.
   d'égalité — **livré** (`20260716150000_ledger_transactions_expand.sql`,
   testé par `supabase/tests/ledger_transactions.test.sql`). RPC token
   locataire : phase « différenciant ».
-- `lib/` : nouveau module `ledger` (lecture de `lease_balances`) à la phase
-  « Nouvelle lecture » ; les écritures n'ont pas besoin de changer — le
-  miroir vit en base.
+- `lib/` : module `ledger` **livré** (types `LeaseBalance`, query
+  `getLandlordLeaseBalances`, agrégation pure `buildLedgerOverview` — dérive
+  l'« attendu » du solde certain : `attendu = max(0, −solde) − impayé`) ;
+  les écritures n'ont pas besoin de changer — le miroir vit en base.
 - Docs à mettre à jour dans la foulée : `vision.md` (promesse : les cinq
   questions deviennent « quel est le solde, qu'est-ce qui est reconnu,
   qu'est-ce qui est contesté »), `architecture.md` (domaine central),
