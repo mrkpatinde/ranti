@@ -108,7 +108,7 @@ Objectif : Ranti prépare ou automatise les rappels et relances à partir du bai
 - [x] Générer les relances prévues à partir des échéances (cron quotidien /api/cron/reminders, fenêtres J-5/J-1/J-0/J+3/J+10)
 - [x] Afficher les relances prévues/envoyées sur le dashboard (bloc « Relances à venir » lecture seule — prochaine fenêtre par échéance impayée, projetée depuis la cadence ; envoyées sur /reminders)
 - [x] Écran Relances (/reminders) : historique des relances envoyées + accès aux déclarations locataires à valider
-- [ ] Préparer le message WhatsApp/SMS sans envoi automatique complet au MVP prudent
+- [x] Préparer le message WhatsApp/SMS sans envoi automatique complet au MVP prudent (bouton « Relancer sur WhatsApp » sur /leases/[id] : lien wa.me pré-rempli vers le locataire pour la plus ancienne échéance non soldée, envoi manuel — ADR-006 nuance MVP, pattern wa.me du journal)
 - [ ] Auditer création, annulation, file d'attente et envoi de relance
 
 ## Sprint 8 - Proof Engine
