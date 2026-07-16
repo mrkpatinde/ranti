@@ -3,6 +3,26 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.22.0] - 2026-07-16
+
+### Added
+
+- **Grand Livre de Confiance, phase Expand (ADR-023)** : table `transactions`
+  (compte courant locatif — loyers, réparations, frais, règlements,
+  contre-passations) et vue `lease_balances` (solde certain / en attente /
+  en litige / impayé, calculés en base). Les tables héritées restent la
+  source de vérité : le grand livre est tenu à l'identique par triggers
+  miroir (même transaction Postgres) et backfill idempotent, avec une garde
+  d'égalité des soldes qui fait échouer la migration au moindre écart.
+  Machine à états dure en base : une ligne validée est indélébile (toute
+  correction est une contre-passation visible), une ligne retirée est
+  terminale, rien ne se supprime. Aucun changement d'interface : la bascule
+  des lectures viendra à la phase « Nouvelle lecture ».
+- ADR-023 rédigée puis précisée (matrice de validation « qui rend quoi
+  certain », cycle de vie du litige à quatre sorties, correspondance de
+  backfill) ; `vision.md`, `architecture.md`, `domain-model.md`,
+  `database.md` et `glossary.md` alignés sur le pivot.
+
 ## [0.3.21.1] - 2026-07-16
 
 ### Fixed

@@ -54,6 +54,31 @@ Le paiement validé crée la preuve.
 
 Après validation propriétaire, Ranti génère automatiquement le document adapté : reçu de paiement partiel ou quittance/reçu complet quand l'échéance est soldée.
 
+## Pivot « Grand Livre de Confiance » (ADR-023, 2026-07-16)
+
+Ranti n'est plus un générateur de documents : c'est le **compte courant
+locatif partagé** entre propriétaire et locataire — l'arbitre digital de la
+relation. Le reçu et la quittance deviennent des sorties du grand livre, pas
+son cœur.
+
+Les cinq questions de la promesse deviennent :
+
+1. Quel est le solde de chaque bail ?
+2. Qu'est-ce qui est reconnu par les deux parties (solde certain) ?
+3. Qu'est-ce qui est affirmé mais pas encore reconnu (en attente) ?
+4. Qu'est-ce qui est contesté (en litige, documenté sans arbitrage) ?
+5. Qui est en retard, et de combien ?
+
+Le grand livre couvre aussi les charges variables (réparations, frais) :
+le locataire valide ou conteste chaque dette affirmée, par lien signé, sans
+compte à créer. Une ligne validée est indélébile ; toute correction est une
+contre-passation visible des deux parties. C'est ce qui crée la valeur de
+preuve en cas de conflit — avec la quittance, qui reste le document à valeur
+légale établie.
+
+La transition est en cours (phases dans l'ADR-023) : la boucle produit
+ci-dessus reste la mécanique opérante jusqu'à la bascule des lectures.
+
 ## Cible initiale
 
 Propriétaires particuliers africains qui gèrent entre 1 et 20 logements.

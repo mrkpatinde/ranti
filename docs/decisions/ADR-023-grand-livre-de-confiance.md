@@ -4,7 +4,11 @@
 
 Accepté (2026-07-16, décision CEO — pivot stratégique « Grand Livre de
 Confiance »). Révisé le même jour (v2) : matrice de validation exhaustive et
-cycle de vie du litige, préalables au backfill de la Phase 1.
+cycle de vie du litige, préalables au backfill de la Phase 1. Précisé (v2.1,
+même jour, livraison de la phase Expand) : colonnes `occurred_at` /
+`disputed_at` / `legacy_ref`, miroir par triggers en base plutôt que double
+écriture applicative, correspondance de backfill étendue aux échéances
+annulées/archivées, exigibilité héritée par la contre-passation.
 
 Ce document est la **référence d'alignement** de toutes les parties prenantes
 sur les règles de gestion du grand livre. En cas de divergence entre une
@@ -62,10 +66,12 @@ Toute somme due ou reçue sur un bail est une ligne d'un même grand livre.
 | `type` | `loyer` \| `reparation` \| `frais` \| `reglement` \| `contre_passation` | nature de la ligne |
 | `direction` | `debit` (dû par le locataire) \| `credit` (reçu du locataire) | sens comptable |
 | `amount` | int (FCFA) | toujours positif ; le sens vient de `direction` |
+| `occurred_at` | timestamptz | date de l'événement économique (échéance créée, argent reçu) — l'ordre du relevé |
 | `due_date` | date, nullable | exigibilité — renseignée pour les débits planifiés, pilote le retard |
 | `period_start` / `period_end` | date, nullable | mois couvert (débits `loyer` uniquement, règles ADR-004) |
 | `status` | `pending` \| `validated` \| `disputed` \| `withdrawn` | cycle de reconnaissance (voir § 3 et 4) |
 | `validated_by` / `validated_at` | `landlord` \| `tenant` \| `system` + timestamptz | qui a rendu la ligne certaine |
+| `disputed_at` | timestamptz, nullable | entrée en litige — reste posée après un retrait (deux voix conservées) |
 | `reversal_of` | uuid, nullable, FK `transactions` | contre-passation : lien vers la ligne validée corrigée |
 | `replaced_by` | uuid, nullable, FK `transactions` | remplacement : lien vers la ligne corrigée réémise |
 | `resolution` / `resolved_at` | `retrait_contestation` \| `retrait_auteur` \| `remplacement` + timestamptz | comment la ligne est sortie de `pending`/`disputed` |
@@ -73,6 +79,7 @@ Toute somme due ou reçue sur un bail est une ligne d'un même grand livre.
 | `contest_nature` / `contested_amount` / `tenant_comment` | `amount` \| `not_owed` \| `already_paid` \| `other` + int + text | version du contestataire — « deux voix », modèle ADR-013 |
 | `source` | `genere_par_bail` \| `manuel` \| `feexpay` \| `declaration_locataire` | origine de la ligne |
 | `label` | text | libellé lisible (« Réparation serrure ») |
+| `legacy_ref` | text unique, nullable | correspondance avec le modèle hérité (backfill idempotent + miroir) — transitoire, tombe à la phase Contract |
 
 ### 2. L'échéance ne disparaît pas : elle est absorbée
 
@@ -222,6 +229,11 @@ Les lignes `withdrawn` n'entrent dans aucun agrégat :
 Un montant `pending` ou `disputed` n'entre **jamais** dans le solde certain :
 mélanger l'affirmé et le reconnu détruirait la confiance que le produit vend.
 
+Règle d'exigibilité : un débit sans `due_date` (réparation, frais) est dû
+tout de suite ; une **contre-passation hérite de l'exigibilité de sa cible**
+— annuler une échéance future ne réduit pas l'impayé du jour, annuler un
+encaissement le ré-augmente immédiatement.
+
 ### 7. Surface locataire : liens signés, pas de compte
 
 Reconduction du modèle ADR-013, qui a fait ses preuves sur le reçu :
@@ -256,19 +268,35 @@ qui est opposable devant un médiateur.
 
 1. **Docs d'abord** : cette ADR, puis `vision.md`, `architecture.md`,
    `domain-model.md`, `database.md` mis à jour avant toute migration.
-2. **Expand** : table `transactions` + vue `lease_balances` à côté de
-   l'existant, backfill idempotent, double écriture dans les server actions
-   (`rent-dues`, `payments`, `collections`). Aucun changement UI tant que
-   les soldes recalculés ne collent pas à 100 % avec l'existant.
+2. **Expand** (livrée) : table `transactions` + vue `lease_balances` à côté
+   de l'existant, backfill idempotent (clé `legacy_ref`), et miroir par
+   **triggers en base** sur les tables héritées — pas de double écriture
+   applicative : les RPC SQL (`generate_rent_dues`,
+   `verify_payment_transaction`, chemins ops) sont couvertes d'office, dans
+   la même transaction Postgres. Granularité transitoire : une ligne de
+   crédit par allocation (projection fidèle du modèle hérité) ; l'argent
+   confirmé non affecté (fast-log ADR-014) reste au journal, hors grand
+   livre par bail. Aucun changement UI tant que les soldes recalculés ne
+   collent pas à 100 % avec l'existant (garde
+   `private.verify_ledger_equality()`, exécutée dès la migration — un écart
+   la fait échouer).
 
    Correspondance de backfill (statuts dérivés de la matrice § 3) :
 
    | Donnée existante | Ligne créée | Statut |
    | :-- | :-- | :-- |
    | `rent_dues` (toutes, y compris `overdue`) | débit `loyer`, `source = genere_par_bail` | `validated` (`system`) — matrice ligne 1 |
+   | `rent_dues` annulées ou archivées | débit **+** contre-passation (motif repris) | paire `validated` — l'histoire n'est pas réécrite |
    | `rent_receptions` confirmées (via allocations) | crédit `reglement`, `source = manuel` ou `feexpay` | `validated` (`landlord` ou `system`) — lignes 3-4 |
    | `rent_receptions` `draft` (déclarations `/confirmer`) | crédit `reglement`, `source = declaration_locataire` | `pending` — ligne 5 |
-   | `rent_receptions` annulées (ADR-005) | crédit `validated` **+** contre-passation `validated` (motif repris) | paire ligne 4 + ligne 6/7 — l'histoire n'est pas réécrite |
+   | `rent_receptions` confirmées puis annulées (ADR-005) | crédit `validated` **+** contre-passation `validated` (motif repris) | paire ligne 4 + ligne 6/7 — l'histoire n'est pas réécrite |
+   | `rent_receptions` `draft` annulées | crédit `withdrawn` (`retrait_auteur`) | jamais devenu certain — pas de contre-passation |
+
+   Note sur la matrice ligne 7 pendant l'Expand : le miroir suit la vérité
+   héritée — l'annulation d'un encaissement confirmé (flux ADR-005 actuel)
+   se projette en contre-passation `validated`. L'exigence de validation
+   locataire de la ligne 7 s'applique à partir de la bascule, quand le flux
+   locataire existe.
 
 3. **Nouvelle lecture** : le dashboard bascule sur `lease_balances`
    (impayés & soldes). Premier bénéfice visible, sans flux locataire.
@@ -313,10 +341,14 @@ vrai ledger et un meilleur dashboard d'impayés.
 - Migrations : table `transactions` + contraintes (montant positif,
   cohérence type/direction/statut, `reversal_of` vers ligne validée
   uniquement, `replaced_by`), vue `lease_balances`, triggers d'indélébilité
-  et de terminalité (`validated`, `withdrawn`), RPC token locataire,
-  backfill idempotent selon la correspondance § Transition.
-- `lib/` : nouveau module `ledger` ; `rent-dues`, `payments`, `collections`,
-  `receipts`, `reminders` passent en double écriture puis en lecture ledger.
+  et de terminalité (`validated`, `withdrawn`), triggers miroir des tables
+  héritées, backfill idempotent selon la correspondance § Transition, garde
+  d'égalité — **livré** (`20260716150000_ledger_transactions_expand.sql`,
+  testé par `supabase/tests/ledger_transactions.test.sql`). RPC token
+  locataire : phase « différenciant ».
+- `lib/` : nouveau module `ledger` (lecture de `lease_balances`) à la phase
+  « Nouvelle lecture » ; les écritures n'ont pas besoin de changer — le
+  miroir vit en base.
 - Docs à mettre à jour dans la foulée : `vision.md` (promesse : les cinq
   questions deviennent « quel est le solde, qu'est-ce qui est reconnu,
   qu'est-ce qui est contesté »), `architecture.md` (domaine central),

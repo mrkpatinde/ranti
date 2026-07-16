@@ -258,6 +258,82 @@ Note de dérive : en live, `rent_receptions.recorded_by` accepte
 `('landlord', 'operator', 'tenant', 'psp')` — ce document décrivait
 initialement un modèle antérieur.
 
+### `transactions` (ADR-023 « Grand Livre de Confiance », phase Expand, live)
+
+Le grand livre locatif : toute somme due ou reçue sur un bail est une ligne
+d'un même compte courant. **Pendant la phase Expand, les tables héritées
+(`rent_dues`, `rent_receptions`, `rent_reception_allocations`) restent la
+source de vérité** ; le grand livre est tenu à l'identique par des triggers
+miroir (`private.mirror_rent_due` / `mirror_allocation` / `mirror_reception`,
+SECURITY DEFINER, même transaction Postgres que l'écriture héritée) et un
+backfill idempotent (clé `legacy_ref`, `on conflict do nothing`). Ne pas
+confondre avec `payment_transactions` (ledger du rail PSP, ADR-018) : le rail
+trace l'argent chez le PSP, le grand livre trace la relation bailleur/locataire.
+
+Champs : `id`, `landlord_id`, `lease_id`, `type`
+(`loyer`/`reparation`/`frais`/`reglement`/`contre_passation`), `direction`
+(`debit`/`credit`), `amount` (FCFA entier > 0), `currency` (`XOF`),
+`occurred_at` (date de l'événement économique — l'ordre du relevé),
+`due_date` (exigibilité, débits seulement), `period_start`/`period_end`
+(mois couvert, loyers seulement — règles ADR-004), `status`
+(`pending`/`validated`/`disputed`/`withdrawn`), `validated_by`
+(`landlord`/`tenant`/`system`) + `validated_at`, `disputed_at` +
+`contest_nature` (`amount`/`not_owed`/`already_paid`/`other`) +
+`contested_amount` + `tenant_comment` (deux voix, modèle ADR-013),
+`resolution` (`retrait_contestation`/`retrait_auteur`/`remplacement`) +
+`resolved_at`, `reversal_of` (contre-passation → ligne d'origine),
+`replaced_by`, `tenant_token` (accès public locataire, posé en phase
+« différenciant »), `source`
+(`genere_par_bail`/`manuel`/`feexpay`/`declaration_locataire`), `label`,
+`legacy_ref` (correspondance héritée, transitoire — tombe à la phase
+Contract).
+
+Machine à états (triggers durs, ADR-023 §4) : une ligne naît `pending` ou
+`validated` ; `pending → validated | disputed | withdrawn` ;
+`disputed → validated` (uniquement `resolution = 'retrait_contestation'`)
+`| withdrawn` ; **`validated` et `withdrawn` sont terminaux** ; `DELETE`
+refusé quel que soit le statut ; identité financière gelée dès l'insertion
+(corriger = retirer et réémettre, jamais éditer). Une contre-passation ne
+vise qu'une ligne `validated` du même bail, de sens opposé, dans la limite
+du montant non déjà contre-passé — jamais une autre contre-passation.
+
+Correspondance miroir/backfill (statuts dérivés de la matrice ADR-023 §3) :
+
+| Héritée | Ligne du grand livre |
+| :-- | :-- |
+| `rent_due` (toutes) | débit `loyer` `validated(system)`, `legacy_ref = due:<id>` |
+| `rent_due` annulée/archivée | paire débit + contre-passation `validated` (motif repris) |
+| allocation d'une réception confirmée | crédit `reglement` `validated(landlord)` — ou `validated(system)` + `source feexpay` si `recorded_by = 'psp'` ; `legacy_ref = alloc:<id>` |
+| allocation d'une réception `draft` | crédit `pending` (`declaration_locataire` si `recorded_by = 'tenant'`) |
+| réception confirmée puis annulée (ADR-005) | paire crédit `validated` + contre-passation `validated` (motif repris) |
+| réception `draft` annulée | crédit `withdrawn` (`retrait_auteur`) — jamais devenu certain |
+
+Granularité transitoire : une ligne de crédit **par allocation** (projection
+fidèle du modèle hérité). L'argent confirmé non affecté (fast-log ADR-014)
+n'entre pas encore au grand livre par bail — il reste visible au journal.
+
+Garde d'égalité : `private.verify_ledger_equality()` (service_role) compare,
+par bail, le solde certain du grand livre à l'opposé du restant dû hérité ;
+elle est exécutée en fin de migration (tout écart fait échouer la migration)
+et conditionne la bascule des lectures (critère de non-bascule ADR-023).
+
+Écritures : aucun grant client (`authenticated` = SELECT sous RLS
+`landlord_id = private.current_landlord_id()`) ; seuls le backfill et les
+triggers miroir écrivent pendant l'Expand. Audit `private.log_audit()` sur
+insert/update (ADR-006).
+
+### `lease_balances` (vue, ADR-023 §6)
+
+Trois nombres par bail, jamais fusionnés, calculés en base
+(`security_invoker`, la RLS de `transactions` s'applique) :
+`certain_balance` (Σ crédits validés − Σ débits validés), `pending_debits` /
+`pending_credits` (affirmé, pas reconnu), `disputed_debits` /
+`disputed_credits` (désaccord documenté), `overdue_amount` (impayé : lignes
+certaines exigibles aujourd'hui, débits moins crédits, plancher zéro — une
+contre-passation hérite de l'exigibilité de sa cible : annuler une échéance
+future ne réduit pas l'impayé du jour ; un débit sans date est dû tout de
+suite).
+
 ## Tables Post-MVP
 
 ### `notification_deliveries`
@@ -283,10 +359,11 @@ rent_receptions -> payment_proofs
 rent_dues -> reminders
 rent_receptions -> receipts (snapshot jsonb archive périodes + allocations)
 leases -> payment_transactions (ledger rail PSP, ADR-018)
+leases -> transactions (grand livre locatif, ADR-023 — miroir des trois lignes ci-dessus pendant l'Expand)
 landlords -> audit_logs
 ```
 
-Tables live hors modèle initial : `payment_transactions` (ledger PSP), `product_events` (instrumentation), `reminder_events` (envois WhatsApp ranti-ops), vue `journal_feed`.
+Tables live hors modèle initial : `payment_transactions` (ledger PSP), `transactions` + vue `lease_balances` (grand livre ADR-023), `product_events` (instrumentation), `reminder_events` (envois WhatsApp ranti-ops), vue `journal_feed`.
 
 ## Règles d'intégrité métier
 
@@ -383,6 +460,7 @@ Préférer `archived`, `cancelled`, `reversed`, `deleted_at` avec audit, ou une 
 11. `audit_logs`
 12. `reminders` (018)
 13. `payment_transactions` (ADR-018)
+14. `transactions` + vue `lease_balances` (ADR-023, phase Expand)
 
 Post-MVP : `notification_deliveries`, `public_links`, `lease_reminder_rules`, `receipt_items` (si le snapshot jsonb ne suffit plus).
 

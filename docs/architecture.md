@@ -43,13 +43,24 @@ Les commandes racine délèguent vers `apps/web` (`bun --cwd`). La landing vit D
 
 ## Domaine central
 
-Le coeur métier est l'échéance de loyer.
+Cible (ADR-023 « Grand Livre de Confiance ») : le coeur métier est le
+**compte courant locatif** — toute somme due ou reçue sur un bail est une
+ligne de `transactions` (loyer, réparation, frais, règlement,
+contre-passation), avec un statut de reconnaissance
+(`pending`/`validated`/`disputed`/`withdrawn`) et un solde par bail en trois
+nombres jamais fusionnés (vue `lease_balances`).
+
+État de la transition (phase Expand, en cours) : les tables héritées restent
+la source de vérité et l'échéance de loyer reste la mécanique opérante ; le
+grand livre est tenu en miroir (triggers + backfill idempotent) avec une
+garde d'égalité des soldes qui conditionne la bascule des lectures.
 
 ```txt
 landlord -> property -> unit -> lease -> rent_due
 lease -> reminder rules -> reminders
 rent_due -> rent_reception_allocations -> rent_receptions
 rent_receptions -> receipts / payment_proofs
+lease -> transactions -> lease_balances   (grand livre ADR-023, miroir)
 ```
 
 ## Sécurité
@@ -91,6 +102,18 @@ Cible : après validation d'un paiement par le propriétaire, Ranti génère aut
 
 Statut : cible documentée. La DB live contient déjà `receipts.kind` et `snapshot`, mais l'audit code doit confirmer le niveau d'automatisation réel.
 
+### Grand Livre (ADR-023)
+
+Cible : le solde de chaque bail (certain / en attente / en litige) se calcule
+en base à partir des lignes de transactions, et le locataire valide ou
+conteste les dettes affirmées par lien signé.
+
+Statut : **phase Expand livrée** — table `transactions`, vue `lease_balances`,
+machine à états (terminalité, indélébilité, contre-passation bornée), miroir
+des tables héritées et garde d'égalité des soldes. Les lectures applicatives
+ne basculent qu'à la phase « Nouvelle lecture » ; le flux locataire
+Valider/Contester arrive à la phase « différenciant ».
+
 ## Principes d'implémentation
 
 - Mutations sensibles transactionnelles.
@@ -104,7 +127,7 @@ Statut : cible documentée. La DB live contient déjà `receipts.kind` et `snaps
 - `docs/domain-model.md`
 - `docs/database.md`
 - `docs/api.md`
-- `docs/decisions/`
+- `docs/decisions/` (dont ADR-023 — Grand Livre de Confiance, document de référence du pivot)
 - `docs/gap-analysis-live-db-reminder-proof-engines.md`
 - `docs/implementation-plan-reminder-proof-engines.md`
 - `docs/ops-deployment.md`
