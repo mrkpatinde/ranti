@@ -93,6 +93,12 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
 
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
 
+  // Ferme la boucle dashboard → retard → action : le CTA « Encaisser » mène à
+  // /collections/new avec ce bail présélectionné dès qu'il reste un impayé.
+  const hasUnpaidDues = dues.some(
+    (due) => (due.status === "expected" || due.status === "overdue") && due.amount_due - due.amount_paid > 0,
+  )
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
@@ -128,6 +134,14 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
                 </form>
                 <p className="w-full text-sm leading-6 text-muted-foreground">ⓘ L&apos;activation crée les échéances mensuelles depuis la date de début et met le suivi en route : rappels avant l&apos;échéance, relances en cas de retard, quittance à chaque paiement confirmé.</p>
               </>
+            ) : null}
+            {lease.status === "active" && hasUnpaidDues ? (
+              <Link
+                href={`/collections/new?lease_id=${lease.id}`}
+                className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
+              >
+                Encaisser un paiement reçu
+              </Link>
             ) : null}
             {lease.status === "active" ? (
               <div className="w-full space-y-3 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
