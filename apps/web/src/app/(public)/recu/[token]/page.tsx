@@ -100,6 +100,15 @@ export default async function RecuPage({
   const justContested = sp.contested === "1";
 
   const ack = ACK_BANNER[receipt.tenant_ack];
+  // Un SEUL bandeau d'état : juste après l'action (?certified=1 / ?contested=1),
+  // son texte devient le remerciement — pas d'encadré séparé qui répète la
+  // même chose que l'état persistant.
+  const ackText =
+    justCertified && receipt.tenant_ack === "certified"
+      ? "Merci. Vous avez confirmé l'exactitude de ce reçu."
+      : justContested && receipt.tenant_ack === "disputed"
+        ? "Votre contestation est enregistrée. Le propriétaire en est informé."
+        : ack.text;
   const kind = KIND_LABEL[receipt.kind] ?? "Document";
   const tenantName =
     [receipt.tenant_first_name, receipt.tenant_last_name]
@@ -142,22 +151,12 @@ export default async function RecuPage({
 
         {/* Bandeau d'acquittement */}
         <div className={`mt-6 rounded-2xl border px-5 py-4 text-sm ${ack.cls}`}>
-          {ack.text}
+          {ackText}
         </div>
 
         {errorMsg && (
           <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {errorMsg}
-          </div>
-        )}
-        {justCertified && (
-          <div className="mt-4 rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
-            Merci. Vous avez confirmé l&apos;exactitude de ce reçu.
-          </div>
-        )}
-        {justContested && (
-          <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
-            Votre contestation est enregistrée. Le propriétaire en est informé.
           </div>
         )}
 

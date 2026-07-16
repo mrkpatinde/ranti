@@ -86,6 +86,14 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
   const waText = encodeURIComponent(
     `Voici votre reçu de loyer (${kindLabels[receipt.kind]}). Ouvrez-le et confirmez son exactitude : ${shareUrl}`,
   )
+  // Lien profond vers la conversation du locataire (même mécanique que le
+  // journal et les relances) : wa.me attend indicatif + numéro sans « + » ni
+  // séparateur. Le wa.me sans numéro (mode « partager à… ») perd souvent le
+  // message pré-rempli sur Android — on ne le garde qu'en repli sans téléphone.
+  const tenantDigits = snap.tenant?.phone?.replace(/\D/g, "") ?? ""
+  const waHref = tenantDigits
+    ? `https://wa.me/${tenantDigits}?text=${waText}`
+    : `https://wa.me/?text=${waText}`
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-6 py-8 lg:py-14">
@@ -196,7 +204,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
             </p>
             <p className="break-all rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground/80">{shareUrl}</p>
             <a
-              href={`https://wa.me/?text=${waText}`}
+              href={waHref}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"

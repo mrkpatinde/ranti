@@ -3,6 +3,26 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.21.1] - 2026-07-16
+
+### Fixed
+
+- Montants illisibles sur la quittance PDF (« 120/000/FCFA ») : le séparateur
+  de milliers passait par l'espace fine insécable U+202F, absente de
+  l'encodage WinAnsi des polices PDF de base (Helvetica) — l'octet tronqué
+  s'imprimait « / ». `formatFcfa` utilise désormais l'espace insécable
+  U+00A0, rendue correctement partout (écran, PDF, WhatsApp), sans casser
+  l'invariant « le même montant s'écrit pareil sur tous les canaux ».
+- Partage WhatsApp de la quittance (`/receipts/[id]`) : le lien `wa.me` sans
+  numéro (mode « partager à… ») perdait souvent le message pré-rempli sur
+  Android. Le lien cible désormais directement la conversation du locataire
+  (téléphone du snapshot, même mécanique que le journal et les relances) ;
+  repli sur le lien sans numéro si le locataire n'a pas de téléphone.
+- Page publique du reçu (`/recu/[token]`) : après confirmation, le bandeau
+  d'état et l'encadré « Merci… » répétaient le même message. Un seul bandeau
+  reste ; son texte devient le remerciement juste après l'action (idem pour
+  la contestation).
+
 ## [0.3.12.0] - 2026-07-16
 
 ### Added
