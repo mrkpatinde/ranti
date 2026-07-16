@@ -70,7 +70,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <form action={createLandlordProfile} className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="phone" className={labelClass}>
-              Numéro de téléphone <span className="text-red-700">*</span>
+              Numéro de téléphone <span className="text-destructive">*</span>
             </label>
             <CountryPhoneInput
               id="phone"
@@ -88,7 +88,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
           <div className="space-y-2">
             <label htmlFor="first_name" className={labelClass}>
-              Prénom <span className="text-red-700">*</span>
+              Prénom <span className="text-destructive">*</span>
             </label>
             <input
               id="first_name"
@@ -102,7 +102,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
           <div className="space-y-2">
             <label htmlFor="last_name" className={labelClass}>
-              Nom <span className="text-red-700">*</span>
+              Nom <span className="text-destructive">*</span>
             </label>
             <input
               id="last_name"
@@ -115,7 +115,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </div>
 
           {errorMessage ? (
-            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {errorMessage}
             </p>
           ) : null}

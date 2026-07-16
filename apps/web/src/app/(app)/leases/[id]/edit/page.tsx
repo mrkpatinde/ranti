@@ -45,7 +45,7 @@ export default async function EditLeasePage({ params, searchParams }: EditLeaseP
           {!isDraft ? <p className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent">Ce bail est déjà activé. Ranti ne permet pas de le modifier librement pour protéger l&apos;historique des loyers.</p> : null}
         </div>
 
-        {sp?.error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">{sp.error}</p> : null}
 
         <form action={updateLease} className="space-y-5">
           <input type="hidden" name="id" value={lease.id} />

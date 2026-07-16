@@ -55,7 +55,7 @@ function dueStatusClasses(status: RentDueStatus): string {
     case "paid":
       return "border-primary/20 bg-secondary text-foreground"
     case "overdue":
-      return "border-red-300 bg-red-50 text-red-900"
+      return "border-destructive/40 bg-destructive/10 text-destructive"
     case "cancelled":
       return "border-border bg-background text-foreground/70"
     default:
@@ -110,7 +110,7 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
 
       <section className="flex flex-1 flex-col gap-8 py-10">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
         <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-start justify-between gap-4">

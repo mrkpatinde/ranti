@@ -45,7 +45,7 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
         ) : null}
 
         {params?.error ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
             {params.error}
           </p>
         ) : null}

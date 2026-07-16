@@ -16,9 +16,9 @@ const statusLabels: Record<ReceiptStatus, string> = {
 // signal (ouvert / certifié / contesté) ; `unilateral` reste silencieux.
 const ackBadge: Record<TenantAck, { label: string; cls: string } | null> = {
   unilateral: null,
-  read: { label: "Ouvert", cls: "border-amber-300 text-amber-700" },
+  read: { label: "Ouvert", cls: "border-warning/50 text-warning" },
   certified: { label: "Certifié", cls: "border-primary/30 text-primary" },
-  disputed: { label: "Contesté", cls: "border-red-300 text-red-700" },
+  disputed: { label: "Contesté", cls: "border-destructive/40 text-destructive" },
 }
 
 const kindLabels = {
@@ -62,7 +62,7 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
         </div>
 
         {disputedCount > 0 ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+          <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {disputedCount === 1
               ? "1 reçu est contesté par un locataire."
               : `${disputedCount} reçus sont contestés par des locataires.`}{" "}

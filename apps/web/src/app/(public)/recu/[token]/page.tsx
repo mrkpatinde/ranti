@@ -57,7 +57,7 @@ const ACK_BANNER: Record<
   },
   disputed: {
     text: "Reçu contesté — votre version est enregistrée à côté de celle du propriétaire.",
-    cls: "border-red-200 bg-red-50 text-red-800",
+    cls: "border-destructive/25 bg-destructive/10 text-destructive",
   },
 };
 
@@ -146,7 +146,7 @@ export default async function RecuPage({
         </div>
 
         {errorMsg && (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+          <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {errorMsg}
           </div>
         )}
@@ -156,7 +156,7 @@ export default async function RecuPage({
           </div>
         )}
         {justContested && (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+          <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             Votre contestation est enregistrée. Le propriétaire en est informé.
           </div>
         )}
@@ -202,11 +202,11 @@ export default async function RecuPage({
 
         {/* Version du locataire si contesté (deux voix) */}
         {receipt.tenant_ack === "disputed" && receipt.contest_nature && (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
-            <p className="text-xs uppercase tracking-[0.16em] text-red-700">
+          <div className="mt-6 rounded-2xl border border-destructive/25 bg-destructive/10 p-5">
+            <p className="text-xs uppercase tracking-[0.16em] text-destructive">
               {NATURE_LABEL[receipt.contest_nature]}
             </p>
-            <p className="mt-2 text-sm text-red-800">
+            <p className="mt-2 text-sm text-destructive">
               {receipt.contest_nature === "not_paid" &&
                 "Le locataire déclare ne pas avoir payé ce loyer."}
               {receipt.contest_nature === "amount" &&

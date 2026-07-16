@@ -91,7 +91,7 @@ export function ContestForm({ token }: { token: string }) {
           Annuler
         </button>
         <SubmitButton
-          className="flex-1 rounded-full bg-red-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-60"
+          className="flex-1 rounded-full bg-destructive px-5 py-3 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90 disabled:opacity-60"
           pendingLabel="Envoi…"
         >
           Contester

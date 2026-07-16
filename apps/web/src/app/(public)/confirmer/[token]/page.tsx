@@ -102,7 +102,7 @@ export default async function ConfirmerPage({
 
         {/* Message d'erreur */}
         {errorMsg && (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+          <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {errorMsg}
           </div>
         )}

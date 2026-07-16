@@ -17,7 +17,7 @@ export function DeclarationFields() {
     <>
       <div className="space-y-2">
         <label htmlFor="method" className="block text-sm font-medium text-foreground">
-          Comment avez-vous payé ? <span className="text-red-700">*</span>
+          Comment avez-vous payé ? <span className="text-destructive">*</span>
         </label>
         <select
           id="method"
@@ -37,7 +37,7 @@ export function DeclarationFields() {
       <div className="space-y-2">
         <label htmlFor="reference" className="block text-sm font-medium text-foreground">
           Référence de la transaction
-          {referenceRequired ? <span className="text-red-700"> *</span> : null}
+          {referenceRequired ? <span className="text-destructive"> *</span> : null}
         </label>
         <input
           id="reference"

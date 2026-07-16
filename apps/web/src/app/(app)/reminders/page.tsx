@@ -102,7 +102,7 @@ export default async function RemindersPage() {
                   <span
                     className={
                       reminder.status === "failed"
-                        ? "shrink-0 rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700 ring-1 ring-red-200"
+                        ? "shrink-0 rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive ring-1 ring-destructive/30"
                         : "shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-bold text-foreground ring-1 ring-primary/20"
                     }
                   >

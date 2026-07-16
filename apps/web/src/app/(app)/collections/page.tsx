@@ -182,7 +182,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
         ) : null}
 
         {params?.error ? (
-          <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+          <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {params.error}
           </p>
         ) : null}
@@ -345,7 +345,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                     <form action={cancelCollection} className="space-y-2 rounded-2xl border border-border p-4">
                       <input type="hidden" name="id" value={c.id} />
                       <label htmlFor={`reason-${c.id}`} className="block text-sm font-medium text-foreground">
-                        Motif d&apos;annulation <span className="text-red-700">*</span>
+                        Motif d&apos;annulation <span className="text-destructive">*</span>
                       </label>
                       <textarea
                         id={`reason-${c.id}`}
@@ -357,7 +357,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                         className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
                       />
                       <SubmitButton
-                        className="rounded-full border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60"
+                        className="rounded-full border border-destructive/40 px-5 py-2.5 text-sm font-medium text-destructive transition hover:border-destructive disabled:opacity-60"
                       >
                         Annuler cet encaissement
                       </SubmitButton>
@@ -391,15 +391,15 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                         </SubmitButton>
                       </form>
                       <details>
-                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground/70 transition hover:border-red-300 hover:text-red-700">Annuler cet encaissement…</summary>
-                        <form action={cancelCollection} className="mt-3 space-y-2 rounded-2xl border border-red-200 bg-red-50 p-4">
+                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground/70 transition hover:border-destructive/40 hover:text-destructive">Annuler cet encaissement…</summary>
+                        <form action={cancelCollection} className="mt-3 space-y-2 rounded-2xl border border-destructive/25 bg-destructive/10 p-4">
                           <input type="hidden" name="id" value={c.id} />
-                          <p className="text-sm leading-6 text-red-900">
+                          <p className="text-sm leading-6 text-destructive">
                             L&apos;annulation remet l&apos;échéance en attente (le loyer redevient dû) et reste tracée
                             dans le registre avec son motif. Elle est impossible tant qu&apos;un document actif existe.
                           </p>
-                          <label htmlFor={`reason-confirmed-${c.id}`} className="block text-sm font-medium text-red-900">
-                            Motif d&apos;annulation <span className="text-red-700">*</span>
+                          <label htmlFor={`reason-confirmed-${c.id}`} className="block text-sm font-medium text-destructive">
+                            Motif d&apos;annulation <span className="text-destructive">*</span>
                           </label>
                           <textarea
                             id={`reason-confirmed-${c.id}`}
@@ -410,7 +410,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                             placeholder="Ex. montant saisi par erreur"
                             className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
                           />
-                          <SubmitButton className="rounded-full border border-red-300 bg-card px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:border-red-700 disabled:opacity-60">
+                          <SubmitButton className="rounded-full border border-destructive/40 bg-card px-5 py-2.5 text-sm font-semibold text-destructive transition hover:border-destructive disabled:opacity-60">
                             Annuler cet encaissement
                           </SubmitButton>
                         </form>

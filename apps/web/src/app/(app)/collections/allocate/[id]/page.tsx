@@ -85,7 +85,7 @@ export default async function AllocateReceptionPage({ params, searchParams }: Al
         </div>
 
         {sp?.error ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
             {sp.error}
           </p>
         ) : null}
@@ -135,7 +135,7 @@ export default async function AllocateReceptionPage({ params, searchParams }: Al
             </div>
 
             {leftover > 0 ? (
-              <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning">
                 {formatAmount(leftover)} resteront en crédit non affecté après cette affectation.
               </p>
             ) : null}

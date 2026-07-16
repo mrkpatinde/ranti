@@ -23,8 +23,8 @@ function accentClass(event: JournalEvent): string {
   if (event.event_type === "rent_reception") {
     // Vert émeraude = encaissement alloué ; ambre = Fast-Log non alloué.
     return event.allocated === false
-      ? "border-amber-500/70"
-      : "border-emerald-500/70"
+      ? "border-warning/70"
+      : "border-accent/70"
   }
   // Événement système (bail, échéance, quittance, relance).
   return "border-border"
@@ -170,7 +170,7 @@ function EventRow({
           <p
             className={[
               "truncate text-[15px] font-medium leading-snug",
-              unallocated ? "text-amber-600 dark:text-amber-300" : "text-foreground",
+              unallocated ? "text-warning" : "text-foreground",
             ].join(" ")}
           >
             {title}
@@ -214,7 +214,7 @@ function EventRow({
           {unallocated ? (
             <Link
               href={`/collections/allocate/${event.ref_id}`}
-              className="text-xs font-medium text-amber-600 underline-offset-4 transition-colors hover:underline dark:text-amber-300"
+              className="text-xs font-medium text-warning underline-offset-4 transition-colors hover:underline"
               aria-label="Affecter cet encaissement à une échéance"
             >
               Affecter

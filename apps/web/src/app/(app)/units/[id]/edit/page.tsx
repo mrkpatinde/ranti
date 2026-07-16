@@ -51,7 +51,7 @@ export default async function EditUnitPage({ params, searchParams }: EditUnitPag
           <p className="text-base leading-7 text-foreground/70">Le lieu est affiché pour contexte. Pour le déplacer, créez plutôt un nouveau logement.</p>
         </div>
 
-        {sp?.error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">{sp.error}</p> : null}
 
         <form action={updateUnit} className="space-y-5">
           <input type="hidden" name="id" value={unit.id} />

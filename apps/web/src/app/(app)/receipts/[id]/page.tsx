@@ -38,9 +38,9 @@ const noticeLabels: Record<string, string> = {
 // ADR-013 — acquittement locataire, vu côté propriétaire.
 const ackBadge: Record<TenantAck, { label: string; cls: string }> = {
   unilateral: { label: "En attente d’ouverture", cls: "border-border text-muted-foreground" },
-  read: { label: "Ouvert, non confirmé", cls: "border-amber-300 text-amber-700" },
+  read: { label: "Ouvert, non confirmé", cls: "border-warning/50 text-warning" },
   certified: { label: "Certifié par le locataire", cls: "border-primary/30 text-primary" },
-  disputed: { label: "Contesté par le locataire", cls: "border-red-300 text-red-700" },
+  disputed: { label: "Contesté par le locataire", cls: "border-destructive/40 text-destructive" },
 }
 
 function formatDate(iso: string): string {
@@ -87,9 +87,9 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
       <section className="flex flex-1 flex-col gap-8 py-10">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
-        {receipt.status === "cancelled" ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">Ce document est annulé. L’encaissement lié reste conservé dans le registre.</p> : null}
+        {receipt.status === "cancelled" ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">Ce document est annulé. L’encaissement lié reste conservé dans le registre.</p> : null}
 
         <article className="rounded-2xl border border-border bg-card p-7 shadow-[0_14px_50px_-18px_rgba(41,41,41,0.22)]">
           <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
@@ -105,7 +105,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               <p className="text-sm text-foreground/70">N° {receipt.receipt_number}</p>
               <p className="text-sm text-muted-foreground">Émise le {formatDate(receipt.issued_at)}</p>
               <span className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-xs font-medium ${ack.cls}`}>{ack.label}</span>
-              {receipt.status === "cancelled" ? <span className="mt-1 ml-1 inline-flex rounded-lg border border-red-300 px-2 py-0.5 text-xs font-medium text-red-700">{statusLabels[receipt.status]}</span> : null}
+              {receipt.status === "cancelled" ? <span className="mt-1 ml-1 inline-flex rounded-lg border border-destructive/40 px-2 py-0.5 text-xs font-medium text-destructive">{statusLabels[receipt.status]}</span> : null}
             </div>
           </div>
 
@@ -156,7 +156,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
         </article>
 
         {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+          <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             <p className="font-medium">Le locataire conteste ce reçu.</p>
             <p className="mt-1">
               {receipt.contest_nature === "not_paid" && "Il déclare ne pas avoir payé ce loyer."}
@@ -165,7 +165,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               {receipt.contest_nature === "date" &&
                 `Il indique une autre période : ${receipt.contested_period || "non précisée"}.`}
             </p>
-            <p className="mt-2 text-xs text-red-700">Votre déclaration reste conservée. Corrigez le reçu (remplacement) si le locataire a raison.</p>
+            <p className="mt-2 text-xs text-destructive">Votre déclaration reste conservée. Corrigez le reçu (remplacement) si le locataire a raison.</p>
           </div>
         ) : null}
 
@@ -194,7 +194,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
             <input type="hidden" name="id" value={receipt.id} />
             <label htmlFor="reason" className="block text-sm font-medium text-foreground">Pourquoi annulez-vous cette quittance ?</label>
             <textarea id="reason" name="reason" rows={2} required minLength={3} placeholder="Ex. erreur de montant, paiement non reçu" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary" />
-            <SubmitButton className="rounded-full border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60">Annuler ce document</SubmitButton>
+            <SubmitButton className="rounded-full border border-destructive/40 px-5 py-2.5 text-sm font-medium text-destructive transition hover:border-destructive disabled:opacity-60">Annuler ce document</SubmitButton>
           </form>
         ) : null}
       </section>

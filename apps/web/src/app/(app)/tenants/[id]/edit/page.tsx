@@ -40,7 +40,7 @@ export default async function EditTenantPage({ params, searchParams }: EditTenan
           <p className="text-base leading-7 text-foreground/70">Le numéro reste obligatoire pour permettre les relances.</p>
         </div>
 
-        {sp?.error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">{sp.error}</p> : null}
 
         <form action={updateTenant} className="space-y-5">
           <input type="hidden" name="id" value={tenant.id} />

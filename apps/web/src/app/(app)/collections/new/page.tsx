@@ -112,7 +112,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
   if (!lease) {
     return (
       <Shell subtitle="Confirmer un paiement reçu">
-        <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+        <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
           Bail introuvable.
         </p>
         <Link href="/collections/new" className="text-sm font-medium underline-offset-4 hover:underline">
@@ -168,7 +168,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
       ) : null}
 
       {params.error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
           {params.error}
         </p>
       ) : null}
