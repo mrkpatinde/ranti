@@ -3,6 +3,20 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.10.0] - 2026-07-16
+
+### Added
+
+- Fiche bail `/leases/[id]` — section « Rappels & relances » : le calendrier
+  des rappels/relances que Ranti applique à partir de l'échéance (5 jours
+  avant, la veille, le jour J, dès J+3, à J+10), en lecture seule (miroir des
+  fenêtres du cron). Exigence ADR-006 (« la fiche bail doit afficher les règles
+  de rappel et relance »). Affiché en brouillon (« à l'activation ») et actif ;
+  canal-agnostique (pas de promesse SMS tant que l'envoi réel reste
+  WhatsApp/ops). L'historique envoyé passe sous « Envoyées ». Fenêtres fixes,
+  non configurables au MVP.
+- `roadmap.md` Sprint 7 : item « afficher les règles sur la fiche bail » coché.
+
 ## [0.3.9.0] - 2026-07-16
 
 ### Added

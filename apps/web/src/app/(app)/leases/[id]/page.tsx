@@ -63,6 +63,17 @@ function dueStatusClasses(status: RentDueStatus): string {
   }
 }
 
+// Cadence appliquée par Ranti à partir de l'échéance (ADR-006 : la fiche bail
+// affiche les règles de rappel/relance). Miroir des fenêtres du cron
+// (getReminderTemplate) — lecture seule, non configurable au MVP.
+const REMINDER_SCHEDULE: { when: string; what: string; late: boolean }[] = [
+  { when: "5 jours avant l'échéance", what: "Premier rappel — le loyer approche", late: false },
+  { when: "La veille de l'échéance", what: "Rappel — le loyer est dû demain", late: false },
+  { when: "Le jour de l'échéance", what: "Rappel — le loyer est dû aujourd'hui", late: false },
+  { when: "Dès 3 jours de retard", what: "Relance — régulariser le loyer", late: true },
+  { when: "À 10 jours de retard", what: "Relance — contacter le propriétaire", late: true },
+]
+
 export default async function LeaseDetailPage({ params, searchParams }: LeaseDetailPageProps) {
   const landlord = await requireLandlordProfile()
   const { id } = await params
@@ -156,17 +167,44 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
           )}
         </div>
 
-        {lease.status !== "draft" ? (
+        {lease.status === "draft" || lease.status === "active" || reminders.length > 0 ? (
           <div className="space-y-4">
-            <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">Relances</h2>
-            {reminders.length === 0 ? (
-              <p className="text-sm leading-6 text-muted-foreground">
-                Aucune relance envoyée pour ce bail pour l&apos;instant. Ranti prévient le locataire
-                avant l&apos;échéance, puis en cas de retard — rien à faire de votre côté.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {reminders.map((reminder) => (
+            <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">Rappels &amp; relances</h2>
+
+            {lease.status === "draft" || lease.status === "active" ? (
+              <>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {lease.status === "draft"
+                    ? "À l'activation du bail, Ranti préviendra automatiquement votre locataire — vous n'avez rien à envoyer. Le calendrier :"
+                    : "Ranti prévient automatiquement votre locataire à partir du bail — vous n'avez rien à envoyer. Le calendrier :"}
+                </p>
+                <div className="overflow-hidden rounded-2xl border border-border bg-card">
+                  {REMINDER_SCHEDULE.map((step) => (
+                    <div key={step.when} className="flex items-start gap-3 border-t border-border px-4 py-3 first:border-t-0">
+                      <span
+                        aria-hidden
+                        className={`mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full ${step.late ? "bg-destructive" : "bg-accent"}`}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{step.when}</p>
+                        <p className="text-sm text-muted-foreground">{step.what}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
+
+            {lease.status !== "draft" ? (
+              <>
+                <h3 className="pt-1 text-sm font-semibold text-muted-foreground">Envoyées</h3>
+                {reminders.length === 0 ? (
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Aucune relance envoyée pour ce bail pour l&apos;instant.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {reminders.map((reminder) => (
                   <article key={reminder.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
                     <div>
                       <p className="text-sm font-medium text-foreground">
@@ -187,9 +225,11 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
                       {reminderStatusLabels[reminder.status]}
                     </span>
                   </article>
-                ))}
-              </div>
-            )}
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : null}
           </div>
         ) : null}
       </section>
