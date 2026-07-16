@@ -4,7 +4,13 @@ import { SubmitButton } from "@/components/submit-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { activateLease, endLease, getLease } from "@/lib/leases"
 import { ArchiveLeaseButton } from "./archive-lease-button"
-import { getLeaseRentDues } from "@/lib/rent-dues"
+import { getLeaseDueBalances } from "@/lib/rent-dues"
+import { getLeaseReminders } from "@/lib/reminders/queries"
+import {
+  reminderChannelLabels,
+  reminderStatusLabels,
+  reminderTemplateLabels,
+} from "@/lib/reminders/labels"
 import { getTenant } from "@/lib/tenants"
 import { getUnit } from "@/lib/units"
 import type { RentDueStatus } from "@/lib/rent-dues"
@@ -68,8 +74,11 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const [unit, tenant, dues] = await Promise.all([
     getUnit(landlord.id, lease.unit_id),
     getTenant(landlord.id, lease.tenant_id),
-    getLeaseRentDues(landlord.id, lease.id),
+    getLeaseDueBalances(landlord.id, lease.id),
   ])
+  // Fil des relances de CE bail (filtré sur ses échéances) : relie retard et
+  // relances au même endroit. Dépend des échéances → chargé après.
+  const reminders = await getLeaseReminders(landlord.id, dues.map((d) => d.id))
 
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
 
@@ -128,18 +137,61 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             <p className="text-sm text-muted-foreground">{lease.status === "draft" ? "Aucune échéance. Activez le bail pour les générer." : "Aucune échéance pour ce bail."}</p>
           ) : (
             <div className="space-y-3">
-              {dues.map((due) => (
-                <article key={due.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
-                  <div>
-                    <p className="font-medium text-foreground">{formatAmount(due.amount_due)}</p>
-                    <p className="text-sm text-muted-foreground">échéance {formatDate(due.due_date)}</p>
-                  </div>
-                  <span className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${dueStatusClasses(due.status)}`}>{dueStatusLabels[due.status]}</span>
-                </article>
-              ))}
+              {dues.map((due) => {
+                const remaining = Math.max(0, due.amount_due - due.amount_paid)
+                return (
+                  <article key={due.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
+                    <div>
+                      <p className="font-medium text-foreground">{formatAmount(due.amount_due)}</p>
+                      <p className="text-sm text-muted-foreground">échéance {formatDate(due.due_date)}</p>
+                      {due.amount_paid > 0 && remaining > 0 ? (
+                        <p className="text-sm text-muted-foreground">restant {formatAmount(remaining)}</p>
+                      ) : null}
+                    </div>
+                    <span className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${dueStatusClasses(due.status)}`}>{dueStatusLabels[due.status]}</span>
+                  </article>
+                )
+              })}
             </div>
           )}
         </div>
+
+        {lease.status !== "draft" ? (
+          <div className="space-y-4">
+            <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">Relances</h2>
+            {reminders.length === 0 ? (
+              <p className="text-sm leading-6 text-muted-foreground">
+                Aucune relance envoyée pour ce bail pour l&apos;instant. Ranti prévient le locataire
+                avant l&apos;échéance, puis en cas de retard — rien à faire de votre côté.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {reminders.map((reminder) => (
+                  <article key={reminder.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {reminderTemplateLabels[reminder.template] ?? reminder.template}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {reminderChannelLabels[reminder.channel] ?? reminder.channel} · {formatDate(reminder.sent_at)}
+                        {reminder.rent_due ? ` · échéance du ${formatDate(reminder.rent_due.due_date)}` : ""}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                        reminder.status === "failed"
+                          ? "border-destructive/40 bg-destructive/10 text-destructive"
+                          : "border-primary/20 bg-secondary text-foreground"
+                      }`}
+                    >
+                      {reminderStatusLabels[reminder.status]}
+                    </span>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
       </section>
     </main>
   )

@@ -3,6 +3,24 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.9.0] - 2026-07-16
+
+### Added
+
+- Fiche bail `/leases/[id]` — section « Relances » : le fil des relances déjà
+  envoyées à ce locataire (fenêtre J-5…J+10, canal SMS/WhatsApp, date, statut),
+  filtré sur les échéances du bail. Relie « retard » et « relances » au même
+  endroit de gestion (Sprint 6 complété). Query `getLeaseReminders`.
+
+### Changed
+
+- Fiche bail — les échéances passent sur `rent_due_balances` : affichent le
+  montant restant réel quand une échéance est partiellement payée.
+- Libellés de relance extraits dans `lib/reminders/labels.ts`, partagés entre
+  `/reminders` et la fiche bail ; fusion auto+ops factorisée
+  (`mergeReminderRows`).
+- `roadmap.md` : Sprint 6 marqué complété (retards/relances visibles).
+
 ## [0.3.8.0] - 2026-07-16
 
 ### Added

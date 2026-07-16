@@ -2,31 +2,15 @@ import Link from "next/link"
 import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordReminders, type ReminderWithContext } from "@/lib/reminders/queries"
+import {
+  reminderChannelLabels,
+  reminderStatusLabels,
+  reminderTemplateLabels,
+} from "@/lib/reminders/labels"
 
 // Relances automatiques : Ranti relance les locataires à partir du bail.
 // Cet écran montre ce que Ranti a fait pour le propriétaire — jamais
 // « envoyez vos relances ».
-
-const templateLabels: Record<string, string> = {
-  "j-5": "Avant l'échéance (J-5)",
-  "j-1": "Veille de l'échéance (J-1)",
-  "j-0": "Jour de l'échéance",
-  "j+1": "En retard (J+1)",
-  "j+3": "En retard (J+3)",
-  "j+10": "En retard (J+10)",
-}
-
-const channelLabels: Record<string, string> = {
-  sms: "SMS",
-  whatsapp: "WhatsApp",
-  whatsapp_manual: "WhatsApp — équipe Ranti",
-}
-
-const statusLabels: Record<ReminderWithContext["status"], string> = {
-  sent: "Envoyée",
-  delivered: "Remise",
-  failed: "Échec d'envoi",
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -111,7 +95,7 @@ export default async function RemindersPage() {
                       ) : null}
                     </p>
                     <p className="mt-0.5 text-sm text-foreground/70">
-                      {templateLabels[reminder.template] ?? reminder.template}
+                      {reminderTemplateLabels[reminder.template] ?? reminder.template}
                       {due ? ` · Loyer de ${formatMonth(due.period_start)}` : ""}
                     </p>
                   </div>
@@ -122,11 +106,11 @@ export default async function RemindersPage() {
                         : "shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-bold text-foreground ring-1 ring-primary/20"
                     }
                   >
-                    {statusLabels[reminder.status]}
+                    {reminderStatusLabels[reminder.status]}
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {channelLabels[reminder.channel] ?? reminder.channel} ·{" "}
+                  {reminderChannelLabels[reminder.channel] ?? reminder.channel} ·{" "}
                   {formatDate(reminder.sent_at)}
                   {due ? ` · échéance du ${formatDate(due.due_date)}` : ""}
                 </p>
