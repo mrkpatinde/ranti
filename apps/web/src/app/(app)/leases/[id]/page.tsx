@@ -14,6 +14,12 @@ import {
   reminderTemplateLabels,
 } from "@/lib/reminders/labels"
 import { buildReminderWaLink } from "@/lib/reminders/whatsapp"
+import {
+  buildChargeWaLink,
+  getLeaseLedgerCharges,
+  withdrawLedgerLine,
+  type LedgerCharge,
+} from "@/lib/ledger"
 import { getTenant } from "@/lib/tenants"
 import { getUnit } from "@/lib/units"
 import type { RentDueStatus } from "@/lib/rent-dues"
@@ -43,6 +49,28 @@ const noticeLabels: Record<string, string> = {
   lease_activated: "Bail activé. Les échéances de loyer ont été générées.",
   lease_ended: "Bail terminé.",
   lease_updated: "Bail mis à jour.",
+  charge_added:
+    "Charge ajoutée — envoyez le lien de validation à votre locataire. Elle n'entre au solde qu'une fois validée.",
+  charge_withdrawn: "Charge retirée. Elle reste lisible dans l'historique.",
+  charge_replaced:
+    "Charge corrigée — la nouvelle version repart pour validation avec un nouveau lien.",
+}
+
+const chargeStatusView: Record<
+  LedgerCharge["status"],
+  { label: string; variant: BadgeVariant }
+> = {
+  pending: { label: "En attente locataire", variant: "accent" },
+  validated: { label: "Validée", variant: "success" },
+  disputed: { label: "Contestée", variant: "warning" },
+  withdrawn: { label: "Retirée", variant: "neutral" },
+}
+
+const contestNatureLabels: Record<string, string> = {
+  amount: "reconnaît un autre montant",
+  not_owed: "ne reconnaît pas cette somme",
+  already_paid: "déclare l'avoir déjà réglée",
+  other: "signale un désaccord",
 }
 
 function formatDate(iso: string): string {
@@ -81,10 +109,11 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const lease = await getLease(landlord.id, id)
   if (!lease) notFound()
 
-  const [unit, tenant, dues] = await Promise.all([
+  const [unit, tenant, dues, charges] = await Promise.all([
     getUnit(landlord.id, lease.unit_id),
     getTenant(landlord.id, lease.tenant_id),
     getLeaseDueBalances(landlord.id, lease.id),
+    getLeaseLedgerCharges(landlord.id, lease.id),
   ])
   // Fil des relances de CE bail (filtré sur ses échéances) : relie retard et
   // relances au même endroit. Dépend des échéances → chargé après.
@@ -201,6 +230,116 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             </div>
           )}
         </div>
+
+        {lease.status === "active" || charges.length > 0 ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">Charges &amp; frais</h2>
+              {lease.status === "active" ? (
+                <Link
+                  href={`/leases/${lease.id}/charges/new`}
+                  className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:border-primary"
+                >
+                  Ajouter une charge
+                </Link>
+              ) : null}
+            </div>
+
+            {charges.length === 0 ? (
+              <p className="text-sm leading-6 text-muted-foreground">
+                Réparations, gardiennage, frais partagés : ajoutez-les ici — votre locataire les
+                valide d&apos;un tap, et le compte du bail reste incontestable.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {charges.map((charge) => {
+                  const view = chargeStatusView[charge.status]
+                  const actionable = charge.status === "pending" || charge.status === "disputed"
+                  const waLink =
+                    actionable && tenant?.phone && charge.tenant_token
+                      ? buildChargeWaLink({
+                          phone: tenant.phone,
+                          tenantName: `${tenant.first_name} ${tenant.last_name}`,
+                          label: charge.label,
+                          amount: charge.amount,
+                          actionUrl: `${publicUrl}/transaction/${charge.tenant_token}`,
+                        })
+                      : null
+                  return (
+                    <article key={charge.id} className="space-y-3 rounded-2xl border border-border px-4 py-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-medium text-foreground">{charge.label}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatFcfa(charge.amount)} · {formatDate(charge.occurred_at)}
+                            {charge.due_date ? ` · à régler avant le ${formatDate(charge.due_date)}` : ""}
+                          </p>
+                        </div>
+                        <span className={badgeClasses(view.variant)}>{view.label}</span>
+                      </div>
+
+                      {charge.status === "disputed" && charge.contest_nature ? (
+                        <p className="rounded-xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-warning">
+                          Votre locataire {contestNatureLabels[charge.contest_nature]}
+                          {charge.contest_nature === "amount" && charge.contested_amount != null
+                            ? ` : ${formatFcfa(charge.contested_amount)}`
+                            : ""}
+                          {charge.tenant_comment ? ` — « ${charge.tenant_comment} »` : ""}. Vous
+                          pouvez la corriger, la retirer, ou en parler avec lui — Ranti documente,
+                          ne tranche pas.
+                        </p>
+                      ) : null}
+
+                      {actionable ? (
+                        <div className="flex flex-wrap items-center gap-3">
+                          {waLink ? (
+                            <a
+                              href={waLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex rounded-full border border-primary/30 bg-card px-4 py-3 text-sm font-semibold text-primary transition hover:border-primary"
+                            >
+                              Envoyer sur WhatsApp
+                            </a>
+                          ) : null}
+                          <Link
+                            href={`/leases/${lease.id}/charges/${charge.id}/corriger`}
+                            className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:border-primary"
+                          >
+                            Corriger
+                          </Link>
+                          <details className="group">
+                            <summary className="cursor-pointer list-none rounded-full border border-border px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted">
+                              Retirer
+                            </summary>
+                            <form action={withdrawLedgerLine} className="mt-3 flex flex-wrap items-center gap-3">
+                              <input type="hidden" name="lease_id" value={lease.id} />
+                              <input type="hidden" name="id" value={charge.id} />
+                              <input
+                                name="reason"
+                                type="text"
+                                required
+                                maxLength={200}
+                                placeholder="Motif du retrait (reste dans l'historique)"
+                                className="min-w-0 flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                              />
+                              <SubmitButton
+                                className="rounded-full border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-60"
+                                pendingLabel="Retrait…"
+                              >
+                                Confirmer le retrait
+                              </SubmitButton>
+                            </form>
+                          </details>
+                        </div>
+                      ) : null}
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
 
         {lease.status === "draft" || lease.status === "active" || reminders.length > 0 ? (
           <div className="space-y-4">

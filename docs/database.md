@@ -313,14 +313,33 @@ fidèle du modèle hérité). L'argent confirmé non affecté (fast-log ADR-014)
 n'entre pas encore au grand livre par bail — il reste visible au journal.
 
 Garde d'égalité : `private.verify_ledger_equality()` (service_role) compare,
-par bail, le solde certain du grand livre à l'opposé du restant dû hérité ;
-elle est exécutée en fin de migration (tout écart fait échouer la migration)
-et conditionne la bascule des lectures (critère de non-bascule ADR-023).
+par bail, le solde certain du grand livre à l'opposé du restant dû hérité —
+restreinte à la **projection héritée** (loyers, règlements et leurs
+contre-passations) : une charge validée est une vérité que le modèle hérité
+ignore par construction. Exécutée en fin de migration Expand (tout écart la
+fait échouer), elle reste le détecteur de dérive du miroir.
 
 Écritures : aucun grant client (`authenticated` = SELECT sous RLS
-`landlord_id = private.current_landlord_id()`) ; seuls le backfill et les
-triggers miroir écrivent pendant l'Expand. Audit `private.log_audit()` sur
+`landlord_id = private.current_landlord_id()`). Voies d'écriture : le
+backfill, les triggers miroir, et les RPC de la phase « différenciant » —
+côté bailleur (`SECURITY DEFINER` + garde `private.current_landlord_id()`,
+`authenticated`) : `add_lease_charge` (charge `reparation`/`frais` née
+`pending` + `tenant_token`, idempotente par `p_request_id`, scope
+`add_lease_charge` d'`idempotency_keys`, bail actif uniquement),
+`withdraw_ledger_line` (pending/disputed → `withdrawn`, motif obligatoire
+tracé en `audit_logs`), `replace_ledger_charge` (retrait + réémission liée
+`replaced_by`, nouveau token) ; côté locataire (clés sur `tenant_token`,
+`anon` + `authenticated`, retours en chaînes de statut — modèle ADR-013) :
+`get_ledger_line_by_token`, `validate_ledger_line_by_token`,
+`contest_ledger_line_by_token` (natures `amount`/`not_owed`/`already_paid`/
+`other`, première version jamais écrasée), `retract_contest_by_token`
+(seule sortie disputed → validated). Audit `private.log_audit()` sur
 insert/update (ADR-006).
+
+Vue `ops_ledger_notifications` (service_role uniquement) : contrat de
+notification ranti-ops (ADR-022 reconduit) — lignes `reparation`/`frais` en
+`pending` (`validation_requested`) ou `disputed`, avec token, téléphones et
+noms. Le filet manuel wa.me vit dans la fiche bail.
 
 ### `lease_balances` (vue, ADR-023 §6)
 

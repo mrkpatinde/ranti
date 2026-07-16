@@ -108,14 +108,19 @@ Cible : le solde de chaque bail (certain / en attente / en litige) se calcule
 en base à partir des lignes de transactions, et le locataire valide ou
 conteste les dettes affirmées par lien signé.
 
-Statut : **phases Expand et Nouvelle lecture livrées** — table `transactions`,
-vue `lease_balances`, machine à états (terminalité, indélébilité,
-contre-passation bornée), miroir des tables héritées et garde d'égalité des
-soldes ; le dashboard lit le grand livre (`lib/ledger`, une ligne par bail,
-dette consolidée en compte courant). « Payé / Attendu » et le taux de
-recouvrement restent des lentilles mensuelles sur `rent_due_balances`, que la
-cadence des relances (ADR-022) lit de toute façon. Le flux locataire
-Valider/Contester arrive à la phase « différenciant ».
+Statut : **phases Expand, Nouvelle lecture et « différenciant » (produit)
+livrées** — table `transactions`, vue `lease_balances`, machine à états
+(terminalité, indélébilité, contre-passation bornée), miroir des tables
+héritées, garde d'égalité restreinte à la projection héritée ; le dashboard
+lit le grand livre (`lib/ledger`, une ligne par bail, dette consolidée en
+compte courant) ; charges variables (réparations/frais) créées, retirées ou
+corrigées depuis la fiche bail, validées ou contestées par le locataire via
+`/transaction/[token]` (lien signé, sans compte). « Payé / Attendu » et le
+taux de recouvrement restent des lentilles mensuelles sur
+`rent_due_balances`, que la cadence des relances (ADR-022) lit de toute
+façon. Reste : branchement de l'envoi automatisé côté ranti-ops (vue
+`ops_ledger_notifications`), bascule fiche bail/relances sur le grand livre,
+puis phase Contract.
 
 ## Principes d'implémentation
 

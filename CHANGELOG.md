@@ -3,6 +3,26 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.24.0] - 2026-07-16
+
+### Added
+
+- **Grand Livre, phase « différenciant » (ADR-023)** : les charges variables
+  entrent au compte du bail, validées par le locataire. Le propriétaire
+  ajoute une réparation ou des frais depuis la fiche bail (« Charges &
+  frais ») ; la charge naît « en attente » avec un lien signé
+  `/transaction/[token]` que le locataire ouvre sans compte pour **valider**
+  (elle devient certaine et indélébile) ou **contester** (montant faux, dette
+  non reconnue, déjà réglée, autre — sa version est conservée à côté, jamais
+  écrasée) puis, s'il le souhaite, retirer sa contestation. Le propriétaire
+  peut retirer une charge jamais validée (motif tracé dans l'historique) ou
+  la corriger — la version corrigée repart pour validation avec un nouveau
+  lien. Envoi du lien : bouton WhatsApp pré-rempli (le propriétaire relit et
+  envoie) ; l'envoi automatisé passera par ranti-ops via la vue
+  `ops_ledger_notifications` (contrat ADR-022). Création idempotente
+  (double-tap réseau instable), RPC `SECURITY DEFINER` seules voies
+  d'écriture, garde d'égalité restreinte à la projection héritée.
+
 ## [0.3.23.0] - 2026-07-16
 
 ### Changed

@@ -326,9 +326,19 @@ qui est opposable devant un médiateur.
    ranti-ops enverra réellement (leçon ADR-022 : l'UI ne promet que ce qui
    est vrai) ; la réconciliation des lentilles se fait à la bascule de la
    fiche bail et de la source des relances sur le grand livre.
-4. **Le différenciant** : débits variables, notification WhatsApp,
-   Valider/Contester par lien signé, triggers d'indélébilité,
-   contre-passation.
+4. **Le différenciant** (livré côté produit) : débits variables par RPC
+   (`add_lease_charge` — la charge naît `pending` avec son `tenant_token`),
+   retrait et remplacement par le bailleur (`withdraw_ledger_line` /
+   `replace_ledger_charge`, motifs tracés dans `audit_logs`, nouveau token à
+   chaque réémission), page publique `/transaction/[token]` (valider,
+   contester en quatre natures, retirer sa contestation — décalque ADR-013),
+   section « Charges & frais » sur la fiche bail. Notification WhatsApp en
+   deux temps : le **filet manuel wa.me** est dans la fiche bail dès
+   aujourd'hui (le propriétaire relit et envoie — doctrine ADR-006 MVP) ;
+   l'envoi automatisé est le rail **ranti-ops** via la vue
+   `ops_ledger_notifications` (contrat ADR-022 reconduit — le branchement
+   cockpit reste à faire côté ranti-ops). Les triggers d'indélébilité et la
+   contre-passation étaient livrés dès l'Expand.
 5. **Contract** : lectures 100 % sur `transactions` ; `rent_dues` /
    `rent_receptions` gelées en lecture seule pendant au moins un cycle de
    loyer complet avant toute dépréciation — aucune donnée financière n'est
