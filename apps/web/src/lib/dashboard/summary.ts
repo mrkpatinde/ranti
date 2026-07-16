@@ -7,6 +7,9 @@
 // - Attendu : échéance du mois en cours, pas encore due, restant > 0.
 // - Payé : encaissé sur les échéances du mois en cours.
 // - owed : toutes les échéances restant dues, retard d'abord (liste « à encaisser »).
+// - collectionRate : part du loyer DÛ du mois déjà encaissée (payé / monthDue),
+//   entier 0–100 borné, floor (jamais 100 % tant qu'il reste 1 FCFA) ; null si
+//   aucune échéance ce mois (rien à recouvrer → pas de taux à afficher).
 
 import type { RentDueBalance } from "@/lib/rent-dues/types"
 
@@ -24,6 +27,10 @@ export type DashboardSummary = {
   expected: number
   overdue: number
   upToDateCount: number
+  /** Total dû pour les échéances du mois en cours (base du taux de recouvrement). */
+  monthDue: number
+  /** Part encaissée du dû du mois, 0–100 (floor). null si rien n'est dû ce mois. */
+  collectionRate: number | null
   owed: OwedLine[]
 }
 
@@ -46,6 +53,7 @@ export function buildDashboardSummary(
   let expected = 0
   let overdue = 0
   let upToDateCount = 0
+  let monthDue = 0
   const owed: OwedLine[] = []
 
   for (const b of balances) {
@@ -57,6 +65,7 @@ export function buildDashboardSummary(
 
     if (thisMonth) {
       paid += b.amount_paid
+      monthDue += b.amount_due
       if (remaining === 0) upToDateCount += 1
       else if (!late) expected += remaining
     }
@@ -77,5 +86,8 @@ export function buildDashboardSummary(
   // Retard d'abord, puis montant décroissant.
   owed.sort((a, c) => Number(c.late) - Number(a.late) || c.remaining - a.remaining)
 
-  return { paid, expected, overdue, upToDateCount, owed }
+  const collectionRate =
+    monthDue > 0 ? Math.min(100, Math.max(0, Math.floor((paid / monthDue) * 100))) : null
+
+  return { paid, expected, overdue, upToDateCount, monthDue, collectionRate, owed }
 }
