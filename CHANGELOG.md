@@ -3,6 +3,23 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.8.0] - 2026-07-16
+
+### Added
+
+- Dashboard — taux de recouvrement du mois : « Recouvrement de {mois} — X % »
+  + barre fine sous les tuiles. Part du loyer DÛ du mois déjà encaissée
+  (`payé / monthDue`), entier borné 0–100, floor (jamais « 100 % » tant qu'il
+  reste 1 FCFA), masqué si aucune échéance ce mois. `buildDashboardSummary`
+  étendu (`monthDue` + `collectionRate`) + tests.
+
+### Changed
+
+- Dashboard — unité FCFA affichée sur les tuiles Payé/Attendu/Retard et sur
+  les montants de la liste « à encaisser » (montants jusque-là ambigus).
+- `roadmap.md` Sprint 6 : synthèse mensuelle du dashboard marquée livrée
+  (docs en retard sur le code).
+
 ## [0.3.7.0] - 2026-07-16
 
 ### Added
