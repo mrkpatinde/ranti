@@ -20,6 +20,8 @@ type UnitsPageProps = {
 
 const noticeLabels: Record<string, string> = {
   unit_archived: "Logement archivé.",
+  bulk_units_created:
+    "Logements ajoutés — encore libres. Créez leur bail quand ils trouveront leur occupant.",
 }
 
 export default async function UnitsPage({ searchParams }: UnitsPageProps) {

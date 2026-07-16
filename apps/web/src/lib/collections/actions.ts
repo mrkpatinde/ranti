@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { readRequestId } from "@/lib/idempotency"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import type { CollectionAllocation } from "./types"
@@ -94,6 +95,9 @@ export async function recordCollection(formData: FormData) {
     p_received_at: null,
     p_note: note,
     p_allocations: allocations,
+    // #167 : rejouer ce POST (double-clic, réponse perdue) renvoie la MÊME
+    // réception — jamais un double encaissement.
+    p_request_id: readRequestId(formData),
   })
 
   if (error || !receptionId) {

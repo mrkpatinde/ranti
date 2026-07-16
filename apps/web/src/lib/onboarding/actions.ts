@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { readRequestId } from "@/lib/idempotency"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
-import { validateBailForm, type BailFormInput } from "./validation"
+import { validateBailForm, type BailFormInput, type BailRowInput } from "./validation"
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value : ""
@@ -34,18 +35,56 @@ function mapRpcError(error: { code?: string; message?: string }): string {
   }
 }
 
+// La ligne fautive remontée par la RPC ("row N: …", 1-indexée) → index 0-based
+// pour surligner la bonne carte dans le formulaire.
+function rpcErrorRow(error: { message?: string }): number | null {
+  const match = (error.message ?? "").match(/row (\d+):/)
+  return match ? Number.parseInt(match[1], 10) - 1 : null
+}
+
 // Retour d'action du formulaire bail (useActionState) : en cas d'échec, le
-// message ET les valeurs saisies reviennent au client — le propriétaire ne
-// retape jamais ses 8 champs (réseau instable, Android terrain).
+// message, la ligne fautive ET les valeurs saisies reviennent au client — le
+// propriétaire ne retape jamais ses champs (réseau instable, Android terrain).
 export type BailFormState = {
   error: string | null
+  errorRow: number | null
   values: BailFormInput | null
 }
 
-// Écran unique « Créer un bail » (ADR-020) : lieu (créé inline OU pioché) +
-// logement + occupant + bail, en un geste atomique → échéances générées. Une
-// seule RPC (bulk_onboard_portfolio étendue). Succès → redirect ; échec →
-// BailFormState (la saisie est préservée).
+// Chaque ligne du formulaire soumet TOUS ses champs (les lignes libres portent
+// des inputs cachés vides) : les getAll() restent alignés par index.
+function readRows(formData: FormData): BailRowInput[] {
+  const get = (name: string): string[] => formData.getAll(name).map(asString)
+  const occupied = get("occupied")
+  const unitName = get("unit_name")
+  const unitType = get("unit_type")
+  const firstName = get("first_name")
+  const lastName = get("last_name")
+  const phone = get("phone")
+  const email = get("email")
+  const monthlyRentAmount = get("monthly_rent_amount")
+  const dueDay = get("due_day")
+  const startDate = get("start_date")
+
+  return unitName.map((_, i) => ({
+    occupied: occupied[i] ?? "1",
+    unitName: unitName[i] ?? "",
+    unitType: unitType[i] ?? "",
+    firstName: firstName[i] ?? "",
+    lastName: lastName[i] ?? "",
+    phone: phone[i] ?? "",
+    email: email[i] ?? "",
+    monthlyRentAmount: monthlyRentAmount[i] ?? "",
+    dueDay: dueDay[i] ?? "",
+    startDate: startDate[i] ?? "",
+  }))
+}
+
+// Écran unique « Créer un bail » (ADR-020, étendu #166) : lieu (créé inline OU
+// pioché) + N logements — occupés (bail activé + échéances) ou encore libres —
+// en un geste atomique via l'unique RPC bulk_onboard_portfolio. Succès →
+// redirect ; échec → BailFormState (la saisie de toutes les lignes est
+// préservée, la ligne fautive surlignée).
 export async function createBail(
   _prev: BailFormState,
   formData: FormData,
@@ -57,42 +96,53 @@ export async function createBail(
     propertyId: asString(formData.get("property_id")),
     propertyName: asString(formData.get("property_name")),
     propertyCity: asString(formData.get("property_city")),
-    unitName: asString(formData.get("unit_name")),
-    unitType: asString(formData.get("unit_type")),
-    firstName: asString(formData.get("first_name")),
-    lastName: asString(formData.get("last_name")),
-    phone: asString(formData.get("phone")),
-    email: asString(formData.get("email")),
-    monthlyRentAmount: asString(formData.get("monthly_rent_amount")),
-    dueDay: asString(formData.get("due_day")),
-    startDate: asString(formData.get("start_date")),
+    rows: readRows(formData),
   }
 
-  const fail = (message: string): BailFormState => ({ error: message, values: input })
+  const fail = (message: string, errorRow: number | null): BailFormState => ({
+    error: message,
+    errorRow,
+    values: input,
+  })
 
   const result = validateBailForm(input)
-  if (!result.ok) return fail(result.formError)
+  if (!result.ok) return fail(result.formError, result.rowIndex)
 
   const supabase = await createClient()
   const { data, error } = await supabase.rpc("bulk_onboard_portfolio", {
     p_property: result.property,
-    p_rows: [result.row],
+    p_rows: result.rows,
+    // #167 : rejouer ce POST renvoie le MÊME récap — jamais de doublons.
+    p_request_id: readRequestId(formData),
   })
 
   if (error) {
     console.error("createBail: RPC failed", error.code, error.message)
-    return fail(mapRpcError(error))
+    return fail(mapRpcError(error), rpcErrorRow(error))
   }
 
-  const leaseIds = ((data ?? {}) as { lease_ids?: string[] }).lease_ids ?? []
+  const summary = (data ?? {}) as {
+    lease_ids?: string[]
+    units?: number
+    leases?: number
+  }
+  const leaseIds = summary.lease_ids ?? []
 
   revalidatePath("/dashboard")
   revalidatePath("/leases")
   revalidatePath("/units")
+  revalidatePath("/tenants")
 
+  // Mono-ligne occupée : la fiche du bail créé (comportement historique).
+  // Lot : récap chiffré sur la liste des baux ; lot 100 % libre : la liste
+  // des logements (c'est là que vivent les logements sans bail).
+  if (input.rows.length === 1 && leaseIds[0]) {
+    redirect(`/leases/${leaseIds[0]}?notice=bail_created`)
+  }
+  if (leaseIds.length === 0) {
+    redirect("/units?notice=bulk_units_created")
+  }
   redirect(
-    leaseIds[0]
-      ? `/leases/${leaseIds[0]}?notice=bail_created`
-      : "/leases?notice=bail_created",
+    `/leases?notice=bulk_created&units=${summary.units ?? input.rows.length}&leases=${summary.leases ?? leaseIds.length}`,
   )
 }
