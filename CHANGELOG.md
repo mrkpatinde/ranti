@@ -3,6 +3,48 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.6.0] - 2026-07-16
+
+### Added
+
+- Rail FeexPay branché côté serveur (ADR-019, cash-in unique) — **sandbox
+  uniquement**, activation prod toujours gatée BCEAO. Client isolé
+  `src/lib/feexpay/` : `config` null-safe (sandbox/live, secrets serveur
+  uniquement), `signature` (HMAC-SHA256 corps brut, temps constant), `normalize`
+  (webhook → event), `checkout` (cash-in plein montant), `payout` + polling V2,
+  `http` (transport authentifié → `PaymentError`). Tests signature +
+  normalisation.
+- `/collections` : carte de validation des paiements du rail en `pending` →
+  « Valider et générer la quittance » (`verifyPaymentTransaction`, ADR-017) ;
+  paiements rejetés en repli tracé. Notices `payment_transaction_verified` /
+  `payment_transaction_rejected`.
+- `/transactions` : vue ledger propriétaire (lecture seule), tous statuts
+  (à valider / validé / reversé / non validé) + total net reçu. Découvrable
+  depuis `/collections`, sans nouvelle tuile de nav (minimalisme ADR-020).
+  Vision propriétaire conforme `DESIGN.md` : « net reçu · frais de service
+  Ranti 5 % tout inclus », jamais les coûts PSP.
+- ADR-021 (Proposée) : reçus locataire (rail vs PSP) + décision requise sur le
+  montage wallet FeexPay (unique Ranti vs sous-comptes par propriétaire, reco
+  sous-comptes) — prérequis de la copie `/confirmer` et de la levée du gate
+  BCEAO.
+
+### Changed
+
+- Webhook `POST /api/payments/notification` re-câblé de Kkiapay vers le rail
+  FeexPay (secret `FEEXPAY_WEBHOOK_SECRET`, en-tête `x-feexpay-signature`,
+  provider `feexpay`). Contrat inchangé : ingestion idempotente en `pending`,
+  validation propriétaire (ADR-017) inchangée, réponses 200/400/401/500
+  identiques.
+- `TODOS.md` / `roadmap.md` alignés sur le rail FeexPay (sandbox FedaPay
+  périmé ; montage wallet renvoyé à ADR-021).
+
+### Removed
+
+- Code Kkiapay devenu orphelin après le re-câblage : `src/lib/kkiapay/`,
+  `normalizeKkiapayPayload` (+ type `NormalizedKkiapayEvent`) et leurs tests.
+  L'enum ledger `PaymentProvider` conserve `kkiapay`/`fedapay` (valeurs
+  valides de la colonne `payment_transactions.provider` en base — historique).
+
 ## [0.3.5.2] - 2026-07-16
 
 ### Removed
