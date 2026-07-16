@@ -25,6 +25,25 @@ export async function getLandlordLeaseBalances(landlordId: string): Promise<Leas
   return (data ?? []) as LeaseBalance[]
 }
 
+// Solde d'UN bail (fiche bail) — mêmes colonnes, même vue.
+export async function getLeaseBalance(
+  landlordId: string,
+  leaseId: string,
+): Promise<LeaseBalance | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("lease_balances")
+    .select(LEASE_BALANCES_SELECT)
+    .eq("landlord_id", landlordId)
+    .eq("lease_id", leaseId)
+    .maybeSingle()
+
+  if (error) failQuery("lease_balances", error)
+
+  return (data as LeaseBalance | null) ?? null
+}
+
 export const LEDGER_CHARGES_SELECT =
   "id, lease_id, type, amount, currency, occurred_at, due_date, status, validated_by, validated_at, disputed_at, contest_nature, contested_amount, tenant_comment, resolution, resolved_at, replaced_by, tenant_token, label"
 

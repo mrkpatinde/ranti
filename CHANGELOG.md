@@ -3,6 +3,21 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.25.0] - 2026-07-16
+
+### Changed
+
+- **Grand Livre, bascule des relances et de la fiche bail (ADR-023)** : plus
+  de relance de retard pour un locataire à jour au compte courant. La file
+  opérateur `ops_reminder_queue` porte une garde compte courant (les relances
+  de retard ne sortent que si le bail a un impayé au grand livre — une avance
+  affectée à un mois futur nette la dette ; les rappels pré-échéance sont
+  inchangés), et la projection à l'écran applique exactement la même règle
+  (dashboard « Relances à venir », garde-fou de silence de `/reminders`). La
+  fiche bail affiche le solde du compte en tête — la même lentille que le
+  dashboard, fini les écrans qui se contredisent — et la relance manuelle
+  WhatsApp est sourcée du grand livre (montant = l'impayé du compte).
+
 ## [0.3.24.0] - 2026-07-16
 
 ### Added

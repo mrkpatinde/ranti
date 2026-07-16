@@ -343,6 +343,12 @@ noms. Le filet manuel wa.me vit dans la fiche bail.
 
 ### `lease_balances` (vue, ADR-023 §6)
 
+La file opérateur `ops_reminder_queue` joint cette vue : les relances de
+**retard** sont gatées sur `overdue_amount > 0` (garde compte courant — une
+avance nette la dette quel que soit le mois affecté), et l'impayé du bail est
+exposé à ranti-ops en colonne `ledger_overdue_amount`. Les rappels
+pré-échéance ne sont pas gatés.
+
 Trois nombres par bail, jamais fusionnés, calculés en base
 (`security_invoker`, la RLS de `transactions` s'applique) :
 `certain_balance` (Σ crédits validés − Σ débits validés), `pending_debits` /

@@ -51,9 +51,17 @@ function addDays(dateStr: string, off: number): string {
  * (première fenêtre dont la date est >= aujourd'hui). Trié par date croissante.
  * Exclut : échéances soldées, annulées, et celles dont la cadence est épuisée
  * (toutes les fenêtres sont passées — plus rien à envoyer automatiquement).
+ *
+ * Garde compte courant (ADR-023, bascule des relances) : les fenêtres de
+ * RETARD ne comptent que si le bail porte un impayé au grand livre
+ * (`overdueByLease`, vue lease_balances) — une avance nette la dette, quel
+ * que soit le mois auquel le bailleur l'a affectée. Les rappels
+ * pré-échéance restent projetés pour tout le monde. Même règle que la file
+ * opérateur ops_reminder_queue : l'écran promet ce que ranti-ops enverra.
  */
 export function computeUpcomingReminders(
   balances: RentDueBalance[],
+  overdueByLease: ReadonlyMap<string, number>,
   ref: Date = new Date(),
 ): UpcomingReminder[] {
   const today = ymd(ref)
@@ -64,9 +72,10 @@ export function computeUpcomingReminders(
     const remaining = Math.max(0, b.amount_due - b.amount_paid)
     if (remaining === 0) continue
 
-    const next = CHECKPOINTS.map((cp) => ({ ...cp, date: addDays(b.due_date, cp.off) })).find(
-      (cp) => cp.date >= today,
-    )
+    const chaseable = (overdueByLease.get(b.lease_id) ?? 0) > 0
+    const next = CHECKPOINTS.filter((cp) => !cp.late || chaseable)
+      .map((cp) => ({ ...cp, date: addDays(b.due_date, cp.off) }))
+      .find((cp) => cp.date >= today)
     if (!next) continue
 
     out.push({
@@ -108,10 +117,15 @@ export type SentReminderRef = {
  * de la cadence est passée depuis plus de `graceDays`, sans AUCUN envoi tracé
  * (reminders ∪ reminder_events) pour cette échéance depuis cette fenêtre.
  * Renvoie null quand tout va bien — l'écran n'affiche rien.
+ *
+ * Garde compte courant (ADR-023) : une fenêtre de RETARD n'est « attendue »
+ * que si le bail porte un impayé au grand livre — la file opérateur ne la
+ * contient pas sinon, son absence n'est pas une panne.
  */
 export function detectReminderSilence(
   balances: RentDueBalance[],
   sends: SentReminderRef[],
+  overdueByLease: ReadonlyMap<string, number>,
   ref: Date = new Date(),
   graceDays: number = REMINDER_SILENCE_GRACE_DAYS,
 ): ReminderSilence | null {
@@ -123,8 +137,10 @@ export function detectReminderSilence(
     if (b.status !== "expected" && b.status !== "overdue") continue
     if (Math.max(0, b.amount_due - b.amount_paid) === 0) continue
 
+    const chaseable = (overdueByLease.get(b.lease_id) ?? 0) > 0
     // Dernière fenêtre de la cadence déjà « due » (passée d'au moins graceDays).
-    const lastActionable = CHECKPOINTS.map((cp) => addDays(b.due_date, cp.off))
+    const lastActionable = CHECKPOINTS.filter((cp) => !cp.late || chaseable)
+      .map((cp) => addDays(b.due_date, cp.off))
       .filter((date) => date <= cutoff)
       .at(-1)
     if (!lastActionable) continue

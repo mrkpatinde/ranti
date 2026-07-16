@@ -117,10 +117,12 @@ compte courant) ; charges variables (réparations/frais) créées, retirées ou
 corrigées depuis la fiche bail, validées ou contestées par le locataire via
 `/transaction/[token]` (lien signé, sans compte). « Payé / Attendu » et le
 taux de recouvrement restent des lentilles mensuelles sur
-`rent_due_balances`, que la cadence des relances (ADR-022) lit de toute
-façon. Reste : branchement de l'envoi automatisé côté ranti-ops (vue
-`ops_ledger_notifications`), bascule fiche bail/relances sur le grand livre,
-puis phase Contract.
+`rent_due_balances`. **Relances et fiche bail sont basculées sur le compte
+courant** : la file `ops_reminder_queue` ne sort une relance de retard que si
+le bail a un impayé au grand livre (garde reprise par la projection UI), et
+la fiche bail affiche le solde du compte en tête. Reste : branchement de
+l'envoi automatisé des notifications de charges côté ranti-ops (vue
+`ops_ledger_notifications`), puis phase Contract.
 
 ## Principes d'implémentation
 
