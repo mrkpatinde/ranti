@@ -135,6 +135,22 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-16)
 
+- PWA lecture hors connexion (v0.3.20.0, #167 Phase 3) : le registre reste
+  CONSULTABLE en avion — les dernières pages vues se rouvrent, datées.
+  Manifest installable SANS prompt in-app (décision CEO : « Ajouter à l'écran
+  d'accueil » via le menu navigateur seulement, sobriété), icônes 192/512 +
+  maskable générées du logo. Service worker maison (`public/sw.js`) : statiques
+  hashés en cache-first ; pages de consultation (navigations + payloads RSC) en
+  network-first avec repli cache — clé = pathname, plafond 50 entrées, caches
+  versionnés purgés à l'activation ; jamais mis en cache : POST, /api, /auth,
+  /login, /signup, non-200 et redirections (une page de login ne se fige
+  jamais sous la clé du dashboard). Le bandeau hors-ligne (Phase 2) date
+  désormais les données servies du cache (« état du 16 juillet à 11:49 »,
+  en-tête sw-cached-at). Enregistrement en prod uniquement (désenregistré en
+  dev). Vérifié en navigateur (Chromium, build de prod) : SW actif, caches
+  peuplés, page revisitée servie EN AVION avec bandeau daté, page jamais vue =
+  échec réseau franc. Zéro écriture hors ligne (Phase 4).
+
 - Reminder Engine tranché : externalisation assumée (v0.3.19.0, ADR-022,
   issue #165 option A, décision CEO). ranti-ops est le moteur d'envoi officiel
   (WhatsApp → `reminder_events`, envois live vérifiés) ; ce dépôt porte la
