@@ -11,6 +11,7 @@ import {
   reminderStatusLabels,
   reminderTemplateLabels,
 } from "@/lib/reminders/labels"
+import { buildReminderWaLink } from "@/lib/reminders/whatsapp"
 import { getTenant } from "@/lib/tenants"
 import { getUnit } from "@/lib/units"
 import type { RentDueStatus } from "@/lib/rent-dues"
@@ -92,6 +93,28 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const reminders = await getLeaseReminders(landlord.id, dues.map((d) => d.id))
 
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
+
+  // Relance manuelle « préparée sans envoi auto » (ADR-006 MVP) : lien wa.me
+  // pré-rempli vers le locataire pour la plus ancienne échéance non soldée.
+  const now = new Date()
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+  const firstUnpaid = dues.find(
+    (d) => d.status !== "cancelled" && d.amount_due - d.amount_paid > 0,
+  )
+  const publicUrl = process.env.PUBLIC_URL || "https://www.monranti.com"
+  const relanceWaLink =
+    lease.status === "active" && tenant?.phone && firstUnpaid
+      ? buildReminderWaLink({
+          phone: tenant.phone,
+          tenantName: `${tenant.first_name} ${tenant.last_name}`,
+          amount: firstUnpaid.amount_due - firstUnpaid.amount_paid,
+          dueDate: firstUnpaid.due_date,
+          late: firstUnpaid.due_date < todayStr,
+          confirmUrl: firstUnpaid.confirmation_token
+            ? `${publicUrl}/confirmer/${firstUnpaid.confirmation_token}`
+            : null,
+        })
+      : null
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
@@ -192,6 +215,23 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
                     </div>
                   ))}
                 </div>
+
+                {relanceWaLink ? (
+                  <div className="space-y-2 rounded-2xl border border-border bg-secondary/40 p-4">
+                    <p className="text-sm leading-6 text-foreground/80">
+                      Besoin de relancer vous-même maintenant ? Le message est prêt — vous le
+                      relisez et l&apos;envoyez d&apos;un tap.
+                    </p>
+                    <a
+                      href={relanceWaLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex rounded-full border border-primary/30 bg-card px-5 py-2.5 text-sm font-semibold text-primary transition hover:border-primary"
+                    >
+                      Relancer sur WhatsApp
+                    </a>
+                  </div>
+                ) : null}
               </>
             ) : null}
 

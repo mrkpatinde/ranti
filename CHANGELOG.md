@@ -3,6 +3,24 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.12.0] - 2026-07-16
+
+### Added
+
+- Fiche bail `/leases/[id]` — relance manuelle « préparée » : bouton
+  « Relancer sur WhatsApp » (bail actif + échéance non soldée) qui ouvre un
+  message pré-rempli vers le locataire, adapté à l'état (rappel avant échéance
+  vs relance de retard) et incluant le lien `/confirmer/[token]`. Envoi manuel
+  par le propriétaire — zéro API, zéro coût, aucun envoi auto (ADR-006 nuance
+  MVP ; même mécanisme wa.me que le journal). Complément de l'automatique.
+  Builder pur `buildReminderWaLink` + tests.
+- `roadmap.md` Sprint 7 : item « préparer le message… MVP prudent » coché.
+
+### Changed
+
+- Type `RentDue` : `confirmation_token` exposé (déjà renvoyé par la vue
+  `rent_due_balances` via `d.*`), pour construire le lien de confirmation.
+
 ## [0.3.11.0] - 2026-07-16
 
 ### Added
