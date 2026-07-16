@@ -22,6 +22,13 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions
   d'état et l'encadré « Merci… » répétaient le même message. Un seul bandeau
   reste ; son texte devient le remerciement juste après l'action (idem pour
   la contestation).
+- Fond de page verdâtre en mode clair (retour terrain : « le dashboard est
+  toujours en fond vert en journée ») : le crème `#f7f7f2` (teinte HSL 60,
+  jaune-vert) virait au vert sur les dalles Android bas de gamme. Les fonds
+  clairs passent sur des neutres chauds sans composante verte :
+  `--background` → `#f9f8f6`, `--muted` → `#f2f0ee`, manifest PWA et landing
+  alignés. Accent olive, `--secondary` (états) et dark mode inchangés.
+  DESIGN.md mis à jour (palette Neutrals + mapping tokens).
 
 ## [0.3.12.0] - 2026-07-16
 
