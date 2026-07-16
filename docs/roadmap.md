@@ -131,6 +131,17 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-16)
 
+- Saisie en lot + logement vacant dans « Créer un bail » (v0.3.16.0, #166,
+  Journeys 4-5) : l'écran unique accepte N lignes logement (« Ajouter un autre
+  logement »), chaque ligne « déjà occupé » (occupant + bail activé + échéances)
+  ou « encore libre » (logement seul → `available`). Envoi unique atomique via
+  `bulk_onboard_portfolio` (déjà multi-lignes, l'UI ne l'exposait pas) ; erreur
+  = ligne fautive surlignée + saisie de TOUTES les lignes préservée
+  (useActionState) ; récap post-création (fiche bail si mono, liste baux si
+  lot, liste logements si tout libre). La 1re ligne = le formulaire historique,
+  zéro friction ajoutée au cas mono. Tests validation multi-lignes (16 cas) ;
+  la RPC était déjà couverte en SQL (lot mixte 2 occupés + 1 vacant).
+
 - Rail FeexPay branché côté serveur (branche `feexpay-integration-remaining`,
   non encore versionné) : squelette client `src/lib/feexpay/` (config null-safe,
   signature webhook HMAC, checkout plein montant, payout + polling V2,
