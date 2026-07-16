@@ -5,10 +5,17 @@ import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 import { buildDashboardSummary } from "@/lib/dashboard/summary"
+import { computeUpcomingReminders } from "@/lib/reminders/schedule"
 
 export const metadata = { title: "Ranti" }
 
 const fmt = (n: number) => n.toLocaleString("fr-FR")
+
+// Date courte « 20 juil. » à partir d'un YYYY-MM-DD (sans dérive de fuseau).
+function formatShortDate(ymd: string): string {
+  const [y, m, d] = ymd.split("-").map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+}
 
 // Dashboard propriétaire = lecture seule (ADR-020, dashboard-owner v2) : qui a
 // payé / qui doit, rien de plus. Pas de saisie ici (le rail FeexPay encaisse,
@@ -52,6 +59,7 @@ export default async function DashboardPage() {
   ])
 
   const summary = buildDashboardSummary(balances)
+  const upcoming = computeUpcomingReminders(balances)
   const tenantName = new Map(tenants.map((t) => [t.id, `${t.first_name} ${t.last_name}`]))
   const unitName = new Map(units.map((u) => [u.id, u.name]))
   const month = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
@@ -129,6 +137,39 @@ export default async function DashboardPage() {
           </p>
         ) : null}
       </section>
+
+      {upcoming.length > 0 ? (
+        <section className="space-y-3 lg:space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground lg:text-base">Relances à venir</h2>
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            {upcoming.map((r) => (
+              <div
+                key={r.dueId}
+                className="flex items-center gap-3 border-t border-border px-5 py-4 first:border-t-0 lg:gap-4 lg:px-6 lg:py-5"
+              >
+                <span
+                  aria-hidden
+                  className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${r.late ? "bg-destructive" : "bg-accent"}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-base font-medium text-foreground lg:text-lg">
+                    {tenantName.get(r.tenantId) ?? "Locataire"}
+                  </p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {unitName.get(r.unitId) ?? "Logement"} · {r.label}
+                  </p>
+                </div>
+                <span className="text-sm tabular-nums text-muted-foreground lg:text-base">
+                  {formatShortDate(r.date)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground lg:text-sm">
+            Ranti s&apos;en charge automatiquement — vous n&apos;avez rien à envoyer.
+          </p>
+        </section>
+      ) : null}
 
       <Link
         href="/leases/new"

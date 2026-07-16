@@ -3,6 +3,21 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.11.0] - 2026-07-16
+
+### Added
+
+- Dashboard — bloc « Relances à venir » (lecture seule) : pour chaque échéance
+  impayée, la prochaine relance que Ranti enverra (ex. « Awa — Chambre 3 ·
+  Rappel J-5 · 20 juil. »), triée par date, point accent/destructive selon
+  retard. Microcopie « Ranti s'en charge — vous n'avez rien à envoyer »
+  (ADR-006 : c'est Ranti, pas le propriétaire ; dashboard lecture seule
+  ADR-020). Prochaine relance projetée depuis la cadence (fonction pure
+  `computeUpcomingReminders`, miroir des fenêtres du cron), pas lue depuis
+  `next_reminder_at` (maintenu par le cron SMS dormant). Tests.
+- `roadmap.md` Sprint 7 : item « afficher les relances prévues/envoyées sur le
+  dashboard » coché.
+
 ## [0.3.10.0] - 2026-07-16
 
 ### Added
