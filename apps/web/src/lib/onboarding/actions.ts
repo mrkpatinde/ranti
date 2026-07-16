@@ -34,11 +34,22 @@ function mapRpcError(error: { code?: string; message?: string }): string {
   }
 }
 
+// Retour d'action du formulaire bail (useActionState) : en cas d'échec, le
+// message ET les valeurs saisies reviennent au client — le propriétaire ne
+// retape jamais ses 8 champs (réseau instable, Android terrain).
+export type BailFormState = {
+  error: string | null
+  values: BailFormInput | null
+}
+
 // Écran unique « Créer un bail » (ADR-020) : lieu (créé inline OU pioché) +
 // logement + occupant + bail, en un geste atomique → échéances générées. Une
-// seule RPC (bulk_onboard_portfolio étendue). Redirect-based comme createLease :
-// erreurs renvoyées via ?error=.
-export async function createBail(formData: FormData) {
+// seule RPC (bulk_onboard_portfolio étendue). Succès → redirect ; échec →
+// BailFormState (la saisie est préservée).
+export async function createBail(
+  _prev: BailFormState,
+  formData: FormData,
+): Promise<BailFormState> {
   await requireLandlordProfile()
 
   const input: BailFormInput = {
@@ -57,11 +68,10 @@ export async function createBail(formData: FormData) {
     startDate: asString(formData.get("start_date")),
   }
 
-  const back = (message: string): never =>
-    redirect(`/leases/new?error=${encodeURIComponent(message)}`)
+  const fail = (message: string): BailFormState => ({ error: message, values: input })
 
   const result = validateBailForm(input)
-  if (!result.ok) return back(result.formError)
+  if (!result.ok) return fail(result.formError)
 
   const supabase = await createClient()
   const { data, error } = await supabase.rpc("bulk_onboard_portfolio", {
@@ -71,7 +81,7 @@ export async function createBail(formData: FormData) {
 
   if (error) {
     console.error("createBail: RPC failed", error.code, error.message)
-    return back(mapRpcError(error))
+    return fail(mapRpcError(error))
   }
 
   const leaseIds = ((data ?? {}) as { lease_ids?: string[] }).lease_ids ?? []
