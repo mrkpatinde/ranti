@@ -3,6 +3,27 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.5.0] - 2026-07-16
+
+### Security
+
+- ADR-002 implémenté — identité propriétaire verrouillée en base (migration
+  `20260716070000`). Un propriétaire authentifié pouvait réécrire son propre
+  nom/civilité/téléphone directement en DB (« verrouillé en UI, modifiable en
+  DB = fausse sécurité », dernier P0 ouvert de l'audit 2026-07-15) :
+  - Trigger `BEFORE UPDATE` `private.enforce_landlord_identity_lock`
+    (`SECURITY INVOKER` — observe le `current_user` réel) : rejette
+    nom/civilité depuis les rôles clients, et tout changement de téléphone
+    inconditionnellement (identifiant de connexion, flux de re-vérification
+    dédié à concevoir avant toute réouverture).
+  - Seul chemin légitime : RPC `public.update_landlord_identity(first, last,
+    civility, reason)` (`SECURITY DEFINER`), motif obligatoire, `audit_logs`
+    écrit dans la même transaction (ADR-006), pas de paramètre `landlord_id`
+    (aucune écriture cross-tenant possible).
+  - Grant `UPDATE` table de `authenticated` intact (payment_alias + archive) ;
+    test garde-fou `supabase/tests/landlord_identity_lock.test.sql`
+    (6 sections, rejouable, rollback-wrapped).
+
 ## [0.3.4.9] - 2026-07-16
 
 ### Fixed
