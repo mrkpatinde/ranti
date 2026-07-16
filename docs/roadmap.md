@@ -129,11 +129,36 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Sprint 9 - Beta
 
-- [ ] Tests terrain
-- [ ] Corrections
-- [ ] Première beta privée
+Lancé le 2026-07-16 (décision CEO). Protocole complet : `docs/beta-protocol.md`
+(go/no-go, recrutement, session d'accueil, métriques SQL, gates des features).
+
+- [ ] Go/no-go : smoke prod (`apps/web/scripts/smoke-prod.mjs` depuis un
+      poste), `NEXT_PUBLIC_SUPPORT_WHATSAPP` dans Vercel, ranti-ops confirmé
+      opérationnel, procédure de restauration notée
+- [ ] Recruter 5-8 pilotes persona (dont ≥ la moitié hors premier cercle,
+      au moins un ≥ 8 logements, au moins un peu à l'aise smartphone)
+- [ ] Sessions d'accueil (tâches non guidées + questions terrain personas.md,
+      mots réels notés — Principe 10)
+- [ ] Tests terrain : 2 cycles de loyer réels par pilote, point WhatsApp hebdo,
+      revue métriques hebdo (requêtes du protocole §5)
+- [ ] Corrections : P0 < 48 h, P1 dans le sprint, P2 backlog
+- [ ] Sortie : note de synthèse dans research-log.md (hypothèses confirmées/
+      infirmées, lexique terrain, décision élargir/pivoter/geler)
 
 ## Recent (2026-07-16)
+
+- Sprint 9 lancé (v0.3.21.1, décision CEO) : `docs/beta-protocol.md` cadre la
+  beta privée — go/no-go (avec l'état constaté : boucle cœur vivante en prod,
+  3 propriétaires / 6 baux actifs / 6 encaissements confirmés / 6 documents ;
+  restent à vérifier depuis un poste : smoke prod, NEXT_PUBLIC_SUPPORT_WHATSAPP,
+  ranti-ops confirmé, procédure de restauration), recrutement de 5-8 pilotes
+  persona, session d'accueil à tâches non guidées, métriques hebdo en SQL sur
+  les tables métier (activation < 48 h, boucle complète, preuve à deux voix,
+  garde-fou relances muet, Principe 15 via login_outside_reminder — seul
+  événement instrumenté, suffisant), gates des features gelées, critères de
+  sortie. Script committé `apps/web/scripts/smoke-prod.mjs` (surfaces
+  publiques + PWA, lecture seule). Note : le réseau de la session d'audit ne
+  joint pas monranti.com — le smoke se lance depuis un poste.
 
 - Optimistic UI sur confirmer/annuler un encaissement (v0.3.21.0, #167
   Phase 4 — dernière phase, débloquée par décision CEO) : la carte
