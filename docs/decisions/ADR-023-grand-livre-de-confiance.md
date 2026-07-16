@@ -3,16 +3,24 @@
 ## Statut
 
 Accepté (2026-07-16, décision CEO — pivot stratégique « Grand Livre de
-Confiance »).
+Confiance »). Révisé le même jour (v2) : matrice de validation exhaustive et
+cycle de vie du litige, préalables au backfill de la Phase 1.
+
+Ce document est la **référence d'alignement** de toutes les parties prenantes
+sur les règles de gestion du grand livre. En cas de divergence entre une
+implémentation et cette ADR, c'est l'implémentation qui a tort.
 
 Positionnement vis-à-vis des ADR existantes :
 
 - **Amende ADR-004** : les règles de génération des échéances restent
   intégralement valables ; leur cible devient une ligne de débit du grand
   livre au lieu d'une table dédiée (voir § Décision 2).
-- **Généralise ADR-005 et ADR-013** : la correction par événement correctif
-  et le cycle Valider/Contester par lien token, aujourd'hui limités au reçu,
-  deviennent les mécanismes de toute ligne du grand livre.
+- **Amende ADR-005** : la correction par événement correctif est généralisée ;
+  le flux « annuler l'encaissement » devient, pour un crédit déjà validé, une
+  contre-passation soumise à validation locataire (voir § Matrice, ligne 7).
+- **Généralise ADR-013** : le cycle Valider/Contester par lien token,
+  aujourd'hui limité au reçu, devient le mécanisme de toute ligne affirmée
+  unilatéralement.
 - **Ne touche pas ADR-022** : le contrat d'envoi des relances (ranti-ops,
   `reminder_events`) est inchangé ; seule la source des retards évolue.
 
@@ -56,9 +64,13 @@ Toute somme due ou reçue sur un bail est une ligne d'un même grand livre.
 | `amount` | int (FCFA) | toujours positif ; le sens vient de `direction` |
 | `due_date` | date, nullable | exigibilité — renseignée pour les débits planifiés, pilote le retard |
 | `period_start` / `period_end` | date, nullable | mois couvert (débits `loyer` uniquement, règles ADR-004) |
-| `status` | `pending` \| `validated` \| `disputed` | cycle de validation (voir § 3) |
+| `status` | `pending` \| `validated` \| `disputed` \| `withdrawn` | cycle de reconnaissance (voir § 3 et 4) |
 | `validated_by` / `validated_at` | `landlord` \| `tenant` \| `system` + timestamptz | qui a rendu la ligne certaine |
-| `reversal_of` | uuid, nullable, FK `transactions` | contre-passation : lien vers la ligne corrigée |
+| `reversal_of` | uuid, nullable, FK `transactions` | contre-passation : lien vers la ligne validée corrigée |
+| `replaced_by` | uuid, nullable, FK `transactions` | remplacement : lien vers la ligne corrigée réémise |
+| `resolution` / `resolved_at` | `retrait_contestation` \| `retrait_auteur` \| `remplacement` + timestamptz | comment la ligne est sortie de `pending`/`disputed` |
+| `tenant_token` | uuid unique, nullable | accès public locataire (lignes soumises à sa validation) |
+| `contest_nature` / `contested_amount` / `tenant_comment` | `amount` \| `not_owed` \| `already_paid` \| `other` + int + text | version du contestataire — « deux voix », modèle ADR-013 |
 | `source` | `genere_par_bail` \| `manuel` \| `feexpay` \| `declaration_locataire` | origine de la ligne |
 | `label` | text | libellé lisible (« Réparation serrure ») |
 
@@ -77,80 +89,161 @@ des impayés ni le Reminder Engine n'existent.
 - Ranti-ops (ADR-022) lit les impayés dans le grand livre au lieu de
   `rent_dues` ; le contrat d'interface est inchangé.
 
-### 3. Cycle de validation et matrice des rôles
+### 3. Matrice de validation — qui rend quoi certain
 
-Le statut initial d'une ligne dépend de qui l'affirme et sur quel fondement :
+**Principe directeur** (toute la matrice s'en déduit ; tout cas futur doit
+s'y ramener) : *une affirmation faite dans son propre intérêt ne devient
+jamais certaine seule.* Une ligne n'entre au solde certain que par l'une de
+ces quatre voies :
 
-| Ligne | Créée par | Statut initial | Justification |
-| :-- | :-- | :-- | :-- |
-| Débit `loyer` | système (bail) | `validated` (`system`) | le bail signé vaut accord — pas de re-validation mensuelle |
-| Débit `reparation` / `frais` | propriétaire | `pending` | affirmation unilatérale → le locataire doit se prononcer |
-| Crédit `feexpay` | webhook | `validated` (`system`) | le rail de paiement fait foi |
-| Crédit cash / MoMo saisi | propriétaire | `validated` (`landlord`) | déclaration du bailleur, comme aujourd'hui ; l'acquittement locataire ADR-013 reste la sur-couche probante |
-| Contre-passation | propriétaire | `validated` | correction assumée, tracée, visible des deux parties |
+- **(a) un accord préexistant** — le bail signé ;
+- **(b) un rail de paiement** — l'argent a transité, le webhook fait foi ;
+- **(c) une déclaration contre son propre intérêt** — reconnaître avoir reçu
+  de l'argent, ou renoncer à une créance ;
+- **(d) la validation par la partie qui subit la ligne.**
 
-Transitions depuis `pending` (débits variables) :
+| # | Ligne | Créée par | Profite à | Statut initial | Devient certaine par |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| 1 | Débit `loyer` | système (bail) | bailleur | `validated` (`system`) | **(a)** — le bail vaut accord, pas de re-validation mensuelle |
+| 2 | Débit `reparation` / `frais` | bailleur | bailleur | `pending` | **(d)** — validation locataire par lien token |
+| 3 | Crédit `feexpay` | webhook | locataire | `validated` (`system`) | **(b)** — le rail fait foi |
+| 4 | Crédit cash / MoMo saisi | bailleur | locataire | `validated` (`landlord`) | **(c)** — le bailleur reconnaît avoir reçu ; l'acquittement ADR-013 du reçu reste la sur-couche probante |
+| 5 | Crédit déclaré par le locataire (`/confirmer/[token]`) | locataire | locataire | `pending` | **(d)** — validation bailleur (reprend le flux « réception draft » actuel) |
+| 6 | Contre-passation d'un **débit** validé | bailleur | locataire | `validated` (`landlord`) | **(c)** — renoncer à une créance joue contre soi |
+| 7 | Contre-passation d'un **crédit** validé | bailleur | bailleur | `pending` | **(d)** — « j'ai saisi ce paiement par erreur » augmente la dette du locataire : validation locataire requise. Amende le flux « annuler l'encaissement » d'ADR-005 pour les crédits validés |
+| 8 | Contre-passation système (remboursement / reversal FeexPay) | webhook | — | `validated` (`system`) | **(b)** |
 
-- locataire clique **Valider** → `validated` (`tenant`) — la dette devient
-  certaine et indélébile ;
-- locataire clique **Contester** → `disputed`, avec nature et version du
-  locataire enregistrées (mêmes champs « deux voix » qu'ADR-013) ;
-- **pas d'acceptation tacite** : sans clic, la ligne reste `pending`
+Règles transverses :
+
+- **Symétrie des rôles** : la partie habilitée à valider ou contester une
+  ligne `pending` est toujours **celle qui la subit** — le locataire pour les
+  lignes 2 et 7, le bailleur pour la ligne 5. Personne ne valide sa propre
+  affirmation.
+- **Pas d'acceptation tacite** : sans clic, une ligne `pending` le reste
   indéfiniment (règle ADR-013 reconduite — aucun statut tacite opposable).
+  Elle apparaît dans « en attente », jamais dans le solde certain. Si le
+  bailleur veut sortir de l'attente, ses seuls chemins sont le retrait ou la
+  relance humaine — pas l'écoulement du temps.
+- **Retrait par l'auteur** : une ligne `pending` peut être retirée par la
+  partie qui l'a créée (`withdrawn`, `resolution = retrait_auteur`, motif
+  obligatoire, `audit_logs`). L'indélébilité ne commence qu'à `validated` ;
+  une affirmation jamais reconnue n'a pas besoin de contre-passation pour
+  disparaître — mais elle reste lisible dans l'historique.
+- **Un canal de contestation par direction** : les débits se contestent sur
+  la ligne du grand livre (cette ADR) ; les crédits déjà validés se
+  contestent sur le **reçu** qui les matérialise (ADR-013, `tenant_ack`),
+  jamais les deux. Un désaccord = un seul lieu de vérité.
 
-Sorties de `disputed` — Ranti documente, ne tranche pas (neutralité ADR-013) :
+### 4. Cycle de vie du litige — machine à états fermée
 
-- le propriétaire contre-passe la ligne (il renonce ou corrige) ;
-- le locataire retire sa contestation → `validated` (`tenant`) ;
-- sinon la ligne reste `disputed`, visible des deux parties, hors solde
-  certain.
+```txt
+                    validation (partie qui subit)
+        pending ────────────────────────────────▶ validated   [terminal, indélébile]
+           │                                          │
+           │ contestation (partie qui subit)          │ seul remède :
+           ▼                                          ▼ contre-passation
+        disputed                                  (nouvelle ligne, § 3 lignes 6-8)
+           │
+           ├── retrait de la contestation ──▶ validated  (resolution = retrait_contestation)
+           ├── retrait par l'auteur ────────▶ withdrawn  (resolution = retrait_auteur)
+           ├── remplacement par l'auteur ───▶ withdrawn  (resolution = remplacement,
+           │                                              replaced_by → nouvelle ligne pending)
+           └── statu quo ───────────────────▶ reste disputed, documenté, sans expiration
+```
 
-### 4. Indélébilité et contre-passation
+**Entrée en litige.** Seule une ligne `pending` peut être contestée, et
+seulement par la partie qui la subit. La contestation enregistre sa nature
+(`amount` — montant contesté, `not_owed` — dette non reconnue,
+`already_paid` — déjà réglé, `other`), le montant reconnu le cas échéant, et
+un commentaire libre. La version de l'auteur n'est **jamais écrasée** : les
+deux voix coexistent (modèle ADR-013).
+
+**Pendant le litige.** La ligne est hors solde certain, comptée dans
+« en litige », visible des deux parties avec ses deux versions. Le bail
+porte un indicateur visuel sur le dashboard (pattern ADR-013). L'auteur est
+notifié de la contestation (dashboard + WhatsApp via ranti-ops).
+
+**Les quatre sorties** — toutes tracées dans `audit_logs`, toutes notifiées
+à l'autre partie :
+
+1. **Retrait de la contestation** : le contestataire revient sur sa
+   contestation via son lien token → `validated` (`validated_by` = lui).
+   La ligne devient certaine et indélébile.
+2. **Retrait par l'auteur** : l'auteur reconnaît que la ligne était
+   infondée → `withdrawn`, motif obligatoire. La créance disparaît des
+   soldes, l'épisode reste lisible dans l'historique.
+3. **Remplacement** : l'auteur corrige (ex. « Réparation serrure — 50 000 »
+   → « 5 000 ») → l'ancienne ligne passe `withdrawn`
+   (`resolution = remplacement`, `replaced_by` renseigné), la nouvelle
+   repart à `pending` avec un **nouveau token** et une nouvelle
+   notification. Le cycle de validation recommence à zéro — une correction
+   n'hérite jamais de la confiance de la ligne qu'elle remplace.
+4. **Statu quo** : aucune des parties ne bouge. La ligne reste `disputed`
+   sans limite de durée — Ranti documente le désaccord, ne l'arbitre pas
+   (neutralité ADR-013). Le montant reste affiché « en litige » : c'est le
+   dossier factuel qu'un médiateur pourra lire.
+
+**Invariants de la machine à états** (imposés en base) :
+
+- `validated` est terminal : aucun `UPDATE` de statut, aucune contestation
+  a posteriori sur la ligne. Le seul remède contre une ligne validée est la
+  contre-passation (§ 3, lignes 6-8) — qui est elle-même une ligne soumise
+  à la matrice.
+- `withdrawn` est terminal : une ligne retirée ne revient jamais en jeu ;
+  corriger = réémettre (`replaced_by`).
+- Toute transition écrit `audit_logs` dans la même transaction (ADR-006) et
+  pose `resolution` / `resolved_at` quand elle sort de `pending`/`disputed`.
+
+### 5. Indélébilité et contre-passation
 
 - Une ligne `validated` est **indélébile** : `UPDATE` et `DELETE` refusés
   par trigger en base (pas seulement dans le code applicatif).
-- Toute correction est une **contre-passation** : ligne inverse de type
-  `contre_passation`, `reversal_of` pointant l'origine, motif obligatoire
-  (règle ADR-005 : « on ne supprime pas l'histoire, on ajoute un événement
-  correctif »). L'erreur et sa correction restent toutes deux lisibles —
-  c'est ce qui fonde la valeur probante du registre.
-- Chaque création/validation/contestation/contre-passation écrit un
-  `audit_logs` dans la même transaction (ADR-006).
+- Toute correction d'une ligne validée est une **contre-passation** : ligne
+  inverse de type `contre_passation`, `reversal_of` pointant l'origine,
+  motif obligatoire (règle ADR-005 : « on ne supprime pas l'histoire, on
+  ajoute un événement correctif »). L'erreur et sa correction restent toutes
+  deux lisibles — c'est ce qui fonde la valeur probante du registre.
+- La contre-passation suit elle-même la matrice (§ 3) : certaine d'emblée
+  quand elle joue contre son auteur (ligne 6), soumise à validation quand
+  elle le sert (ligne 7).
 
-### 5. Solde dynamique — trois nombres, jamais fusionnés
+### 6. Solde dynamique — trois nombres, jamais fusionnés
 
-Vue `lease_balances`, calculée en base (jamais de solde stocké à la main) :
+Vue `lease_balances`, calculée en base (jamais de solde stocké à la main).
+Les lignes `withdrawn` n'entrent dans aucun agrégat :
 
 | Nombre | Formule | Sens |
 | :-- | :-- | :-- |
-| **Solde certain** | Σ crédits validés − Σ débits validés | ce que les deux parties (ou le rail) reconnaissent |
-| **En attente** | Σ débits `pending` | affirmé par le bailleur, pas encore reconnu |
-| **En litige** | Σ débits `disputed` | désaccord documenté |
-| **Impayé** | débits validés à `due_date` échue non couverts | pilote le dashboard et les relances |
+| **Solde certain** | Σ crédits `validated` − Σ débits `validated` | ce que les deux parties (ou le rail) reconnaissent |
+| **En attente** | Σ lignes `pending` (par direction) | affirmé, pas encore reconnu |
+| **En litige** | Σ lignes `disputed` (par direction) | désaccord documenté |
+| **Impayé** | débits `validated` à `due_date` échue non couverts | pilote le dashboard et les relances |
 
 Un montant `pending` ou `disputed` n'entre **jamais** dans le solde certain :
 mélanger l'affirmé et le reconnu détruirait la confiance que le produit vend.
 
-### 6. Surface locataire : liens signés, pas de compte
+### 7. Surface locataire : liens signés, pas de compte
 
 Reconduction du modèle ADR-013, qui a fait ses preuves sur le reçu :
 
-- lien public `/transaction/[token]` (token uuid par ligne `pending`), RPC
-  `SECURITY DEFINER` pour lire / valider / contester — `anon` n'accède à
-  aucune table en direct ;
-- notification du locataire par **WhatsApp via ranti-ops** (rail ADR-022),
-  message conforme à la voix de marque, avec le lien signé ;
+- lien public `/transaction/[token]` (`tenant_token` par ligne soumise à
+  validation), RPC `SECURITY DEFINER` pour lire / valider / contester /
+  retirer sa contestation — `anon` n'accède à aucune table en direct ;
+- notification par **WhatsApp via ranti-ops** (rail ADR-022) à chaque
+  événement du cycle : création d'une ligne `pending`, contestation,
+  sortie de litige — message conforme à la voix de marque, avec le lien
+  signé ;
 - aucun compte locataire imposé : la friction tuerait le taux de validation,
   qui est la métrique de survie du pivot.
 
-### 7. Interface propriétaire
+### 8. Interface propriétaire
 
 Le dashboard bascule du « nombre de reçus émis » à la **vue des impayés et
-des soldes** : qui est en retard, de combien, qu'est-ce qui est en litige.
-Tout ce qui n'est pas lié à la clarté du solde ou à la validation des dettes
-est secondaire pour l'instant.
+des soldes** : qui est en retard, de combien, qu'est-ce qui est en attente,
+qu'est-ce qui est en litige. Tout ce qui n'est pas lié à la clarté du solde
+ou à la validation des dettes est secondaire pour l'instant.
 
-### 8. Le Proof Engine survit comme sortie du grand livre
+### 9. Le Proof Engine survit comme sortie du grand livre
 
 `receipts`, l'acquittement ADR-013 et la génération automatique (ADR-007)
 sont conservés : la quittance est émise quand les débits `loyer` d'une
@@ -164,11 +257,19 @@ qui est opposable devant un médiateur.
 1. **Docs d'abord** : cette ADR, puis `vision.md`, `architecture.md`,
    `domain-model.md`, `database.md` mis à jour avant toute migration.
 2. **Expand** : table `transactions` + vue `lease_balances` à côté de
-   l'existant. Backfill : chaque `rent_due` → débit `loyer` validé ; chaque
-   `rent_reception` (via ses allocations) → crédit `reglement` validé.
-   Double écriture dans les server actions (`rent-dues`, `payments`,
-   `collections`). Aucun changement UI tant que les soldes recalculés ne
-   collent pas à 100 % avec l'existant.
+   l'existant, backfill idempotent, double écriture dans les server actions
+   (`rent-dues`, `payments`, `collections`). Aucun changement UI tant que
+   les soldes recalculés ne collent pas à 100 % avec l'existant.
+
+   Correspondance de backfill (statuts dérivés de la matrice § 3) :
+
+   | Donnée existante | Ligne créée | Statut |
+   | :-- | :-- | :-- |
+   | `rent_dues` (toutes, y compris `overdue`) | débit `loyer`, `source = genere_par_bail` | `validated` (`system`) — matrice ligne 1 |
+   | `rent_receptions` confirmées (via allocations) | crédit `reglement`, `source = manuel` ou `feexpay` | `validated` (`landlord` ou `system`) — lignes 3-4 |
+   | `rent_receptions` `draft` (déclarations `/confirmer`) | crédit `reglement`, `source = declaration_locataire` | `pending` — ligne 5 |
+   | `rent_receptions` annulées (ADR-005) | crédit `validated` **+** contre-passation `validated` (motif repris) | paire ligne 4 + ligne 6/7 — l'histoire n'est pas réécrite |
+
 3. **Nouvelle lecture** : le dashboard bascule sur `lease_balances`
    (impayés & soldes). Premier bénéfice visible, sans flux locataire.
 4. **Le différenciant** : débits variables, notification WhatsApp,
@@ -199,12 +300,21 @@ vrai ledger et un meilleur dashboard d'impayés.
 - **Acceptation tacite des débits** (validé après N jours sans réponse) :
   rejeté — aucun statut tacite opposable (cohérence ADR-013) ; un solde
   « certain » gonflé de silences ne serait certain que de nom.
+- **Contestation possible sur les lignes validées** : rejeté — `validated`
+  doit rester terminal pour que « indélébile » veuille dire quelque chose ;
+  le désaccord tardif passe par le reçu (ADR-013) ou par une demande de
+  contre-passation, jamais par la réouverture d'une ligne certaine.
+- **Correction par édition des lignes `pending`** : rejeté — même une ligne
+  non validée ne s'édite pas ; on retire et on réémet (`replaced_by`), pour
+  que le locataire notifié ne voie jamais une ligne changer sous ses yeux.
 
 ## Conséquences
 
 - Migrations : table `transactions` + contraintes (montant positif,
-  cohérence type/direction, `reversal_of`), vue `lease_balances`, triggers
-  d'indélébilité, RPC token locataire, backfill idempotent.
+  cohérence type/direction/statut, `reversal_of` vers ligne validée
+  uniquement, `replaced_by`), vue `lease_balances`, triggers d'indélébilité
+  et de terminalité (`validated`, `withdrawn`), RPC token locataire,
+  backfill idempotent selon la correspondance § Transition.
 - `lib/` : nouveau module `ledger` ; `rent-dues`, `payments`, `collections`,
   `receipts`, `reminders` passent en double écriture puis en lecture ledger.
 - Docs à mettre à jour dans la foulée : `vision.md` (promesse : les cinq
@@ -222,6 +332,8 @@ vrai ledger et un meilleur dashboard d'impayés.
 - Pénalités de retard, intérêts, dépôt de garantie comme types de ligne
   (types futurs possibles du grand livre, non engagés).
 - Multi-devises (FCFA uniquement).
+- Relance automatique des validations `pending` restées sans réponse
+  (chantier possible côté ranti-ops, non engagé).
 
 ## Critères de réouverture
 
@@ -232,3 +344,6 @@ vrai ledger et un meilleur dashboard d'impayés.
   médiation/résolution, aujourd'hui hors périmètre.
 - Le terrain demande un espace locataire persistant → réévaluer les comptes
   locataires (alternative rejetée ci-dessus).
+- La règle « pas d'acceptation tacite » laisse trop de lignes `pending`
+  orphelines pour que le solde certain reste utile → réévaluer un mécanisme
+  de rappel de validation (jamais une validation tacite).
