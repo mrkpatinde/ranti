@@ -7,6 +7,7 @@ import {
   describeLeaseDebtRow,
   getLandlordLeaseBalances,
   leaseDebtRowAmount,
+  overdueByLease,
 } from "@/lib/ledger"
 import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import { getLandlordTenants } from "@/lib/tenants"
@@ -81,7 +82,7 @@ export default async function DashboardPage() {
 
   const summary = buildDashboardSummary(balances)
   const overview = buildLedgerOverview(leaseBalances, leases)
-  const upcoming = computeUpcomingReminders(balances)
+  const upcoming = computeUpcomingReminders(balances, overdueByLease(leaseBalances))
   const tenantName = new Map(tenants.map((t) => [t.id, `${t.first_name} ${t.last_name}`]))
   const unitName = new Map(units.map((u) => [u.id, u.name]))
   const month = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })

@@ -16,6 +16,7 @@ import {
 import { buildReminderWaLink } from "@/lib/reminders/whatsapp"
 import {
   buildChargeWaLink,
+  getLeaseBalance,
   getLeaseLedgerCharges,
   withdrawLedgerLine,
   type LedgerCharge,
@@ -109,11 +110,12 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const lease = await getLease(landlord.id, id)
   if (!lease) notFound()
 
-  const [unit, tenant, dues, charges] = await Promise.all([
+  const [unit, tenant, dues, charges, balance] = await Promise.all([
     getUnit(landlord.id, lease.unit_id),
     getTenant(landlord.id, lease.tenant_id),
     getLeaseDueBalances(landlord.id, lease.id),
     getLeaseLedgerCharges(landlord.id, lease.id),
+    getLeaseBalance(landlord.id, lease.id),
   ])
   // Fil des relances de CE bail (filtré sur ses échéances) : relie retard et
   // relances au même endroit. Dépend des échéances → chargé après.
@@ -127,24 +129,45 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
     (due) => (due.status === "expected" || due.status === "overdue") && due.amount_due - due.amount_paid > 0,
   )
 
+  // Solde du compte courant (grand livre, ADR-023) — la même lentille que le
+  // dashboard : plus de fiche bail qui contredit la liste des impayés.
+  const ledgerOverdue = Number(balance?.overdue_amount ?? 0)
+  const outstanding = Math.max(0, -Number(balance?.certain_balance ?? 0))
+  const expectedSoon = Math.max(0, outstanding - ledgerOverdue)
+  const advance = Math.max(0, Number(balance?.certain_balance ?? 0))
+  const pendingCredits = Number(balance?.pending_credits ?? 0)
+  const pendingDebits = Number(balance?.pending_debits ?? 0)
+  const disputed = Number(balance?.disputed_debits ?? 0) + Number(balance?.disputed_credits ?? 0)
+
   // Relance manuelle « préparée sans envoi auto » (ADR-006 MVP) : lien wa.me
-  // pré-rempli vers le locataire pour la plus ancienne échéance non soldée.
+  // pré-rempli. Garde compte courant (ADR-023) : une relance de RETARD n'a de
+  // sens que si le grand livre porte un impayé — le montant est celui du
+  // compte, pas d'une échéance isolée. Sinon, seul un rappel pré-échéance
+  // reste proposé.
   const now = new Date()
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
   const firstUnpaid = dues.find(
     (d) => d.status !== "cancelled" && d.amount_due - d.amount_paid > 0,
   )
   const publicUrl = process.env.PUBLIC_URL || "https://www.monranti.com"
+  const relanceLate = ledgerOverdue > 0
+  const relanceDue = relanceLate
+    ? firstUnpaid
+    : firstUnpaid && firstUnpaid.due_date >= todayStr
+      ? firstUnpaid
+      : undefined
   const relanceWaLink =
-    lease.status === "active" && tenant?.phone && firstUnpaid
+    lease.status === "active" && tenant?.phone && relanceDue
       ? buildReminderWaLink({
           phone: tenant.phone,
           tenantName: `${tenant.first_name} ${tenant.last_name}`,
-          amount: firstUnpaid.amount_due - firstUnpaid.amount_paid,
-          dueDate: firstUnpaid.due_date,
-          late: firstUnpaid.due_date < todayStr,
-          confirmUrl: firstUnpaid.confirmation_token
-            ? `${publicUrl}/confirmer/${firstUnpaid.confirmation_token}`
+          amount: relanceLate
+            ? ledgerOverdue
+            : Math.max(0, relanceDue.amount_due - relanceDue.amount_paid),
+          dueDate: relanceDue.due_date,
+          late: relanceLate,
+          confirmUrl: relanceDue.confirmation_token
+            ? `${publicUrl}/confirmer/${relanceDue.confirmation_token}`
             : null,
         })
       : null
@@ -171,6 +194,39 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             </div>
             <span className={badgeClasses("neutral")}>{leaseStatusLabels[lease.status]}</span>
           </div>
+
+          {balance ? (
+            <p className="mt-3 text-sm">
+              <span className="text-muted-foreground">Compte du bail : </span>
+              {ledgerOverdue > 0 ? (
+                <span className="font-semibold tabular-nums text-destructive">
+                  {formatFcfa(ledgerOverdue)} en retard
+                </span>
+              ) : outstanding > 0 ? (
+                <span className="font-medium tabular-nums text-foreground">
+                  {formatFcfa(outstanding)} attendus
+                </span>
+              ) : advance > 0 ? (
+                <span className="font-medium tabular-nums text-accent">
+                  avance de {formatFcfa(advance)}
+                </span>
+              ) : (
+                <span className="font-medium text-accent">à jour</span>
+              )}
+              {ledgerOverdue > 0 && expectedSoon > 0 ? (
+                <span className="text-muted-foreground"> · {formatFcfa(expectedSoon)} attendus</span>
+              ) : null}
+              {pendingCredits > 0 ? (
+                <span className="text-muted-foreground"> · {formatFcfa(pendingCredits)} à confirmer</span>
+              ) : null}
+              {pendingDebits > 0 ? (
+                <span className="text-muted-foreground"> · {formatFcfa(pendingDebits)} en attente locataire</span>
+              ) : null}
+              {disputed > 0 ? (
+                <span className="text-warning"> · {formatFcfa(disputed)} en litige</span>
+              ) : null}
+            </p>
+          ) : null}
 
           {lease.notes ? <p className="mt-3 text-sm text-muted-foreground">{lease.notes}</p> : null}
 

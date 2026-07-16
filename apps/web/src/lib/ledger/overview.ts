@@ -109,6 +109,12 @@ export function describeLeaseDebtRow(row: LeaseDebtRow): string {
   return parts.join(" · ")
 }
 
+// Impayé du grand livre par bail — la clé de la garde compte courant des
+// relances (ADR-023) : même règle dans la projection UI et la file opérateur.
+export function overdueByLease(balances: LeaseBalance[]): Map<string, number> {
+  return new Map(balances.map((b) => [b.lease_id, b.overdue_amount]))
+}
+
 export type LeaseDebtAmount = {
   amount: number
   /** Pilote la couleur : retard (destructive), dû (foreground), attente (muted), litige (warning). */

@@ -317,15 +317,21 @@ qui est opposable devant un médiateur.
    sans dû, sans attente, sans litige* (compte courant), plus « échéances du
    mois soldées ».
 
-   Limites connues de la coexistence des lentilles (assumées jusqu'aux
-   phases suivantes) : les **relances** (ADR-022) et la **fiche bail**
-   restent calculées par échéance (`rent_due_balances`) — un crédit affecté
-   par le bailleur à un mois futur alors qu'un mois ancien reste dû peut
-   donc produire un écart visible (liste « aucun retard » côté compte
-   courant, relance de retard côté cadence). Les relances affichent ce que
-   ranti-ops enverra réellement (leçon ADR-022 : l'UI ne promet que ce qui
-   est vrai) ; la réconciliation des lentilles se fait à la bascule de la
-   fiche bail et de la source des relances sur le grand livre.
+   Limites de la coexistence des lentilles — **résolues** (bascule des
+   relances et de la fiche bail, 2026-07-16) : la file opérateur
+   `ops_reminder_queue` porte désormais la **garde compte courant** — les
+   relances de retard (`late_j_1`, `late_j_3`) ne sortent que si le bail a
+   un impayé au grand livre (`lease_balances.overdue_amount > 0`, exposé à
+   ranti-ops en colonne `ledger_overdue_amount`) ; les rappels pré-échéance
+   sont inchangés. La projection UI (`computeUpcomingReminders`,
+   `detectReminderSilence`) applique la même règle : l'écran promet
+   exactement ce que la file contient (leçon ADR-022). La fiche bail
+   affiche le solde du compte courant en tête (même lentille que le
+   dashboard) et la relance manuelle WhatsApp est sourcée du grand livre —
+   pas de relance de retard pour un bail à jour, montant = l'impayé du
+   compte. La cadence reste calculée par échéance (les dates viennent des
+   échéances — c'est leur rôle) ; seule l'exigence de dette est passée au
+   compte courant.
 4. **Le différenciant** (livré côté produit) : débits variables par RPC
    (`add_lease_charge` — la charge naît `pending` avec son `tenant_token`),
    retrait et remplacement par le bailleur (`withdraw_ledger_line` /

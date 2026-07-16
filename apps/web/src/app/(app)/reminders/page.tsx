@@ -3,6 +3,7 @@ import { Alert } from "@/components/ui/alert"
 import { badgeClasses } from "@/components/ui/badge"
 import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getLandlordLeaseBalances, overdueByLease } from "@/lib/ledger"
 import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import { getLandlordReminders, type ReminderWithContext } from "@/lib/reminders/queries"
 import { detectReminderSilence, REMINDER_SILENCE_GRACE_DAYS } from "@/lib/reminders/schedule"
@@ -36,19 +37,23 @@ function tenantName(reminder: ReminderWithContext): string {
 
 export default async function RemindersPage() {
   const landlord = await requireLandlordProfile()
-  const [reminders, collections, balances] = await Promise.all([
+  const [reminders, collections, balances, leaseBalances] = await Promise.all([
     getLandlordReminders(landlord.id),
     getLandlordCollections(landlord.id),
     getLandlordDueBalances(landlord.id),
+    getLandlordLeaseBalances(landlord.id),
   ])
 
   const draftCount = collections.filter((c) => c.status === "draft").length
 
   // Garde-fou ADR-022 : l'envoi vit dans ranti-ops ; si des fenêtres passent
   // sans envoi tracé, on le dit — plutôt qu'un silence qui ressemble à un bug.
+  // Une fenêtre de retard n'est « attendue » que si le bail porte un impayé
+  // au grand livre (garde compte courant, ADR-023).
   const silence = detectReminderSilence(
     balances,
     reminders.map((r) => ({ dueId: r.rent_due?.id ?? null, sentAt: r.sent_at })),
+    overdueByLease(leaseBalances),
   )
 
   return (
