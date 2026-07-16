@@ -25,7 +25,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
           <p className="mt-2 text-sm text-muted-foreground">Vos locataires</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+          Accueil
         </Link>
       </header>
 

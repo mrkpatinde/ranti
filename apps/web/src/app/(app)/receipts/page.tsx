@@ -42,10 +42,10 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="mt-2 text-sm text-muted-foreground">Vos quittances</p>
+          <p className="mt-2 text-sm text-muted-foreground">Quittances &amp; reçus</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+          Accueil
         </Link>
       </header>
 

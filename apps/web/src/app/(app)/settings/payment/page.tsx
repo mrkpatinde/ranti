@@ -24,7 +24,7 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
           <p className="mt-2 text-sm text-muted-foreground">Recevoir les loyers</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+          Accueil
         </Link>
       </header>
 
@@ -85,7 +85,7 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
           </div>
 
           <SubmitButton
-            className="w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:brightness-95 disabled:opacity-60 lg:w-fit"
+            className="w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60 lg:w-fit"
           >
             Enregistrer
           </SubmitButton>
@@ -93,7 +93,7 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
 
         <p className="rounded-2xl border border-border bg-background px-4 py-3 text-sm leading-6 text-foreground/70">
           PI-SPI est le paiement instantané interopérable de la BCEAO : le locataire paie
-          depuis n&apos;importe quelle banque ou wallet connecté, l&apos;argent arrive directement
+          depuis n&apos;importe quelle banque ou portefeuille mobile connecté, l&apos;argent arrive directement
           sur votre compte.
         </p>
       </section>

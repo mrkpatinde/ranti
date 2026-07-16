@@ -53,7 +53,7 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
           <p className="mt-2 text-sm text-muted-foreground">Vos baux</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+          Accueil
         </Link>
       </header>
 

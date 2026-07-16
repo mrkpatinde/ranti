@@ -110,7 +110,7 @@ describe("verifyPaymentTransaction (ADR-018 v2 : validation propriétaire)", () 
     })
     const url = await runAndCaptureRedirect(form({ transaction_id: TX }))
     expect(url).toBe(
-      `/collections?error=${encodeURIComponent("Opération impossible. Réessayez.")}`,
+      `/collections?error=${encodeURIComponent("Validation impossible pour le moment. Réessayez.")}`,
     )
   })
 

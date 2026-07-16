@@ -143,7 +143,7 @@ export default async function TransactionsPage() {
                     <p className="mt-3 text-sm text-foreground/80">
                       Net reçu{" "}
                       <span className="font-medium text-foreground">{formatFcfa(t.net_amount)}</span>{" "}
-                      · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
+                      · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
                       tout inclus
                       {t.status === "paid_out" && t.paid_out_at
                         ? ` · reversé le ${formatDate(t.paid_out_at)}`

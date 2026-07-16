@@ -94,7 +94,7 @@ export function JournalTimeline({
         >
           {/* Colonne date — largeur fixe */}
           <div className="flex w-16 shrink-0 items-baseline gap-2 sm:w-24">
-            <span className="font-display text-4xl font-light leading-none tabular-nums text-foreground sm:text-5xl">
+            <span className="font-display text-4xl font-medium leading-none tabular-nums text-foreground sm:text-5xl">
               {group.dayNumber}
             </span>
             <div className="flex flex-col leading-tight">

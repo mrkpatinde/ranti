@@ -1,5 +1,6 @@
 import { buttonClasses } from "@/components/ui/button"
 import { headers } from "next/headers"
+import QRCode from "qrcode"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
@@ -71,6 +72,17 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
   const proto = h.get("x-forwarded-proto") ?? "https"
   const shareUrl = host ? `${proto}://${host}/recu/${receipt.tenant_token}` : `/recu/${receipt.tenant_token}`
   const ack = ackBadge[receipt.tenant_ack]
+
+  // Même QR que le PDF : l'URL publique de vérification du document. À
+  // l'écran comme sur papier, la quittance se vérifie d'un scan.
+  const verifyUrl = host ? `${proto}://${host}/verifier/${receipt.id}` : `/verifier/${receipt.id}`
+  let qrDataUrl: string | null = null
+  try {
+    qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 160 })
+  } catch {
+    qrDataUrl = null
+  }
+
   const waText = encodeURIComponent(
     `Voici votre reçu de loyer (${kindLabels[receipt.kind]}). Ouvrez-le et confirmez son exactitude : ${shareUrl}`,
   )
@@ -150,8 +162,13 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
           <div className="flex items-end justify-between gap-4 pt-2">
             <div className="flex items-center gap-3">
-              <span className="flex h-16 w-16 items-center justify-center rounded-lg border border-border text-xs text-muted-foreground">QR</span>
-              <span className="max-w-[140px] text-xs text-muted-foreground">Vérifier l&apos;authenticité en ligne (bientôt)</span>
+              {qrDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- data URL générée localement, next/image inutile
+                <img src={qrDataUrl} alt={`QR de vérification du document ${receipt.receipt_number}`} className="h-16 w-16 rounded-lg border border-border bg-white p-1" />
+              ) : (
+                <span className="flex h-16 w-16 items-center justify-center rounded-lg border border-border text-xs text-muted-foreground">QR</span>
+              )}
+              <a href={verifyUrl} className="max-w-[140px] text-xs text-muted-foreground underline-offset-4 hover:underline">Vérifier l&apos;authenticité en ligne</a>
             </div>
             <div className="text-center"><div className="w-40 border-t border-border pt-1.5 text-xs text-muted-foreground">Signature du propriétaire</div></div>
           </div>

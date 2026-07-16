@@ -82,7 +82,7 @@ export default async function DashboardPage() {
         <div className="space-y-1.5">
           <div className="flex items-baseline justify-between text-xs text-muted-foreground lg:text-sm">
             <span>Recouvrement de {month}</span>
-            <span className="font-semibold tabular-nums text-foreground">{summary.collectionRate} %</span>
+            <span className="font-semibold tabular-nums text-foreground">{summary.collectionRate} %</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
             <div className="h-full rounded-full bg-accent" style={{ width: `${summary.collectionRate}%` }} />

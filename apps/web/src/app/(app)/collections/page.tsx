@@ -52,7 +52,7 @@ const noticeLabels: Record<string, string> = {
   collection_recorded_unconfirmed:
     "Encaissement enregistré mais non confirmé. Confirmez-le ci-dessous.",
   payment_transaction_verified:
-    "Paiement validé. La quittance est prête dans « Les loyers que vous avez reçus ».",
+    "Paiement validé. La quittance est prête dans « Vos quittances ».",
   payment_transaction_rejected:
     "Ce paiement n'a pas pu être validé : le montant ne correspond pas au loyer, ou le bail n'est plus actif. Il reste tracé dans le registre.",
 }
@@ -153,7 +153,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
             href="/dashboard"
             className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
           >
-            Tableau de bord
+            Accueil
           </Link>
         </div>
       </header>
@@ -226,7 +226,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                 <p className="mt-3 text-sm text-foreground/80">
                   Vous recevez{" "}
                   <span className="font-medium text-foreground">{formatFcfa(t.net_amount)}</span>{" "}
-                  net · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
+                  net · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
                   tout inclus.
                 </p>
 

@@ -38,7 +38,7 @@ export default async function UnitsPage({ searchParams }: UnitsPageProps) {
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Vos logements</p>
         </div>
-        <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Tableau de bord</Link>
+        <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Accueil</Link>
       </header>
 
       <section className="flex flex-1 flex-col gap-8 py-12">

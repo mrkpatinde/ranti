@@ -17,5 +17,5 @@ export function getSafeAuthErrorMessage(error: unknown) {
     return error.message
   }
 
-  return "Une erreur d’authentification est survenue."
+  return "Connexion impossible pour le moment. Réessayez."
 }
