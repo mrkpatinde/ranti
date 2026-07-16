@@ -131,6 +131,15 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-16)
 
+- État réseau dit calmement (v0.3.18.0, #167 Phase 2) : hook `useOnline`
+  (useSyncExternalStore sur online/offline), bandeau global fixe en bas
+  (tokens warning, « Hors ligne — vos données restent visibles.
+  L'enregistrement attendra le retour du réseau. ») monté au layout racine
+  (app + pages locataire + landing) ; `SubmitButton` se désactive hors ligne
+  avec le libellé « Hors ligne — en attente du réseau » — plus de POST qui
+  échoue en silence, la saisie reste intacte. Vérifié dans Chromium
+  (Playwright : apparition à la coupure, disparition au retour, capture).
+
 - Idempotence des écritures critiques (v0.3.17.0, #167 Phase 1) : un POST
   rejoué (double-clic, réponse perdue sur réseau instable) ne crée plus JAMAIS
   un deuxième encaissement ni un deuxième lot de logements. Table
