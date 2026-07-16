@@ -8,6 +8,10 @@ Détention transitoire de fonds via wallet marchand PSP = potentiellement
 établissement de paiement (Instruction BCEAO 001-01-2024, art. 4/9/11/30).
 Piste privilégiée : partenariat/externalisation art. 7 avec le PSP agréé.
 **Bloquant avant toute activation production** — voir caveat ADR-018.
+Trancher aussi le **montage wallet** (unique Ranti vs sous-comptes par
+propriétaire) : ADR-021 montre qu'il porte à la fois la conformité BCEAO et le
+nom marchand affiché au locataire sur le reçu PSP — prérequis de la copie
+`/confirmer` (reco : sous-comptes).
 
 ### Ouvrir le compte sandbox FeexPay et rejouer un webhook signé réel
 **Priority:** P1
