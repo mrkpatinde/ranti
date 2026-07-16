@@ -90,7 +90,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
                 name="availability_status"
                 value={unit.availability_status === "occupied" ? "available" : "occupied"}
               />
-              <SubmitButton className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground/80 transition hover:border-primary disabled:opacity-60">
+              <SubmitButton className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground/80 transition hover:border-primary disabled:opacity-60">
                 {unit.availability_status === "occupied" ? "Marquer disponible" : "Marquer occupé"}
               </SubmitButton>
             </form>

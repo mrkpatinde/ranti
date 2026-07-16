@@ -125,7 +125,7 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
           <div className="mt-5 flex flex-wrap gap-3">
             {lease.status === "draft" ? (
               <>
-                <Link href={`/leases/${lease.id}/edit`} className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary">Modifier le bail</Link>
+                <Link href={`/leases/${lease.id}/edit`} className="rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Modifier le bail</Link>
                 <form action={activateLease}>
                   <input type="hidden" name="id" value={lease.id} />
                   <SubmitButton className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60">Activer et générer les loyers</SubmitButton>

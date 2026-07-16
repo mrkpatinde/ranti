@@ -42,8 +42,8 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
       href={href}
       className={
         active
-          ? "block rounded-full bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground"
-          : "block rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
+          ? "block rounded-lg bg-primary px-3.5 py-3 text-sm font-medium text-primary-foreground"
+          : "block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
       }
     >
       {label}
@@ -73,7 +73,7 @@ function MobileNavMenu({ pathname }: { pathname: string }) {
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
         aria-expanded={open}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-secondary"
+        className="flex h-12 w-12 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-secondary"
       >
         {open ? <X size={18} strokeWidth={1.8} /> : <Menu size={18} strokeWidth={1.8} />}
       </button>
@@ -100,14 +100,14 @@ function MobileNavMenu({ pathname }: { pathname: string }) {
                   href={SUPPORT_WHATSAPP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
+                  className="block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
                 >
                   WhatsApp Ranti
                 </a>
               )}
               <a
                 href={SUPPORT_EMAIL_URL}
-                className="block rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
+                className="block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
               >
                 Écrire un email
               </a>
@@ -160,14 +160,14 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
                 href={SUPPORT_WHATSAPP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
+                className="block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
               >
                 WhatsApp Ranti
               </a>
             )}
             <a
               href={SUPPORT_EMAIL_URL}
-              className="block rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
+              className="block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
             >
               Écrire un email
             </a>
@@ -178,7 +178,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
             <p className="text-xs text-muted-foreground">Propriétaire</p>
           </div>
           <form action="/auth/signout" method="post">
-            <button type="submit" className="w-full rounded-full px-3.5 py-2 text-left text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground">
+            <button type="submit" className="w-full rounded-lg px-3.5 py-3 text-left text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground">
               Se déconnecter
             </button>
           </form>
@@ -194,7 +194,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
                   type="button"
                   onClick={goBack}
                   aria-label="Revenir en arrière"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-secondary"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-secondary"
                 >
                   <ChevronLeft size={18} strokeWidth={1.8} />
                 </button>

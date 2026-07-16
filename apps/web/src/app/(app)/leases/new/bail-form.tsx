@@ -57,14 +57,14 @@ export function BailForm({
             <button
               type="button"
               onClick={() => setPropertyMode("existing")}
-              className={`flex-1 rounded-full px-3 py-2 font-medium transition ${propertyMode === "existing" ? "bg-accent text-accent-foreground" : "text-foreground/70"}`}
+              className={`flex-1 rounded-full px-3 py-2.5 text-sm font-medium transition ${propertyMode === "existing" ? "bg-accent text-accent-foreground" : "text-foreground/70"}`}
             >
               Un lieu existant
             </button>
             <button
               type="button"
               onClick={() => setPropertyMode("new")}
-              className={`flex-1 rounded-full px-3 py-2 font-medium transition ${propertyMode === "new" ? "bg-accent text-accent-foreground" : "text-foreground/70"}`}
+              className={`flex-1 rounded-full px-3 py-2.5 text-sm font-medium transition ${propertyMode === "new" ? "bg-accent text-accent-foreground" : "text-foreground/70"}`}
             >
               Nouveau lieu
             </button>

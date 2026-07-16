@@ -134,7 +134,7 @@ export default async function RecuPage({
         {receipt.status !== "cancelled" ? (
           <a
             href={`/recu/${token}/pdf`}
-            className="mt-4 inline-flex rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition hover:border-foreground"
+            className="mt-4 inline-flex rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground transition hover:border-foreground"
           >
             Télécharger le PDF
           </a>

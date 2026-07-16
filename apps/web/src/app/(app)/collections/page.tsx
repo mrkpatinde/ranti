@@ -359,7 +359,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                   receiptByReception.has(c.id) ? (
                     <Link
                       href={`/receipts/${receiptByReception.get(c.id)!.id}`}
-                      className="mt-5 inline-flex rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary"
+                      className="mt-5 inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary"
                     >
                       Voir le document
                     </Link>
@@ -375,13 +375,13 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                       <form action={generateReceipt}>
                         <input type="hidden" name="reception_id" value={c.id} />
                         <SubmitButton
-                          className="rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60"
+                          className="rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60"
                         >
                           {cancelledReceiptReceptions.has(c.id) ? "Générer un document corrigé" : "Générer la quittance ou le reçu"}
                         </SubmitButton>
                       </form>
                       <details>
-                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground/70 transition hover:border-destructive/40 hover:text-destructive">Annuler cet encaissement…</summary>
+                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground/70 transition hover:border-destructive/40 hover:text-destructive">Annuler cet encaissement…</summary>
                         <form action={cancelCollection} className="mt-3 space-y-2 rounded-2xl border border-destructive/25 bg-destructive/10 p-4">
                           <input type="hidden" name="id" value={c.id} />
                           <p className="text-sm leading-6 text-destructive">
