@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { formatFcfa } from "@/lib/format"
 import { buildReminderWaLink } from "../whatsapp"
 
 const BASE = {
@@ -20,7 +21,7 @@ describe("buildReminderWaLink", () => {
     expect(link.startsWith("https://wa.me/22990010203?text=")).toBe(true)
     const msg = decoded(link)
     expect(msg).toContain("Bonjour Awa,")
-    expect(msg).toContain("50 000 FCFA")
+    expect(msg).toContain(formatFcfa(50000))
     expect(msg).toContain("arrive à échéance le 25 juillet 2026")
   })
 

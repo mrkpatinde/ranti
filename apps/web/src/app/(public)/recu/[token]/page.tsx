@@ -1,4 +1,6 @@
+import { formatFcfa } from "@/lib/format"
 import { notFound } from "next/navigation";
+import { RantiLogo } from "@/components/ranti-logo";
 import { SubmitButton } from "@/components/submit-button";
 import { createClient } from "@/lib/supabase/server";
 import type { ReceiptByToken } from "@/lib/receipts/types";
@@ -14,10 +16,6 @@ import { ContestForm } from "./contest-form";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`;
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -57,7 +55,7 @@ const ACK_BANNER: Record<
   },
   disputed: {
     text: "Reçu contesté — votre version est enregistrée à côté de celle du propriétaire.",
-    cls: "border-red-200 bg-red-50 text-red-800",
+    cls: "border-destructive/25 bg-destructive/10 text-destructive",
   },
 };
 
@@ -120,9 +118,11 @@ export default async function RecuPage({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-6 py-16">
       <div className="w-full rounded-2xl border border-border bg-card p-8">
-        <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
-          Ranti · Reçu partagé
-        </p>
+        <div className="flex items-center gap-2.5">
+          <RantiLogo size={28} />
+          <span className="font-display text-lg font-extrabold tracking-tight text-foreground">Ranti</span>
+          <span className="text-sm text-muted-foreground">· Reçu partagé</span>
+        </div>
 
         <h1 className="mt-6 font-display text-2xl font-extrabold tracking-tight text-foreground">
           {kind}
@@ -134,7 +134,7 @@ export default async function RecuPage({
         {receipt.status !== "cancelled" ? (
           <a
             href={`/recu/${token}/pdf`}
-            className="mt-4 inline-flex rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition hover:border-foreground"
+            className="mt-4 inline-flex rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground transition hover:border-foreground"
           >
             Télécharger le PDF
           </a>
@@ -146,7 +146,7 @@ export default async function RecuPage({
         </div>
 
         {errorMsg && (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+          <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {errorMsg}
           </div>
         )}
@@ -156,7 +156,7 @@ export default async function RecuPage({
           </div>
         )}
         {justContested && (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+          <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             Votre contestation est enregistrée. Le propriétaire en est informé.
           </div>
         )}
@@ -187,7 +187,7 @@ export default async function RecuPage({
                   <span className="text-foreground">
                     {formatDate(a.period_start)} – {formatDate(a.period_end)}
                   </span>
-                  <span className="text-foreground">{formatAmount(a.amount_allocated)}</span>
+                  <span className="text-foreground">{formatFcfa(a.amount_allocated)}</span>
                 </div>
               ))}
             </div>
@@ -195,24 +195,24 @@ export default async function RecuPage({
           <div className="flex justify-between border-t border-border pt-3 text-sm font-semibold">
             <span className="text-foreground/80">Total</span>
             <span className="text-lg text-foreground">
-              {formatAmount(receipt.total_amount)}
+              {formatFcfa(receipt.total_amount)}
             </span>
           </div>
         </div>
 
         {/* Version du locataire si contesté (deux voix) */}
         {receipt.tenant_ack === "disputed" && receipt.contest_nature && (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
-            <p className="text-xs uppercase tracking-[0.16em] text-red-700">
+          <div className="mt-6 rounded-2xl border border-destructive/25 bg-destructive/10 p-5">
+            <p className="text-xs uppercase tracking-[0.16em] text-destructive">
               {NATURE_LABEL[receipt.contest_nature]}
             </p>
-            <p className="mt-2 text-sm text-red-800">
+            <p className="mt-2 text-sm text-destructive">
               {receipt.contest_nature === "not_paid" &&
                 "Le locataire déclare ne pas avoir payé ce loyer."}
               {receipt.contest_nature === "amount" &&
                 `Le locataire déclare avoir payé ${
                   receipt.contested_amount != null
-                    ? formatAmount(receipt.contested_amount)
+                    ? formatFcfa(receipt.contested_amount)
                     : "un autre montant"
                 }.`}
               {receipt.contest_nature === "date" &&
@@ -236,7 +236,7 @@ export default async function RecuPage({
           <div className="mt-8 space-y-3">
             <form action={certifyReceipt.bind(null, token)}>
               <SubmitButton
-                className="inline-flex w-full justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+                className="inline-flex w-full justify-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60"
                 pendingLabel="Envoi…"
               >
                 Confirmer l&apos;exactitude
@@ -247,8 +247,8 @@ export default async function RecuPage({
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Ranti documente qui a payé, qui doit, et la preuve. Il ne touche jamais
-          l&apos;argent et ne tranche pas les litiges.
+          Ranti documente qui a payé, qui doit, et la preuve. Il ne tranche pas
+          les litiges.
         </p>
       </div>
     </main>

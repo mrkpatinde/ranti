@@ -45,7 +45,7 @@ export default async function EditLeasePage({ params, searchParams }: EditLeaseP
           {!isDraft ? <p className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent">Ce bail est déjà activé. Ranti ne permet pas de le modifier librement pour protéger l&apos;historique des loyers.</p> : null}
         </div>
 
-        {sp?.error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">{sp.error}</p> : null}
 
         <form action={updateLease} className="space-y-5">
           <input type="hidden" name="id" value={lease.id} />
@@ -69,7 +69,7 @@ export default async function EditLeasePage({ params, searchParams }: EditLeaseP
             <label htmlFor="notes" className={labelClass}>Note <span className="text-muted-foreground">(optionnel)</span></label>
             <textarea id="notes" name="notes" rows={3} defaultValue={lease.notes ?? ""} disabled={!isDraft} className={inputClass} />
           </div>
-          {isDraft ? <SubmitButton className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">Enregistrer</SubmitButton> : null}
+          {isDraft ? <SubmitButton className="w-full rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60">Enregistrer</SubmitButton> : null}
         </form>
       </section>
     </main>

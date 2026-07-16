@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { formatFcfaNumber } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeases } from "@/lib/leases"
 import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
@@ -8,8 +9,6 @@ import { buildDashboardSummary } from "@/lib/dashboard/summary"
 import { computeUpcomingReminders } from "@/lib/reminders/schedule"
 
 export const metadata = { title: "Ranti" }
-
-const fmt = (n: number) => n.toLocaleString("fr-FR")
 
 // Date courte « 20 juil. » à partir d'un YYYY-MM-DD (sans dérive de fuseau).
 function formatShortDate(ymd: string): string {
@@ -83,7 +82,7 @@ export default async function DashboardPage() {
         <div className="space-y-1.5">
           <div className="flex items-baseline justify-between text-xs text-muted-foreground lg:text-sm">
             <span>Recouvrement de {month}</span>
-            <span className="font-semibold tabular-nums text-foreground">{summary.collectionRate} %</span>
+            <span className="font-semibold tabular-nums text-foreground">{summary.collectionRate} %</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
             <div className="h-full rounded-full bg-accent" style={{ width: `${summary.collectionRate}%` }} />
@@ -121,7 +120,7 @@ export default async function DashboardPage() {
                 <span
                   className={`text-sm font-semibold tabular-nums lg:text-base ${line.late ? "text-destructive" : "text-foreground"}`}
                 >
-                  {fmt(line.remaining)} <span className="text-xs font-medium text-muted-foreground">FCFA</span>
+                  {formatFcfaNumber(line.remaining)} <span className="text-xs font-medium text-muted-foreground">FCFA</span>
                 </span>
                 <span aria-hidden className="text-lg leading-none text-muted-foreground">
                   ›
@@ -195,7 +194,7 @@ function Stat({
   return (
     <div className={`flex-1 px-3 py-4 text-center ${divider ? "border-l border-border" : ""} lg:py-6`}>
       <div className={`text-base font-semibold tabular-nums lg:text-3xl ${className}`}>
-        {value.toLocaleString("fr-FR")}
+        {formatFcfaNumber(value)}
         <span className="ml-1 text-[11px] font-medium text-muted-foreground lg:text-sm">FCFA</span>
       </div>
       <div className="mt-1 text-xs text-muted-foreground lg:mt-1.5 lg:text-sm">{label}</div>

@@ -27,7 +27,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
           <p className="mt-2 text-sm text-muted-foreground">Profil propriétaire</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+          Accueil
         </Link>
       </header>
 

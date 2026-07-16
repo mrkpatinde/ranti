@@ -1,7 +1,10 @@
+import { buttonClasses } from "@/components/ui/button"
 import { headers } from "next/headers"
+import QRCode from "qrcode"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
+import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
 import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { cancelReceipt, getReceipt } from "@/lib/receipts"
@@ -36,11 +39,11 @@ const noticeLabels: Record<string, string> = {
 }
 
 // ADR-013 — acquittement locataire, vu côté propriétaire.
-const ackBadge: Record<TenantAck, { label: string; cls: string }> = {
-  unilateral: { label: "En attente d’ouverture", cls: "border-border text-muted-foreground" },
-  read: { label: "Ouvert, non confirmé", cls: "border-amber-300 text-amber-700" },
-  certified: { label: "Certifié par le locataire", cls: "border-primary/30 text-primary" },
-  disputed: { label: "Contesté par le locataire", cls: "border-red-300 text-red-700" },
+const ackBadge: Record<TenantAck, { label: string; variant: BadgeVariant }> = {
+  unilateral: { label: "En attente d’ouverture", variant: "neutral" },
+  read: { label: "Ouvert, non confirmé", variant: "warning" },
+  certified: { label: "Certifié par le locataire", variant: "success" },
+  disputed: { label: "Contesté par le locataire", variant: "error" },
 }
 
 function formatDate(iso: string): string {
@@ -69,6 +72,17 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
   const proto = h.get("x-forwarded-proto") ?? "https"
   const shareUrl = host ? `${proto}://${host}/recu/${receipt.tenant_token}` : `/recu/${receipt.tenant_token}`
   const ack = ackBadge[receipt.tenant_ack]
+
+  // Même QR que le PDF : l'URL publique de vérification du document. À
+  // l'écran comme sur papier, la quittance se vérifie d'un scan.
+  const verifyUrl = host ? `${proto}://${host}/verifier/${receipt.id}` : `/verifier/${receipt.id}`
+  let qrDataUrl: string | null = null
+  try {
+    qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 160 })
+  } catch {
+    qrDataUrl = null
+  }
+
   const waText = encodeURIComponent(
     `Voici votre reçu de loyer (${kindLabels[receipt.kind]}). Ouvrez-le et confirmez son exactitude : ${shareUrl}`,
   )
@@ -80,16 +94,16 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           <p className="mt-2 text-sm text-muted-foreground">{kindLabels[receipt.kind]}</p>
         </div>
         <div className="flex items-center gap-3">
-          <a href={`/receipts/${receipt.id}/pdf`} className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">Télécharger le PDF</a>
+          <a href={`/receipts/${receipt.id}/pdf`} className="rounded-full bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95">Télécharger le PDF</a>
           <Link href="/receipts" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Tous les documents</Link>
         </div>
       </header>
 
       <section className="flex flex-1 flex-col gap-8 py-10">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
-        {receipt.status === "cancelled" ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">Ce document est annulé. L’encaissement lié reste conservé dans le registre.</p> : null}
+        {receipt.status === "cancelled" ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">Ce document est annulé. L’encaissement lié reste conservé dans le registre.</p> : null}
 
         <article className="rounded-2xl border border-border bg-card p-7 shadow-[0_14px_50px_-18px_rgba(41,41,41,0.22)]">
           <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
@@ -104,8 +118,8 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               <p className="font-display text-lg font-extrabold tracking-tight text-foreground">{kindLabels[receipt.kind]}</p>
               <p className="text-sm text-foreground/70">N° {receipt.receipt_number}</p>
               <p className="text-sm text-muted-foreground">Émise le {formatDate(receipt.issued_at)}</p>
-              <span className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-xs font-medium ${ack.cls}`}>{ack.label}</span>
-              {receipt.status === "cancelled" ? <span className="mt-1 ml-1 inline-flex rounded-lg border border-red-300 px-2 py-0.5 text-xs font-medium text-red-700">{statusLabels[receipt.status]}</span> : null}
+              <span className={badgeClasses(ack.variant, "mt-1")}>{ack.label}</span>
+              {receipt.status === "cancelled" ? <span className={badgeClasses("error", "mt-1 ml-1")}>{statusLabels[receipt.status]}</span> : null}
             </div>
           </div>
 
@@ -148,15 +162,20 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
           <div className="flex items-end justify-between gap-4 pt-2">
             <div className="flex items-center gap-3">
-              <span className="flex h-16 w-16 items-center justify-center rounded-lg border border-border text-xs text-muted-foreground">QR</span>
-              <span className="max-w-[140px] text-xs text-muted-foreground">Vérifier l&apos;authenticité en ligne (bientôt)</span>
+              {qrDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- data URL générée localement, next/image inutile
+                <img src={qrDataUrl} alt={`QR de vérification du document ${receipt.receipt_number}`} className="h-16 w-16 rounded-lg border border-border bg-white p-1" />
+              ) : (
+                <span className="flex h-16 w-16 items-center justify-center rounded-lg border border-border text-xs text-muted-foreground">QR</span>
+              )}
+              <a href={verifyUrl} className="max-w-[140px] text-xs text-muted-foreground underline-offset-4 hover:underline">Vérifier l&apos;authenticité en ligne</a>
             </div>
             <div className="text-center"><div className="w-40 border-t border-border pt-1.5 text-xs text-muted-foreground">Signature du propriétaire</div></div>
           </div>
         </article>
 
         {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+          <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             <p className="font-medium">Le locataire conteste ce reçu.</p>
             <p className="mt-1">
               {receipt.contest_nature === "not_paid" && "Il déclare ne pas avoir payé ce loyer."}
@@ -165,7 +184,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               {receipt.contest_nature === "date" &&
                 `Il indique une autre période : ${receipt.contested_period || "non précisée"}.`}
             </p>
-            <p className="mt-2 text-xs text-red-700">Votre déclaration reste conservée. Corrigez le reçu (remplacement) si le locataire a raison.</p>
+            <p className="mt-2 text-xs text-destructive">Votre déclaration reste conservée. Corrigez le reçu (remplacement) si le locataire a raison.</p>
           </div>
         ) : null}
 
@@ -180,7 +199,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               href={`https://wa.me/?text=${waText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+              className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
             >
               Partager sur WhatsApp
             </a>
@@ -194,7 +213,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
             <input type="hidden" name="id" value={receipt.id} />
             <label htmlFor="reason" className="block text-sm font-medium text-foreground">Pourquoi annulez-vous cette quittance ?</label>
             <textarea id="reason" name="reason" rows={2} required minLength={3} placeholder="Ex. erreur de montant, paiement non reçu" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary" />
-            <SubmitButton className="rounded-full border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60">Annuler ce document</SubmitButton>
+            <SubmitButton className={buttonClasses("destructive-outline")}>Annuler ce document</SubmitButton>
           </form>
         ) : null}
       </section>

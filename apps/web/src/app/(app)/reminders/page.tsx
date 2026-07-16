@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { badgeClasses } from "@/components/ui/badge"
 import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordReminders, type ReminderWithContext } from "@/lib/reminders/queries"
@@ -99,13 +100,7 @@ export default async function RemindersPage() {
                       {due ? ` · Loyer de ${formatMonth(due.period_start)}` : ""}
                     </p>
                   </div>
-                  <span
-                    className={
-                      reminder.status === "failed"
-                        ? "shrink-0 rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700 ring-1 ring-red-200"
-                        : "shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-bold text-foreground ring-1 ring-primary/20"
-                    }
-                  >
+                  <span className={badgeClasses(reminder.status === "failed" ? "error" : "success")}>
                     {reminderStatusLabels[reminder.status]}
                   </span>
                 </div>

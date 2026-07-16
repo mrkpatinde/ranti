@@ -1,4 +1,6 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
+import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordReceipts } from "@/lib/receipts"
 import type { ReceiptStatus, TenantAck } from "@/lib/receipts"
@@ -14,21 +16,17 @@ const statusLabels: Record<ReceiptStatus, string> = {
 
 // ADR-013 — acquittement locataire. On ne montre un badge que quand il y a un
 // signal (ouvert / certifié / contesté) ; `unilateral` reste silencieux.
-const ackBadge: Record<TenantAck, { label: string; cls: string } | null> = {
+const ackBadge: Record<TenantAck, { label: string; variant: BadgeVariant } | null> = {
   unilateral: null,
-  read: { label: "Ouvert", cls: "border-amber-300 text-amber-700" },
-  certified: { label: "Certifié", cls: "border-primary/30 text-primary" },
-  disputed: { label: "Contesté", cls: "border-red-300 text-red-700" },
+  read: { label: "Ouvert", variant: "warning" },
+  certified: { label: "Certifié", variant: "success" },
+  disputed: { label: "Contesté", variant: "error" },
 }
 
 const kindLabels = {
   quittance: "Quittance",
   receipt: "Reçu",
 } as const
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
@@ -44,10 +42,10 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div>
-          <p className="mt-2 text-sm text-muted-foreground">Vos quittances</p>
+          <p className="mt-2 text-sm text-muted-foreground">Quittances &amp; reçus</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+          Accueil
         </Link>
       </header>
 
@@ -62,7 +60,7 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
         </div>
 
         {disputedCount > 0 ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+          <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {disputedCount === 1
               ? "1 reçu est contesté par un locataire."
               : `${disputedCount} reçus sont contestés par des locataires.`}{" "}
@@ -80,7 +78,7 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
             </p>
             <Link
               href="/collections"
-              className="mt-5 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+              className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
             >
               Voir les encaissements
             </Link>
@@ -96,18 +94,18 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
-                      {formatAmount(receipt.total_amount)}
+                      {formatFcfa(receipt.total_amount)}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {kindLabels[receipt.kind]} · {receipt.receipt_number} · {formatDate(receipt.issued_at)}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <span className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80">
+                    <span className={badgeClasses("neutral")}>
                       {statusLabels[receipt.status]}
                     </span>
                     {ackBadge[receipt.tenant_ack] ? (
-                      <span className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${ackBadge[receipt.tenant_ack]!.cls}`}>
+                      <span className={badgeClasses(ackBadge[receipt.tenant_ack]!.variant)}>
                         {ackBadge[receipt.tenant_ack]!.label}
                       </span>
                     ) : null}

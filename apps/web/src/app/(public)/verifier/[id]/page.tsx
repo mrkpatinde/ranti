@@ -75,7 +75,7 @@ export default async function VerifyReceiptPage({ params }: VerifyPageProps) {
           <span
             className={
               cancelled
-                ? "shrink-0 rounded-full bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 ring-1 ring-red-200"
+                ? "shrink-0 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive ring-1 ring-destructive/30"
                 : "shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-bold text-foreground ring-1 ring-primary/20"
             }
           >
@@ -119,7 +119,7 @@ export default async function VerifyReceiptPage({ params }: VerifyPageProps) {
         </dl>
 
         {cancelled ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             Ce document a été annulé par son émetteur. Il ne vaut plus preuve de paiement.
           </p>
         ) : (

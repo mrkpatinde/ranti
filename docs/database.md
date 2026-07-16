@@ -2,9 +2,9 @@
 
 ## Statut
 
-Version 1.4 — modèle relationnel candidat aligné avec l'architecture, les ADR-001, ADR-006, ADR-007 et l'API.
+Version 1.5 — réaligné sur le schéma live (audit 2026-07-16) : `app_users` supprimée du modèle (ADR-010, lien direct `landlords.auth_user_id`), `lease_reminder_rules` et `receipt_items` déclassées en cible non implémentée, schéma `reminders` corrigé sur la table réelle.
 
-Ce document définit le modèle de référence de la base de données de Ranti avant migrations SQL définitives.
+Ce document décrit le modèle de référence de la base de données de Ranti. La source de vérité exécutable reste `supabase/migrations/`.
 
 ## Objectif
 
@@ -30,21 +30,13 @@ La base doit protéger la mémoire fiable des loyers et répondre clairement à 
 
 ## Tables MVP immédiat
 
-### `app_users`
-
-Utilisateur applicatif connecté.
-
-Champs : `id`, `auth_user_id`, `full_name`, `phone`, `email`, `status`, `created_at`, `updated_at`.
-
-Contraintes : `auth_user_id` unique si possible ; `phone` peut devenir unique si le téléphone devient l'identifiant principal.
-
 ### `landlords`
 
-Propriétaire ou espace propriétaire.
+Propriétaire ou espace propriétaire. Il n'existe PAS de table `app_users` : le profil métier est lié directement à Supabase Auth par `landlords.auth_user_id = auth.users.id` (ADR-010), et `current_landlord_id()` résout l'appartenance depuis `auth.uid()`.
 
-Champs : `id`, `owner_user_id`, `display_name`, `phone`, `country`, `city`, `default_currency`, `status`, `created_at`, `updated_at`, `deleted_at`.
+Champs réels : `id`, `auth_user_id`, `phone`, `first_name`, `last_name`, `civility` (colonne conservée, retirée de l'UI depuis PR #122), `payment_alias`, `payment_alias_type`, `created_at`, `updated_at`, `deleted_at`.
 
-Contraintes : `owner_user_id` référence `app_users.id` ; un utilisateur principal peut être limité à un seul propriétaire au MVP.
+Contraintes : `auth_user_id` unique ; `phone` unique ; un utilisateur auth = un propriétaire au MVP.
 
 ### `properties`
 
@@ -95,28 +87,11 @@ unique active lease per unit over overlapping period
 
 Le SQL exact sera défini dans la migration finale.
 
-### `lease_reminder_rules`
+### `lease_reminder_rules` — NON IMPLÉMENTÉE (cible)
 
-Règles de rappel et relance liées à un bail.
+Cette table n'existe pas dans le schéma live. La cadence de rappel/relance n'est PAS configurable par bail : elle est fixe et codée dans l'application (`apps/web/src/lib/reminders/schedule.ts`, fenêtres J-5 / J-1 / jour J / J+3 / J+10, miroir des templates SMS).
 
-Cette table permet à Ranti de préparer ou automatiser les rappels/relances à partir du bail, sans demander au propriétaire de relancer manuellement chaque mois.
-
-Champs : `id`, `landlord_id`, `lease_id`, `rule_type`, `offset_days`, `channel`, `message_template`, `is_active`, `created_at`, `updated_at`, `deleted_at`.
-
-Types candidats :
-
-- `before_due_reminder` : rappel avant échéance ;
-- `due_day_reminder` : rappel le jour de l'échéance ;
-- `after_due_reminder` : relance après retard.
-
-Canaux : `whatsapp`, `sms`, `email`, `manual`.
-
-Contraintes :
-
-- Une règle appartient toujours à un bail du même propriétaire.
-- Une règle inactive ne génère plus de nouvelles relances.
-- Le message doit rester simple, clair et respectueux.
-- Le canal externe est un adaptateur, jamais la source de vérité métier.
+Si des règles par bail deviennent nécessaires (signal terrain), le modèle candidat historique reste : `id`, `landlord_id`, `lease_id`, `rule_type`, `offset_days`, `channel`, `message_template`, `is_active` — mais aucune décision d'implémentation n'est prise.
 
 ### `rent_dues`
 
@@ -200,32 +175,26 @@ Contraintes :
 - Un reçu généré ne se modifie pas silencieusement.
 - `snapshot` conserve les informations importantes au moment de génération.
 
-### `receipt_items`
+### `receipt_items` — NON IMPLÉMENTÉE (remplacée par `receipts.snapshot`)
 
-Relie un reçu aux échéances et réceptions de loyer couvertes.
-
-Champs : `id`, `landlord_id`, `receipt_id`, `rent_due_id`, `rent_reception_id`, `amount`, `period_start`, `period_end`, `created_at`.
-
-Contraintes : `amount` > 0.
+Cette table n'existe pas dans le schéma live. Le détail des périodes et allocations couvertes par un document est archivé dans `receipts.snapshot` (jsonb) au moment de la génération — c'est ce snapshot que lisent la page `/verifier/[id]` et le PDF. Avantage : le document reste immuable même si les données vivantes évoluent.
 
 ### `reminders`
 
-Rappel ou relance liée à une échéance.
+Trace de chaque relance envoyée (schéma live, migration `018_reminders.sql`). La table n'archive que l'envoi ; la planification vit sur `rent_dues` (`last_reminder_at`, `next_reminder_at`, `reminder_count`) et la cadence est codée dans l'app (voir `lease_reminder_rules` ci-dessus).
 
-MVP prudent : Ranti prépare automatiquement les rappels/relances à partir des règles du bail ; l'envoi externe complet peut rester validé ou déclenché par le propriétaire selon les contraintes WhatsApp/SMS.
+Champs réels : `id`, `rent_due_id`, `landlord_id`, `channel`, `template`, `sent_at`, `recipient`, `status`, `message_id`, `created_at`.
 
-Champs : `id`, `landlord_id`, `lease_id`, `rent_due_id`, `tenant_id`, `lease_reminder_rule_id`, `channel`, `message`, `status`, `scheduled_for`, `queued_at`, `sent_at`, `failed_at`, `created_by`, `created_at`, `updated_at`.
+Canaux : `sms`, `whatsapp`.
 
-Canaux : `manual`, `whatsapp`, `sms`, `email`.
-
-Statuts : `draft`, `scheduled`, `queued`, `sent`, `failed`, `cancelled`.
+Statuts : `sent`, `delivered`, `failed`.
 
 Contraintes :
 
-- Une relance doit toujours viser une échéance.
-- Une relance peut être générée depuis une règle de bail.
+- Une relance vise toujours une échéance (`rent_due_id` NOT NULL).
 - Le canal ne devient jamais source de vérité.
 - Une relance ne modifie jamais le statut de paiement.
+- Les envois WhatsApp opérés par `ranti-ops` alimentent `reminder_events` (table sœur, hors de ce modèle initial).
 
 ### `audit_logs`
 
@@ -306,16 +275,18 @@ Contraintes futures : token brut jamais stocké ; expiration/révocation ; accè
 ## Relations principales
 
 ```txt
-app_users -> landlords
+auth.users -> landlords (auth_user_id)
 landlords -> properties -> units -> leases -> rent_dues
-leases -> lease_reminder_rules -> reminders
 landlords -> tenants -> leases
 rent_dues -> rent_reception_allocations -> rent_receptions
 rent_receptions -> payment_proofs
 rent_dues -> reminders
-receipts -> receipt_items -> rent_dues / rent_receptions
+rent_receptions -> receipts (snapshot jsonb archive périodes + allocations)
+leases -> payment_transactions (ledger rail PSP, ADR-018)
 landlords -> audit_logs
 ```
+
+Tables live hors modèle initial : `payment_transactions` (ledger PSP), `product_events` (instrumentation), `reminder_events` (envois WhatsApp ranti-ops), vue `journal_feed`.
 
 ## Règles d'intégrité métier
 
@@ -323,7 +294,7 @@ landlords -> audit_logs
 2. Un bail relie un logement et un locataire.
 3. Un logement ne peut pas avoir deux baux actifs sur une période qui se chevauche.
 4. Une échéance vient d'un bail.
-5. Une règle de rappel/relance vient d'un bail.
+5. La cadence de rappel/relance dérive du bail et de ses échéances (fixe au MVP, non configurable par bail).
 6. Une relance vise toujours une échéance.
 7. Une réception de loyer confirmée doit être allouée à une ou plusieurs échéances.
 8. Un reçu ou une quittance vient après confirmation d'une réception de loyer.
@@ -334,17 +305,16 @@ landlords -> audit_logs
 ## Index recommandés
 
 ```txt
-app_users(auth_user_id)
-landlords(owner_user_id)
+landlords(auth_user_id)
 properties(landlord_id)
 units(landlord_id, property_id)
 tenants(landlord_id)
 leases(landlord_id, unit_id, status)
 leases(landlord_id, tenant_id, status)
-lease_reminder_rules(landlord_id, lease_id, is_active)
 rent_dues(landlord_id, status, due_date)
 rent_dues(landlord_id, tenant_id, due_date)
 rent_dues(lease_id, period_start, period_end)
+rent_dues(status, next_reminder_at) partiel — cron de relance
 rent_receptions(landlord_id, tenant_id, received_at)
 rent_reception_allocations(rent_reception_id)
 rent_reception_allocations(rent_due_id)
@@ -352,9 +322,8 @@ payment_proofs(landlord_id, rent_due_id)
 payment_proofs(landlord_id, rent_reception_id)
 receipts(landlord_id, receipt_number)
 receipts(landlord_id, tenant_id, issued_at)
-receipt_items(receipt_id)
-reminders(landlord_id, rent_due_id, scheduled_for)
-reminders(landlord_id, lease_reminder_rule_id, status)
+reminders(rent_due_id, sent_at desc)
+reminders(landlord_id, created_at desc)
 audit_logs(landlord_id, entity_type, entity_id)
 audit_logs(actor_user_id, created_at)
 ```
@@ -399,25 +368,23 @@ Préférer `archived`, `cancelled`, `reversed`, `deleted_at` avec audit, ou une 
 8. Stratégie exacte de génération des règles et relances.
 9. Statut exact à utiliser pour reçu partiel, reçu complet et quittance.
 
-## Ordre recommandé des migrations
+## Ordre des migrations (réalisé)
 
-1. `app_users`
-2. `landlords`
-3. `properties`
-4. `units`
-5. `tenants`
-6. `leases`
-7. `lease_reminder_rules`
-8. `rent_dues`
-9. `rent_receptions`
-10. `rent_reception_allocations`
-11. `payment_proofs`
-12. `receipts`
-13. `receipt_items`
-14. `reminders`
-15. `audit_logs`
+1. `landlords`
+2. `properties`
+3. `units`
+4. `tenants`
+5. `leases`
+6. `rent_dues`
+7. `rent_receptions`
+8. `rent_reception_allocations`
+9. `payment_proofs`
+10. `receipts`
+11. `audit_logs`
+12. `reminders` (018)
+13. `payment_transactions` (ADR-018)
 
-Post-MVP : `notification_deliveries`, `public_links`.
+Post-MVP : `notification_deliveries`, `public_links`, `lease_reminder_rules`, `receipt_items` (si le snapshot jsonb ne suffit plus).
 
 ## Phrase de contrôle
 

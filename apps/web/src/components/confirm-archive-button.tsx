@@ -1,5 +1,6 @@
 "use client"
 
+import { buttonClasses } from "@/components/ui/button"
 import { SubmitButton } from "@/components/submit-button"
 
 // Archivage = action VISIBLE et confirmée (ADR-020, correctif interaction :
@@ -26,7 +27,7 @@ export function ConfirmArchiveButton({
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <SubmitButton className="rounded-full border border-destructive/40 bg-card px-5 py-2.5 text-sm font-semibold text-destructive transition hover:border-destructive disabled:opacity-60">
+      <SubmitButton className={buttonClasses("destructive-outline")}>
         {label}
       </SubmitButton>
     </form>

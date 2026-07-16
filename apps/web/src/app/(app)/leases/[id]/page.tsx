@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
+import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
+import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { activateLease, endLease, getLease } from "@/lib/leases"
 import { ArchiveLeaseButton } from "./archive-lease-button"
@@ -43,24 +45,20 @@ const noticeLabels: Record<string, string> = {
   lease_updated: "Bail mis à jour.",
 }
 
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
-}
-
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
 }
 
-function dueStatusClasses(status: RentDueStatus): string {
+function dueStatusVariant(status: RentDueStatus): BadgeVariant {
   switch (status) {
     case "paid":
-      return "border-primary/20 bg-secondary text-foreground"
+      return "success"
     case "overdue":
-      return "border-red-300 bg-red-50 text-red-900"
+      return "error"
     case "cancelled":
-      return "border-border bg-background text-foreground/70"
+      return "neutral"
     default:
-      return "border-accent/50 bg-accent/10 text-accent"
+      return "accent"
   }
 }
 
@@ -93,6 +91,12 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const reminders = await getLeaseReminders(landlord.id, dues.map((d) => d.id))
 
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
+
+  // Ferme la boucle dashboard → retard → action : le CTA « Encaisser » mène à
+  // /collections/new avec ce bail présélectionné dès qu'il reste un impayé.
+  const hasUnpaidDues = dues.some(
+    (due) => (due.status === "expected" || due.status === "overdue") && due.amount_due - due.amount_paid > 0,
+  )
 
   // Relance manuelle « préparée sans envoi auto » (ADR-006 MVP) : lien wa.me
   // pré-rempli vers le locataire pour la plus ancienne échéance non soldée.
@@ -127,16 +131,16 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
 
       <section className="flex flex-1 flex-col gap-8 py-10">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
         <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="font-display text-2xl font-extrabold tracking-tight lg:text-3xl text-foreground">{formatAmount(lease.monthly_rent_amount)} / mois</h1>
+              <h1 className="font-display text-2xl font-extrabold tracking-tight lg:text-3xl text-foreground">{formatFcfa(lease.monthly_rent_amount)} / mois</h1>
               <p className="mt-1 text-sm text-muted-foreground">{tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"} — {unit?.name ?? "Logement"}</p>
               <p className="mt-1 text-sm text-muted-foreground">Échéance le {lease.due_day} · début {formatDate(lease.start_date)}{lease.end_date ? ` · fin ${formatDate(lease.end_date)}` : ""}</p>
             </div>
-            <span className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80">{leaseStatusLabels[lease.status]}</span>
+            <span className={badgeClasses("neutral")}>{leaseStatusLabels[lease.status]}</span>
           </div>
 
           {lease.notes ? <p className="mt-3 text-sm text-muted-foreground">{lease.notes}</p> : null}
@@ -144,13 +148,21 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
           <div className="mt-5 flex flex-wrap gap-3">
             {lease.status === "draft" ? (
               <>
-                <Link href={`/leases/${lease.id}/edit`} className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary">Modifier le bail</Link>
+                <Link href={`/leases/${lease.id}/edit`} className="rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Modifier le bail</Link>
                 <form action={activateLease}>
                   <input type="hidden" name="id" value={lease.id} />
-                  <SubmitButton className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">Activer et générer les loyers</SubmitButton>
+                  <SubmitButton className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60">Activer et générer les loyers</SubmitButton>
                 </form>
                 <p className="w-full text-sm leading-6 text-muted-foreground">ⓘ L&apos;activation crée les échéances mensuelles depuis la date de début et met le suivi en route : rappels avant l&apos;échéance, relances en cas de retard, quittance à chaque paiement confirmé.</p>
               </>
+            ) : null}
+            {lease.status === "active" && hasUnpaidDues ? (
+              <Link
+                href={`/collections/new?lease_id=${lease.id}`}
+                className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
+              >
+                Encaisser un paiement reçu
+              </Link>
             ) : null}
             {lease.status === "active" ? (
               <div className="w-full space-y-3 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
@@ -176,13 +188,13 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
                 return (
                   <article key={due.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
                     <div>
-                      <p className="font-medium text-foreground">{formatAmount(due.amount_due)}</p>
+                      <p className="font-medium text-foreground">{formatFcfa(due.amount_due)}</p>
                       <p className="text-sm text-muted-foreground">échéance {formatDate(due.due_date)}</p>
                       {due.amount_paid > 0 && remaining > 0 ? (
-                        <p className="text-sm text-muted-foreground">restant {formatAmount(remaining)}</p>
+                        <p className="text-sm text-muted-foreground">restant {formatFcfa(remaining)}</p>
                       ) : null}
                     </div>
-                    <span className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${dueStatusClasses(due.status)}`}>{dueStatusLabels[due.status]}</span>
+                    <span className={badgeClasses(dueStatusVariant(due.status))}>{dueStatusLabels[due.status]}</span>
                   </article>
                 )
               })}
@@ -226,7 +238,7 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
                       href={relanceWaLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex rounded-full border border-primary/30 bg-card px-5 py-2.5 text-sm font-semibold text-primary transition hover:border-primary"
+                      className="inline-flex rounded-full border border-primary/30 bg-card px-5 py-3 text-sm font-semibold text-primary transition hover:border-primary"
                     >
                       Relancer sur WhatsApp
                     </a>
@@ -255,13 +267,7 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
                         {reminder.rent_due ? ` · échéance du ${formatDate(reminder.rent_due.due_date)}` : ""}
                       </p>
                     </div>
-                    <span
-                      className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${
-                        reminder.status === "failed"
-                          ? "border-destructive/40 bg-destructive/10 text-destructive"
-                          : "border-primary/20 bg-secondary text-foreground"
-                      }`}
-                    >
+                    <span className={badgeClasses(reminder.status === "failed" ? "error" : "success")}>
                       {reminderStatusLabels[reminder.status]}
                     </span>
                   </article>

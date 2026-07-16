@@ -56,7 +56,7 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
 
       <section className="flex flex-1 flex-col gap-8 py-12">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
         <div className="space-y-3">
           <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground sm:text-4xl">{property.name}</h1>
@@ -108,7 +108,7 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link href={`/properties/${property.id}/edit`} className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">
+          <Link href={`/properties/${property.id}/edit`} className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95">
             Modifier ce lieu
           </Link>
         </div>

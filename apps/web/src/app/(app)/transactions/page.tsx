@@ -1,3 +1,4 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeases } from "@/lib/leases"
@@ -40,10 +41,6 @@ function statusClasses(status: PaymentTransactionStatus): string {
     case "rejected":
       return "border-destructive/40 bg-destructive/10 text-destructive"
   }
-}
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
 }
 
 function formatDate(iso: string): string {
@@ -117,7 +114,7 @@ export default async function TransactionsPage() {
             {netReceived > 0 ? (
               <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
                 Total reçu par le rail :{" "}
-                <span className="font-medium">{formatAmount(netReceived)}</span> net.
+                <span className="font-medium">{formatFcfa(netReceived)}</span> net.
               </p>
             ) : null}
 
@@ -127,7 +124,7 @@ export default async function TransactionsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
-                        {formatAmount(t.amount_received)}
+                        {formatFcfa(t.amount_received)}
                       </h2>
                       <p className="mt-1 text-sm text-muted-foreground">{leaseParties(t.lease_id)}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
@@ -145,8 +142,8 @@ export default async function TransactionsPage() {
                   {t.status === "verified" || t.status === "paid_out" ? (
                     <p className="mt-3 text-sm text-foreground/80">
                       Net reçu{" "}
-                      <span className="font-medium text-foreground">{formatAmount(t.net_amount)}</span>{" "}
-                      · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
+                      <span className="font-medium text-foreground">{formatFcfa(t.net_amount)}</span>{" "}
+                      · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
                       tout inclus
                       {t.status === "paid_out" && t.paid_out_at
                         ? ` · reversé le ${formatDate(t.paid_out_at)}`
@@ -158,7 +155,7 @@ export default async function TransactionsPage() {
                   {t.status === "pending" ? (
                     <Link
                       href="/collections"
-                      className="mt-4 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                      className="mt-4 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
                     >
                       Valider dans les encaissements
                     </Link>

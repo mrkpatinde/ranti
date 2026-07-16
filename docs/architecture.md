@@ -29,9 +29,9 @@ Le propriétaire renseigne les baux. Ranti génère les échéances, prépare le
 - Stockage fichiers : Supabase Storage ou adaptateur équivalent à confirmer.
 - Déploiement : Vercel pour l'app web.
 
-## Monorepo
+## Dépôt
 
-Structure principale :
+Structure principale (une seule app — pas de workspaces ni de `packages/` partagés ; le mot « monorepo » surdéclarait la réalité) :
 
 ```txt
 apps/web
@@ -39,7 +39,7 @@ supabase/migrations
 docs
 ```
 
-Les commandes racine délèguent vers `apps/web`.
+Les commandes racine délèguent vers `apps/web` (`bun --cwd`). La landing vit DANS l'app (`app/(public)`) et partage naturellement les tokens de `globals.css` ; si une landing séparée est un jour extraite, les tokens devront être sortis dans un package dédié — rien n'est prévu pour ça aujourd'hui.
 
 ## Domaine central
 

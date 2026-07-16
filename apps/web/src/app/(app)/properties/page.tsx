@@ -48,7 +48,7 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
           </p>
         ) : null}
         {params?.error ? (
-          <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+          <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {params.error}
           </p>
         ) : null}

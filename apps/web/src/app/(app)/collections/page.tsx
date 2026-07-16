@@ -1,5 +1,9 @@
+import { buttonClasses } from "@/components/ui/button"
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { SubmitButton } from "@/components/submit-button"
+import { Alert } from "@/components/ui/alert"
+import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
 import {
   cancelCollection,
   confirmCollection,
@@ -48,7 +52,7 @@ const noticeLabels: Record<string, string> = {
   collection_recorded_unconfirmed:
     "Encaissement enregistré mais non confirmé. Confirmez-le ci-dessous.",
   payment_transaction_verified:
-    "Paiement validé. La quittance est prête dans « Les loyers que vous avez reçus ».",
+    "Paiement validé. La quittance est prête dans « Vos quittances ».",
   payment_transaction_rejected:
     "Ce paiement n'a pas pu être validé : le montant ne correspond pas au loyer, ou le bail n'est plus actif. Il reste tracé dans le registre.",
 }
@@ -57,10 +61,6 @@ const providerLabels: Record<PaymentProvider, string> = {
   feexpay: "FeexPay",
   fedapay: "FedaPay",
   kkiapay: "Kkiapay",
-}
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
 }
 
 function formatDate(iso: string): string {
@@ -77,14 +77,14 @@ const statusOrder: Record<CollectionStatus, number> = {
   cancelled: 2,
 }
 
-function statusClasses(status: CollectionStatus): string {
+function statusVariant(status: CollectionStatus): BadgeVariant {
   switch (status) {
     case "draft":
-      return "border-accent/50 bg-accent/10 text-accent"
+      return "accent"
     case "confirmed":
-      return "border-primary/20 bg-secondary text-foreground"
+      return "success"
     case "cancelled":
-      return "border-border bg-background text-foreground/70"
+      return "neutral"
   }
 }
 
@@ -153,7 +153,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
             href="/dashboard"
             className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
           >
-            Tableau de bord
+            Accueil
           </Link>
         </div>
       </header>
@@ -169,30 +169,22 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
           </p>
           <Link
             href="/collections/new"
-            className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+            className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
           >
             Encaisser un loyer
           </Link>
         </div>
 
-        {notice ? (
-          <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
-            {notice}
-          </p>
-        ) : null}
+        {notice ? <Alert variant="success">{notice}</Alert> : null}
 
-        {params?.error ? (
-          <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
-            {params.error}
-          </p>
-        ) : null}
+        {params?.error ? <Alert variant="error">{params.error}</Alert> : null}
 
         {draftCount > 0 ? (
-          <p className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent">
+          <Alert variant="info">
             {draftCount === 1
               ? "1 encaissement en brouillon attend votre confirmation."
               : `${draftCount} encaissements en brouillon attendent votre confirmation.`}
-          </p>
+          </Alert>
         ) : null}
 
         {pendingTransactions.length > 0 ? (
@@ -214,14 +206,14 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="font-display text-xl font-extrabold tracking-tight text-foreground">
-                      {formatAmount(t.amount_received)}
+                      {formatFcfa(t.amount_received)}
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">{leaseParties(t.lease_id)}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {formatDate(t.created_at)} · {providerLabels[t.provider]}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-lg border border-accent/50 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent">
+                  <span className={badgeClasses("accent")}>
                     À valider
                   </span>
                 </div>
@@ -233,14 +225,14 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
 
                 <p className="mt-3 text-sm text-foreground/80">
                   Vous recevez{" "}
-                  <span className="font-medium text-foreground">{formatAmount(t.net_amount)}</span>{" "}
-                  net · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
+                  <span className="font-medium text-foreground">{formatFcfa(t.net_amount)}</span>{" "}
+                  net · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
                   tout inclus.
                 </p>
 
                 <form action={verifyPaymentTransaction} className="mt-5">
                   <input type="hidden" name="transaction_id" value={t.id} />
-                  <SubmitButton className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">
+                  <SubmitButton className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60">
                     Valider et générer la quittance
                   </SubmitButton>
                 </form>
@@ -260,14 +252,14 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
-                        {formatAmount(t.amount_received)} — {leaseParties(t.lease_id)}
+                        {formatFcfa(t.amount_received)} — {leaseParties(t.lease_id)}
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {formatDate(t.created_at)} · {providerLabels[t.provider]} ·{" "}
                         <span className="font-mono text-xs">{t.provider_reference}</span>
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
+                    <span className={badgeClasses("error")}>
                       Non validé
                     </span>
                   </div>
@@ -299,7 +291,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
-                      {formatAmount(c.amount_received)}
+                      {formatFcfa(c.amount_received)}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {tenantName(c.tenant_id)} — {unitName(c.unit_id)}
@@ -308,9 +300,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                       {formatDate(c.received_at)} · {methodLabels[c.payment_method]}
                     </p>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${statusClasses(c.status)}`}
-                  >
+                  <span className={badgeClasses(statusVariant(c.status))}>
                     {statusLabels[c.status]}
                   </span>
                 </div>
@@ -336,7 +326,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                     <form action={confirmCollection}>
                       <input type="hidden" name="id" value={c.id} />
                       <SubmitButton
-                        className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+                        className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60"
                       >
                         Confirmer
                       </SubmitButton>
@@ -345,7 +335,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                     <form action={cancelCollection} className="space-y-2 rounded-2xl border border-border p-4">
                       <input type="hidden" name="id" value={c.id} />
                       <label htmlFor={`reason-${c.id}`} className="block text-sm font-medium text-foreground">
-                        Motif d&apos;annulation <span className="text-red-700">*</span>
+                        Motif d&apos;annulation <span className="text-destructive">*</span>
                       </label>
                       <textarea
                         id={`reason-${c.id}`}
@@ -357,7 +347,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                         className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
                       />
                       <SubmitButton
-                        className="rounded-full border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60"
+                        className={buttonClasses("destructive-outline")}
                       >
                         Annuler cet encaissement
                       </SubmitButton>
@@ -369,7 +359,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                   receiptByReception.has(c.id) ? (
                     <Link
                       href={`/receipts/${receiptByReception.get(c.id)!.id}`}
-                      className="mt-5 inline-flex rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary"
+                      className="mt-5 inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary"
                     >
                       Voir le document
                     </Link>
@@ -385,21 +375,21 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                       <form action={generateReceipt}>
                         <input type="hidden" name="reception_id" value={c.id} />
                         <SubmitButton
-                          className="rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60"
+                          className="rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60"
                         >
                           {cancelledReceiptReceptions.has(c.id) ? "Générer un document corrigé" : "Générer la quittance ou le reçu"}
                         </SubmitButton>
                       </form>
                       <details>
-                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground/70 transition hover:border-red-300 hover:text-red-700">Annuler cet encaissement…</summary>
-                        <form action={cancelCollection} className="mt-3 space-y-2 rounded-2xl border border-red-200 bg-red-50 p-4">
+                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground/70 transition hover:border-destructive/40 hover:text-destructive">Annuler cet encaissement…</summary>
+                        <form action={cancelCollection} className="mt-3 space-y-2 rounded-2xl border border-destructive/25 bg-destructive/10 p-4">
                           <input type="hidden" name="id" value={c.id} />
-                          <p className="text-sm leading-6 text-red-900">
+                          <p className="text-sm leading-6 text-destructive">
                             L&apos;annulation remet l&apos;échéance en attente (le loyer redevient dû) et reste tracée
                             dans le registre avec son motif. Elle est impossible tant qu&apos;un document actif existe.
                           </p>
-                          <label htmlFor={`reason-confirmed-${c.id}`} className="block text-sm font-medium text-red-900">
-                            Motif d&apos;annulation <span className="text-red-700">*</span>
+                          <label htmlFor={`reason-confirmed-${c.id}`} className="block text-sm font-medium text-destructive">
+                            Motif d&apos;annulation <span className="text-destructive">*</span>
                           </label>
                           <textarea
                             id={`reason-confirmed-${c.id}`}
@@ -410,7 +400,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
                             placeholder="Ex. montant saisi par erreur"
                             className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
                           />
-                          <SubmitButton className="rounded-full border border-red-300 bg-card px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:border-red-700 disabled:opacity-60">
+                          <SubmitButton className={buttonClasses("destructive-outline")}>
                             Annuler cet encaissement
                           </SubmitButton>
                         </form>
