@@ -75,7 +75,37 @@
 }
 
 /* Variante sombre alignée sur les neutres Granola (anthracite, blanc cassé,
-   accent olive éclairci) pour les écrans pas encore migrés. */
+   accent olive éclairci) pour les écrans pas encore migrés.
+
+   Deux déclencheurs, mêmes tokens (garder les deux blocs synchronisés) :
+   - préférence système (prefers-color-scheme) — jamais contredite ;
+   - classe `.dark` posée sur <html> par le script de layout.tsx quand il
+     fait nuit (19 h–6 h locales) : bascule auto en mode nuit pour le
+     confort visuel, même si le téléphone est resté en clair. */
+:root.dark {
+  --background: 0 0% 12%; /* #1e1e1e */
+  --foreground: 60 40% 98%; /* #fcfcf8 */
+  --card: 0 0% 16%; /* #292929 */
+  --card-foreground: 60 40% 98%;
+  --border: 60 1% 25%;
+  --input: 60 1% 28%;
+  --ring: 68 55% 62%; /* #c3d46a — accent vif dark (DESIGN.md) */
+  --primary: 60 40% 98%;
+  --primary-foreground: 0 0% 12%;
+  --secondary: 60 1% 21%;
+  --secondary-foreground: 60 2% 90%;
+  --muted: 60 1% 18%;
+  --muted-foreground: 60 2% 62%; /* #9e9e99 */
+  --accent: 68 47% 52%; /* #aebd4a — olive éclairci (spec DESIGN.md dark) */
+  --accent-foreground: 0 0% 12%; /* #1e1e1e — contraste AA sur olive */
+  --popover: 0 0% 12%;
+  --popover-foreground: 60 40% 98%;
+  --destructive: 11 80% 58%;
+  --destructive-foreground: 60 40% 98%;
+  --warning: 11 65% 62%; /* retard/attention éclairci pour fond sombre */
+  --warning-foreground: 0 0% 12%;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: 0 0% 12%; /* #1e1e1e */

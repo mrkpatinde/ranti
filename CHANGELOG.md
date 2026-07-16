@@ -3,6 +3,19 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.22.0] - 2026-07-16
+
+### Added
+
+- Bascule automatique en mode nuit (19 h–6 h locales) pour le confort
+  visuel : un script inline (exécuté avant le premier rendu, aucun flash)
+  pose la classe `.dark` sur `<html>` la nuit et re-vérifie chaque minute.
+  La préférence système sombre reste respectée telle quelle
+  (`prefers-color-scheme`) — on ne force jamais le clair chez qui a choisi
+  le sombre ; la nuit, le sombre s'active aussi chez qui est resté en
+  clair. Tokens sombres factorisés en deux déclencheurs synchronisés
+  (media query + `:root.dark`). DESIGN.md mis à jour.
+
 ## [0.3.21.1] - 2026-07-16
 
 ### Fixed

@@ -34,6 +34,7 @@
 - **Tints olive :** chip `#e5eacd` · wash `#f2f6e1`.
 - **Sémantique :** succès = olive/feuille · retard/warning = `#bd4a30` sur `#ffe7e2` · erreur = rouge plus profond · info = muted.
 - **Dark mode :** redessiner les surfaces (papier `#17171a`, surface `#1f1f22`, encre `#f4f3ee`) ; **éclaircir l'olive** vers `#aebd4a` / accent `#c3d46a` pour le contraste (l'olive foncé disparaît sur fond sombre). Feuille inchangée.
+- **Bascule auto jour/nuit :** le mode nuit s'active si le système est en sombre (`prefers-color-scheme`) **ou** s'il fait nuit (19 h–6 h locales — classe `.dark` posée sur `<html>` par le script inline de `layout.tsx`, tokens dans `globals.css`). On n'impose jamais le clair à qui a choisi le sombre ; la nuit, on offre le sombre à qui est resté en clair (confort visuel terrain). Les deux blocs de tokens sombres (media query + `.dark`) doivent rester synchronisés.
 
 ## Spacing
 - **Base :** 8px.
