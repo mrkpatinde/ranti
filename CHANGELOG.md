@@ -3,6 +3,22 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.5.1] - 2026-07-16
+
+### Fixed
+
+- Encaissement : le registre rejoint enfin la prod. Le grant `execute` sur les
+  fonctions `private.*_core` (record/confirm/receipt) — appliqué en urgence en
+  prod le 2026-07-10 (migration `20260710142437`) après 5 jours d'encaissement
+  cassé — entre dans le repo (PR #103 rebasée). Observabilité ajoutée : les
+  erreurs RPC non mappées des encaissements sont désormais loggées côté serveur
+  au lieu de disparaître dans le message générique.
+- Test garde-fou `collection_grants_as_authenticated.test.sql` : parcours
+  complet encaisser → confirmer → quittance sous le rôle `authenticated`
+  (les tests en `postgres` contournent les grants — leçon des 5 jours de
+  panne) ; sélection d'échéance par solde restant pour rester vert quelles
+  que soient les données.
+
 ## [0.3.5.0] - 2026-07-16
 
 ### Security
