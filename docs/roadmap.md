@@ -128,6 +128,18 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 
 ## Recent (2026-07-16)
 
+- Rail FeexPay branché côté serveur (branche `feexpay-integration-remaining`,
+  non encore versionné) : squelette client `src/lib/feexpay/` (config null-safe,
+  signature webhook HMAC, checkout plein montant, payout + polling V2,
+  normalisation) et webhook `POST /api/payments/notification` re-câblé de
+  Kkiapay vers le rail FeexPay (ADR-019, cash-in unique). Le webhook INGÈRE
+  seulement (`pending`) — la validation propriétaire (ADR-017) reste la porte.
+  Code Kkiapay orphelin retiré ; l'enum ledger conserve `kkiapay`/`fedapay`
+  (historique). **Sandbox uniquement** (`FEEXPAY_ENV=sandbox`), activation prod
+  toujours gatée BCEAO. Reste avant go-live : compte sandbox FeexPay + confirmer
+  endpoints/champs/en-tête signature (isolés, « fix une ligne »), puis aligner
+  le wording paiement de l'app et outiller le déclenchement checkout locataire.
+
 - Wording alias aligné sur ADR-019 (v0.3.4.8, CEO) : `/settings/payment` retire
   « Ranti ne touche jamais l'argent » (abandonné comme cible produit), garde
   « en un instant, sans frais pour le locataire » (vrai alias ET rail). Glossaire :

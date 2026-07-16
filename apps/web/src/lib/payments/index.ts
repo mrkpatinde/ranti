@@ -1,7 +1,6 @@
 export { TRANSACTION_RATES_BP, TVA_RATE_BP, calculateTransactionDetails } from "./fees"
 export type { TransactionRatesBp, TransactionDetails } from "./fees"
 export { paymentErrorMessage, paymentErrorCodeFromMessage } from "./errors"
-export { normalizeKkiapayPayload } from "./validation"
 export { createPaymentsRepository } from "./repository"
 export type { PaymentsRepository, IngestNotificationInput } from "./repository"
 export { processPayment } from "./service"
@@ -10,7 +9,6 @@ export { PaymentError } from "./types"
 export type {
   IngestResult,
   LedgerAccountingRow,
-  NormalizedKkiapayEvent,
   PaymentErrorCode,
   PaymentProvider,
   PaymentTransaction,
@@ -18,3 +16,4 @@ export type {
   ProcessPaymentResult,
 } from "./types"
 export { listPaymentTransactions } from "./queries"
+export { verifyPaymentTransaction } from "./actions"

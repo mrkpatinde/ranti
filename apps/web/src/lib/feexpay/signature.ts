@@ -1,15 +1,16 @@
-// ADR-018 — Vérification de signature webhook Kkiapay.
-// HMAC-SHA256 du corps BRUT, comparaison à temps constant.
+// ADR-019 — Vérification de signature webhook FeexPay.
+// HMAC-SHA256 du corps BRUT, comparaison à temps constant (le webhook porte
+// sur les octets reçus, pas sur un JSON re-sérialisé).
 //
-// ⚠️ Nom d'en-tête et encodage à confirmer sur la doc Kkiapay au moment du
-// branchement sandbox (isolé ici : fix une ligne). Défaut : `x-kkiapay-signature`
+// ⚠️ Nom d'en-tête et encodage à CONFIRMER sur la doc FeexPay au moment du
+// branchement sandbox (isolé ici : fix une ligne). Défaut : `x-feexpay-signature`
 // en hexadécimal.
 
 import { createHmac, timingSafeEqual } from "node:crypto"
 
-export const KKIAPAY_SIGNATURE_HEADER = "x-kkiapay-signature"
+export const FEEXPAY_SIGNATURE_HEADER = "x-feexpay-signature"
 
-export function verifyKkiapaySignature(
+export function verifyFeexpaySignature(
   rawBody: string,
   signatureHeader: string | null,
   secret: string,
