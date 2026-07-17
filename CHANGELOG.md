@@ -3,6 +3,18 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.26.1] - 2026-07-17
+
+### Changed
+
+- **Couleurs : direction-artistique.html fait foi, strictement, partout**
+  (décision CEO). Light : papier crème `#f7f7f2`, surface atténuée `#f2f2ec`.
+  Dark : palette sombre de la DA (papier `#17171a`, surface `#1f1f22`, encre
+  `#eceae3`, olive `#aebd4a`). Landing, manifest PWA et PDF quittance
+  réalignés sur les mêmes valeurs — plus aucune couleur hors palette dans le
+  projet (seule exception : logo Google officiel du bouton de connexion).
+  Supersède le patch terrain `#f9f8f6` du 2026-07-16.
+
 ## [0.3.26.0] - 2026-07-17
 
 ### Added
