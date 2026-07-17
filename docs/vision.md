@@ -1,5 +1,7 @@
 # Ranti — Vision Produit
 
+Dernière mise à jour : 2026-07-17 (réalignement sur ADR-021 — retour au non-custodial + abonnement).
+
 ## Positionnement
 
 Ranti est le registre de loyer actif des propriétaires africains.
@@ -58,6 +60,35 @@ Après validation propriétaire, Ranti génère automatiquement le document adap
 
 Propriétaires particuliers africains qui gèrent entre 1 et 20 logements.
 
+**Tête de pont (ADR-021)** : le bailleur **diaspora / à distance** francophone — celui qui possède un bien au pays géré par un proche ou un démarcheur, sans visibilité ni preuve. Douleur de confiance la plus aiguë, capacité de paiement en euros, atteignable via les communautés diaspora. L'auto-gérant local reste utilisateur, mais n'est pas la pointe de lance de l'acquisition.
+
+## Rapport à l'argent (ADR-021 — retour au non-custodial)
+
+Cette section **annule** la position d'ADR-018 / ADR-019. La promesse
+« **Ranti ne touche jamais l'argent** » est **restaurée** comme cible produit.
+
+État décidé (ADR-021, 2026-07-17) :
+
+- **Ranti ne détient jamais les fonds.** Le loyer circule directement du
+  locataire au propriétaire (cash, Mobile Money, virement, ou alias PI-SPI du
+  propriétaire — ADR-009 restauré comme chemin principal). Aucun wallet ni compte
+  au nom de Ranti dans le flux.
+- **Monétisation = abonnement par paliers** (0 / 4 900 / 14 900 F, grille Master
+  Blueprint B-1 ; gratuit mono-logement = nœud de la boucle de recommandation).
+  La commission transactionnelle de 5 % est **abandonnée**.
+- La validation du paiement reste **humaine** : le propriétaire valide la
+  réception, Ranti génère la preuve.
+- Le **rail custodial (ADR-018 / ADR-019) est gelé, pas supprimé** : le code
+  (ledger, webhook, calcul de frais) reste derrière un flag désactivé, comme
+  **option future** conditionnée à (a) une traction abonnement prouvée et (b) un
+  montage d'externalisation art. 7 sous l'agrément d'un PSP. **Jamais d'agrément
+  propre, jamais devenir la banque.**
+
+**Gate BCEAO — neutralisé pour le MVP.** Sans détention de fonds, Ranti n'entre
+pas dans le champ de l'Instruction BCEAO n° 001-01-2024. Le sujet PSP se réduit à
+l'encaissement de l'**abonnement** (recette propre de Ranti, pas de fonds de
+tiers) — FedaPay est le meilleur choix le moment venu (voir `docs/comparatif-psp`).
+
 ## Non-objectifs du MVP
 
 Ranti n'est pas :
@@ -65,7 +96,9 @@ Ranti n'est pas :
 - un CRM immobilier ;
 - une marketplace immobilière ;
 - un logiciel comptable ;
-- une banque ;
+- **une banque** — pas d'agrément, pas de dépôt, pas de compte Ranti dans le
+  flux, pas de crédit. **Ranti ne touche jamais l'argent** : le loyer va
+  directement du locataire au propriétaire (ADR-021) ;
 - une agence de recouvrement ;
 - une application de gestion complexe ;
 - un produit qui confirme des paiements sans validation humaine.

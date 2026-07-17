@@ -4,16 +4,24 @@ Ranti est le registre de loyer actif des propriétaires africains.
 
 ## Statut
 
+Vérifié le 2026-07-17 contre le code (v0.3.5.2).
+
 La boucle propriétaire est livrée de bout en bout : propriétés, logements, locataires, baux, génération des échéances, encaissements avec allocations, reçus/quittances, audit logs.
 
-Les relances sont automatiques à partir des échéances : cron quotidien (`/api/cron/reminders`, planifié par `apps/web/vercel.json`), templates SMS, confirmation locataire par lien public à token (`/confirmer/[token]`). Le locataire ne crée pas de compte : il déclare avoir payé, le propriétaire valide.
+**Relances — semi-automatiques, pas automatiques.** Les échéances et les gabarits existent ; le déclencheur, non. Le cron `/api/cron/reminders` (planifié par `apps/web/vercel.json`) est **dormant par défaut** : il ne fait rien tant que `REMINDERS_SMS_ENABLED` n'est pas défini (`1`/`true`), et cette variable n'est pas activée. Le canal de relance **de fait est WhatsApp**, envoyé depuis le cockpit ops `ranti-ops` — un geste opérateur, pas un automatisme. La dormance est délibérée : sans cross-dedup entre le cron et `reminder_events`, activer le SMS enverrait une double relance (SMS + WhatsApp) sur la même échéance.
 
-Ranti ne détient jamais les fonds. Par défaut, l'argent circule directement entre le locataire et le propriétaire (cash, Mobile Money, virement) et le propriétaire valide les paiements reçus hors Ranti. L'encaissement optionnel via le partenaire de paiement agréé (ADR-018, commission 5 % tout compris, 95 % reversés) est codé mais non activé en production tant que la validation juridique BCEAO n'est pas obtenue (2026-07-15).
+Confirmation locataire par lien public à token (`/confirmer/[token]`) : livrée. Le locataire ne crée pas de compte — il déclare avoir payé, le propriétaire valide.
+
+**Rapport à l'argent — la promesse a changé (ADR-019, 2026-07-15).** « Ranti ne détient jamais les fonds » est **abandonné** comme cible produit. Le rail **FeexPay** est désormais le chemin d'encaissement **unique et obligatoire** : le locataire paie 100 % du loyer sans surcharge, les fonds transitent par le wallet marchand FeexPay **au nom de Ranti**, 5 % TTC sont prélevés sur le brut et 95 % reversés au propriétaire.
+
+Rien de tout cela n'est actif en production : le **gate juridique BCEAO** (détention transitoire → qualification possible en établissement de paiement, Instruction 001-01-2024) n'est pas levé. Tant qu'il tient, l'argent circule hors Ranti (cash, Mobile Money, virement), le propriétaire valide les paiements reçus, et l'alias PI-SPI (ADR-009) sert de filet.
 
 Limites actuelles :
 
-- l'envoi SMS réel n'est pas encore validé en production tant que le provider n'est pas configuré (sandbox : les SMS sont journalisés) ;
-- WhatsApp n'est pas implémenté (colonne `channel` prévue, SMS d'abord).
+- **Écart décision ↔ code sur le rail.** ADR-019 décide FeexPay ; le webhook implémenté est **Kkiapay** (`app/api/payments/notification/route.ts`, signature `x-kkiapay-signature`, `provider: "kkiapay"` en dur). FeexPay n'existe qu'en membre du type `PaymentProvider`, en taux par défaut dans `lib/payments/fees.ts`, et en commentaires. Le gate BCEAO masque l'écart — rien n'étant activé, personne ne le heurte. À résorber avant toute mise en production du rail.
+- **Envoi SMS réel non activé** : prérequis = cross-dedup cron ↔ `reminder_events`, clés provider en prod, puis `REMINDERS_SMS_ENABLED=1`. En sandbox les SMS sont seulement journalisés.
+- `CRON_SECRET` et `SUPABASE_SECRET_KEY` doivent être définis dans Vercel avant que la relance tourne.
+- **Saisie assistée retirée** (v0.3.5.2) : la saisie vocale Gemini (ADR-012) et le collage SMS Mobile Money (ADR-014) n'existent plus. Le **journal de bord** chronologique, lui, reste livré (`app/(app)/journal/`).
 
 Détail opérationnel : `docs/BUILD_STATUS.md`.
 
@@ -42,9 +50,9 @@ Ranti suit une boucle simple :
 
 ### Reminder Engine
 
-À partir du bail et des échéances, Ranti prépare, planifie et envoie les rappels et relances, automatiquement.
+Cible : à partir du bail et des échéances, Ranti prépare, planifie et envoie les rappels et relances, automatiquement.
 
-Statut : implémenté (cron `/api/cron/reminders`, fenêtres J-5/J-1/retard, table `reminders`, confirmation locataire par token). Envoi SMS réel en attente de configuration du provider en production.
+Statut : **codé, pas armé.** Les briques existent (cron `/api/cron/reminders`, fenêtres J-5/J-1/retard, table `reminders`, confirmation locataire par token) mais le cron est dormant (`REMINDERS_SMS_ENABLED` non défini). Aujourd'hui la relance part à la main en WhatsApp depuis `ranti-ops`. L'automatisme reste une cible, pas un acquis.
 
 ### Proof Engine
 
@@ -69,16 +77,23 @@ Livré :
 - reçus/quittances ;
 - audit logs ;
 - RLS activé ;
-- dashboard mensuel de synthèse ;
-- relances automatiques (cron + SMS sandbox) ;
+- verrou d'identité propriétaire (ADR-002, live 2026-07-16) ;
+- dashboard mensuel de synthèse, en lecture seule (ADR-020) ;
+- onboarding bail-centric — créer un bail est l'entrée de création unique (ADR-020) ;
+- journal de bord chronologique (`app/(app)/journal/`) ;
+- briques de relance (cron + gabarits SMS) — **dormantes**, voir « Statut » ;
 - confirmation locataire par lien public ;
-- vérification publique des quittances (`/verifier/[id]`, exemple statique `/verifier/demo`).
+- vérification publique des quittances (`/verifier/[id]`, exemple statique `/verifier/demo`) ;
+- système de design (`DESIGN.md`) appliqué aux écrans.
 
 À compléter :
 
+- **aligner le code du rail sur ADR-019** (webhook Kkiapay → FeexPay) ;
+- **lever le gate BCEAO** avant toute activation du rail en production ;
+- cross-dedup cron ↔ `reminder_events`, puis activation du SMS réel ;
+- WhatsApp **dans l'app** (colonne `channel` prévue, non implémentée) — à distinguer du WhatsApp ops, lui déjà en usage via `ranti-ops` ;
 - modifier / archiver propriétés, logements et locataires côté UI ;
-- envoi SMS réel (provider à configurer en production) ;
-- WhatsApp ;
+- trancher le « pont de capture » : garder `/collections/new` comme filet manuel tant que le rail n'est pas live (question ouverte, ADR-019) ;
 - ops runbook complet ;
 - validation terrain documentée.
 

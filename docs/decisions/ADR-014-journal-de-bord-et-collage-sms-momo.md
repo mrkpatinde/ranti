@@ -2,8 +2,24 @@
 
 ## Statut
 
-Accepté — briques base implémentées et appliquées live 2026-07-11 (voir
-« Statut d'implémentation »). UI (bottom-sheet + page journal) restante.
+**Partiellement supersédé par [ADR-019](ADR-019-feexpay-rail-obligatoire.md)
+(2026-07-15).** Cet ADR porte deux décisions distinctes ; une seule est morte.
+
+| Moitié | Statut au 2026-07-17 |
+|---|---|
+| **Collage SMS Mobile Money** (capture) | **Retiré.** Code supprimé en v0.3.5.2 (`2c3acba`) : `lib/sms/*`, `api/sms/collection`, `sms-ingestion-zone.tsx`. |
+| **Journal de bord chronologique** (projection en lecture) | **Vivant et livré.** `app/(app)/journal/`, `lib/journal/`, migrations `journal_feed_*`. |
+
+⚠️ ADR-019 § Décision 4 annonce le retrait d'« ADR-014 » sans distinguer les
+deux moitiés. Sa formulation sur-déclare : le journal survit. Lire ce tableau,
+pas la clause de supersession d'ADR-019.
+
+Vestige à traiter (hors périmètre docs) : `collections/allocate/[id]/page.tsx`
+cite encore « Fast-Log (collage SMS) — ADR-014 » alors que la voie de capture
+n'existe plus. Le chemin d'allocation, lui, reste utilisé.
+
+*Historique — statut d'origine : Accepté, briques base appliquées live
+2026-07-11 (voir « Statut d'implémentation »).*
 
 ## Contexte
 

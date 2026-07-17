@@ -1,5 +1,15 @@
 # ADR-006 — Audit des mutations sensibles
 
+> ⚠️ **Collision de numéro.** Deux ADR portent le numéro 006 :
+> celui-ci (audit) et
+> [ADR-006 — Rappels et relances automatiques](ADR-006-automated-reminders-from-lease.md).
+> Une référence nue à « ADR-006 » est ambiguë — vérifier le contexte.
+> Répartition observée au 2026-07-17 : ADR-002, ADR-005 et les migrations SQL
+> (`sensitive_mutation_audit`, `landlord_identity_lock`, `receipt_correction_flows`)
+> visent **l'audit (ce document)** ; `roadmap.md`, `database.md`,
+> `implementation-plan-*` et ADR-019 § 6 visent **les relances**.
+> Renumérotation non faite : elle exigerait de modifier des commentaires `.sql`.
+
 ## Statut
 
 Accepté (CEO, 2026-06-28).

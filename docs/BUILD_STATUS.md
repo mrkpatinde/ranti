@@ -1,6 +1,49 @@
 # Ranti — Build Status
 
-Dernière mise à jour : 2026-07-03 (corrections P0/P1 post-review)
+Dernière mise à jour : 2026-07-17 (passe de resynchronisation docs ↔ code, v0.3.5.2)
+
+> Les sections 1 à 3 bis décrivent l'état au **2026-07-03** et sont conservées
+> comme trace historique. L'état courant est en **section 0**.
+
+## 0. État courant (2026-07-17, v0.3.5.2)
+
+Mesuré, pas supposé :
+
+- **Tests unitaires : 239 passés, 25 skippés (264 total), 25 fichiers.** Les 25
+  skippés sont les tests d'intégration/charge, ignorés faute de dev server sur
+  `http://localhost:3300`.
+- Les chiffres « 117/117 » (§1) et « 86 tests » (§7) sont **périmés** — ils se
+  contredisaient déjà entre eux.
+
+Livré depuis le 2026-07-03 (non couvert par les sections ci-dessous) :
+
+| Version | Apport |
+|---|---|
+| v0.3.1.x–v0.3.2.x | `DESIGN.md` (système de design), landing minimale, offre « 3 mois gratuits puis 5 % », split fiscal TVA du ledger |
+| v0.3.4.0 | Onboarding bail-centric + dashboard lecture seule (ADR-020) |
+| v0.3.4.1–v0.3.4.7 | Nav mobile, profil unifié, composition desktop éditoriale, contraste |
+| v0.3.5.0 | **Verrou d'identité propriétaire (ADR-002)** — live 2026-07-16 |
+| v0.3.5.1 | Grants `private *_core` — le repo rejoint la prod |
+| v0.3.5.2 | **Retrait de la saisie assistée** : vocal Gemini (ADR-012) + collage SMS (ADR-014) supprimés |
+
+Écarts ouverts au 2026-07-17 :
+
+1. **Rail de paiement : décision ≠ code.** ADR-019 décide FeexPay comme cash-in
+   unique. Le webhook implémenté est **Kkiapay** (`api/payments/notification`,
+   `x-kkiapay-signature`, `provider: "kkiapay"` en dur). FeexPay n'existe qu'en
+   type et en taux par défaut. Le gate BCEAO masque l'écart : rien n'est activé.
+2. **Gate BCEAO non levé** — bloquant avant production du rail. Cap visé
+   ADR-019 : semaine du 2026-07-22, sous réserve.
+3. **Relances toujours dormantes** (voir §4, inchangé) — canal de fait WhatsApp
+   via `ranti-ops`.
+4. **Vestige ADR-014** : `collections/allocate/[id]/page.tsx` cite « Fast-Log
+   (collage SMS) » alors que la capture SMS n'existe plus.
+5. **Collision de numéro ADR-006** (relances / audit) — non renumérotée, des
+   commentaires `.sql` référencent les deux.
+
+---
+
+## Historique — état au 2026-07-03 (corrections P0/P1 post-review)
 
 ## 1. Ce qui a été trouvé
 
@@ -12,7 +55,9 @@ propriété → logement → locataire → bail → échéances → encaissement
 quittance PDF → relance SMS → confirmation locataire.
 
 - Build Next.js : OK. Tests unitaires : 117/117. Lint : 0 erreur.
+  *(Périmé — voir §0 : 239 passés / 25 skippés au 2026-07-17.)*
 - Docs (vision, ADR-001 à 006, roadmap) alignées avec le code.
+  *(Périmé — la dérive constatée le 2026-07-17 a motivé la présente passe.)*
 - RLS multi-propriétaire uniforme via `private.current_landlord_id()`.
 - Invariants financiers (branche `stabilize/p0-invariants`) : échéances non
   réécrivables si liées à un paiement, correction de quittance par
@@ -141,7 +186,7 @@ anon/authenticated).
 
 ```bash
 cd apps/web
-npm run test:unit    # 86 tests
+npm run test:unit    # 239 passés, 25 skippés (264) au 2026-07-17
 npm run lint
 npm run build
 npm run test:e2e     # Playwright (nécessite RANTI_LOCAL_AUTH)
