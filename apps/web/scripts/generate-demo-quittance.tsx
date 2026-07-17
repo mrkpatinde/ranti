@@ -85,6 +85,7 @@ const landlord: Landlord = {
   civility: null,
   payment_alias: null,
   payment_alias_type: null,
+  onboarding_status: "done",
   created_at: "2026-07-05",
   updated_at: "2026-07-05",
   deleted_at: null,
