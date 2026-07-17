@@ -1,3 +1,4 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { SubmitButton } from "@/components/submit-button"
 import { recordCollection } from "@/lib/collections"
@@ -31,10 +32,6 @@ const PAYMENT_METHODS = [
   { value: "bank_transfer", label: "Virement" },
   { value: "other", label: "Autre" },
 ]
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
@@ -97,7 +94,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
                   {tenantName(lease.tenant_id)} — {unitName(lease.unit_id)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {formatAmount(lease.monthly_rent_amount)} / mois
+                  {formatFcfa(lease.monthly_rent_amount)} / mois
                 </p>
               </Link>
             ))}
@@ -112,7 +109,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
   if (!lease) {
     return (
       <Shell subtitle="Confirmer un paiement reçu">
-        <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+        <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
           Bail introuvable.
         </p>
         <Link href="/collections/new" className="text-sm font-medium underline-offset-4 hover:underline">
@@ -168,7 +165,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
       ) : null}
 
       {params.error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
           {params.error}
         </p>
       ) : null}
@@ -181,10 +178,13 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
         <form action={recordCollection} className="space-y-6">
           <input type="hidden" name="tenant_id" value={lease.tenant_id} />
           <input type="hidden" name="unit_id" value={lease.unit_id} />
+          {/* #167 : clé d'idempotence — un rejeu de ce POST (double-clic,
+              réponse perdue) ne crée jamais un deuxième encaissement. */}
+          <input type="hidden" name="request_id" value={crypto.randomUUID()} />
 
           <div className="space-y-2">
             <label htmlFor="amount_received" className={labelClass}>
-              Montant reçu (F CFA)
+              Montant reçu (FCFA)
             </label>
             <input
               id="amount_received"
@@ -221,10 +221,10 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
                 className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-secondary/60 px-4 py-3"
               >
                 <div>
-                  <p className="font-semibold">reste {formatAmount(due.remaining)}</p>
+                  <p className="font-semibold">reste {formatFcfa(due.remaining)}</p>
                   <p className="text-sm text-muted-foreground">
                     échéance {formatDate(due.due_date)}
-                    {due.amount_paid > 0 ? ` · ${formatAmount(due.amount_paid)} déjà reçu` : ""}
+                    {due.amount_paid > 0 ? ` · ${formatFcfa(due.amount_paid)} déjà reçu` : ""}
                   </p>
                 </div>
                 <input type="hidden" name="allocation_due_id" value={due.id} />
@@ -248,7 +248,7 @@ export default async function NewCollectionPage({ searchParams }: NewCollectionP
           </div>
 
           <SubmitButton
-            className="w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition hover:brightness-95 disabled:opacity-60 lg:w-fit"
+            className="w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60 lg:w-fit"
           >
             Confirmer le paiement reçu
           </SubmitButton>

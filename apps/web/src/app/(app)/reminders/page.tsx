@@ -1,32 +1,21 @@
 import Link from "next/link"
+import { Alert } from "@/components/ui/alert"
+import { badgeClasses } from "@/components/ui/badge"
 import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getLandlordLeaseBalances, overdueByLease } from "@/lib/ledger"
+import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import { getLandlordReminders, type ReminderWithContext } from "@/lib/reminders/queries"
+import { detectReminderSilence, REMINDER_SILENCE_GRACE_DAYS } from "@/lib/reminders/schedule"
+import {
+  reminderChannelLabels,
+  reminderStatusLabels,
+  reminderTemplateLabels,
+} from "@/lib/reminders/labels"
 
 // Relances automatiques : Ranti relance les locataires à partir du bail.
 // Cet écran montre ce que Ranti a fait pour le propriétaire — jamais
 // « envoyez vos relances ».
-
-const templateLabels: Record<string, string> = {
-  "j-5": "Avant l'échéance (J-5)",
-  "j-1": "Veille de l'échéance (J-1)",
-  "j-0": "Jour de l'échéance",
-  "j+1": "En retard (J+1)",
-  "j+3": "En retard (J+3)",
-  "j+10": "En retard (J+10)",
-}
-
-const channelLabels: Record<string, string> = {
-  sms: "SMS",
-  whatsapp: "WhatsApp",
-  whatsapp_manual: "WhatsApp — équipe Ranti",
-}
-
-const statusLabels: Record<ReminderWithContext["status"], string> = {
-  sent: "Envoyée",
-  delivered: "Remise",
-  failed: "Échec d'envoi",
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -48,12 +37,24 @@ function tenantName(reminder: ReminderWithContext): string {
 
 export default async function RemindersPage() {
   const landlord = await requireLandlordProfile()
-  const [reminders, collections] = await Promise.all([
+  const [reminders, collections, balances, leaseBalances] = await Promise.all([
     getLandlordReminders(landlord.id),
     getLandlordCollections(landlord.id),
+    getLandlordDueBalances(landlord.id),
+    getLandlordLeaseBalances(landlord.id),
   ])
 
   const draftCount = collections.filter((c) => c.status === "draft").length
+
+  // Garde-fou ADR-022 : l'envoi vit dans ranti-ops ; si des fenêtres passent
+  // sans envoi tracé, on le dit — plutôt qu'un silence qui ressemble à un bug.
+  // Une fenêtre de retard n'est « attendue » que si le bail porte un impayé
+  // au grand livre (garde compte courant, ADR-023).
+  const silence = detectReminderSilence(
+    balances,
+    reminders.map((r) => ({ dueId: r.rent_due?.id ?? null, sentAt: r.sent_at })),
+    overdueByLease(leaseBalances),
+  )
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
@@ -66,6 +67,17 @@ export default async function RemindersPage() {
           l&apos;échéance, le jour J, puis en cas de retard. Voici ce qui a été envoyé.
         </p>
       </header>
+
+      {silence ? (
+        <Alert variant="warning" className="mt-6">
+          {silence.silentDues === 1
+            ? "1 échéance a passé sa fenêtre de relance sans envoi"
+            : `${silence.silentDues} échéances ont passé leur fenêtre de relance sans envoi`}
+          {" "}depuis plus de {REMINDER_SILENCE_GRACE_DAYS} jours. Vous pouvez relancer
+          vous-même depuis la fiche du bail (bouton WhatsApp) — et prévenir
+          l&apos;assistance si cela persiste.
+        </Alert>
+      ) : null}
 
       {draftCount > 0 && (
         <Link
@@ -111,22 +123,16 @@ export default async function RemindersPage() {
                       ) : null}
                     </p>
                     <p className="mt-0.5 text-sm text-foreground/70">
-                      {templateLabels[reminder.template] ?? reminder.template}
+                      {reminderTemplateLabels[reminder.template] ?? reminder.template}
                       {due ? ` · Loyer de ${formatMonth(due.period_start)}` : ""}
                     </p>
                   </div>
-                  <span
-                    className={
-                      reminder.status === "failed"
-                        ? "shrink-0 rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700 ring-1 ring-red-200"
-                        : "shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-bold text-foreground ring-1 ring-primary/20"
-                    }
-                  >
-                    {statusLabels[reminder.status]}
+                  <span className={badgeClasses(reminder.status === "failed" ? "error" : "success")}>
+                    {reminderStatusLabels[reminder.status]}
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {channelLabels[reminder.channel] ?? reminder.channel} ·{" "}
+                  {reminderChannelLabels[reminder.channel] ?? reminder.channel} ·{" "}
                   {formatDate(reminder.sent_at)}
                   {due ? ` · échéance du ${formatDate(due.due_date)}` : ""}
                 </p>

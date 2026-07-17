@@ -1,15 +1,24 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { SubmitButton } from "@/components/submit-button"
+import { Alert } from "@/components/ui/alert"
+import { badgeClasses } from "@/components/ui/badge"
+import { CollectionCard } from "./collection-card"
 import {
-  cancelCollection,
-  confirmCollection,
   getLandlordCollections,
   type Collection,
   type CollectionStatus,
   type PaymentMethod,
 } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
-import { generateReceipt, getLandlordReceipts } from "@/lib/receipts"
+import { getLandlordLeases } from "@/lib/leases"
+import {
+  listPaymentTransactions,
+  verifyPaymentTransaction,
+  type PaymentProvider,
+  type PaymentTransaction,
+} from "@/lib/payments"
+import { getLandlordReceipts } from "@/lib/receipts"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 
@@ -27,23 +36,21 @@ const methodLabels: Record<PaymentMethod, string> = {
   other: "Autre",
 }
 
-const statusLabels: Record<CollectionStatus, string> = {
-  draft: "Brouillon — à confirmer",
-  confirmed: "Confirmé",
-  cancelled: "Annulé",
-}
-
 const noticeLabels: Record<string, string> = {
-  collection_confirmed: "Encaissement confirmé.",
   collection_confirmed_document_pending:
     "Encaissement confirmé. Le document n'a pas été généré automatiquement ; vous pouvez le générer depuis l'encaissement.",
-  collection_cancelled: "Encaissement annulé.",
   collection_recorded_unconfirmed:
     "Encaissement enregistré mais non confirmé. Confirmez-le ci-dessous.",
+  payment_transaction_verified:
+    "Paiement validé. La quittance est prête dans « Vos quittances ».",
+  payment_transaction_rejected:
+    "Ce paiement n'a pas pu être validé : le montant ne correspond pas au loyer, ou le bail n'est plus actif. Il reste tracé dans le registre.",
 }
 
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
+const providerLabels: Record<PaymentProvider, string> = {
+  feexpay: "FeexPay",
+  fedapay: "FedaPay",
+  kkiapay: "Kkiapay",
 }
 
 function formatDate(iso: string): string {
@@ -60,26 +67,17 @@ const statusOrder: Record<CollectionStatus, number> = {
   cancelled: 2,
 }
 
-function statusClasses(status: CollectionStatus): string {
-  switch (status) {
-    case "draft":
-      return "border-accent/50 bg-accent/10 text-accent"
-    case "confirmed":
-      return "border-primary/20 bg-secondary text-foreground"
-    case "cancelled":
-      return "border-border bg-background text-foreground/70"
-  }
-}
-
 export default async function CollectionsPage({ searchParams }: CollectionsPageProps) {
   const landlord = await requireLandlordProfile()
   const params = await searchParams
 
-  const [collections, tenants, units, receipts] = await Promise.all([
+  const [collections, tenants, units, receipts, leases, transactions] = await Promise.all([
     getLandlordCollections(landlord.id),
     getLandlordTenants(landlord.id),
     getLandlordUnits(landlord.id),
     getLandlordReceipts(landlord.id),
+    getLandlordLeases(landlord.id),
+    listPaymentTransactions(),
   ])
 
   const receiptByReception = new Map(
@@ -97,6 +95,17 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
   }
   const unitName = (id: string): string => units.find((u) => u.id === id)?.name ?? "Logement"
 
+  // Rail PSP (FeexPay, ADR-019) : les transactions arrivent par le webhook en
+  // `pending` et attendent la validation du propriétaire (ADR-017). Le ledger
+  // ne stocke que le bail ; on retrouve locataire + logement par le bail.
+  const leaseParties = (leaseId: string): string => {
+    const lease = leases.find((l) => l.id === leaseId)
+    if (!lease) return "Locataire"
+    return `${tenantName(lease.tenant_id)} — ${unitName(lease.unit_id)}`
+  }
+  const pendingTransactions = transactions.filter((t: PaymentTransaction) => t.status === "pending")
+  const rejectedTransactions = transactions.filter((t: PaymentTransaction) => t.status === "rejected")
+
   const sorted = [...collections].sort((a, b) => {
     const byStatus = statusOrder[a.status] - statusOrder[b.status]
     if (byStatus !== 0) return byStatus
@@ -112,12 +121,20 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Vos encaissements</p>
         </div>
-        <Link
-          href="/dashboard"
-          className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
-        >
-          Tableau de bord
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/transactions"
+            className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
+          >
+            Paiements par le rail
+          </Link>
+          <Link
+            href="/dashboard"
+            className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
+          >
+            Accueil
+          </Link>
+        </div>
       </header>
 
       <section className="flex flex-1 flex-col gap-8 py-12">
@@ -131,30 +148,107 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
           </p>
           <Link
             href="/collections/new"
-            className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+            className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
           >
             Encaisser un loyer
           </Link>
         </div>
 
-        {notice ? (
-          <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">
-            {notice}
-          </p>
-        ) : null}
+        {notice ? <Alert variant="success">{notice}</Alert> : null}
 
-        {params?.error ? (
-          <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
-            {params.error}
-          </p>
-        ) : null}
+        {params?.error ? <Alert variant="error">{params.error}</Alert> : null}
 
         {draftCount > 0 ? (
-          <p className="rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm text-accent">
+          <Alert variant="info">
             {draftCount === 1
               ? "1 encaissement en brouillon attend votre confirmation."
               : `${draftCount} encaissements en brouillon attendent votre confirmation.`}
-          </p>
+          </Alert>
+        ) : null}
+
+        {pendingTransactions.length > 0 ? (
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
+                Paiements par le rail à valider
+              </h2>
+              <p className="text-sm leading-6 text-foreground/70">
+                Un locataire a réglé son loyer par le rail de paiement. Validez pour générer la
+                quittance ; vous recevez le net, frais de service Ranti déduits.
+              </p>
+            </div>
+            {pendingTransactions.map((t) => (
+              <article
+                key={t.id}
+                className="rounded-2xl border border-accent/50 bg-accent/10 p-6"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="font-display text-xl font-extrabold tracking-tight text-foreground">
+                      {formatFcfa(t.amount_received)}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{leaseParties(t.lease_id)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {formatDate(t.created_at)} · {providerLabels[t.provider]}
+                    </p>
+                  </div>
+                  <span className={badgeClasses("accent")}>
+                    À valider
+                  </span>
+                </div>
+
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Réf. transaction :{" "}
+                  <span className="font-mono text-xs text-foreground">{t.provider_reference}</span>
+                </p>
+
+                <p className="mt-3 text-sm text-foreground/80">
+                  Vous recevez{" "}
+                  <span className="font-medium text-foreground">{formatFcfa(t.net_amount)}</span>{" "}
+                  net · frais de service Ranti {(t.service_fee_bp / 100).toLocaleString("fr-FR")} %
+                  tout inclus.
+                </p>
+
+                <form action={verifyPaymentTransaction} className="mt-5">
+                  <input type="hidden" name="transaction_id" value={t.id} />
+                  <SubmitButton className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60">
+                    Valider et générer la quittance
+                  </SubmitButton>
+                </form>
+              </article>
+            ))}
+          </div>
+        ) : null}
+
+        {rejectedTransactions.length > 0 ? (
+          <details className="rounded-2xl border border-border bg-card p-6">
+            <summary className="cursor-pointer list-none font-display text-lg font-extrabold tracking-tight text-foreground">
+              Paiements du rail non validés ({rejectedTransactions.length})
+            </summary>
+            <div className="mt-4 space-y-3">
+              {rejectedTransactions.map((t) => (
+                <div key={t.id} className="rounded-xl border border-border p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {formatFcfa(t.amount_received)} — {leaseParties(t.lease_id)}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {formatDate(t.created_at)} · {providerLabels[t.provider]} ·{" "}
+                        <span className="font-mono text-xs">{t.provider_reference}</span>
+                      </p>
+                    </div>
+                    <span className={badgeClasses("error")}>
+                      Non validé
+                    </span>
+                  </div>
+                  {t.rejection_reason ? (
+                    <p className="mt-2 text-sm text-muted-foreground">Motif : {t.rejection_reason}</p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </details>
         ) : null}
 
         {sorted.length === 0 ? (
@@ -169,133 +263,19 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
         ) : (
           <div className="space-y-4">
             {sorted.map((c) => (
-              <article
+              <CollectionCard
                 key={c.id}
-                className="rounded-2xl border border-border bg-card p-6"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
-                      {formatAmount(c.amount_received)}
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {tenantName(c.tenant_id)} — {unitName(c.unit_id)}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {formatDate(c.received_at)} · {methodLabels[c.payment_method]}
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${statusClasses(c.status)}`}
-                  >
-                    {statusLabels[c.status]}
-                  </span>
-                </div>
-
-                {c.payment_reference ? (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Réf. transaction : <span className="font-medium text-foreground">{c.payment_reference}</span>
-                  </p>
-                ) : null}
-
-                {c.note ? (
-                  <p className="mt-3 text-sm text-muted-foreground">{c.note}</p>
-                ) : null}
-
-                {c.status === "cancelled" && c.cancellation_reason ? (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Motif : {c.cancellation_reason}
-                  </p>
-                ) : null}
-
-                {c.status === "draft" ? (
-                  <div className="mt-5 space-y-4">
-                    <form action={confirmCollection}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <SubmitButton
-                        className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-                      >
-                        Confirmer
-                      </SubmitButton>
-                    </form>
-
-                    <form action={cancelCollection} className="space-y-2 rounded-2xl border border-border p-4">
-                      <input type="hidden" name="id" value={c.id} />
-                      <label htmlFor={`reason-${c.id}`} className="block text-sm font-medium text-foreground">
-                        Motif d&apos;annulation <span className="text-red-700">*</span>
-                      </label>
-                      <textarea
-                        id={`reason-${c.id}`}
-                        name="reason"
-                        rows={2}
-                        required
-                        minLength={3}
-                        placeholder="Ex. paiement saisi par erreur"
-                        className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
-                      />
-                      <SubmitButton
-                        className="rounded-full border border-red-300 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-700 disabled:opacity-60"
-                      >
-                        Annuler cet encaissement
-                      </SubmitButton>
-                    </form>
-                  </div>
-                ) : null}
-
-                {c.status === "confirmed" ? (
-                  receiptByReception.has(c.id) ? (
-                    <Link
-                      href={`/receipts/${receiptByReception.get(c.id)!.id}`}
-                      className="mt-5 inline-flex rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary"
-                    >
-                      Voir le document
-                    </Link>
-                  ) : (
-                    <div className="mt-5 space-y-4">
-                      {cancelledReceiptReceptions.has(c.id) ? (
-                        <p className="rounded-xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm leading-6 text-accent">
-                          ⓘ Le document de cet encaissement a été <strong>annulé</strong>, mais le paiement reste
-                          confirmé dans le registre. Générez un document corrigé — ou annulez aussi
-                          l&apos;encaissement ci-dessous s&apos;il a été saisi par erreur.
-                        </p>
-                      ) : null}
-                      <form action={generateReceipt}>
-                        <input type="hidden" name="reception_id" value={c.id} />
-                        <SubmitButton
-                          className="rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary disabled:opacity-60"
-                        >
-                          {cancelledReceiptReceptions.has(c.id) ? "Générer un document corrigé" : "Générer la quittance ou le reçu"}
-                        </SubmitButton>
-                      </form>
-                      <details>
-                        <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground/70 transition hover:border-red-300 hover:text-red-700">Annuler cet encaissement…</summary>
-                        <form action={cancelCollection} className="mt-3 space-y-2 rounded-2xl border border-red-200 bg-red-50 p-4">
-                          <input type="hidden" name="id" value={c.id} />
-                          <p className="text-sm leading-6 text-red-900">
-                            L&apos;annulation remet l&apos;échéance en attente (le loyer redevient dû) et reste tracée
-                            dans le registre avec son motif. Elle est impossible tant qu&apos;un document actif existe.
-                          </p>
-                          <label htmlFor={`reason-confirmed-${c.id}`} className="block text-sm font-medium text-red-900">
-                            Motif d&apos;annulation <span className="text-red-700">*</span>
-                          </label>
-                          <textarea
-                            id={`reason-confirmed-${c.id}`}
-                            name="reason"
-                            rows={2}
-                            required
-                            minLength={3}
-                            placeholder="Ex. montant saisi par erreur"
-                            className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
-                          />
-                          <SubmitButton className="rounded-full border border-red-300 bg-card px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:border-red-700 disabled:opacity-60">
-                            Annuler cet encaissement
-                          </SubmitButton>
-                        </form>
-                      </details>
-                    </div>
-                  )
-                ) : null}
-              </article>
+                id={c.id}
+                status={c.status}
+                amountLabel={formatFcfa(c.amount_received)}
+                partiesLine={`${tenantName(c.tenant_id)} — ${unitName(c.unit_id)}`}
+                metaLine={`${formatDate(c.received_at)} · ${methodLabels[c.payment_method]}`}
+                paymentReference={c.payment_reference ?? null}
+                note={c.note ?? null}
+                cancellationReason={c.cancellation_reason ?? null}
+                receiptId={receiptByReception.get(c.id)?.id ?? null}
+                receiptCancelled={cancelledReceiptReceptions.has(c.id)}
+              />
             ))}
           </div>
         )}

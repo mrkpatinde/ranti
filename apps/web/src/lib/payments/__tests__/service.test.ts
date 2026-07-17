@@ -6,8 +6,8 @@ import { PaymentError } from "../types"
 const INPUT = {
   leaseId: "b6666666-6666-6666-6666-666666666666",
   amountReceived: 60_000,
-  provider: "kkiapay",
-  reference: "KKP-001",
+  provider: "feexpay",
+  reference: "FXP-001",
   payload: { src: "test" },
 }
 
@@ -29,8 +29,8 @@ describe("processPayment (ADR-018 v2 : le webhook ingère seulement)", () => {
 
     expect(result).toEqual({ outcome: "pending", transactionId: "tx-1" })
     expect(repo.ingestNotification).toHaveBeenCalledWith({
-      provider: "kkiapay",
-      reference: "KKP-001",
+      provider: "feexpay",
+      reference: "FXP-001",
       leaseId: INPUT.leaseId,
       amount: 60_000,
       payload: { src: "test" },

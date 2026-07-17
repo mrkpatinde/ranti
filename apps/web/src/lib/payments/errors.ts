@@ -14,7 +14,7 @@ const MESSAGES: Record<PaymentErrorCode, string> = {
   provider_invalid: "Fournisseur de paiement inconnu.",
   payout_not_applicable: "Reversement impossible pour cette transaction.",
   invalid_body: "Requête invalide.",
-  technical: "Opération impossible. Réessayez.",
+  technical: "Validation impossible pour le moment. Réessayez.",
 }
 
 export function paymentErrorMessage(code: PaymentErrorCode): string {

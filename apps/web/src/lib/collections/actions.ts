@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { readRequestId } from "@/lib/idempotency"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import type { CollectionAllocation } from "./types"
@@ -94,6 +95,9 @@ export async function recordCollection(formData: FormData) {
     p_received_at: null,
     p_note: note,
     p_allocations: allocations,
+    // #167 : rejouer ce POST (double-clic, réponse perdue) renvoie la MÊME
+    // réception — jamais un double encaissement.
+    p_request_id: readRequestId(formData),
   })
 
   if (error || !receptionId) {
@@ -163,11 +167,20 @@ export async function allocateReception(formData: FormData) {
   redirect("/dashboard?notice=reception_allocated")
 }
 
-export async function confirmCollection(formData: FormData) {
+// #167 Phase 4 — confirmer/annuler renvoient un ÉTAT au lieu de rediriger :
+// la carte encaissement (client, useOptimistic) bascule instantanément et
+// revient en arrière d'elle-même si l'action échoue. Succès → revalidation,
+// les vraies données (badge, lien du document) remplacent l'optimisme.
+export type CollectionActionState = { error: string | null }
+
+export async function confirmCollection(
+  _prev: CollectionActionState,
+  formData: FormData,
+): Promise<CollectionActionState> {
   await requireLandlordProfile()
 
   const id = readString(formData, "id")
-  if (!id) redirect(`/collections?error=${encodeURIComponent("Encaissement introuvable.")}`)
+  if (!id) return { error: "Encaissement introuvable." }
 
   const supabase = await createClient()
   const { error } = await supabase.rpc("confirm_collection", { p_reception_id: id })
@@ -175,33 +188,32 @@ export async function confirmCollection(formData: FormData) {
   if (error) {
     const known = error.message.includes("allocation_exceeds_due_at_confirm")
     if (!known) console.error("[collections] unmapped confirm error:", error.message)
-    const message = known
-      ? "Confirmation impossible : une autre confirmation a déjà couvert cette échéance."
-      : "Confirmation impossible. Réessayez."
-    redirect(`/collections?error=${encodeURIComponent(message)}`)
+    return {
+      error: known
+        ? "Confirmation impossible : une autre confirmation a déjà couvert cette échéance."
+        : "Confirmation impossible. Réessayez.",
+    }
   }
 
-  const receiptId = await generateDocumentForConfirmedCollection(id)
+  // ADR-007 : le document se génère dans la foulée ; en cas d'échec la carte
+  // confirmée propose « Générer la quittance ou le reçu » (fallback existant).
+  await generateDocumentForConfirmedCollection(id)
 
   revalidateCollectionProofPaths()
-
-  if (receiptId) {
-    redirect(`/receipts/${receiptId}?notice=receipt_generated`)
-  }
-
-  redirect(`/collections?notice=collection_confirmed_document_pending`)
+  return { error: null }
 }
 
-export async function cancelCollection(formData: FormData) {
+export async function cancelCollection(
+  _prev: CollectionActionState,
+  formData: FormData,
+): Promise<CollectionActionState> {
   await requireLandlordProfile()
 
   const id = readString(formData, "id")
-  if (!id) redirect(`/collections?error=${encodeURIComponent("Encaissement introuvable.")}`)
+  if (!id) return { error: "Encaissement introuvable." }
 
   const reason = readString(formData, "reason")
-  if (!reason) {
-    redirect(`/collections?error=${encodeURIComponent("Indiquez pourquoi vous annulez cet encaissement.")}`)
-  }
+  if (!reason) return { error: "Indiquez pourquoi vous annulez cet encaissement." }
 
   const supabase = await createClient()
   const { error } = await supabase.rpc("cancel_collection", {
@@ -212,12 +224,13 @@ export async function cancelCollection(formData: FormData) {
   if (error) {
     const known = error.message.includes("has_receipt")
     if (!known) console.error("[collections] unmapped cancel error:", error.message)
-    const message = known
-      ? "Impossible : une quittance a déjà été générée."
-      : "Annulation impossible. Réessayez."
-    redirect(`/collections?error=${encodeURIComponent(message)}`)
+    return {
+      error: known
+        ? "Impossible : une quittance a déjà été générée."
+        : "Annulation impossible. Réessayez.",
+    }
   }
 
-  revalidatePath("/collections")
-  redirect(`/collections?notice=collection_cancelled`)
+  revalidateCollectionProofPaths()
+  return { error: null }
 }

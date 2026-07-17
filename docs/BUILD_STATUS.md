@@ -45,6 +45,11 @@ Livré depuis le 2026-07-03 (non couvert par les sections ci-dessous) :
 
 ## Historique — état au 2026-07-03 (corrections P0/P1 post-review)
 
+> ⚠️ Note 2026-07-16 : les sections sur le cron SMS `/api/cron/reminders`
+> (`CRON_SECRET`, `REMINDERS_SMS_ENABLED`, Africa's Talking) sont OBSOLÈTES —
+> le chemin SMS a été supprimé et l'envoi des relances est opéré par ranti-ops
+> (WhatsApp). Voir ADR-022.
+
 ## 1. Ce qui a été trouvé
 
 Le produit est cohérent avec la vision : registre de loyer pour propriétaires,

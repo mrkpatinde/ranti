@@ -1,3 +1,4 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeases } from "@/lib/leases"
@@ -19,10 +20,6 @@ const leaseStatusLabels: Record<LeaseStatus, string> = {
   active: "Actif",
   ended: "Terminé",
   cancelled: "Annulé",
-}
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
 }
 
 export default async function LeasesPage({ searchParams }: LeasesPageProps) {
@@ -56,7 +53,7 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
           <p className="mt-2 text-sm text-muted-foreground">Vos baux</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+          Accueil
         </Link>
       </header>
 
@@ -86,7 +83,7 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
             </p>
             <Link
               href="/leases/new"
-              className="mt-5 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+              className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
             >
               Créer mon premier bail
             </Link>
@@ -105,7 +102,7 @@ export default async function LeasesPage({ searchParams }: LeasesPageProps) {
                       {tenantName(lease.tenant_id)} — {unitName(lease.unit_id)}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {formatAmount(lease.monthly_rent_amount)} / mois · échéance le {lease.due_day}
+                      {formatFcfa(lease.monthly_rent_amount)} / mois · échéance le {lease.due_day}
                     </p>
                   </div>
                   <span className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80">

@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
 
         {errorMessage ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {errorMessage}
           </p>
         ) : null}

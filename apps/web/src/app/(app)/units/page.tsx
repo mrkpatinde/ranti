@@ -20,6 +20,8 @@ type UnitsPageProps = {
 
 const noticeLabels: Record<string, string> = {
   unit_archived: "Logement archivé.",
+  bulk_units_created:
+    "Logements ajoutés — encore libres. Créez leur bail quand ils trouveront leur occupant.",
 }
 
 export default async function UnitsPage({ searchParams }: UnitsPageProps) {
@@ -38,7 +40,7 @@ export default async function UnitsPage({ searchParams }: UnitsPageProps) {
         <div>
           <p className="mt-2 text-sm text-muted-foreground">Vos logements</p>
         </div>
-        <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Tableau de bord</Link>
+        <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Accueil</Link>
       </header>
 
       <section className="flex flex-1 flex-col gap-8 py-12">
@@ -48,7 +50,7 @@ export default async function UnitsPage({ searchParams }: UnitsPageProps) {
         </div>
 
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {params?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{params.error}</p> : null}
+        {params?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{params.error}</p> : null}
 
         {units.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-6">

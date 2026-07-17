@@ -3,6 +3,253 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.25.0] - 2026-07-16
+
+### Changed
+
+- **Grand Livre, bascule des relances et de la fiche bail (ADR-023)** : plus
+  de relance de retard pour un locataire à jour au compte courant. La file
+  opérateur `ops_reminder_queue` porte une garde compte courant (les relances
+  de retard ne sortent que si le bail a un impayé au grand livre — une avance
+  affectée à un mois futur nette la dette ; les rappels pré-échéance sont
+  inchangés), et la projection à l'écran applique exactement la même règle
+  (dashboard « Relances à venir », garde-fou de silence de `/reminders`). La
+  fiche bail affiche le solde du compte en tête — la même lentille que le
+  dashboard, fini les écrans qui se contredisent — et la relance manuelle
+  WhatsApp est sourcée du grand livre (montant = l'impayé du compte).
+
+## [0.3.24.0] - 2026-07-16
+
+### Added
+
+- **Grand Livre, phase « différenciant » (ADR-023)** : les charges variables
+  entrent au compte du bail, validées par le locataire. Le propriétaire
+  ajoute une réparation ou des frais depuis la fiche bail (« Charges &
+  frais ») ; la charge naît « en attente » avec un lien signé
+  `/transaction/[token]` que le locataire ouvre sans compte pour **valider**
+  (elle devient certaine et indélébile) ou **contester** (montant faux, dette
+  non reconnue, déjà réglée, autre — sa version est conservée à côté, jamais
+  écrasée) puis, s'il le souhaite, retirer sa contestation. Le propriétaire
+  peut retirer une charge jamais validée (motif tracé dans l'historique) ou
+  la corriger — la version corrigée repart pour validation avec un nouveau
+  lien. Envoi du lien : bouton WhatsApp pré-rempli (le propriétaire relit et
+  envoie) ; l'envoi automatisé passera par ranti-ops via la vue
+  `ops_ledger_notifications` (contrat ADR-022). Création idempotente
+  (double-tap réseau instable), RPC `SECURITY DEFINER` seules voies
+  d'écriture, garde d'égalité restreinte à la projection héritée.
+
+## [0.3.23.0] - 2026-07-16
+
+### Changed
+
+- **Grand Livre, phase « Nouvelle lecture » (ADR-023)** : le dashboard lit
+  désormais le grand livre (vue `lease_balances`, module `lib/ledger`). La
+  liste « À encaisser » devient une ligne **par bail** — dette consolidée en
+  compte courant (une avance sur un mois réduit le dû ; un même locataire
+  n'apparaît plus une fois par échéance), tuile « Retard » sourcée du grand
+  livre, déclarations à confirmer et montants en litige visibles. Le chiffre
+  rouge d'une ligne est l'impayé seul (la somme des lignes rouges recolle
+  avec la tuile « Retard ») ; l'attendu est nommé à part, jamais fusionné.
+  « À jour » signifie désormais bail actif sans dû ni attente ni litige
+  (compte courant), plus « échéances du mois soldées ». « Payé / Attendu »
+  et le taux de recouvrement restent des lentilles mensuelles
+  (`rent_due_balances`), que la cadence des relances lit déjà (ADR-022) —
+  limites connues de la coexistence documentées dans l'ADR-023.
+
+## [0.3.22.0] - 2026-07-16
+
+### Added
+
+- **Grand Livre de Confiance, phase Expand (ADR-023)** : table `transactions`
+  (compte courant locatif — loyers, réparations, frais, règlements,
+  contre-passations) et vue `lease_balances` (solde certain / en attente /
+  en litige / impayé, calculés en base). Les tables héritées restent la
+  source de vérité : le grand livre est tenu à l'identique par triggers
+  miroir (même transaction Postgres) et backfill idempotent, avec une garde
+  d'égalité des soldes qui fait échouer la migration au moindre écart.
+  Machine à états dure en base : une ligne validée est indélébile (toute
+  correction est une contre-passation visible), une ligne retirée est
+  terminale, rien ne se supprime. Aucun changement d'interface : la bascule
+  des lectures viendra à la phase « Nouvelle lecture ».
+- ADR-023 rédigée puis précisée (matrice de validation « qui rend quoi
+  certain », cycle de vie du litige à quatre sorties, correspondance de
+  backfill) ; `vision.md`, `architecture.md`, `domain-model.md`,
+  `database.md` et `glossary.md` alignés sur le pivot.
+
+## [0.3.21.1] - 2026-07-16
+
+### Fixed
+
+- Montants illisibles sur la quittance PDF (« 120/000/FCFA ») : le séparateur
+  de milliers passait par l'espace fine insécable U+202F, absente de
+  l'encodage WinAnsi des polices PDF de base (Helvetica) — l'octet tronqué
+  s'imprimait « / ». `formatFcfa` utilise désormais l'espace insécable
+  U+00A0, rendue correctement partout (écran, PDF, WhatsApp), sans casser
+  l'invariant « le même montant s'écrit pareil sur tous les canaux ».
+- Partage WhatsApp de la quittance (`/receipts/[id]`) : le lien `wa.me` sans
+  numéro (mode « partager à… ») perdait souvent le message pré-rempli sur
+  Android. Le lien cible désormais directement la conversation du locataire
+  (téléphone du snapshot, même mécanique que le journal et les relances) ;
+  repli sur le lien sans numéro si le locataire n'a pas de téléphone.
+- Page publique du reçu (`/recu/[token]`) : après confirmation, le bandeau
+  d'état et l'encadré « Merci… » répétaient le même message. Un seul bandeau
+  reste ; son texte devient le remerciement juste après l'action (idem pour
+  la contestation).
+- Fond de page verdâtre en mode clair (retour terrain : « le dashboard est
+  toujours en fond vert en journée ») : le crème `#f7f7f2` (teinte HSL 60,
+  jaune-vert) virait au vert sur les dalles Android bas de gamme. Les fonds
+  clairs passent sur des neutres chauds sans composante verte :
+  `--background` → `#f9f8f6`, `--muted` → `#f2f0ee`, manifest PWA et landing
+  alignés. Accent olive, `--secondary` (états) et dark mode inchangés.
+  DESIGN.md mis à jour (palette Neutrals + mapping tokens).
+
+## [0.3.12.0] - 2026-07-16
+
+### Added
+
+- Fiche bail `/leases/[id]` — relance manuelle « préparée » : bouton
+  « Relancer sur WhatsApp » (bail actif + échéance non soldée) qui ouvre un
+  message pré-rempli vers le locataire, adapté à l'état (rappel avant échéance
+  vs relance de retard) et incluant le lien `/confirmer/[token]`. Envoi manuel
+  par le propriétaire — zéro API, zéro coût, aucun envoi auto (ADR-006 nuance
+  MVP ; même mécanisme wa.me que le journal). Complément de l'automatique.
+  Builder pur `buildReminderWaLink` + tests.
+- `roadmap.md` Sprint 7 : item « préparer le message… MVP prudent » coché.
+
+### Changed
+
+- Type `RentDue` : `confirmation_token` exposé (déjà renvoyé par la vue
+  `rent_due_balances` via `d.*`), pour construire le lien de confirmation.
+
+## [0.3.11.0] - 2026-07-16
+
+### Added
+
+- Dashboard — bloc « Relances à venir » (lecture seule) : pour chaque échéance
+  impayée, la prochaine relance que Ranti enverra (ex. « Awa — Chambre 3 ·
+  Rappel J-5 · 20 juil. »), triée par date, point accent/destructive selon
+  retard. Microcopie « Ranti s'en charge — vous n'avez rien à envoyer »
+  (ADR-006 : c'est Ranti, pas le propriétaire ; dashboard lecture seule
+  ADR-020). Prochaine relance projetée depuis la cadence (fonction pure
+  `computeUpcomingReminders`, miroir des fenêtres du cron), pas lue depuis
+  `next_reminder_at` (maintenu par le cron SMS dormant). Tests.
+- `roadmap.md` Sprint 7 : item « afficher les relances prévues/envoyées sur le
+  dashboard » coché.
+
+## [0.3.10.0] - 2026-07-16
+
+### Added
+
+- Fiche bail `/leases/[id]` — section « Rappels & relances » : le calendrier
+  des rappels/relances que Ranti applique à partir de l'échéance (5 jours
+  avant, la veille, le jour J, dès J+3, à J+10), en lecture seule (miroir des
+  fenêtres du cron). Exigence ADR-006 (« la fiche bail doit afficher les règles
+  de rappel et relance »). Affiché en brouillon (« à l'activation ») et actif ;
+  canal-agnostique (pas de promesse SMS tant que l'envoi réel reste
+  WhatsApp/ops). L'historique envoyé passe sous « Envoyées ». Fenêtres fixes,
+  non configurables au MVP.
+- `roadmap.md` Sprint 7 : item « afficher les règles sur la fiche bail » coché.
+
+## [0.3.9.0] - 2026-07-16
+
+### Added
+
+- Fiche bail `/leases/[id]` — section « Relances » : le fil des relances déjà
+  envoyées à ce locataire (fenêtre J-5…J+10, canal SMS/WhatsApp, date, statut),
+  filtré sur les échéances du bail. Relie « retard » et « relances » au même
+  endroit de gestion (Sprint 6 complété). Query `getLeaseReminders`.
+
+### Changed
+
+- Fiche bail — les échéances passent sur `rent_due_balances` : affichent le
+  montant restant réel quand une échéance est partiellement payée.
+- Libellés de relance extraits dans `lib/reminders/labels.ts`, partagés entre
+  `/reminders` et la fiche bail ; fusion auto+ops factorisée
+  (`mergeReminderRows`).
+- `roadmap.md` : Sprint 6 marqué complété (retards/relances visibles).
+
+## [0.3.8.0] - 2026-07-16
+
+### Added
+
+- Dashboard — taux de recouvrement du mois : « Recouvrement de {mois} — X % »
+  + barre fine sous les tuiles. Part du loyer DÛ du mois déjà encaissée
+  (`payé / monthDue`), entier borné 0–100, floor (jamais « 100 % » tant qu'il
+  reste 1 FCFA), masqué si aucune échéance ce mois. `buildDashboardSummary`
+  étendu (`monthDue` + `collectionRate`) + tests.
+
+### Changed
+
+- Dashboard — unité FCFA affichée sur les tuiles Payé/Attendu/Retard et sur
+  les montants de la liste « à encaisser » (montants jusque-là ambigus).
+- `roadmap.md` Sprint 6 : synthèse mensuelle du dashboard marquée livrée
+  (docs en retard sur le code).
+
+## [0.3.7.0] - 2026-07-16
+
+### Added
+
+- Changement de statut d'un logement enfin exposé : toggle disponible/occupé
+  sur `/units/[id]` (câble `setUnitAvailability`, jusque-là exportée sans aucun
+  appelant UI ; la notice `availability_updated` était déjà prête).
+
+### Changed
+
+- Archivage (action destructive) harmonisé sur les trois entités (logements,
+  lieux, locataires), aligné sur le pattern des baux :
+  - nouveau composant client `ConfirmArchiveButton` (`window.confirm`, server
+    action passé en prop pour garder `lib/supabase/server` hors du bundle
+    client), tokens `destructive` (DESIGN.md, plus de `red-*` en dur) ;
+  - retrait du reveal caché `<details>` sur logements/locataires (ADR-020 :
+    « jamais de reveal caché ») ; les lieux passent de l'archivage direct sans
+    garde-fou à un panneau visible + confirmation ; explication d'archivage
+    rendue visible partout.
+- `roadmap.md` (Sprint 3/4/6) mis à jour : les écrans modifier/archiver des
+  trois entités étaient déjà livrés (docs en retard sur le code) ; cases
+  cochées, statut logement inclus.
+
+## [0.3.6.0] - 2026-07-16
+
+### Added
+
+- Rail FeexPay branché côté serveur (ADR-019, cash-in unique) — **sandbox
+  uniquement**, activation prod toujours gatée BCEAO. Client isolé
+  `src/lib/feexpay/` : `config` null-safe (sandbox/live, secrets serveur
+  uniquement), `signature` (HMAC-SHA256 corps brut, temps constant), `normalize`
+  (webhook → event), `checkout` (cash-in plein montant), `payout` + polling V2,
+  `http` (transport authentifié → `PaymentError`). Tests signature +
+  normalisation.
+- `/collections` : carte de validation des paiements du rail en `pending` →
+  « Valider et générer la quittance » (`verifyPaymentTransaction`, ADR-017) ;
+  paiements rejetés en repli tracé. Notices `payment_transaction_verified` /
+  `payment_transaction_rejected`.
+- `/transactions` : vue ledger propriétaire (lecture seule), tous statuts
+  (à valider / validé / reversé / non validé) + total net reçu. Découvrable
+  depuis `/collections`, sans nouvelle tuile de nav (minimalisme ADR-020).
+  Vision propriétaire conforme `DESIGN.md` : « net reçu · frais de service
+  Ranti 5 % tout inclus », jamais les coûts PSP.
+- ADR-021 (Proposée) : reçus locataire (rail vs PSP) + décision requise sur le
+  montage wallet FeexPay (unique Ranti vs sous-comptes par propriétaire, reco
+  sous-comptes) — prérequis de la copie `/confirmer` et de la levée du gate
+  BCEAO.
+
+### Changed
+
+- Webhook `POST /api/payments/notification` re-câblé de Kkiapay vers le rail
+  FeexPay (secret `FEEXPAY_WEBHOOK_SECRET`, en-tête `x-feexpay-signature`,
+  provider `feexpay`). Contrat inchangé : ingestion idempotente en `pending`,
+  validation propriétaire (ADR-017) inchangée, réponses 200/400/401/500
+  identiques.
+- `TODOS.md` / `roadmap.md` alignés sur le rail FeexPay (sandbox FedaPay
+  périmé ; montage wallet renvoyé à ADR-021).
+
+### Removed
+
+- Code Kkiapay devenu orphelin après le re-câblage : `src/lib/kkiapay/`,
+  `normalizeKkiapayPayload` (+ type `NormalizedKkiapayEvent`) et leurs tests.
+  L'enum ledger `PaymentProvider` conserve `kkiapay`/`fedapay` (valeurs
+  valides de la colonne `payment_transactions.provider` en base — historique).
+
 ## [0.3.5.2] - 2026-07-16
 
 ### Removed

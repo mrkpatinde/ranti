@@ -33,7 +33,8 @@ export default async function NewLeasePage({ searchParams }: NewLeasePageProps) 
           </h1>
           <p className="text-base leading-7 text-foreground/70">
             Lieu, logement, occupant et loyer en un geste. Le bail est activé et les
-            échéances générées immédiatement.
+            échéances générées immédiatement. Plusieurs logements ? Ajoutez-les d&apos;un
+            coup — un logement encore libre s&apos;ajoute sans occupant.
           </p>
         </div>
 

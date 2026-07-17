@@ -1,15 +1,13 @@
+import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
+import { ConfirmArchiveButton } from "@/components/confirm-archive-button"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getProperty } from "@/lib/properties"
-import { archiveUnit, getUnit } from "@/lib/units"
+import { archiveUnit, getUnit, setUnitAvailability } from "@/lib/units"
 import { getLandlordLeases } from "@/lib/leases"
 import { getLandlordTenants } from "@/lib/tenants"
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
-}
 
 type UnitDetailPageProps = {
   params: Promise<{ id: string }>
@@ -70,7 +68,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
 
       <section className="flex flex-1 flex-col gap-8 py-12">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
         <div className="space-y-3">
           <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground sm:text-4xl">{unit.name}</h1>
@@ -85,6 +83,17 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
           <div className="rounded-2xl border border-border bg-card p-6">
             <p className="text-sm font-medium text-muted-foreground">Statut</p>
             <p className="mt-3 text-lg font-medium text-foreground">{availabilityLabels[unit.availability_status] ?? unit.availability_status}</p>
+            <form action={setUnitAvailability} className="mt-4">
+              <input type="hidden" name="id" value={unit.id} />
+              <input
+                type="hidden"
+                name="availability_status"
+                value={unit.availability_status === "occupied" ? "available" : "occupied"}
+              />
+              <SubmitButton className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground/80 transition hover:border-primary disabled:opacity-60">
+                {unit.availability_status === "occupied" ? "Marquer disponible" : "Marquer occupé"}
+              </SubmitButton>
+            </form>
           </div>
         </div>
 
@@ -96,7 +105,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
                 <div>
                   <p className="font-medium text-foreground">{tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {formatAmount(lease.monthly_rent_amount)} / mois · échéance le {lease.due_day}
+                    {formatFcfa(lease.monthly_rent_amount)} / mois · échéance le {lease.due_day}
                   </p>
                 </div>
                 <span className={`shrink-0 rounded-lg border px-2 py-0.5 text-xs font-medium ${lease.status === "active" ? "border-primary/30 text-primary" : "border-border text-muted-foreground"}`}>
@@ -111,7 +120,7 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
           ) : (
             <div className="rounded-2xl border border-border bg-card px-5 py-4">
               <p className="text-sm text-foreground/70">Aucun bail sur ce logement.</p>
-              <Link href={`/leases/new?unit_id=${unit.id}`} className="mt-3 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">
+              <Link href={`/leases/new?unit_id=${unit.id}`} className="mt-3 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95">
                 Créer le bail
               </Link>
             </div>
@@ -124,21 +133,21 @@ export default async function UnitDetailPage({ params, searchParams }: UnitDetai
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link href={`/units/${unit.id}/edit`} className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">Modifier ce logement</Link>
-          <details>
-            <summary className="inline-flex cursor-pointer list-none rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground/70 transition hover:border-red-300 hover:text-red-700">Archiver ce logement…</summary>
-            <div className="mt-3 space-y-3 rounded-2xl border border-border bg-secondary/60 p-4">
-              <p className="text-sm leading-6 text-foreground/80">
-                ⓘ Archiver retire le logement de vos listes, <strong>sans rien effacer</strong> :
-                l&apos;historique des baux, paiements et quittances liés reste conservé dans le registre.
-                Un logement avec un bail actif ne peut pas être archivé : terminez d&apos;abord le bail.
-              </p>
-              <form action={archiveUnit}>
-            <input type="hidden" name="id" value={unit.id} />
-            <SubmitButton className="rounded-full border border-red-300 bg-card px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:border-red-700 disabled:opacity-60">Archiver ce logement</SubmitButton>
-          </form>
-            </div>
-          </details>
+          <Link href={`/units/${unit.id}/edit`} className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95">Modifier ce logement</Link>
+        </div>
+
+        <div className="space-y-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+          <p className="text-sm leading-6 text-foreground/80">
+            ⓘ Archiver retire le logement de vos listes, <strong>sans rien effacer</strong> :
+            l&apos;historique des baux, paiements et quittances liés reste conservé dans le registre.
+            Un logement avec un bail actif ne peut pas être archivé : terminez d&apos;abord le bail.
+          </p>
+          <ConfirmArchiveButton
+            id={unit.id}
+            action={archiveUnit}
+            label="Archiver ce logement"
+            confirmMessage="Archiver ce logement ? Il quitte vos listes ; baux, paiements et quittances liés restent conservés dans le registre."
+          />
         </div>
       </section>
     </main>

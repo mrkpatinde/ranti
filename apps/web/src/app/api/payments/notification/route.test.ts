@@ -27,7 +27,7 @@ const LEASE = "b6666666-6666-6666-6666-666666666666"
 function makeRequest(body: string, signature?: string): Request {
   return new Request("http://localhost/api/payments/notification", {
     method: "POST",
-    headers: signature ? { "x-kkiapay-signature": signature } : {},
+    headers: signature ? { "x-feexpay-signature": signature } : {},
     body,
   })
 }
@@ -37,15 +37,15 @@ function sign(body: string): string {
 }
 
 const VALID_BODY = JSON.stringify({
-  transactionId: "KKP-001",
+  reference: "FXP-001",
   amount: 60000,
-  status: "SUCCESS",
-  stateData: { lease_id: LEASE },
+  status: "SUCCESSFUL",
+  callback_info: { lease_id: LEASE },
 })
 
 describe("POST /api/payments/notification", () => {
   beforeEach(() => {
-    vi.stubEnv("KKIAPAY_WEBHOOK_SECRET", SECRET)
+    vi.stubEnv("FEEXPAY_WEBHOOK_SECRET", SECRET)
   })
 
   afterEach(() => {
@@ -54,7 +54,7 @@ describe("POST /api/payments/notification", () => {
   })
 
   it("500 si le secret n'est pas configuré", async () => {
-    vi.stubEnv("KKIAPAY_WEBHOOK_SECRET", "")
+    vi.stubEnv("FEEXPAY_WEBHOOK_SECRET", "")
     const res = await POST(makeRequest(VALID_BODY, sign(VALID_BODY)))
     expect(res.status).toBe(500)
   })
@@ -85,10 +85,10 @@ describe("POST /api/payments/notification", () => {
   it("échec PSP explicite → 200 ignoré, aucune ingestion (même en minuscules)", async () => {
     for (const status of ["FAILED", "declined"]) {
       const failed = JSON.stringify({
-        transactionId: `KKP-${status}`,
+        reference: `FXP-${status}`,
         amount: 60000,
         status,
-        stateData: { lease_id: LEASE },
+        callback_info: { lease_id: LEASE },
       })
       const res = await POST(makeRequest(failed, sign(failed)))
       expect(res.status).toBe(200)
@@ -99,9 +99,9 @@ describe("POST /api/payments/notification", () => {
 
   it("statut ABSENT → ingéré en pending (politique : le proprio arbitre)", async () => {
     const noStatus = JSON.stringify({
-      transactionId: "KKP-NOSTATUS",
+      reference: "FXP-NOSTATUS",
       amount: 60000,
-      stateData: { lease_id: LEASE },
+      callback_info: { lease_id: LEASE },
     })
     const res = await POST(makeRequest(noStatus, sign(noStatus)))
     expect(res.status).toBe(200)
@@ -111,10 +111,10 @@ describe("POST /api/payments/notification", () => {
 
   it("statut INCONNU (vocabulaire imprévu) → ingéré, jamais perdu derrière un 200", async () => {
     const unknown = JSON.stringify({
-      transactionId: "KKP-COMPLETED",
+      reference: "FXP-COMPLETED",
       amount: 60000,
       status: "COMPLETED",
-      stateData: { lease_id: LEASE },
+      callback_info: { lease_id: LEASE },
     })
     const res = await POST(makeRequest(unknown, sign(unknown)))
     expect(res.status).toBe(200)
@@ -129,8 +129,8 @@ describe("POST /api/payments/notification", () => {
     expect(processPayment).toHaveBeenCalledWith(expect.anything(), {
       leaseId: LEASE,
       amountReceived: 60000,
-      provider: "kkiapay",
-      reference: "KKP-001",
+      provider: "feexpay",
+      reference: "FXP-001",
       payload: expect.any(Object),
     })
   })

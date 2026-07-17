@@ -25,7 +25,7 @@ export function AccountMenu({ initials, ownerName }: { initials: string; ownerNa
         onClick={() => setOpen((o) => !o)}
         aria-label="Profil"
         aria-expanded={open}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-accent transition hover:brightness-95"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-foreground transition hover:brightness-95"
       >
         {initials}
       </button>

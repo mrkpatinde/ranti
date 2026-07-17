@@ -29,9 +29,9 @@ Le propriétaire renseigne les baux. Ranti génère les échéances, prépare le
 - Stockage fichiers : Supabase Storage ou adaptateur équivalent à confirmer.
 - Déploiement : Vercel pour l'app web.
 
-## Monorepo
+## Dépôt
 
-Structure principale :
+Structure principale (une seule app — pas de workspaces ni de `packages/` partagés ; le mot « monorepo » surdéclarait la réalité) :
 
 ```txt
 apps/web
@@ -39,17 +39,28 @@ supabase/migrations
 docs
 ```
 
-Les commandes racine délèguent vers `apps/web`.
+Les commandes racine délèguent vers `apps/web` (`bun --cwd`). La landing vit DANS l'app (`app/(public)`) et partage naturellement les tokens de `globals.css` ; si une landing séparée est un jour extraite, les tokens devront être sortis dans un package dédié — rien n'est prévu pour ça aujourd'hui.
 
 ## Domaine central
 
-Le coeur métier est l'échéance de loyer.
+Cible (ADR-023 « Grand Livre de Confiance ») : le coeur métier est le
+**compte courant locatif** — toute somme due ou reçue sur un bail est une
+ligne de `transactions` (loyer, réparation, frais, règlement,
+contre-passation), avec un statut de reconnaissance
+(`pending`/`validated`/`disputed`/`withdrawn`) et un solde par bail en trois
+nombres jamais fusionnés (vue `lease_balances`).
+
+État de la transition (phase Expand, en cours) : les tables héritées restent
+la source de vérité et l'échéance de loyer reste la mécanique opérante ; le
+grand livre est tenu en miroir (triggers + backfill idempotent) avec une
+garde d'égalité des soldes qui conditionne la bascule des lectures.
 
 ```txt
 landlord -> property -> unit -> lease -> rent_due
 lease -> reminder rules -> reminders
 rent_due -> rent_reception_allocations -> rent_receptions
 rent_receptions -> receipts / payment_proofs
+lease -> transactions -> lease_balances   (grand livre ADR-023, miroir)
 ```
 
 ## Sécurité
@@ -83,13 +94,35 @@ Ces données ne doivent jamais être exposées publiquement sans lien contrôlé
 
 Cible : à partir du bail et des échéances, Ranti prépare ou automatise les rappels et relances.
 
-Statut : cible documentée. La DB live contient déjà une table `reminders`, mais il manque `lease_reminder_rules` et la génération complète depuis le bail.
+Statut : **tranché par ADR-022** (2026-07-16). La cadence de référence (J-5 / J-1 / jour J / J+3 / J+10) vit dans ce dépôt (`lib/reminders/schedule.ts`, affichée au dashboard et sur la fiche bail) ; **l'envoi est opéré par ranti-ops** (WhatsApp), qui trace chaque envoi dans `reminder_events` — lu par les écrans `/reminders` et la fiche bail. L'ancien cron SMS dormant de ce dépôt est supprimé. `lease_reminder_rules` (règles par bail) reste gaté sur signal terrain.
 
 ### Proof Engine
 
 Cible : après validation d'un paiement par le propriétaire, Ranti génère automatiquement le document adapté.
 
 Statut : cible documentée. La DB live contient déjà `receipts.kind` et `snapshot`, mais l'audit code doit confirmer le niveau d'automatisation réel.
+
+### Grand Livre (ADR-023)
+
+Cible : le solde de chaque bail (certain / en attente / en litige) se calcule
+en base à partir des lignes de transactions, et le locataire valide ou
+conteste les dettes affirmées par lien signé.
+
+Statut : **phases Expand, Nouvelle lecture et « différenciant » (produit)
+livrées** — table `transactions`, vue `lease_balances`, machine à états
+(terminalité, indélébilité, contre-passation bornée), miroir des tables
+héritées, garde d'égalité restreinte à la projection héritée ; le dashboard
+lit le grand livre (`lib/ledger`, une ligne par bail, dette consolidée en
+compte courant) ; charges variables (réparations/frais) créées, retirées ou
+corrigées depuis la fiche bail, validées ou contestées par le locataire via
+`/transaction/[token]` (lien signé, sans compte). « Payé / Attendu » et le
+taux de recouvrement restent des lentilles mensuelles sur
+`rent_due_balances`. **Relances et fiche bail sont basculées sur le compte
+courant** : la file `ops_reminder_queue` ne sort une relance de retard que si
+le bail a un impayé au grand livre (garde reprise par la projection UI), et
+la fiche bail affiche le solde du compte en tête. Reste : branchement de
+l'envoi automatisé des notifications de charges côté ranti-ops (vue
+`ops_ledger_notifications`), puis phase Contract.
 
 ## Principes d'implémentation
 
@@ -104,7 +137,7 @@ Statut : cible documentée. La DB live contient déjà `receipts.kind` et `snaps
 - `docs/domain-model.md`
 - `docs/database.md`
 - `docs/api.md`
-- `docs/decisions/`
+- `docs/decisions/` (dont ADR-023 — Grand Livre de Confiance, document de référence du pivot)
 - `docs/gap-analysis-live-db-reminder-proof-engines.md`
 - `docs/implementation-plan-reminder-proof-engines.md`
 - `docs/ops-deployment.md`

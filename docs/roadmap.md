@@ -58,20 +58,18 @@ Mise à jour 2026-07-10 (ADR-011) : l'onboarding profil accepte les numéros mob
 Objectif : permettre au propriétaire de créer son premier lieu à suivre.
 
 - [x] Créer une propriété
-- [ ] Modifier une propriété
-- [ ] Archiver une propriété
-
-Note : le Sprint 3 commence par le parcours créer ma première propriété. La modification et l'archivage restent à faire plus tard.
+- [x] Modifier une propriété (UI /properties/[id]/edit)
+- [x] Archiver une propriété (/properties/[id] : panneau visible + confirmation, bloqué si un logement a un bail actif)
 
 ## Sprint 4 - Units
 
-UI : création livrée (units/new). Le reste existe côté logique métier (actions updateUnit, setUnitAvailability, archiveUnit) mais sans écran dédié.
+UI livrée : création (units/new), édition, changement de statut et archivage.
 
 - [x] Créer un logement
 - [x] Ajouter plusieurs logements d'un coup (onboarding groupé /units/bulk, avec locataire+bail+échéances optionnels, RPC atomique bulk_onboard_portfolio)
-- [ ] Modifier un logement (logique prête, UI à faire)
-- [ ] Changer son statut (logique prête, UI à faire)
-- [ ] Archiver un logement (logique prête, UI à faire)
+- [x] Modifier un logement (UI /units/[id]/edit)
+- [x] Changer son statut (toggle disponible/occupé sur /units/[id], setUnitAvailability)
+- [x] Archiver un logement (/units/[id] : panneau visible + confirmation, bloqué si bail actif)
 
 ## Sprint 5 - Tenants and Leases
 
@@ -94,19 +92,28 @@ Flux boucle de bout en bout (UI + DB). Coeur métier audité (SECURITY INVOKER, 
 - [x] Générer une quittance (generate_receipt depuis encaissement confirmé)
 - [x] Vue quittances (/receipts + /receipts/[id] : détail, périodes réglées, annuler)
 
-Reste : UI modifier/archiver (units, properties, tenants), dashboard mensuel de synthèse (payés / en retard / action), gestion visible des retards/relances.
+Sprint 6 complété. Livré : UI modifier/archiver units/properties/tenants —
+édition + archivage confirmé + statut logement ; dashboard mensuel de synthèse
+— tuiles Payé/Attendu/Retard en FCFA, taux de recouvrement du mois, liste « à
+encaisser » ; gestion visible des retards/relances — retards sur le dashboard
+et la fiche bail (échéances + montant restant), relances visibles globalement
+(/reminders) et par bail (fil des relances envoyées sur /leases/[id]).
 
 ## Sprint 7 - Reminder Engine
 
 Objectif : Ranti prépare ou automatise les rappels et relances à partir du bail et des échéances.
 
-- [ ] Définir les règles de rappel/relance sur un bail
-- [ ] Afficher les règles sur la fiche bail
-- [x] Générer les relances prévues à partir des échéances (cron quotidien /api/cron/reminders, fenêtres J-5/J-1/J-0/J+3/J+10)
-- [ ] Afficher les relances prévues/envoyées sur le dashboard
-- [x] Écran Relances (/reminders) : historique des relances envoyées + accès aux déclarations locataires à valider
-- [ ] Préparer le message WhatsApp/SMS sans envoi automatique complet au MVP prudent
-- [ ] Auditer création, annulation, file d'attente et envoi de relance
+Tranché par ADR-022 (2026-07-16, option A issue #165) : **l'envoi vit dans
+ranti-ops** (WhatsApp, tracé dans `reminder_events`) ; ce dépôt porte la
+cadence de référence, l'affichage et le filet manuel wa.me. Le cron SMS
+dormant (/api/cron/reminders + lib/reminders/sms.ts) est supprimé.
+
+- [x] Cadence de référence sur la fiche bail (section « Rappels & relances » sur /leases/[id] : calendrier J-5/J-1/jour J/J+3/J+10 en lecture seule, ADR-006)
+- [x] Afficher les relances prévues/envoyées sur le dashboard (bloc « Relances à venir » lecture seule — prochaine fenêtre par échéance impayée, projetée depuis la cadence ; envoyées sur /reminders)
+- [x] Écran Relances (/reminders) : historique des relances envoyées (reminders ∪ reminder_events) + accès aux déclarations locataires à valider
+- [x] Envoi automatique : opéré par ranti-ops — contrat d'interface documenté (ADR-022)
+- [x] Préparer le message WhatsApp/SMS sans envoi automatique complet au MVP prudent (bouton « Relancer sur WhatsApp » sur /leases/[id] : lien wa.me pré-rempli vers le locataire pour la plus ancienne échéance non soldée, envoi manuel — ADR-006 nuance MVP, pattern wa.me du journal)
+- [ ] Règles de rappel/relance par bail (`lease_reminder_rules`) — gaté sur signal terrain
 
 ## Sprint 8 - Proof Engine
 
@@ -127,6 +134,96 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Première beta privée
 
 ## Recent (2026-07-16)
+
+- Optimistic UI sur confirmer/annuler un encaissement (v0.3.21.0, #167
+  Phase 4 — dernière phase, débloquée par décision CEO) : la carte
+  encaissement (nouveau composant client `collection-card.tsx`,
+  `useOptimistic`) bascule instantanément au tap — badge « Confirmé »/
+  « Annulé » + « Quittance en préparation… » — sans attendre le serveur ;
+  échec → retour automatique à l'état réel + erreur sur la carte (rollback
+  visible, jamais de fausse confirmation persistante) ; succès → la
+  revalidation apporte badge définitif et lien du document. confirmCollection/
+  cancelCollection renvoient un état au lieu de rediriger (le confirm ne
+  quitte plus la liste — on enchaîne plusieurs brouillons sans navigation).
+  6 tests d'actions (mocks RPC). #167 intégralement livré (P1 idempotence,
+  P2 réseau dit, P3 PWA lecture, P4 optimistic UI).
+
+- PWA lecture hors connexion (v0.3.20.0, #167 Phase 3) : le registre reste
+  CONSULTABLE en avion — les dernières pages vues se rouvrent, datées.
+  Manifest installable SANS prompt in-app (décision CEO : « Ajouter à l'écran
+  d'accueil » via le menu navigateur seulement, sobriété), icônes 192/512 +
+  maskable générées du logo. Service worker maison (`public/sw.js`) : statiques
+  hashés en cache-first ; pages de consultation (navigations + payloads RSC) en
+  network-first avec repli cache — clé = pathname, plafond 50 entrées, caches
+  versionnés purgés à l'activation ; jamais mis en cache : POST, /api, /auth,
+  /login, /signup, non-200 et redirections (une page de login ne se fige
+  jamais sous la clé du dashboard). Le bandeau hors-ligne (Phase 2) date
+  désormais les données servies du cache (« état du 16 juillet à 11:49 »,
+  en-tête sw-cached-at). Enregistrement en prod uniquement (désenregistré en
+  dev). Vérifié en navigateur (Chromium, build de prod) : SW actif, caches
+  peuplés, page revisitée servie EN AVION avec bandeau daté, page jamais vue =
+  échec réseau franc. Zéro écriture hors ligne (Phase 4).
+
+- Reminder Engine tranché : externalisation assumée (v0.3.19.0, ADR-022,
+  issue #165 option A, décision CEO). ranti-ops est le moteur d'envoi officiel
+  (WhatsApp → `reminder_events`, envois live vérifiés) ; ce dépôt porte la
+  cadence de référence (schedule.ts), l'affichage (dashboard, fiche bail,
+  /reminders) et le filet manuel wa.me. Supprimés : le cron SMS dormant
+  (/api/cron/reminders, vercel.json, lib/reminders/sms.ts + test,
+  formatFcfaSms) — code non exécuté qui portait un risque documenté de double
+  relance SMS+WhatsApp. /conditions §6 ne promet plus de réglage non engagé.
+  ADR-006 marquée partiellement supersédée ; architecture.md, database.md et
+  Sprint 7 réalignés. Garde-fou sur /reminders : si une échéance impayée passe
+  une fenêtre de relance sans envoi tracé depuis plus de 2 jours
+  (`detectReminderSilence`, 7 tests), un avertissement sobre le dit — la panne
+  d'envoi est visible, pas seulement détectable.
+
+- État réseau dit calmement (v0.3.18.0, #167 Phase 2) : hook `useOnline`
+  (useSyncExternalStore sur online/offline), bandeau global fixe en bas
+  (tokens warning, « Hors ligne — vos données restent visibles.
+  L'enregistrement attendra le retour du réseau. ») monté au layout racine
+  (app + pages locataire + landing) ; `SubmitButton` se désactive hors ligne
+  avec le libellé « Hors ligne — en attente du réseau » — plus de POST qui
+  échoue en silence, la saisie reste intacte. Vérifié dans Chromium
+  (Playwright : apparition à la coupure, disparition au retour, capture).
+
+- Idempotence des écritures critiques (v0.3.17.0, #167 Phase 1) : un POST
+  rejoué (double-clic, réponse perdue sur réseau instable) ne crée plus JAMAIS
+  un deuxième encaissement ni un deuxième lot de logements. Table
+  `idempotency_keys` (PK landlord+scope+clé, RLS) ; `record_collection` et
+  `bulk_onboard_portfolio` acceptent `p_request_id` (revendication de la clé
+  en tête de transaction → rejeu = même résultat archivé ; échec = clé
+  libérée) ; anciennes signatures supprimées (leçon surcharges). Champ caché
+  `request_id` (UUID par rendu de formulaire) sur /collections/new et l'écran
+  bail. `confirm_collection` et `generate_receipt` étaient déjà idempotentes —
+  la chaîne record → confirm → quittance est rejouable de bout en bout.
+  Migration `20260716130000` **appliquée live** (vérifiée avant en transaction
+  rollbackée : test SQL 5 scénarios + rejeu post-application OK ; advisors
+  sans nouveau signal). Sans clé, comportement historique inchangé
+  (rétrocompatible avec l'app déployée).
+
+- Saisie en lot + logement vacant dans « Créer un bail » (v0.3.16.0, #166,
+  Journeys 4-5) : l'écran unique accepte N lignes logement (« Ajouter un autre
+  logement »), chaque ligne « déjà occupé » (occupant + bail activé + échéances)
+  ou « encore libre » (logement seul → `available`). Envoi unique atomique via
+  `bulk_onboard_portfolio` (déjà multi-lignes, l'UI ne l'exposait pas) ; erreur
+  = ligne fautive surlignée + saisie de TOUTES les lignes préservée
+  (useActionState) ; récap post-création (fiche bail si mono, liste baux si
+  lot, liste logements si tout libre). La 1re ligne = le formulaire historique,
+  zéro friction ajoutée au cas mono. Tests validation multi-lignes (16 cas) ;
+  la RPC était déjà couverte en SQL (lot mixte 2 occupés + 1 vacant).
+
+- Rail FeexPay branché côté serveur (branche `feexpay-integration-remaining`,
+  non encore versionné) : squelette client `src/lib/feexpay/` (config null-safe,
+  signature webhook HMAC, checkout plein montant, payout + polling V2,
+  normalisation) et webhook `POST /api/payments/notification` re-câblé de
+  Kkiapay vers le rail FeexPay (ADR-019, cash-in unique). Le webhook INGÈRE
+  seulement (`pending`) — la validation propriétaire (ADR-017) reste la porte.
+  Code Kkiapay orphelin retiré ; l'enum ledger conserve `kkiapay`/`fedapay`
+  (historique). **Sandbox uniquement** (`FEEXPAY_ENV=sandbox`), activation prod
+  toujours gatée BCEAO. Reste avant go-live : compte sandbox FeexPay + confirmer
+  endpoints/champs/en-tête signature (isolés, « fix une ligne »), puis aligner
+  le wording paiement de l'app et outiller le déclenchement checkout locataire.
 
 - Wording alias aligné sur ADR-019 (v0.3.4.8, CEO) : `/settings/payment` retire
   « Ranti ne touche jamais l'argent » (abandonné comme cible produit), garde

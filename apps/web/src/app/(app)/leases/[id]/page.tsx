@@ -1,10 +1,26 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
+import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
+import { formatFcfa } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { activateLease, endLease, getLease } from "@/lib/leases"
 import { ArchiveLeaseButton } from "./archive-lease-button"
-import { getLeaseRentDues } from "@/lib/rent-dues"
+import { getLeaseDueBalances } from "@/lib/rent-dues"
+import { getLeaseReminders } from "@/lib/reminders/queries"
+import {
+  reminderChannelLabels,
+  reminderStatusLabels,
+  reminderTemplateLabels,
+} from "@/lib/reminders/labels"
+import { buildReminderWaLink } from "@/lib/reminders/whatsapp"
+import {
+  buildChargeWaLink,
+  getLeaseBalance,
+  getLeaseLedgerCharges,
+  withdrawLedgerLine,
+  type LedgerCharge,
+} from "@/lib/ledger"
 import { getTenant } from "@/lib/tenants"
 import { getUnit } from "@/lib/units"
 import type { RentDueStatus } from "@/lib/rent-dues"
@@ -34,28 +50,57 @@ const noticeLabels: Record<string, string> = {
   lease_activated: "Bail activé. Les échéances de loyer ont été générées.",
   lease_ended: "Bail terminé.",
   lease_updated: "Bail mis à jour.",
+  charge_added:
+    "Charge ajoutée — envoyez le lien de validation à votre locataire. Elle n'entre au solde qu'une fois validée.",
+  charge_withdrawn: "Charge retirée. Elle reste lisible dans l'historique.",
+  charge_replaced:
+    "Charge corrigée — la nouvelle version repart pour validation avec un nouveau lien.",
 }
 
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`
+const chargeStatusView: Record<
+  LedgerCharge["status"],
+  { label: string; variant: BadgeVariant }
+> = {
+  pending: { label: "En attente locataire", variant: "accent" },
+  validated: { label: "Validée", variant: "success" },
+  disputed: { label: "Contestée", variant: "warning" },
+  withdrawn: { label: "Retirée", variant: "neutral" },
+}
+
+const contestNatureLabels: Record<string, string> = {
+  amount: "reconnaît un autre montant",
+  not_owed: "ne reconnaît pas cette somme",
+  already_paid: "déclare l'avoir déjà réglée",
+  other: "signale un désaccord",
 }
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
 }
 
-function dueStatusClasses(status: RentDueStatus): string {
+function dueStatusVariant(status: RentDueStatus): BadgeVariant {
   switch (status) {
     case "paid":
-      return "border-primary/20 bg-secondary text-foreground"
+      return "success"
     case "overdue":
-      return "border-red-300 bg-red-50 text-red-900"
+      return "error"
     case "cancelled":
-      return "border-border bg-background text-foreground/70"
+      return "neutral"
     default:
-      return "border-accent/50 bg-accent/10 text-accent"
+      return "accent"
   }
 }
+
+// Cadence appliquée par Ranti à partir de l'échéance (ADR-006 : la fiche bail
+// affiche les règles de rappel/relance). Mêmes fenêtres que schedule.ts —
+// l'envoi est opéré par ranti-ops (ADR-022). Lecture seule au MVP.
+const REMINDER_SCHEDULE: { when: string; what: string; late: boolean }[] = [
+  { when: "5 jours avant l'échéance", what: "Premier rappel — le loyer approche", late: false },
+  { when: "La veille de l'échéance", what: "Rappel — le loyer est dû demain", late: false },
+  { when: "Le jour de l'échéance", what: "Rappel — le loyer est dû aujourd'hui", late: false },
+  { when: "Dès 3 jours de retard", what: "Relance — régulariser le loyer", late: true },
+  { when: "À 10 jours de retard", what: "Relance — contacter le propriétaire", late: true },
+]
 
 export default async function LeaseDetailPage({ params, searchParams }: LeaseDetailPageProps) {
   const landlord = await requireLandlordProfile()
@@ -65,13 +110,67 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const lease = await getLease(landlord.id, id)
   if (!lease) notFound()
 
-  const [unit, tenant, dues] = await Promise.all([
+  const [unit, tenant, dues, charges, balance] = await Promise.all([
     getUnit(landlord.id, lease.unit_id),
     getTenant(landlord.id, lease.tenant_id),
-    getLeaseRentDues(landlord.id, lease.id),
+    getLeaseDueBalances(landlord.id, lease.id),
+    getLeaseLedgerCharges(landlord.id, lease.id),
+    getLeaseBalance(landlord.id, lease.id),
   ])
+  // Fil des relances de CE bail (filtré sur ses échéances) : relie retard et
+  // relances au même endroit. Dépend des échéances → chargé après.
+  const reminders = await getLeaseReminders(landlord.id, dues.map((d) => d.id))
 
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
+
+  // Ferme la boucle dashboard → retard → action : le CTA « Encaisser » mène à
+  // /collections/new avec ce bail présélectionné dès qu'il reste un impayé.
+  const hasUnpaidDues = dues.some(
+    (due) => (due.status === "expected" || due.status === "overdue") && due.amount_due - due.amount_paid > 0,
+  )
+
+  // Solde du compte courant (grand livre, ADR-023) — la même lentille que le
+  // dashboard : plus de fiche bail qui contredit la liste des impayés.
+  const ledgerOverdue = Number(balance?.overdue_amount ?? 0)
+  const outstanding = Math.max(0, -Number(balance?.certain_balance ?? 0))
+  const expectedSoon = Math.max(0, outstanding - ledgerOverdue)
+  const advance = Math.max(0, Number(balance?.certain_balance ?? 0))
+  const pendingCredits = Number(balance?.pending_credits ?? 0)
+  const pendingDebits = Number(balance?.pending_debits ?? 0)
+  const disputed = Number(balance?.disputed_debits ?? 0) + Number(balance?.disputed_credits ?? 0)
+
+  // Relance manuelle « préparée sans envoi auto » (ADR-006 MVP) : lien wa.me
+  // pré-rempli. Garde compte courant (ADR-023) : une relance de RETARD n'a de
+  // sens que si le grand livre porte un impayé — le montant est celui du
+  // compte, pas d'une échéance isolée. Sinon, seul un rappel pré-échéance
+  // reste proposé.
+  const now = new Date()
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+  const firstUnpaid = dues.find(
+    (d) => d.status !== "cancelled" && d.amount_due - d.amount_paid > 0,
+  )
+  const publicUrl = process.env.PUBLIC_URL || "https://www.monranti.com"
+  const relanceLate = ledgerOverdue > 0
+  const relanceDue = relanceLate
+    ? firstUnpaid
+    : firstUnpaid && firstUnpaid.due_date >= todayStr
+      ? firstUnpaid
+      : undefined
+  const relanceWaLink =
+    lease.status === "active" && tenant?.phone && relanceDue
+      ? buildReminderWaLink({
+          phone: tenant.phone,
+          tenantName: `${tenant.first_name} ${tenant.last_name}`,
+          amount: relanceLate
+            ? ledgerOverdue
+            : Math.max(0, relanceDue.amount_due - relanceDue.amount_paid),
+          dueDate: relanceDue.due_date,
+          late: relanceLate,
+          confirmUrl: relanceDue.confirmation_token
+            ? `${publicUrl}/confirmer/${relanceDue.confirmation_token}`
+            : null,
+        })
+      : null
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
@@ -84,30 +183,71 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
 
       <section className="flex flex-1 flex-col gap-8 py-10">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {sp?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{sp.error}</p> : null}
+        {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
         <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="font-display text-2xl font-extrabold tracking-tight lg:text-3xl text-foreground">{formatAmount(lease.monthly_rent_amount)} / mois</h1>
+              <h1 className="font-display text-2xl font-extrabold tracking-tight lg:text-3xl text-foreground">{formatFcfa(lease.monthly_rent_amount)} / mois</h1>
               <p className="mt-1 text-sm text-muted-foreground">{tenant ? `${tenant.first_name} ${tenant.last_name}` : "Locataire"} — {unit?.name ?? "Logement"}</p>
               <p className="mt-1 text-sm text-muted-foreground">Échéance le {lease.due_day} · début {formatDate(lease.start_date)}{lease.end_date ? ` · fin ${formatDate(lease.end_date)}` : ""}</p>
             </div>
-            <span className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80">{leaseStatusLabels[lease.status]}</span>
+            <span className={badgeClasses("neutral")}>{leaseStatusLabels[lease.status]}</span>
           </div>
+
+          {balance ? (
+            <p className="mt-3 text-sm">
+              <span className="text-muted-foreground">Compte du bail : </span>
+              {ledgerOverdue > 0 ? (
+                <span className="font-semibold tabular-nums text-destructive">
+                  {formatFcfa(ledgerOverdue)} en retard
+                </span>
+              ) : outstanding > 0 ? (
+                <span className="font-medium tabular-nums text-foreground">
+                  {formatFcfa(outstanding)} attendus
+                </span>
+              ) : advance > 0 ? (
+                <span className="font-medium tabular-nums text-accent">
+                  avance de {formatFcfa(advance)}
+                </span>
+              ) : (
+                <span className="font-medium text-accent">à jour</span>
+              )}
+              {ledgerOverdue > 0 && expectedSoon > 0 ? (
+                <span className="text-muted-foreground"> · {formatFcfa(expectedSoon)} attendus</span>
+              ) : null}
+              {pendingCredits > 0 ? (
+                <span className="text-muted-foreground"> · {formatFcfa(pendingCredits)} à confirmer</span>
+              ) : null}
+              {pendingDebits > 0 ? (
+                <span className="text-muted-foreground"> · {formatFcfa(pendingDebits)} en attente locataire</span>
+              ) : null}
+              {disputed > 0 ? (
+                <span className="text-warning"> · {formatFcfa(disputed)} en litige</span>
+              ) : null}
+            </p>
+          ) : null}
 
           {lease.notes ? <p className="mt-3 text-sm text-muted-foreground">{lease.notes}</p> : null}
 
           <div className="mt-5 flex flex-wrap gap-3">
             {lease.status === "draft" ? (
               <>
-                <Link href={`/leases/${lease.id}/edit`} className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-primary">Modifier le bail</Link>
+                <Link href={`/leases/${lease.id}/edit`} className="rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">Modifier le bail</Link>
                 <form action={activateLease}>
                   <input type="hidden" name="id" value={lease.id} />
-                  <SubmitButton className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">Activer et générer les loyers</SubmitButton>
+                  <SubmitButton className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60">Activer et générer les loyers</SubmitButton>
                 </form>
                 <p className="w-full text-sm leading-6 text-muted-foreground">ⓘ L&apos;activation crée les échéances mensuelles depuis la date de début et met le suivi en route : rappels avant l&apos;échéance, relances en cas de retard, quittance à chaque paiement confirmé.</p>
               </>
+            ) : null}
+            {lease.status === "active" && hasUnpaidDues ? (
+              <Link
+                href={`/collections/new?lease_id=${lease.id}`}
+                className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
+              >
+                Encaisser un paiement reçu
+              </Link>
             ) : null}
             {lease.status === "active" ? (
               <div className="w-full space-y-3 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
@@ -128,18 +268,211 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             <p className="text-sm text-muted-foreground">{lease.status === "draft" ? "Aucune échéance. Activez le bail pour les générer." : "Aucune échéance pour ce bail."}</p>
           ) : (
             <div className="space-y-3">
-              {dues.map((due) => (
-                <article key={due.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
-                  <div>
-                    <p className="font-medium text-foreground">{formatAmount(due.amount_due)}</p>
-                    <p className="text-sm text-muted-foreground">échéance {formatDate(due.due_date)}</p>
-                  </div>
-                  <span className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium ${dueStatusClasses(due.status)}`}>{dueStatusLabels[due.status]}</span>
-                </article>
-              ))}
+              {dues.map((due) => {
+                const remaining = Math.max(0, due.amount_due - due.amount_paid)
+                return (
+                  <article key={due.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
+                    <div>
+                      <p className="font-medium text-foreground">{formatFcfa(due.amount_due)}</p>
+                      <p className="text-sm text-muted-foreground">échéance {formatDate(due.due_date)}</p>
+                      {due.amount_paid > 0 && remaining > 0 ? (
+                        <p className="text-sm text-muted-foreground">restant {formatFcfa(remaining)}</p>
+                      ) : null}
+                    </div>
+                    <span className={badgeClasses(dueStatusVariant(due.status))}>{dueStatusLabels[due.status]}</span>
+                  </article>
+                )
+              })}
             </div>
           )}
         </div>
+
+        {lease.status === "active" || charges.length > 0 ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">Charges &amp; frais</h2>
+              {lease.status === "active" ? (
+                <Link
+                  href={`/leases/${lease.id}/charges/new`}
+                  className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:border-primary"
+                >
+                  Ajouter une charge
+                </Link>
+              ) : null}
+            </div>
+
+            {charges.length === 0 ? (
+              <p className="text-sm leading-6 text-muted-foreground">
+                Réparations, gardiennage, frais partagés : ajoutez-les ici — votre locataire les
+                valide d&apos;un tap, et le compte du bail reste incontestable.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {charges.map((charge) => {
+                  const view = chargeStatusView[charge.status]
+                  const actionable = charge.status === "pending" || charge.status === "disputed"
+                  const waLink =
+                    actionable && tenant?.phone && charge.tenant_token
+                      ? buildChargeWaLink({
+                          phone: tenant.phone,
+                          tenantName: `${tenant.first_name} ${tenant.last_name}`,
+                          label: charge.label,
+                          amount: charge.amount,
+                          actionUrl: `${publicUrl}/transaction/${charge.tenant_token}`,
+                        })
+                      : null
+                  return (
+                    <article key={charge.id} className="space-y-3 rounded-2xl border border-border px-4 py-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-medium text-foreground">{charge.label}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatFcfa(charge.amount)} · {formatDate(charge.occurred_at)}
+                            {charge.due_date ? ` · à régler avant le ${formatDate(charge.due_date)}` : ""}
+                          </p>
+                        </div>
+                        <span className={badgeClasses(view.variant)}>{view.label}</span>
+                      </div>
+
+                      {charge.status === "disputed" && charge.contest_nature ? (
+                        <p className="rounded-xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-warning">
+                          Votre locataire {contestNatureLabels[charge.contest_nature]}
+                          {charge.contest_nature === "amount" && charge.contested_amount != null
+                            ? ` : ${formatFcfa(charge.contested_amount)}`
+                            : ""}
+                          {charge.tenant_comment ? ` — « ${charge.tenant_comment} »` : ""}. Vous
+                          pouvez la corriger, la retirer, ou en parler avec lui — Ranti documente,
+                          ne tranche pas.
+                        </p>
+                      ) : null}
+
+                      {actionable ? (
+                        <div className="flex flex-wrap items-center gap-3">
+                          {waLink ? (
+                            <a
+                              href={waLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex rounded-full border border-primary/30 bg-card px-4 py-3 text-sm font-semibold text-primary transition hover:border-primary"
+                            >
+                              Envoyer sur WhatsApp
+                            </a>
+                          ) : null}
+                          <Link
+                            href={`/leases/${lease.id}/charges/${charge.id}/corriger`}
+                            className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:border-primary"
+                          >
+                            Corriger
+                          </Link>
+                          <details className="group">
+                            <summary className="cursor-pointer list-none rounded-full border border-border px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted">
+                              Retirer
+                            </summary>
+                            <form action={withdrawLedgerLine} className="mt-3 flex flex-wrap items-center gap-3">
+                              <input type="hidden" name="lease_id" value={lease.id} />
+                              <input type="hidden" name="id" value={charge.id} />
+                              <input
+                                name="reason"
+                                type="text"
+                                required
+                                maxLength={200}
+                                placeholder="Motif du retrait (reste dans l'historique)"
+                                className="min-w-0 flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                              />
+                              <SubmitButton
+                                className="rounded-full border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-60"
+                                pendingLabel="Retrait…"
+                              >
+                                Confirmer le retrait
+                              </SubmitButton>
+                            </form>
+                          </details>
+                        </div>
+                      ) : null}
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {lease.status === "draft" || lease.status === "active" || reminders.length > 0 ? (
+          <div className="space-y-4">
+            <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">Rappels &amp; relances</h2>
+
+            {lease.status === "draft" || lease.status === "active" ? (
+              <>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {lease.status === "draft"
+                    ? "À l'activation du bail, Ranti préviendra automatiquement votre locataire — vous n'avez rien à envoyer. Le calendrier :"
+                    : "Ranti prévient automatiquement votre locataire à partir du bail — vous n'avez rien à envoyer. Le calendrier :"}
+                </p>
+                <div className="overflow-hidden rounded-2xl border border-border bg-card">
+                  {REMINDER_SCHEDULE.map((step) => (
+                    <div key={step.when} className="flex items-start gap-3 border-t border-border px-4 py-3 first:border-t-0">
+                      <span
+                        aria-hidden
+                        className={`mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full ${step.late ? "bg-destructive" : "bg-accent"}`}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{step.when}</p>
+                        <p className="text-sm text-muted-foreground">{step.what}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {relanceWaLink ? (
+                  <div className="space-y-2 rounded-2xl border border-border bg-secondary/40 p-4">
+                    <p className="text-sm leading-6 text-foreground/80">
+                      Besoin de relancer vous-même maintenant ? Le message est prêt — vous le
+                      relisez et l&apos;envoyez d&apos;un tap.
+                    </p>
+                    <a
+                      href={relanceWaLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex rounded-full border border-primary/30 bg-card px-5 py-3 text-sm font-semibold text-primary transition hover:border-primary"
+                    >
+                      Relancer sur WhatsApp
+                    </a>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+
+            {lease.status !== "draft" ? (
+              <>
+                <h3 className="pt-1 text-sm font-semibold text-muted-foreground">Envoyées</h3>
+                {reminders.length === 0 ? (
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Aucune relance envoyée pour ce bail pour l&apos;instant.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {reminders.map((reminder) => (
+                  <article key={reminder.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {reminderTemplateLabels[reminder.template] ?? reminder.template}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {reminderChannelLabels[reminder.channel] ?? reminder.channel} · {formatDate(reminder.sent_at)}
+                        {reminder.rent_due ? ` · échéance du ${formatDate(reminder.rent_due.due_date)}` : ""}
+                      </p>
+                    </div>
+                    <span className={badgeClasses(reminder.status === "failed" ? "error" : "success")}>
+                      {reminderStatusLabels[reminder.status]}
+                    </span>
+                  </article>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
+        ) : null}
       </section>
     </main>
   )

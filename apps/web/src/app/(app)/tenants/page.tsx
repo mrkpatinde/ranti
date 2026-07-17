@@ -25,7 +25,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
           <p className="mt-2 text-sm text-muted-foreground">Vos locataires</p>
         </div>
         <Link href="/dashboard" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">
-          Tableau de bord
+          Accueil
         </Link>
       </header>
 
@@ -36,7 +36,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
         </div>
 
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
-        {params?.error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{params.error}</p> : null}
+        {params?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{params.error}</p> : null}
 
         {tenants.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-6">

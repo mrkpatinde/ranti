@@ -2,9 +2,9 @@
 
 ## Statut
 
-Version 1.4 — modèle relationnel candidat aligné avec l'architecture, les ADR-001, ADR-006, ADR-007 et l'API.
+Version 1.5 — réaligné sur le schéma live (audit 2026-07-16) : `app_users` supprimée du modèle (ADR-010, lien direct `landlords.auth_user_id`), `lease_reminder_rules` et `receipt_items` déclassées en cible non implémentée, schéma `reminders` corrigé sur la table réelle.
 
-Ce document définit le modèle de référence de la base de données de Ranti avant migrations SQL définitives.
+Ce document décrit le modèle de référence de la base de données de Ranti. La source de vérité exécutable reste `supabase/migrations/`.
 
 ## Objectif
 
@@ -30,21 +30,13 @@ La base doit protéger la mémoire fiable des loyers et répondre clairement à 
 
 ## Tables MVP immédiat
 
-### `app_users`
-
-Utilisateur applicatif connecté.
-
-Champs : `id`, `auth_user_id`, `full_name`, `phone`, `email`, `status`, `created_at`, `updated_at`.
-
-Contraintes : `auth_user_id` unique si possible ; `phone` peut devenir unique si le téléphone devient l'identifiant principal.
-
 ### `landlords`
 
-Propriétaire ou espace propriétaire.
+Propriétaire ou espace propriétaire. Il n'existe PAS de table `app_users` : le profil métier est lié directement à Supabase Auth par `landlords.auth_user_id = auth.users.id` (ADR-010), et `current_landlord_id()` résout l'appartenance depuis `auth.uid()`.
 
-Champs : `id`, `owner_user_id`, `display_name`, `phone`, `country`, `city`, `default_currency`, `status`, `created_at`, `updated_at`, `deleted_at`.
+Champs réels : `id`, `auth_user_id`, `phone`, `first_name`, `last_name`, `civility` (colonne conservée, retirée de l'UI depuis PR #122), `payment_alias`, `payment_alias_type`, `created_at`, `updated_at`, `deleted_at`.
 
-Contraintes : `owner_user_id` référence `app_users.id` ; un utilisateur principal peut être limité à un seul propriétaire au MVP.
+Contraintes : `auth_user_id` unique ; `phone` unique ; un utilisateur auth = un propriétaire au MVP.
 
 ### `properties`
 
@@ -95,28 +87,11 @@ unique active lease per unit over overlapping period
 
 Le SQL exact sera défini dans la migration finale.
 
-### `lease_reminder_rules`
+### `lease_reminder_rules` — NON IMPLÉMENTÉE (cible)
 
-Règles de rappel et relance liées à un bail.
+Cette table n'existe pas dans le schéma live. La cadence de rappel/relance n'est PAS configurable par bail : elle est fixe et codée dans l'application (`apps/web/src/lib/reminders/schedule.ts`, fenêtres J-5 / J-1 / jour J / J+3 / J+10, miroir des templates SMS).
 
-Cette table permet à Ranti de préparer ou automatiser les rappels/relances à partir du bail, sans demander au propriétaire de relancer manuellement chaque mois.
-
-Champs : `id`, `landlord_id`, `lease_id`, `rule_type`, `offset_days`, `channel`, `message_template`, `is_active`, `created_at`, `updated_at`, `deleted_at`.
-
-Types candidats :
-
-- `before_due_reminder` : rappel avant échéance ;
-- `due_day_reminder` : rappel le jour de l'échéance ;
-- `after_due_reminder` : relance après retard.
-
-Canaux : `whatsapp`, `sms`, `email`, `manual`.
-
-Contraintes :
-
-- Une règle appartient toujours à un bail du même propriétaire.
-- Une règle inactive ne génère plus de nouvelles relances.
-- Le message doit rester simple, clair et respectueux.
-- Le canal externe est un adaptateur, jamais la source de vérité métier.
+Si des règles par bail deviennent nécessaires (signal terrain), le modèle candidat historique reste : `id`, `landlord_id`, `lease_id`, `rule_type`, `offset_days`, `channel`, `message_template`, `is_active` — mais aucune décision d'implémentation n'est prise.
 
 ### `rent_dues`
 
@@ -200,32 +175,26 @@ Contraintes :
 - Un reçu généré ne se modifie pas silencieusement.
 - `snapshot` conserve les informations importantes au moment de génération.
 
-### `receipt_items`
+### `receipt_items` — NON IMPLÉMENTÉE (remplacée par `receipts.snapshot`)
 
-Relie un reçu aux échéances et réceptions de loyer couvertes.
-
-Champs : `id`, `landlord_id`, `receipt_id`, `rent_due_id`, `rent_reception_id`, `amount`, `period_start`, `period_end`, `created_at`.
-
-Contraintes : `amount` > 0.
+Cette table n'existe pas dans le schéma live. Le détail des périodes et allocations couvertes par un document est archivé dans `receipts.snapshot` (jsonb) au moment de la génération — c'est ce snapshot que lisent la page `/verifier/[id]` et le PDF. Avantage : le document reste immuable même si les données vivantes évoluent.
 
 ### `reminders`
 
-Rappel ou relance liée à une échéance.
+Trace de chaque relance envoyée (schéma live, migration `018_reminders.sql`). Depuis ADR-022, l'envoi est opéré par **ranti-ops** qui écrit dans `reminder_events` — cette table `reminders` (canal SMS de l'ancien cron, supprimé) reste pour l'historique et l'union de lecture des écrans. Les colonnes de planification sur `rent_dues` (`last_reminder_at`, `next_reminder_at`, `reminder_count`) sont dormantes ; la cadence de référence est codée dans l'app (voir `lease_reminder_rules` ci-dessus).
 
-MVP prudent : Ranti prépare automatiquement les rappels/relances à partir des règles du bail ; l'envoi externe complet peut rester validé ou déclenché par le propriétaire selon les contraintes WhatsApp/SMS.
+Champs réels : `id`, `rent_due_id`, `landlord_id`, `channel`, `template`, `sent_at`, `recipient`, `status`, `message_id`, `created_at`.
 
-Champs : `id`, `landlord_id`, `lease_id`, `rent_due_id`, `tenant_id`, `lease_reminder_rule_id`, `channel`, `message`, `status`, `scheduled_for`, `queued_at`, `sent_at`, `failed_at`, `created_by`, `created_at`, `updated_at`.
+Canaux : `sms`, `whatsapp`.
 
-Canaux : `manual`, `whatsapp`, `sms`, `email`.
-
-Statuts : `draft`, `scheduled`, `queued`, `sent`, `failed`, `cancelled`.
+Statuts : `sent`, `delivered`, `failed`.
 
 Contraintes :
 
-- Une relance doit toujours viser une échéance.
-- Une relance peut être générée depuis une règle de bail.
+- Une relance vise toujours une échéance (`rent_due_id` NOT NULL).
 - Le canal ne devient jamais source de vérité.
 - Une relance ne modifie jamais le statut de paiement.
+- Les envois WhatsApp opérés par `ranti-ops` alimentent `reminder_events` (table sœur, hors de ce modèle initial).
 
 ### `audit_logs`
 
@@ -289,6 +258,107 @@ Note de dérive : en live, `rent_receptions.recorded_by` accepte
 `('landlord', 'operator', 'tenant', 'psp')` — ce document décrivait
 initialement un modèle antérieur.
 
+### `transactions` (ADR-023 « Grand Livre de Confiance », phase Expand, live)
+
+Le grand livre locatif : toute somme due ou reçue sur un bail est une ligne
+d'un même compte courant. **Pendant la phase Expand, les tables héritées
+(`rent_dues`, `rent_receptions`, `rent_reception_allocations`) restent la
+source de vérité** ; le grand livre est tenu à l'identique par des triggers
+miroir (`private.mirror_rent_due` / `mirror_allocation` / `mirror_reception`,
+SECURITY DEFINER, même transaction Postgres que l'écriture héritée) et un
+backfill idempotent (clé `legacy_ref`, `on conflict do nothing`). Ne pas
+confondre avec `payment_transactions` (ledger du rail PSP, ADR-018) : le rail
+trace l'argent chez le PSP, le grand livre trace la relation bailleur/locataire.
+
+Champs : `id`, `landlord_id`, `lease_id`, `type`
+(`loyer`/`reparation`/`frais`/`reglement`/`contre_passation`), `direction`
+(`debit`/`credit`), `amount` (FCFA entier > 0), `currency` (`XOF`),
+`occurred_at` (date de l'événement économique — l'ordre du relevé),
+`due_date` (exigibilité, débits seulement), `period_start`/`period_end`
+(mois couvert, loyers seulement — règles ADR-004), `status`
+(`pending`/`validated`/`disputed`/`withdrawn`), `validated_by`
+(`landlord`/`tenant`/`system`) + `validated_at`, `disputed_at` +
+`contest_nature` (`amount`/`not_owed`/`already_paid`/`other`) +
+`contested_amount` + `tenant_comment` (deux voix, modèle ADR-013),
+`resolution` (`retrait_contestation`/`retrait_auteur`/`remplacement`) +
+`resolved_at`, `reversal_of` (contre-passation → ligne d'origine),
+`replaced_by`, `tenant_token` (accès public locataire, posé en phase
+« différenciant »), `source`
+(`genere_par_bail`/`manuel`/`feexpay`/`declaration_locataire`), `label`,
+`legacy_ref` (correspondance héritée, transitoire — tombe à la phase
+Contract).
+
+Machine à états (triggers durs, ADR-023 §4) : une ligne naît `pending` ou
+`validated` ; `pending → validated | disputed | withdrawn` ;
+`disputed → validated` (uniquement `resolution = 'retrait_contestation'`)
+`| withdrawn` ; **`validated` et `withdrawn` sont terminaux** ; `DELETE`
+refusé quel que soit le statut ; identité financière gelée dès l'insertion
+(corriger = retirer et réémettre, jamais éditer). Une contre-passation ne
+vise qu'une ligne `validated` du même bail, de sens opposé, dans la limite
+du montant non déjà contre-passé — jamais une autre contre-passation.
+
+Correspondance miroir/backfill (statuts dérivés de la matrice ADR-023 §3) :
+
+| Héritée | Ligne du grand livre |
+| :-- | :-- |
+| `rent_due` (toutes) | débit `loyer` `validated(system)`, `legacy_ref = due:<id>` |
+| `rent_due` annulée/archivée | paire débit + contre-passation `validated` (motif repris) |
+| allocation d'une réception confirmée | crédit `reglement` `validated(landlord)` — ou `validated(system)` + `source feexpay` si `recorded_by = 'psp'` ; `legacy_ref = alloc:<id>` |
+| allocation d'une réception `draft` | crédit `pending` (`declaration_locataire` si `recorded_by = 'tenant'`) |
+| réception confirmée puis annulée (ADR-005) | paire crédit `validated` + contre-passation `validated` (motif repris) |
+| réception `draft` annulée | crédit `withdrawn` (`retrait_auteur`) — jamais devenu certain |
+
+Granularité transitoire : une ligne de crédit **par allocation** (projection
+fidèle du modèle hérité). L'argent confirmé non affecté (fast-log ADR-014)
+n'entre pas encore au grand livre par bail — il reste visible au journal.
+
+Garde d'égalité : `private.verify_ledger_equality()` (service_role) compare,
+par bail, le solde certain du grand livre à l'opposé du restant dû hérité —
+restreinte à la **projection héritée** (loyers, règlements et leurs
+contre-passations) : une charge validée est une vérité que le modèle hérité
+ignore par construction. Exécutée en fin de migration Expand (tout écart la
+fait échouer), elle reste le détecteur de dérive du miroir.
+
+Écritures : aucun grant client (`authenticated` = SELECT sous RLS
+`landlord_id = private.current_landlord_id()`). Voies d'écriture : le
+backfill, les triggers miroir, et les RPC de la phase « différenciant » —
+côté bailleur (`SECURITY DEFINER` + garde `private.current_landlord_id()`,
+`authenticated`) : `add_lease_charge` (charge `reparation`/`frais` née
+`pending` + `tenant_token`, idempotente par `p_request_id`, scope
+`add_lease_charge` d'`idempotency_keys`, bail actif uniquement),
+`withdraw_ledger_line` (pending/disputed → `withdrawn`, motif obligatoire
+tracé en `audit_logs`), `replace_ledger_charge` (retrait + réémission liée
+`replaced_by`, nouveau token) ; côté locataire (clés sur `tenant_token`,
+`anon` + `authenticated`, retours en chaînes de statut — modèle ADR-013) :
+`get_ledger_line_by_token`, `validate_ledger_line_by_token`,
+`contest_ledger_line_by_token` (natures `amount`/`not_owed`/`already_paid`/
+`other`, première version jamais écrasée), `retract_contest_by_token`
+(seule sortie disputed → validated). Audit `private.log_audit()` sur
+insert/update (ADR-006).
+
+Vue `ops_ledger_notifications` (service_role uniquement) : contrat de
+notification ranti-ops (ADR-022 reconduit) — lignes `reparation`/`frais` en
+`pending` (`validation_requested`) ou `disputed`, avec token, téléphones et
+noms. Le filet manuel wa.me vit dans la fiche bail.
+
+### `lease_balances` (vue, ADR-023 §6)
+
+La file opérateur `ops_reminder_queue` joint cette vue : les relances de
+**retard** sont gatées sur `overdue_amount > 0` (garde compte courant — une
+avance nette la dette quel que soit le mois affecté), et l'impayé du bail est
+exposé à ranti-ops en colonne `ledger_overdue_amount`. Les rappels
+pré-échéance ne sont pas gatés.
+
+Trois nombres par bail, jamais fusionnés, calculés en base
+(`security_invoker`, la RLS de `transactions` s'applique) :
+`certain_balance` (Σ crédits validés − Σ débits validés), `pending_debits` /
+`pending_credits` (affirmé, pas reconnu), `disputed_debits` /
+`disputed_credits` (désaccord documenté), `overdue_amount` (impayé : lignes
+certaines exigibles aujourd'hui, débits moins crédits, plancher zéro — une
+contre-passation hérite de l'exigibilité de sa cible : annuler une échéance
+future ne réduit pas l'impayé du jour ; un débit sans date est dû tout de
+suite).
+
 ## Tables Post-MVP
 
 ### `notification_deliveries`
@@ -306,16 +376,19 @@ Contraintes futures : token brut jamais stocké ; expiration/révocation ; accè
 ## Relations principales
 
 ```txt
-app_users -> landlords
+auth.users -> landlords (auth_user_id)
 landlords -> properties -> units -> leases -> rent_dues
-leases -> lease_reminder_rules -> reminders
 landlords -> tenants -> leases
 rent_dues -> rent_reception_allocations -> rent_receptions
 rent_receptions -> payment_proofs
 rent_dues -> reminders
-receipts -> receipt_items -> rent_dues / rent_receptions
+rent_receptions -> receipts (snapshot jsonb archive périodes + allocations)
+leases -> payment_transactions (ledger rail PSP, ADR-018)
+leases -> transactions (grand livre locatif, ADR-023 — miroir des trois lignes ci-dessus pendant l'Expand)
 landlords -> audit_logs
 ```
+
+Tables live hors modèle initial : `payment_transactions` (ledger PSP), `transactions` + vue `lease_balances` (grand livre ADR-023), `product_events` (instrumentation), `reminder_events` (envois WhatsApp ranti-ops), vue `journal_feed`.
 
 ## Règles d'intégrité métier
 
@@ -323,7 +396,7 @@ landlords -> audit_logs
 2. Un bail relie un logement et un locataire.
 3. Un logement ne peut pas avoir deux baux actifs sur une période qui se chevauche.
 4. Une échéance vient d'un bail.
-5. Une règle de rappel/relance vient d'un bail.
+5. La cadence de rappel/relance dérive du bail et de ses échéances (fixe au MVP, non configurable par bail).
 6. Une relance vise toujours une échéance.
 7. Une réception de loyer confirmée doit être allouée à une ou plusieurs échéances.
 8. Un reçu ou une quittance vient après confirmation d'une réception de loyer.
@@ -334,17 +407,16 @@ landlords -> audit_logs
 ## Index recommandés
 
 ```txt
-app_users(auth_user_id)
-landlords(owner_user_id)
+landlords(auth_user_id)
 properties(landlord_id)
 units(landlord_id, property_id)
 tenants(landlord_id)
 leases(landlord_id, unit_id, status)
 leases(landlord_id, tenant_id, status)
-lease_reminder_rules(landlord_id, lease_id, is_active)
 rent_dues(landlord_id, status, due_date)
 rent_dues(landlord_id, tenant_id, due_date)
 rent_dues(lease_id, period_start, period_end)
+rent_dues(status, next_reminder_at) partiel — cron de relance
 rent_receptions(landlord_id, tenant_id, received_at)
 rent_reception_allocations(rent_reception_id)
 rent_reception_allocations(rent_due_id)
@@ -352,9 +424,8 @@ payment_proofs(landlord_id, rent_due_id)
 payment_proofs(landlord_id, rent_reception_id)
 receipts(landlord_id, receipt_number)
 receipts(landlord_id, tenant_id, issued_at)
-receipt_items(receipt_id)
-reminders(landlord_id, rent_due_id, scheduled_for)
-reminders(landlord_id, lease_reminder_rule_id, status)
+reminders(rent_due_id, sent_at desc)
+reminders(landlord_id, created_at desc)
 audit_logs(landlord_id, entity_type, entity_id)
 audit_logs(actor_user_id, created_at)
 ```
@@ -399,25 +470,24 @@ Préférer `archived`, `cancelled`, `reversed`, `deleted_at` avec audit, ou une 
 8. Stratégie exacte de génération des règles et relances.
 9. Statut exact à utiliser pour reçu partiel, reçu complet et quittance.
 
-## Ordre recommandé des migrations
+## Ordre des migrations (réalisé)
 
-1. `app_users`
-2. `landlords`
-3. `properties`
-4. `units`
-5. `tenants`
-6. `leases`
-7. `lease_reminder_rules`
-8. `rent_dues`
-9. `rent_receptions`
-10. `rent_reception_allocations`
-11. `payment_proofs`
-12. `receipts`
-13. `receipt_items`
-14. `reminders`
-15. `audit_logs`
+1. `landlords`
+2. `properties`
+3. `units`
+4. `tenants`
+5. `leases`
+6. `rent_dues`
+7. `rent_receptions`
+8. `rent_reception_allocations`
+9. `payment_proofs`
+10. `receipts`
+11. `audit_logs`
+12. `reminders` (018)
+13. `payment_transactions` (ADR-018)
+14. `transactions` + vue `lease_balances` (ADR-023, phase Expand)
 
-Post-MVP : `notification_deliveries`, `public_links`.
+Post-MVP : `notification_deliveries`, `public_links`, `lease_reminder_rules`, `receipt_items` (si le snapshot jsonb ne suffit plus).
 
 ## Phrase de contrôle
 

@@ -21,7 +21,7 @@ export default function TermsPage() {
         Conditions d&rsquo;utilisation
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Dernière mise à jour : 3 juillet 2026
+        Dernière mise à jour : 16 juillet 2026
       </p>
 
       <div className="mt-10 space-y-8 text-foreground/80 leading-relaxed">
@@ -45,7 +45,8 @@ export default function TermsPage() {
           </h2>
           <ul className="mt-2 list-disc pl-5 space-y-1">
             <li>
-              L&rsquo;inscription nécessite un numéro de téléphone valide (vérifié par OTP) ou un compte Google.
+              L&rsquo;inscription se fait avec un compte Google. Un numéro de téléphone mobile valide est demandé à la
+              création du profil.
             </li>
             <li>
               Le propriétaire est responsable de l&rsquo;exactitude des informations fournies (nom, téléphone,
@@ -87,14 +88,13 @@ export default function TermsPage() {
             4. Tarification
           </h2>
           <p className="mt-2">
-            Durant la phase pilote, Ranti est gratuit pour les propriétaires participants. Une tarification sera
-            communiquée avant toute mise en place de paiement. Le tarif prévisionnel est de{" "}
-            <strong>500 F CFA par loyer suivi et par mois</strong>, SMS de relance inclus.
+            Ranti applique un tarif unique :{" "}
+            <strong>3 mois gratuits à l&rsquo;ouverture de votre registre, puis 5 % sur chaque paiement de loyer
+            réussi</strong>. Il n&rsquo;y a rien d&rsquo;autre à payer.
           </p>
           <p className="mt-2">
-            Une formule annuelle <strong>&laquo; offre découverte &raquo; à 5&nbsp;000 F CFA par loyer et par an</strong>{" "}
-            (soit deux mois offerts par rapport au tarif mensuel) sera proposée. Toute modification tarifaire sera
-            annoncée au moins 30 jours à l&rsquo;avance.
+            Vous pouvez arrêter d&rsquo;utiliser Ranti quand vous voulez. Toute évolution de ce tarif sera annoncée au
+            moins 30 jours à l&rsquo;avance.
           </p>
         </section>
 
@@ -127,15 +127,14 @@ export default function TermsPage() {
             6. Relances et messages
           </h2>
           <p className="mt-2">
-            En utilisant Ranti, le propriétaire autorise le service à envoyer des SMS ou messages de relance aux
-            numéros de téléphone des locataires qu&rsquo;il a renseignés. Le propriétaire est seul responsable
+            En utilisant Ranti, le propriétaire autorise le service à envoyer des messages de relance (WhatsApp ou
+            SMS) aux numéros de téléphone des locataires qu&rsquo;il a renseignés. Le propriétaire est seul responsable
             d&rsquo;avoir obtenu l&rsquo;accord préalable du locataire pour recevoir ces messages.
           </p>
           <p className="mt-2">
-            Les messages de relance sont envoyés automatiquement selon des fenêtres prédéfinies (J-5, J-1, J+3, J+10
-            par rapport à la date d&rsquo;échéance). Le propriétaire peut faire cesser les relances d&rsquo;un bail en le
-            terminant, ou en demander la suspension à tout moment via le contact indiqué ci-dessous. Un réglage de
-            désactivation par bail sera ajouté dans l&rsquo;application.
+            Les messages de relance suivent des fenêtres prédéfinies (J-5, J-1, jour J, J+3, J+10 par rapport à la
+            date d&rsquo;échéance). Le propriétaire peut faire cesser les relances d&rsquo;un bail en le terminant, ou en
+            demander la suspension à tout moment via le contact indiqué ci-dessous.
           </p>
         </section>
 
@@ -151,7 +150,7 @@ export default function TermsPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-foreground">
-            8. Résiliation
+            8. Fermeture du compte
           </h2>
           <p className="mt-2">
             Le propriétaire peut demander la suppression de son compte à tout moment via le contact indiqué
@@ -160,7 +159,7 @@ export default function TermsPage() {
             ajoutée dans l&rsquo;application.
           </p>
           <p className="mt-2">
-            Ranti se réserve le droit de résilier un compte en cas de violation des présentes conditions, après une
+            Ranti se réserve le droit de fermer un compte en cas de violation des présentes conditions, après une
             notification préalable de 7 jours restée sans effet.
           </p>
         </section>

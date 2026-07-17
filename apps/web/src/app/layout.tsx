@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { OfflineBanner } from "@/components/offline-banner";
+import { SwRegister } from "@/components/sw-register";
 import "./globals.css";
 
 // Ranti brand type: Fraunces (display serif, headings/prices/wordmark) +
@@ -33,7 +35,11 @@ export default function RootLayout({
       lang="fr"
       className={`${fraunces.variable} ${hankenGrotesk.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SwRegister />
+        <OfflineBanner />
+        {children}
+      </body>
     </html>
   );
 }

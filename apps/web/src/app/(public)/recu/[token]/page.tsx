@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { formatFcfa } from "@/lib/format";
 import { SubmitButton } from "@/components/submit-button";
 import { RantiLogo } from "@/components/ranti-logo";
 import { createClient } from "@/lib/supabase/server";
@@ -15,10 +16,6 @@ import { ContestForm } from "./contest-form";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function formatAmount(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`;
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -256,7 +253,7 @@ export default async function RecuPage({
                     {formatDate(a.period_start)} – {formatDate(a.period_end)}
                   </span>
                   <span className="font-medium text-foreground">
-                    {formatAmount(a.amount_allocated)}
+                    {formatFcfa(a.amount_allocated)}
                   </span>
                 </div>
               ))}
@@ -269,7 +266,7 @@ export default async function RecuPage({
               Montant réglé
             </span>
             <span className="font-display text-[1.6rem] font-extrabold tracking-tight text-foreground">
-              {formatAmount(receipt.total_amount)}
+              {formatFcfa(receipt.total_amount)}
             </span>
           </div>
 
@@ -285,7 +282,7 @@ export default async function RecuPage({
                 {receipt.contest_nature === "amount" &&
                   `Le locataire déclare avoir payé ${
                     receipt.contested_amount != null
-                      ? formatAmount(receipt.contested_amount)
+                      ? formatFcfa(receipt.contested_amount)
                       : "un autre montant"
                   }.`}
                 {receipt.contest_nature === "date" &&

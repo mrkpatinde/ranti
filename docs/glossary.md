@@ -107,3 +107,37 @@ La quittance confirme qu'une ou plusieurs échéances sont réglées.
 ## Relance
 
 Action visant à rappeler au locataire qu'une échéance reste impayée ou en retard.
+
+## Grand livre (compte courant locatif)
+
+Registre unique des sommes dues et reçues sur un bail (ADR-023). Chaque
+mouvement est une **transaction** : loyer, réparation, frais (débits),
+règlement (crédit), contre-passation (correction). Le grand livre est
+append-only : rien ne s'y efface, tout s'y corrige par une nouvelle ligne.
+
+## Transaction (ligne du grand livre)
+
+Somme due ou reçue sur un bail, avec un statut de reconnaissance : `pending`
+(affirmée par une partie), `validated` (certaine — indélébile), `disputed`
+(contestée, désaccord documenté), `withdrawn` (retirée par son auteur avant
+validation). Ne pas confondre avec `payment_transactions`, le ledger du rail
+PSP (ADR-018).
+
+## Contre-passation
+
+Ligne inverse qui corrige une transaction validée (montant identique ou
+partiel, sens opposé, lien `reversal_of`). L'erreur et sa correction restent
+toutes deux lisibles — on ne supprime pas l'histoire (ADR-005, ADR-023).
+
+## Solde certain
+
+Somme des crédits validés moins les débits validés d'un bail : ce que les
+deux parties (ou le rail de paiement) reconnaissent. Les montants « en
+attente » (pending) et « en litige » (disputed) sont affichés à part, jamais
+fusionnés dans le solde certain.
+
+## Retrait
+
+Sortie d'une ligne jamais validée : son auteur la retire (`withdrawn`), avec
+motif, sans contre-passation — une affirmation jamais reconnue n'a pas besoin
+d'être annulée comptablement. La ligne reste lisible dans l'historique.
