@@ -3,6 +3,44 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.26.0] - 2026-07-17
+
+### Added
+
+- **Prise en main guidée (prototype FirstRun, de bout en bout)** : à la
+  première connexion, un accueil non bloquant propose de commencer la
+  configuration ou de « Passer pour l'instant ». Le guidage affiche une
+  checklist « Premiers pas » (bail → paiement → quittance → relance) dont la
+  progression est **dérivée des données réelles** — jamais stockée ; chaque
+  étape mène au vrai écran. Passer ouvre un tableau de bord vide honnête, et
+  « Reprendre la prise en main » (barre latérale, menu mobile) relance le
+  guidage à tout moment. Persistance via `landlords.onboarding_status`
+  (colonne non-identité, update direct sous RLS — verrou ADR-002 intact).
+- **Direction artistique** : `direction-artistique.html`, style-guide généré
+  depuis `DESIGN.md` et les tokens prod — cachet certifié, typographie
+  Fraunces/Hanken, palette clair/sombre, composants, interdits anti-slop.
+- Docs : positioning, guide d'entretien diaspora, ADR-024 retour
+  non-custodial/abonnement.
+
+### Changed
+
+- **Quittance côté locataire alignée sur le prototype** : en-tête marque +
+  « Lien vérifié », accueil personnalisé tant que la confirmation est
+  possible, bandeau confirmé olive avec coche, montant en Fraunces sur filet
+  pointillé, CTA olive, états erreur/contestation sur tokens (plus de rouges
+  en dur). Tous les états ADR-013 (lu / certifié / contesté / annulé)
+  préservés ; montants via `formatFcfa` (source unique).
+
+### Security
+
+- **Moindre privilège `anon`** : retrait de tous les droits d'écriture
+  directe (INSERT/UPDATE/DELETE/TRUNCATE…) du rôle `anon` sur les tables
+  métier + default privileges verrouillés pour les futures tables. Les flux
+  publics locataire (RPC `*_by_token` SECURITY DEFINER) sont inchangés.
+  Appliqué en prod le 2026-07-17, test SQL rejouable inclus.
+- Rapatriement de `ledger_notification_events` (appliquée en prod via MCP,
+  absente du repo) — le repo redevient source de vérité du schéma.
+
 ## [0.3.25.0] - 2026-07-16
 
 ### Changed

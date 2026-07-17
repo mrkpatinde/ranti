@@ -7,6 +7,7 @@ import { ChevronLeft, Menu, X } from "lucide-react"
 import type { Landlord } from "@/lib/landlords"
 import { RantiLogo } from "@/components/ranti-logo"
 import { AccountMenu } from "@/components/account-menu"
+import { ResumeOnboarding } from "@/components/resume-onboarding"
 import { SUPPORT_EMAIL_URL, SUPPORT_WHATSAPP_URL } from "@/lib/support"
 
 // Nav aplatie autour du bail (clé de voûte). « Baux » ouvre l'arbre
@@ -54,7 +55,7 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
 // Menu de navigation mobile : rangé dans un bouton à droite (ADR : nav qui
 // débordait en bande horizontale → repliée). Ouvre au tap, ferme au clic
 // extérieur, à Échap, ou en suivant un lien.
-function MobileNavMenu({ pathname }: { pathname: string }) {
+function MobileNavMenu({ pathname, resumable }: { pathname: string; resumable: boolean }) {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -88,6 +89,7 @@ function MobileNavMenu({ pathname }: { pathname: string }) {
             className="fixed inset-0 z-10 cursor-default"
           />
           <div className="absolute right-0 z-20 mt-2 w-60 space-y-1 overflow-hidden rounded-2xl border border-border bg-card p-1.5 shadow-sm">
+            {resumable && <ResumeOnboarding onNavigate={() => setOpen(false)} />}
             <div className="space-y-1" onClick={() => setOpen(false)}>
               {MAIN_NAV.map((item) => (
                 <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
@@ -134,6 +136,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
   if (hideShell) return <>{children}</>
 
   const ownerName = `${landlord.first_name} ${landlord.last_name}`
+  const resumable = landlord.onboarding_status === "exploring"
 
   return (
     <div className="min-h-screen bg-background text-foreground [font-variant-numeric:tabular-nums] lg:grid lg:grid-cols-[240px_1fr]">
@@ -153,6 +156,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
         </nav>
 
         <div className="mt-auto space-y-2 border-t border-border pt-4">
+          {resumable && <ResumeOnboarding />}
           <div className="space-y-1">
             <p className="px-3.5 pb-1 text-[11px] font-medium text-muted-foreground">Aide</p>
             {SUPPORT_WHATSAPP_URL && (
@@ -202,7 +206,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
               <Link href="/dashboard" className="font-display text-lg font-extrabold tracking-tight">Ranti</Link>
             </div>
             <div className="flex items-center gap-2">
-              <MobileNavMenu pathname={pathname} />
+              <MobileNavMenu pathname={pathname} resumable={resumable} />
               <AccountMenu initials={initialsOf(landlord.first_name, landlord.last_name)} ownerName={ownerName} />
             </div>
           </div>

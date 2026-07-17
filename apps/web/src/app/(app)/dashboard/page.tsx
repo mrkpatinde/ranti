@@ -14,6 +14,11 @@ import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 import { buildDashboardSummary } from "@/lib/dashboard/summary"
 import { computeUpcomingReminders } from "@/lib/reminders/schedule"
+import { getOnboardingProgress } from "@/lib/onboarding/progress"
+import { ResumeOnboarding } from "@/components/resume-onboarding"
+import { WelcomeOverlay } from "./_components/welcome-overlay"
+import { PremiersPas } from "./_components/premiers-pas"
+import { OnboardingComplete } from "./_components/onboarding-complete"
 
 export const metadata = { title: "Ranti" }
 
@@ -43,32 +48,77 @@ const AMOUNT_TONE_CLASS = {
 // rent_due_balances — déjà lue pour la cadence des relances (ADR-022).
 export default async function DashboardPage() {
   const landlord = await requireLandlordProfile()
+  const status = landlord.onboarding_status ?? "done"
   const leases = await getLandlordLeases(landlord.id)
   const hasActiveLease = leases.some((lease) => lease.status === "active")
+
+  // Prise en main guidée (welcome-flow.md), non bloquante : accueil (pending) →
+  // checklist (guided) | exploration (« Passer pour l'instant »). Progression
+  // dérivée des données réelles, uniquement quand le guidage est en cours.
+  const progress = status === "guided" ? await getOnboardingProgress(landlord.id) : null
+  const showChecklist = progress != null && !progress.allDone
+  const justCompleted = progress != null && progress.allDone
+
+  const onboardingLayer = (
+    <>
+      {status === "pending" && <WelcomeOverlay firstName={landlord.first_name} />}
+      {showChecklist && progress && <PremiersPas progress={progress} />}
+      {justCompleted && <OnboardingComplete />}
+    </>
+  )
 
   if (!hasActiveLease) {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-8 px-6 py-12 lg:max-w-xl lg:gap-10">
+        {status === "pending" && <WelcomeOverlay firstName={landlord.first_name} />}
         <header className="space-y-1">
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground lg:text-5xl">
             Bonjour {landlord.first_name}
           </h1>
-          <p className="text-sm text-muted-foreground lg:text-base">Bienvenue sur Ranti</p>
-        </header>
-        <div className="rounded-2xl border border-border bg-card p-6 lg:p-8">
-          <h2 className="font-display text-xl font-bold tracking-tight text-foreground lg:text-2xl">
-            Créer votre premier bail
-          </h2>
-          <p className="mt-2 text-base leading-7 text-foreground/70">
-            Lieu, logement, occupant et loyer en un geste. Les échéances se génèrent aussitôt.
+          <p className="text-sm text-muted-foreground lg:text-base">
+            {status === "exploring" ? "Votre espace, à votre rythme." : "Bienvenue sur Ranti"}
           </p>
-          <Link
-            href="/leases/new"
-            className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 lg:mt-6"
-          >
-            Créer un bail
-          </Link>
-        </div>
+        </header>
+
+        {showChecklist && progress && <PremiersPas progress={progress} />}
+        {justCompleted && <OnboardingComplete />}
+
+        {status === "exploring" ? (
+          <div className="rounded-2xl border border-dashed border-border bg-card p-6 lg:p-8">
+            <h2 className="font-display text-xl font-bold tracking-tight text-foreground lg:text-2xl">
+              Votre registre est prêt quand vous l&apos;êtes.
+            </h2>
+            <p className="mt-2 text-base leading-7 text-foreground/70">
+              Regardez tranquillement. Le jour où vous ajoutez un bail, Ranti génère
+              les échéances et prépare les quittances — rien n&apos;est obligatoire
+              pour l&apos;instant.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-4 lg:mt-6">
+              <Link
+                href="/leases/new"
+                className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
+              >
+                Créer un bail
+              </Link>
+              <ResumeOnboarding variant="link" />
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border bg-card p-6 lg:p-8">
+            <h2 className="font-display text-xl font-bold tracking-tight text-foreground lg:text-2xl">
+              Créer votre premier bail
+            </h2>
+            <p className="mt-2 text-base leading-7 text-foreground/70">
+              Lieu, logement, occupant et loyer en un geste. Les échéances se génèrent aussitôt.
+            </p>
+            <Link
+              href="/leases/new"
+              className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 lg:mt-6"
+            >
+              Créer un bail
+            </Link>
+          </div>
+        )}
       </main>
     )
   }
@@ -95,6 +145,8 @@ export default async function DashboardPage() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground lg:mt-2 lg:text-base">{month}</p>
       </header>
+
+      {onboardingLayer}
 
       <div className="flex overflow-hidden rounded-2xl border border-border bg-card">
         <Stat label="Payé" value={summary.paid} className="text-accent" />

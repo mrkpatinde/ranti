@@ -4,8 +4,33 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { readRequestId } from "@/lib/idempotency"
 import { requireLandlordProfile } from "@/lib/landlords"
+import type { OnboardingStatus } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import { validateBailForm, type BailFormInput, type BailRowInput } from "./validation"
+
+// Prise en main guidée : le propriétaire choisit de suivre l'accueil (guided),
+// de passer (exploring), ou termine (done). Colonne non-identité → update direct
+// sous RLS (landlords_update_own), aucun RPC requis (ADR-002). Jamais bloquant :
+// une erreur DB ne casse pas le tableau de bord, elle est seulement journalisée.
+const SETTABLE_STATUS: readonly OnboardingStatus[] = ["guided", "exploring", "done"]
+
+export async function setOnboardingStatus(next: OnboardingStatus): Promise<void> {
+  if (!SETTABLE_STATUS.includes(next)) return
+
+  const landlord = await requireLandlordProfile()
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("landlords")
+    .update({ onboarding_status: next })
+    .eq("id", landlord.id)
+
+  if (error) {
+    console.error("setOnboardingStatus: update failed", error.code, error.message)
+  }
+
+  revalidatePath("/dashboard")
+}
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value : ""

@@ -76,6 +76,7 @@ export async function GET(
     civility: null,
     payment_alias: null,
     payment_alias_type: null,
+    onboarding_status: "done",
     created_at: "",
     updated_at: "",
     deleted_at: null,

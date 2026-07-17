@@ -2,7 +2,16 @@
 
 ## Statut
 
-Accepté (V1 — encaissement uniquement).
+**Supersédé par [ADR-019](ADR-019-feexpay-rail-obligatoire.md) (2026-07-15).**
+Code retiré en v0.3.5.2 (commit `2c3acba`) : `lib/voice/*`,
+`api/voice/collection`, `voice-capture.tsx`, `validation-bottom-sheet.tsx`, et
+la variable d'env `GEMINI_API_KEY`. Vérifié le 2026-07-17 — `gemini` n'a plus
+aucune occurrence dans le code.
+
+Le rail FeexPay devient le chemin d'encaissement unique : la saisie vocale n'a
+plus d'objet. Document conservé pour trace de la décision et de son retrait.
+
+*Historique — statut d'origine : Accepté (V1 — encaissement uniquement).*
 
 ## Contexte
 
