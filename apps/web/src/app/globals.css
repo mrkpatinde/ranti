@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 /*
- * Design tokens (shadcn-style, HSL triplets) — source de vérité des couleurs.
- * Système visuel Ranti, palette Granola (granola.ai) : surface blanc chaud
- * neutre (#f9f8f6), encre anthracite (#292929), accent vert olive (#5b6f00)
- * réservé aux appels à l'action, teintes vertes douces pour les états.
+ * Design tokens (shadcn-style, HSL triplets) — source de vérité des couleurs :
+ * direction-artistique.html (racine du repo, décision CEO 2026-07-17).
+ * Palette DA : papier crème (#f7f7f2), encre anthracite (#292929), accent
+ * vert olive (#5b6f00) réservé aux appels à l'action, teintes vertes douces
+ * pour les états. Dark = palette sombre DA (papier #17171a, olive #aebd4a).
  */
 
 @theme inline {
@@ -49,8 +50,9 @@
 }
 
 :root {
-  --background: 40 20% 97%; /* #f9f8f6 — blanc chaud neutre. PAS de teinte 60
-     (l'ancien crème #f7f7f2 virait au vert sur les dalles Android terrain) */
+  --background: 60 24% 96%; /* #f7f7f2 — papier crème DA (décision CEO
+     2026-07-17 : les couleurs de direction-artistique.html font foi,
+     supersède le patch terrain #f9f8f6 du 2026-07-16) */
   --foreground: 0 0% 16%; /* #292929 — encre anthracite */
   --card: 0 0% 100%; /* #ffffff — surface des cartes */
   --card-foreground: 0 0% 16%;
@@ -61,7 +63,7 @@
   --primary-foreground: 60 40% 98%; /* #fcfcf8 */
   --secondary: 71 54% 92%; /* #f2f6e1 — teinte verte douce */
   --secondary-foreground: 0 0% 16%;
-  --muted: 40 12% 94%; /* #f2f0ee — neutre chaud, sans dérive verte */
+  --muted: 60 19% 94%; /* #f2f2ec — surface atténuée DA */
   --muted-foreground: 60 2% 44%; /* #72726e */
   --accent: 71 100% 22%; /* #5b6f00 — vert olive d'appel à l'action */
   --accent-foreground: 60 40% 98%; /* #fcfcf8 */
@@ -74,31 +76,31 @@
   --radius: 1rem; /* 16px — rayon standard des cartes */
 }
 
-/* Variante sombre alignée sur les neutres Granola (anthracite, blanc cassé,
-   accent olive éclairci) pour les écrans pas encore migrés. */
+/* Variante sombre = palette sombre de direction-artistique.html (papier
+   #17171a, surfaces #1f1f22, encre #eceae3, olive éclairci #aebd4a). */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: 0 0% 12%; /* #1e1e1e */
-    --foreground: 60 40% 98%; /* #fcfcf8 */
-    --card: 0 0% 16%; /* #292929 */
-    --card-foreground: 60 40% 98%;
-    --border: 60 1% 25%;
-    --input: 60 1% 28%;
-    --ring: 68 55% 62%; /* #c3d46a — accent vif dark (DESIGN.md) */
-    --primary: 60 40% 98%;
-    --primary-foreground: 0 0% 12%;
-    --secondary: 60 1% 21%;
-    --secondary-foreground: 60 2% 90%;
-    --muted: 60 1% 18%;
-    --muted-foreground: 60 2% 62%; /* #9e9e99 */
-    --accent: 68 47% 52%; /* #aebd4a — olive éclairci (spec DESIGN.md dark) */
-    --accent-foreground: 0 0% 12%; /* #1e1e1e — contraste AA sur olive */
-    --popover: 0 0% 12%;
-    --popover-foreground: 60 40% 98%;
-    --destructive: 11 80% 58%;
-    --destructive-foreground: 60 40% 98%;
-    --warning: 11 65% 62%; /* retard/attention éclairci pour fond sombre */
-    --warning-foreground: 0 0% 12%;
+    --background: 240 6% 10%; /* #17171a — papier sombre DA */
+    --foreground: 47 19% 91%; /* #eceae3 — encre corps DA */
+    --card: 240 5% 13%; /* #1f1f22 — surface carte DA */
+    --card-foreground: 47 19% 91%;
+    --border: 240 5% 22%; /* #34343a — filet DA */
+    --input: 240 5% 22%;
+    --ring: 70 74% 32%; /* #788c15 — anneau de focus DA dark */
+    --primary: 50 21% 95%; /* #f4f3ee — encre titres DA (boutons inversés) */
+    --primary-foreground: 240 6% 10%; /* #17171a */
+    --secondary: 72 22% 13%; /* #26291a — wash olive sombre DA */
+    --secondary-foreground: 68 58% 71%; /* #d4e08a — olive-deep sombre DA */
+    --muted: 240 5% 15%; /* #232327 — surface atténuée DA */
+    --muted-foreground: 60 2% 62%; /* #9e9e99 — encre atténuée DA */
+    --accent: 68 47% 52%; /* #aebd4a — olive éclairci DA */
+    --accent-foreground: 240 6% 10%; /* #17171a — contraste AA sur olive */
+    --popover: 240 5% 13%;
+    --popover-foreground: 47 19% 91%;
+    --destructive: 11 83% 65%; /* #f0785c — erreur éclaircie DA */
+    --destructive-foreground: 240 6% 10%;
+    --warning: 12 77% 75%; /* #f0a08c — retard/attention éclairci DA */
+    --warning-foreground: 240 6% 10%;
   }
 }
 

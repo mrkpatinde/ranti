@@ -13,7 +13,7 @@ const SIGNUP_HREF = "/signup";
 // (regénérer via apps/web/scripts/generate-demo-quittance.tsx).
 export default function Landing() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#f9f8f6] text-[#292929]">
+    <div className="flex min-h-screen flex-col bg-[#f7f7f2] text-[#292929]">
       <header className="px-6 py-6">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
@@ -41,7 +41,7 @@ export default function Landing() {
         <div className="lp-rise lp-rise-3 mt-9">
           <Link
             href={SIGNUP_HREF}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-7 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100 hover:bg-[#4c5616] hover:shadow-[0_16px_34px_-12px_rgba(91,111,0,0.55)]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#5b6f00] px-7 py-4 text-base font-semibold text-[#fcfcf8] shadow-[0_6px_16px_-6px_rgba(91,111,0,0.45)] transition duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.01] motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100 hover:bg-[#3f4d00] hover:shadow-[0_16px_34px_-12px_rgba(91,111,0,0.55)]"
           >
             Gérer vos loyers
             <ArrowRight size={18} strokeWidth={1.8} />
