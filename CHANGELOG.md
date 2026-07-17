@@ -19,7 +19,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions
 - **Direction artistique** : `direction-artistique.html`, style-guide généré
   depuis `DESIGN.md` et les tokens prod — cachet certifié, typographie
   Fraunces/Hanken, palette clair/sombre, composants, interdits anti-slop.
-- Docs : positioning, guide d'entretien diaspora, ADR-021 retour
+- Docs : positioning, guide d'entretien diaspora, ADR-024 retour
   non-custodial/abonnement.
 
 ### Changed

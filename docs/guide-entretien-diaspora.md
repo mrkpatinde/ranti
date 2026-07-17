@@ -1,6 +1,6 @@
 # Guide d'entretien — bailleur diaspora / à distance
 
-Objet : valider (ou tuer) les hypothèses de la tête de pont ADR-021 avant tout code.
+Objet : valider (ou tuer) les hypothèses de la tête de pont ADR-024 avant tout code.
 Cible : 5 bailleurs qui possèdent un bien au pays et le gèrent à distance (diaspora
 en Europe/Amérique, ou local éloigné type Sèmè→Calavi).
 

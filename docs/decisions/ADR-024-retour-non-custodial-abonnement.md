@@ -1,4 +1,4 @@
-# ADR-021 — Retour au non-custodial, abonnement, tête de pont diaspora
+# ADR-024 — Retour au non-custodial, abonnement, tête de pont diaspora
 
 ## Statut
 

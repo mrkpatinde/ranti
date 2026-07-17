@@ -1,6 +1,6 @@
 # Ranti — Vision Produit
 
-Dernière mise à jour : 2026-07-17 (réalignement sur ADR-021 — retour au non-custodial + abonnement).
+Dernière mise à jour : 2026-07-17 (réalignement sur ADR-024 — retour au non-custodial + abonnement).
 
 ## Positionnement
 
@@ -85,14 +85,14 @@ ci-dessus reste la mécanique opérante jusqu'à la bascule des lectures.
 
 Propriétaires particuliers africains qui gèrent entre 1 et 20 logements.
 
-**Tête de pont (ADR-021)** : le bailleur **diaspora / à distance** francophone — celui qui possède un bien au pays géré par un proche ou un démarcheur, sans visibilité ni preuve. Douleur de confiance la plus aiguë, capacité de paiement en euros, atteignable via les communautés diaspora. L'auto-gérant local reste utilisateur, mais n'est pas la pointe de lance de l'acquisition.
+**Tête de pont (ADR-024)** : le bailleur **diaspora / à distance** francophone — celui qui possède un bien au pays géré par un proche ou un démarcheur, sans visibilité ni preuve. Douleur de confiance la plus aiguë, capacité de paiement en euros, atteignable via les communautés diaspora. L'auto-gérant local reste utilisateur, mais n'est pas la pointe de lance de l'acquisition.
 
-## Rapport à l'argent (ADR-021 — retour au non-custodial)
+## Rapport à l'argent (ADR-024 — retour au non-custodial)
 
 Cette section **annule** la position d'ADR-018 / ADR-019. La promesse
 « **Ranti ne touche jamais l'argent** » est **restaurée** comme cible produit.
 
-État décidé (ADR-021, 2026-07-17) :
+État décidé (ADR-024, 2026-07-17) :
 
 - **Ranti ne détient jamais les fonds.** Le loyer circule directement du
   locataire au propriétaire (cash, Mobile Money, virement, ou alias PI-SPI du
@@ -123,7 +123,7 @@ Ranti n'est pas :
 - un logiciel comptable ;
 - **une banque** — pas d'agrément, pas de dépôt, pas de compte Ranti dans le
   flux, pas de crédit. **Ranti ne touche jamais l'argent** : le loyer va
-  directement du locataire au propriétaire (ADR-021) ;
+  directement du locataire au propriétaire (ADR-024) ;
 - une agence de recouvrement ;
 - une application de gestion complexe ;
 - un produit qui confirme des paiements sans validation humaine.

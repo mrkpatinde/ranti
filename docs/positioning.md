@@ -1,6 +1,6 @@
 # Ranti — Positionnement & Voix
 
-Source de vérité pour la communication. Dernière mise à jour : 2026-07-17 (ADR-021).
+Source de vérité pour la communication. Dernière mise à jour : 2026-07-17 (ADR-024).
 
 ## Catégorie
 
