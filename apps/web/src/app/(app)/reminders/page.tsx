@@ -5,7 +5,11 @@ import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeaseBalances, overdueByLease } from "@/lib/ledger"
 import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
-import { getLandlordReminders, type ReminderWithContext } from "@/lib/reminders/queries"
+import {
+  getLandlordReminders,
+  getScheduledReminders,
+  type ReminderWithContext,
+} from "@/lib/reminders/queries"
 import {
   computeUpcomingReminders,
   detectReminderSilence,
@@ -18,7 +22,10 @@ import {
 } from "@/lib/reminders/labels"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
+import { cancelScheduledReminder } from "@/lib/reminders/actions"
+import { buildReminderWaLink } from "@/lib/reminders/whatsapp"
 import { ReminderSettings } from "./reminder-settings"
+import { buildDueLabel, ScheduleReminderForm } from "./schedule-form"
 
 // Relances automatiques : Ranti relance les locataires à partir du bail.
 // Cet écran porte les RÉGLAGES du propriétaire (canal, moment, message par
@@ -48,16 +55,23 @@ function formatShortDate(iso: string): string {
   return new Date(y, m - 1, d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
 }
 
-export default async function RemindersPage() {
+export default async function RemindersPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ notice?: string; error?: string }>
+}) {
   const landlord = await requireLandlordProfile()
-  const [reminders, collections, balances, leaseBalances, tenants, units] = await Promise.all([
-    getLandlordReminders(landlord.id),
-    getLandlordCollections(landlord.id),
-    getLandlordDueBalances(landlord.id),
-    getLandlordLeaseBalances(landlord.id),
-    getLandlordTenants(landlord.id),
-    getLandlordUnits(landlord.id),
-  ])
+  const sp = await searchParams
+  const [reminders, collections, balances, leaseBalances, tenants, units, scheduled] =
+    await Promise.all([
+      getLandlordReminders(landlord.id),
+      getLandlordCollections(landlord.id),
+      getLandlordDueBalances(landlord.id),
+      getLandlordLeaseBalances(landlord.id),
+      getLandlordTenants(landlord.id),
+      getLandlordUnits(landlord.id),
+      getScheduledReminders(landlord.id),
+    ])
 
   const draftCount = collections.filter((c) => c.status === "draft").length
 
@@ -65,7 +79,25 @@ export default async function RemindersPage() {
   // J+3, J+10) que la file opérateur — l'écran promet ce que ranti-ops enverra.
   const upcoming = computeUpcomingReminders(balances, overdueByLease(leaseBalances))
   const tenantNames = new Map(tenants.map((t) => [t.id, `${t.first_name} ${t.last_name}`.trim()]))
+  const tenantPhones = new Map(tenants.map((t) => [t.id, t.phone]))
   const unitNames = new Map(units.map((u) => [u.id, u.name]))
+  const dueById = new Map(balances.map((b) => [b.id, b]))
+
+  // Échéances ouvertes (reste dû > 0) proposées à la programmation.
+  const openDues = balances
+    .filter((b) => b.status !== "paid" && b.status !== "cancelled" && b.amount_due - b.amount_paid > 0)
+    .map((b) => ({
+      dueId: b.id,
+      label: buildDueLabel({
+        tenantName: tenantNames.get(b.tenant_id) ?? "Locataire",
+        unitName: unitNames.get(b.unit_id) ?? "Logement",
+        dueDate: b.due_date,
+        remaining: b.amount_due - b.amount_paid,
+      }),
+    }))
+
+  const now = new Date()
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
 
   // Garde-fou ADR-022 : l'envoi vit dans ranti-ops ; si des fenêtres passent
   // sans envoi tracé, on le dit — plutôt qu'un silence qui ressemble à un bug.
@@ -95,6 +127,60 @@ export default async function RemindersPage() {
         initialChannel={landlord.reminder_channel}
         initialMoment={landlord.reminder_moment}
       />
+
+      {sp?.error ? (
+        <Alert variant="warning" className="mt-4">
+          {sp.error}
+        </Alert>
+      ) : null}
+      {sp?.notice === "reminder_scheduled" ? (
+        <div className="mt-4 rounded-2xl border border-accent/25 bg-secondary px-4 py-3 text-sm text-foreground">
+          Relance programmée. Elle apparaît ci-dessous et Ranti l&apos;enverra à la date choisie.
+        </div>
+      ) : null}
+
+      <ScheduleReminderForm
+        dues={openDues}
+        defaultChannel={landlord.reminder_channel}
+        todayIso={todayIso}
+      />
+
+      {scheduled.length > 0 ? (
+        <section className="mt-6 space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground">Relances programmées par vous</h2>
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            {scheduled.map((s) => {
+              const due = dueById.get(s.rent_due_id)
+              return (
+                <div
+                  key={s.id}
+                  className="flex items-center gap-3 border-t border-border px-4 py-3.5 first:border-t-0 sm:px-5"
+                >
+                  <span aria-hidden className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-accent" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-base font-medium text-foreground">
+                      {due ? (tenantNames.get(due.tenant_id) ?? "Locataire") : "Locataire"}
+                    </p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {due ? (unitNames.get(due.unit_id) ?? "Logement") : "Logement"} ·{" "}
+                      {s.channel === "whatsapp" ? "WhatsApp" : "SMS"} · le {formatShortDate(s.scheduled_for)}
+                    </p>
+                  </div>
+                  <form action={cancelScheduledReminder}>
+                    <input type="hidden" name="id" value={s.id} />
+                    <button
+                      type="submit"
+                      className="rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                    >
+                      Annuler
+                    </button>
+                  </form>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ) : null}
 
       {silence ? (
         <Alert variant="warning" className="mt-6">
@@ -147,9 +233,36 @@ export default async function RemindersPage() {
                 <span className="text-sm tabular-nums text-muted-foreground">
                   {formatShortDate(r.date)}
                 </span>
+                {(() => {
+                  const due = dueById.get(r.dueId)
+                  const phone = tenantPhones.get(r.tenantId)
+                  if (!due || !phone) return null
+                  const wa = buildReminderWaLink({
+                    phone,
+                    tenantName: tenantNames.get(r.tenantId) ?? null,
+                    amount: Math.max(0, due.amount_due - due.amount_paid),
+                    dueDate: due.due_date,
+                    late: r.late,
+                  })
+                  if (!wa) return null
+                  return (
+                    <a
+                      href={wa}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-secondary"
+                    >
+                      Relancer maintenant
+                    </a>
+                  )
+                })()}
               </div>
             ))}
           </div>
+          <p className="text-xs leading-5 text-muted-foreground">
+            « Relancer maintenant » ouvre WhatsApp avec le message par défaut
+            pré-rempli : vous relisez et envoyez vous-même.
+          </p>
         </section>
       ) : null}
 

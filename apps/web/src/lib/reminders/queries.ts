@@ -127,3 +127,29 @@ export async function getLeaseReminders(
 
   return mergeReminderRows(auto.data, manual.data)
 }
+
+// ── Relances programmées par le propriétaire (2026-07-18) ───────────────────
+
+export type ScheduledReminder = {
+  id: string
+  rent_due_id: string
+  scheduled_for: string
+  channel: "whatsapp" | "sms"
+  status: "pending" | "sent" | "cancelled"
+  created_at: string
+}
+
+// Relances programmées encore à envoyer, plus anciennes d'abord (RLS :
+// le propriétaire ne voit que les siennes).
+export async function getScheduledReminders(landlordId: string): Promise<ScheduledReminder[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("scheduled_reminders")
+    .select("id, rent_due_id, scheduled_for, channel, status, created_at")
+    .eq("landlord_id", landlordId)
+    .eq("status", "pending")
+    .order("scheduled_for", { ascending: true })
+
+  if (error) failQuery("getScheduledReminders", error)
+  return (data ?? []) as ScheduledReminder[]
+}
