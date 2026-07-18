@@ -11,7 +11,9 @@ import {
   type Action, type State, type PayTarget, oliveCta, ghostBtn, inputStyle, fieldLabel,
   fieldLabelSpan, CloseIcon, Wordmark, DefRow, ModalScrim,
 } from "./shared"
+import { MONTHS_FR } from "@/lib/format"
 import { receiptClause } from "@/lib/receipts/clause"
+import { useContactPicker } from "@/lib/contacts/use-contact-picker"
 import { useFirstRun } from "./context"
 
 // Types de logement (valeurs UNIT_TYPES) avec libelles FR, repris tels quels de
@@ -93,6 +95,24 @@ export function NouveauBailModal({ state, dispatch }: { state: State; dispatch: 
   // Cle d'idempotence stable par ouverture de modale (#167) : un renvoi apres
   // timeout ne cree jamais un bail en double.
   const [requestId] = useState(() => crypto.randomUUID())
+  // Contact Picker (Chrome/Edge Android) : preremplit prenom, nom et telephone
+  // depuis les contacts du proprietaire. Invisible ailleurs, jamais bloquant.
+  const { supported: contactsSupported, pick: pickContact } = useContactPicker()
+
+  async function onPickContact(e: React.MouseEvent<HTMLButtonElement>) {
+    const form = e.currentTarget.form
+    const contact = await pickContact()
+    if (!contact || !form) return
+    const fill = (name: string, value: string, onlyIfEmpty: boolean) => {
+      const el = form.elements.namedItem(name) as HTMLInputElement | null
+      if (el && value && (!onlyIfEmpty || !el.value.trim())) el.value = value
+    }
+    // Le telephone est le champ vise : toujours rempli. Les noms ne remplacent
+    // jamais une saisie deja faite.
+    fill("phone", contact.phone, false)
+    fill("first_name", contact.firstName, true)
+    fill("last_name", contact.lastName, true)
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -156,7 +176,15 @@ export function NouveauBailModal({ state, dispatch }: { state: State; dispatch: 
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <span style={groupLabel}>Locataire</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <span style={groupLabel}>Locataire</span>
+              {contactsSupported && (
+                <button type="button" onClick={onPickContact} style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1px solid var(--line)", borderRadius: "var(--radius-full)", background: "var(--surface-card)", padding: "5px 12px", cursor: "pointer", fontFamily: "var(--font-sans)", fontSize: "0.78rem", fontWeight: 600, color: "var(--ink)" }}>
+                  <svg viewBox="0 0 24 24" style={{ width: 13, height: 13, flexShrink: 0 }} aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  Choisir dans les contacts
+                </button>
+              )}
+            </div>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Prénom</span><input name="first_name" type="text" placeholder="Prénom" className="fr-in" style={inputStyle} /></label>
               <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Nom</span><input name="last_name" type="text" placeholder="Nom" className="fr-in" style={inputStyle} /></label>
@@ -338,17 +366,13 @@ export function CentreAideModal({ dispatch }: { dispatch: React.Dispatch<Action>
   )
 }
 
-const MONTHS_FR_LONG = [
-  "janvier", "février", "mars", "avril", "mai", "juin",
-  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-]
-
 // Format « 17 juillet 2026 » a partir d'un timestamptz ISO renvoye par le
 // serveur. Rendu cote client uniquement (la modale ne s'affiche qu'apres action).
+// Mois accentues partages (lib/format.ts).
 function formatDate(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  return `${d.getDate()} ${MONTHS_FR_LONG[d.getMonth()]} ${d.getFullYear()}`
+  return `${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`
 }
 
 export function QuittanceModal({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
