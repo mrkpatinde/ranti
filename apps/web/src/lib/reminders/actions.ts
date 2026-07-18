@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { requireLandlordProfile } from "@/lib/landlords"
 import type { ReminderChannel, ReminderMoment } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
@@ -44,4 +45,66 @@ export async function setReminderSettings(input: ReminderSettingsInput): Promise
 
   revalidatePath("/reminders")
   revalidatePath("/settings/profile")
+}
+
+// ── Programmer / annuler une relance ponctuelle (2026-07-18) ────────────────
+// Le propriétaire choisit l'échéance, la date et le canal ; ranti-ops envoie à
+// la date dite (ops_scheduled_reminders, doctrine ADR-022 : l'envoi vit chez
+// l'opérateur). Invariants côté RPC : appartenance de l'échéance, date >=
+// aujourd'hui, une seule programmation pending par échéance et par date.
+
+const SCHEDULE_ERRORS: Record<string, string> = {
+  date_past: "Choisissez une date à partir d'aujourd'hui.",
+  due_settled: "Cette échéance est déjà soldée ou annulée.",
+  due_not_found: "Échéance introuvable.",
+  already_scheduled: "Une relance est déjà programmée pour cette échéance à cette date.",
+  channel_invalid: "Canal invalide.",
+  not_pending: "Cette relance a déjà été envoyée ou annulée.",
+}
+
+function scheduleError(message: string): string {
+  for (const [code, label] of Object.entries(SCHEDULE_ERRORS)) {
+    if (message.includes(code)) return label
+  }
+  return "Programmation impossible. Réessayez."
+}
+
+export async function scheduleReminder(formData: FormData): Promise<void> {
+  await requireLandlordProfile()
+  const supabase = await createClient()
+
+  const dueId = String(formData.get("rent_due_id") ?? "")
+  const scheduledFor = String(formData.get("scheduled_for") ?? "")
+  const channel = String(formData.get("channel") ?? "")
+
+  const back = (msg: string): never => {
+    redirect(`/reminders?error=${encodeURIComponent(msg)}`)
+  }
+  if (!dueId) back("Choisissez l'échéance à relancer.")
+  if (!scheduledFor) back("Choisissez la date d'envoi.")
+
+  const { error } = await supabase.rpc("schedule_reminder", {
+    p_rent_due_id: dueId,
+    p_scheduled_for: scheduledFor,
+    p_channel: channel,
+  })
+
+  if (error) back(scheduleError(error.message))
+
+  revalidatePath("/reminders")
+  redirect("/reminders?notice=reminder_scheduled")
+}
+
+export async function cancelScheduledReminder(formData: FormData): Promise<void> {
+  await requireLandlordProfile()
+  const supabase = await createClient()
+
+  const id = String(formData.get("id") ?? "")
+  if (!id) redirect("/reminders?error=" + encodeURIComponent("Relance introuvable."))
+
+  const { error } = await supabase.rpc("cancel_scheduled_reminder", { p_id: id })
+  if (error) redirect(`/reminders?error=${encodeURIComponent(scheduleError(error.message))}`)
+
+  revalidatePath("/reminders")
+  redirect("/reminders")
 }
