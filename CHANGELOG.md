@@ -3,6 +3,16 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.31.1] - 2026-07-18
+
+### Added
+
+- **Les charges se relancent aussi** : le formulaire « Programmer une
+  relance » propose, en plus des loyers impayés, les charges validées par le
+  locataire (réparations, frais) des baux en impayé. Le message distingue
+  toujours la nature de la dette ; une charge contestée ou pas encore validée
+  n'est jamais proposée.
+
 ## [0.3.31.0] - 2026-07-18
 
 ### Added
