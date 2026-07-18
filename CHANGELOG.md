@@ -19,6 +19,19 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions
   tiret cadratin (règle du CLAUDE.md handoff). `prefers-reduced-motion`
   coupe les animations.
 
+### Base de données (phase 2 : adapter la DB au nouveau flow)
+
+- **Réglages de relance par bailleur** : colonnes non-identité
+  `reminders_enabled` / `reminder_channel` / `reminder_moment` sur `landlords`
+  (même patron que `onboarding_status`, aucun trigger/RLS touché), plus
+  `lib/reminders/actions.ts::setReminderSettings`. Persistance seule ;
+  l'application côté file de relance (`ops_reminder_queue`, ADR-023 gelé) est
+  un suivi.
+- **Référence de quittance `RNT-AAAA-NNNN`** : `private.generate_receipt_core`
+  émet une référence année + séquence remise à zéro chaque année (ex.
+  `RNT-2026-0001`). Les quittances existantes gardent `R-NNNNNN` (pas de
+  backfill, pas de collision).
+
 ## [0.3.28.0] - 2026-07-18
 
 ### Added
