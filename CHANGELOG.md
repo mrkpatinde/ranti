@@ -3,6 +3,19 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.28.0] - 2026-07-18
+
+### Added
+
+- **Rail de la prise en main guidée** : `getGuidedRail` (helper serveur)
+  combine le statut d'onboarding et la progression réelle en un modèle de rail
+  — étape courante, position (« Étape N sur total »), prochaine cible et état
+  de chaque étape (faite / active / verrouillée). Réutilise
+  `getOnboardingProgress`, aucun état stocké. Composant `GuidedRail` : le
+  stepper compact FirstRun (segments, position, CTA « Continuer » vers la
+  prochaine cible), tokens sémantiques, jamais bloquant. Pas encore branché à
+  une page.
+
 ## [0.3.27.0] - 2026-07-17
 
 ### Added
