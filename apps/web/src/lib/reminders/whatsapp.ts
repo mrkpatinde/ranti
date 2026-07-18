@@ -41,12 +41,10 @@ function frMonth(dateStr: string): string {
   })
 }
 
-// Construit le lien wa.me pré-rempli, ou null si le numéro est inexploitable.
-export function buildReminderWaLink(input: ReminderNotice): string | null {
-  // wa.me attend l'indicatif pays + numéro, sans « + » ni séparateur.
-  const digits = input.phone.replace(/\D/g, "")
-  if (!digits) return null
-
+// Texte du message de relance par défaut (rappel ou retard). Exporté seul pour
+// que l'aperçu montré au propriétaire (/reminders) soit EXACTEMENT le message
+// préparé, jamais une paraphrase.
+export function buildReminderMessage(input: Omit<ReminderNotice, "phone">): string {
   const name = input.tenantName?.trim()
   const greeting = name ? `Bonjour ${name}, ` : "Bonjour, "
   const montant = formatFcfa(input.amount)
@@ -56,9 +54,16 @@ export function buildReminderWaLink(input: ReminderNotice): string | null {
     ? ` Vous pouvez confirmer votre paiement ici : ${confirmUrl}`
     : ""
 
-  const message = input.late
+  return input.late
     ? `${greeting}votre loyer de ${montant} (${frMonth(input.dueDate)}) est en retard.${confirm} Merci de régulariser.`
     : `${greeting}petit rappel : votre loyer de ${montant} arrive à échéance le ${frDate(input.dueDate)}.${confirm} Merci.`
+}
 
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
+// Construit le lien wa.me pré-rempli, ou null si le numéro est inexploitable.
+export function buildReminderWaLink(input: ReminderNotice): string | null {
+  // wa.me attend l'indicatif pays + numéro, sans « + » ni séparateur.
+  const digits = input.phone.replace(/\D/g, "")
+  if (!digits) return null
+
+  return `https://wa.me/${digits}?text=${encodeURIComponent(buildReminderMessage(input))}`
 }
