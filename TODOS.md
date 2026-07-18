@@ -48,4 +48,36 @@ les autres taux — petite migration. Décision fiscale = prérequis, pas le cod
 (chaque requête coûte un HMAC). Gated par la signature ; à traiter au niveau
 Vercel Firewall ou middleware si le volume le justifie.
 
+## FirstRun (prise en main)
+
+### Hydrater la progression FirstRun depuis les données
+**Priority:** P1
+Un bailleur `guided`/`exploring` qui recharge `/first-run` revoit un état vide
+(le reducer repart de zéro) alors que son bail existe déjà : risque de
+re-création (doublon de lieu si typo) et checklist mensongère. Dériver l'étape
+et les cartes des vraies données (`getOnboardingProgress`, baux/échéances),
+comme le fait déjà `/dashboard`. Suivi de la revue adversariale 2026-07-18
+(F4) ; les réglages de relance sont déjà semés depuis la base.
+
+### E2E authentifié pour /first-run et /recu
+**Priority:** P2
+Le parcours guidé (welcome → bail → paiement → quittance) et la page locataire
+n'ont pas d'E2E : l'auth Google seule (ADR-010) empêche un login automatisé.
+Piste : session Playwright pré-fabriquée (storageState avec cookies Supabase
+d'un compte de test) ou un bypass d'auth réservé au mode test. Gaps notés
+« intentionally uncovered » au ship v0.3.29.0.
+
+### generate_receipt_core : idempotence sous verrou
+**Priority:** P3
+Le check « receipt déjà émis » précède `pg_advisory_xact_lock` : deux appels
+concurrents pour la même réception font échouer le second sur la contrainte
+unique (erreur transitoire inoffensive, « Réessayez »). Déplacer le check
+après le verrou dans une future migration de la fonction.
+
+### Centraliser les libellés logement/paiement
+**Priority:** P3
+`UNIT_TYPE_OPTIONS` existe en 4 copies (bail-form, units/edit, first-run
+modals…) et les libellés de méthode de paiement en 2. Exporter depuis
+`lib/units` / `lib/receipts` et consommer partout.
+
 ## Completed
