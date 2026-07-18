@@ -39,6 +39,18 @@
   --color-warning: hsl(var(--warning));
   --color-warning-foreground: hsl(var(--warning-foreground));
 
+  --color-leaf: hsl(var(--leaf));
+
+  /* Sous-tons DA additionnels (tokens/colors.css) — portés pour la landing :
+     encre titres, olive profond, chip olive, wash retard, surface haute,
+     filet doux. Chacun a sa valeur claire ET sombre (dark mode préservé). */
+  --color-ink-title: hsl(var(--ink-title));
+  --color-olive-deep: hsl(var(--olive-deep));
+  --color-olive-chip: hsl(var(--olive-chip));
+  --color-warning-wash: hsl(var(--warning-wash));
+  --color-surface-2: hsl(var(--surface-2));
+  --color-line-soft: hsl(var(--line-soft));
+
   --font-sans: var(--font-hanken);
   --font-display: var(--font-fraunces);
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
@@ -73,6 +85,14 @@
   --destructive-foreground: 0 0% 100%;
   --warning: 11 59% 46%; /* #bd4a30 — retard/attention (DESIGN.md) */
   --warning-foreground: 60 40% 98%;
+  --leaf: 109 82% 72%; /* #94f27f — feuille DA (authentifié/confirmé) ;
+     « feuille inchangée » en dark, donc pas de surcharge sombre. */
+  --ink-title: 36 8% 12%; /* #211f1c — encre titres (H1/H2/wordmark/chiffres) */
+  --olive-deep: 71 100% 15%; /* #3f4d00 — olive profond DA (hover, chiffre « Payé ») */
+  --olive-chip: 70 41% 86%; /* #e5eacd — chip olive (halo de fond) */
+  --warning-wash: 11 100% 94%; /* #ffe7e2 — fond du badge « En retard » */
+  --surface-2: 60 40% 98%; /* #fcfcf8 — surface haute (barre CTA du mockup) */
+  --line-soft: 53 14% 88%; /* #e4e3db — filet doux (séparations de sections) */
   --radius: 1rem; /* 16px — rayon standard des cartes */
 }
 
@@ -101,6 +121,12 @@
     --destructive-foreground: 240 6% 10%;
     --warning: 12 77% 75%; /* #f0a08c — retard/attention éclairci DA */
     --warning-foreground: 240 6% 10%;
+    --ink-title: 50 21% 95%; /* #f4f3ee — encre titres claire DA */
+    --olive-deep: 68 58% 71%; /* #d4e08a — olive-deep sombre DA */
+    --olive-chip: 73 23% 16%; /* #2f3320 — chip olive sombre DA (halo) */
+    --warning-wash: 12 35% 17%; /* #3a221c — fond retard sombre DA */
+    --surface-2: 240 5% 15%; /* #232327 — surface haute sombre DA */
+    --line-soft: 240 7% 18%; /* #2a2a30 — filet doux sombre DA */
   }
 }
 
@@ -128,4 +154,41 @@
 
 @media (prefers-reduced-motion: reduce) {
   .lp-rise, .lp-rise-2, .lp-rise-3 { animation: none; }
+}
+
+/* ── Fond atmosphérique de la landing (grille de points + halos olive) ─────
+   Halos radiaux olive/feuille très lents (34–55 s) : atmosphère « registre
+   posé », pas « startup qui clignote » (DESIGN.md). Teintes issues des tokens
+   (secondary / accent / leaf) — jamais de hex en dur. Coupés entièrement sous
+   prefers-reduced-motion. Le conteneur est fixé derrière le contenu. */
+.lp-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.lp-dots {
+  position: absolute; inset: -40px;
+  background-image: radial-gradient(circle, color-mix(in srgb, hsl(var(--foreground)) 28%, transparent) 1.1px, transparent 1.2px);
+  background-size: 28px 28px; opacity: .14;
+  animation: lp-dotshift 55s linear infinite;
+}
+@keyframes lp-dotshift { to { background-position: 280px 280px; } }
+.lp-blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .5; will-change: transform; }
+/* Halos : olive-wash (--secondary), olive-chip, feuille translucide. */
+.lp-blob-1 {
+  width: 52vw; height: 52vw; top: -14vw; left: -10vw;
+  background: radial-gradient(circle, hsl(var(--secondary)), transparent 68%);
+  animation: lp-drift1 34s ease-in-out infinite;
+}
+.lp-blob-2 {
+  width: 44vw; height: 44vw; bottom: -12vw; right: -8vw;
+  background: radial-gradient(circle, hsl(var(--olive-chip)), transparent 70%);
+  animation: lp-drift2 42s ease-in-out infinite;
+}
+.lp-blob-3 {
+  width: 34vw; height: 34vw; top: 34vh; left: 46vw;
+  background: radial-gradient(circle, color-mix(in srgb, hsl(var(--leaf)) 16%, transparent), transparent 70%);
+  animation: lp-drift3 50s ease-in-out infinite;
+}
+@keyframes lp-drift1 { 0%,100%{transform:translate(-6%,-6%) scale(1)} 50%{transform:translate(6%,9%) scale(1.14)} }
+@keyframes lp-drift2 { 0%,100%{transform:translate(7%,5%) scale(1.08)} 50%{transform:translate(-6%,-7%) scale(1)} }
+@keyframes lp-drift3 { 0%,100%{transform:translate(-4%,3%) scale(1)} 50%{transform:translate(5%,-6%) scale(1.12)} }
+@media (prefers-reduced-motion: reduce) {
+  .lp-dots, .lp-blob-1, .lp-blob-2, .lp-blob-3 { animation: none !important; }
 }
