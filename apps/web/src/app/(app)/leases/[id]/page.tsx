@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
@@ -102,24 +103,49 @@ const REMINDER_SCHEDULE: { when: string; what: string; late: boolean }[] = [
   { when: "À 10 jours de retard", what: "Relance — contacter le propriétaire", late: true },
 ]
 
-export default async function LeaseDetailPage({ params, searchParams }: LeaseDetailPageProps) {
+export default function LeaseDetailPage({ params, searchParams }: LeaseDetailPageProps) {
+  // Streaming (fluidité de nav) : le cadre (header « Bail ») peint tout de
+  // suite, le contenu arrive en flux sous <Suspense> au lieu de bloquer la
+  // navigation sur les requêtes du bail.
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
+      <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
+        <div>
+          <p className="mt-2 text-sm text-muted-foreground">Bail</p>
+        </div>
+        <Link href="/leases" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Tous les baux</Link>
+      </header>
+
+      <Suspense fallback={<LeaseDetailSkeleton />}>
+        <LeaseDetail params={params} searchParams={searchParams} />
+      </Suspense>
+    </main>
+  )
+}
+
+async function LeaseDetail({ params, searchParams }: LeaseDetailPageProps) {
   const landlord = await requireLandlordProfile()
   const { id } = await params
   const sp = await searchParams
 
-  const lease = await getLease(landlord.id, id)
-  if (!lease) notFound()
-
-  const [unit, tenant, dues, charges, balance] = await Promise.all([
-    getUnit(landlord.id, lease.unit_id),
-    getTenant(landlord.id, lease.tenant_id),
-    getLeaseDueBalances(landlord.id, lease.id),
-    getLeaseLedgerCharges(landlord.id, lease.id),
-    getLeaseBalance(landlord.id, lease.id),
+  // UNE seule vague : les requêtes qui ne dépendent que de l'id (échéances,
+  // charges, solde) partent tout de suite, en parallèle du bail lui-même.
+  // unit/tenant se chaînent sur le bail, les relances sur les échéances : tout
+  // converge dans le même Promise.all. Sur un id inconnu, les requêtes id-only
+  // reviennent vides (RLS) et notFound() tombe après la vague : acceptable pour
+  // une page authentifiée.
+  const leasePromise = getLease(landlord.id, id)
+  const duesPromise = getLeaseDueBalances(landlord.id, id)
+  const [lease, unit, tenant, dues, charges, balance, reminders] = await Promise.all([
+    leasePromise,
+    leasePromise.then((l) => (l ? getUnit(landlord.id, l.unit_id) : null)),
+    leasePromise.then((l) => (l ? getTenant(landlord.id, l.tenant_id) : null)),
+    duesPromise,
+    getLeaseLedgerCharges(landlord.id, id),
+    getLeaseBalance(landlord.id, id),
+    duesPromise.then((ds) => getLeaseReminders(landlord.id, ds.map((d) => d.id))),
   ])
-  // Fil des relances de CE bail (filtré sur ses échéances) : relie retard et
-  // relances au même endroit. Dépend des échéances → chargé après.
-  const reminders = await getLeaseReminders(landlord.id, dues.map((d) => d.id))
+  if (!lease) notFound()
 
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
 
@@ -179,15 +205,7 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
       : null
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
-      <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
-        <div>
-          <p className="mt-2 text-sm text-muted-foreground">Bail</p>
-        </div>
-        <Link href="/leases" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Tous les baux</Link>
-      </header>
-
-      <section className="flex flex-1 flex-col gap-8 py-10">
+    <section className="flex flex-1 flex-col gap-8 py-10">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
         {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
@@ -479,7 +497,23 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             ) : null}
           </div>
         ) : null}
-      </section>
-    </main>
+    </section>
+  )
+}
+
+// Squelette du contenu bail (mêmes tokens que loading.tsx : rien qui clignote
+// fort) : carte résumé + lignes d'échéances, affiché pendant le flux Suspense.
+function LeaseDetailSkeleton() {
+  return (
+    <section aria-busy className="flex flex-1 flex-col gap-8 py-10">
+      <div className="h-44 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      <div className="space-y-3">
+        <div className="h-5 w-44 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+        <div className="h-16 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+        <div className="h-16 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+        <div className="h-16 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      </div>
+      <p className="sr-only">Chargement…</p>
+    </section>
   )
 }

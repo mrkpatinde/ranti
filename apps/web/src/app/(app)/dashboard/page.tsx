@@ -1,7 +1,8 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { formatFcfa, formatFcfaNumber } from "@/lib/format"
-import { requireLandlordProfile } from "@/lib/landlords"
-import { getLandlordLeases } from "@/lib/leases"
+import { requireLandlordProfile, type Landlord, type OnboardingStatus } from "@/lib/landlords"
+import { getLandlordLeases, type Lease } from "@/lib/leases"
 import {
   buildLedgerOverview,
   describeLeaseDebtRow,
@@ -14,7 +15,7 @@ import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 import { buildDashboardSummary } from "@/lib/dashboard/summary"
 import { computeUpcomingReminders } from "@/lib/reminders/schedule"
-import { getOnboardingProgress } from "@/lib/onboarding/progress"
+import { getOnboardingProgress, type OnboardingProgress } from "@/lib/onboarding/progress"
 import { buildGuidedRail } from "@/lib/onboarding/guided"
 import { ResumeOnboarding } from "@/components/resume-onboarding"
 import { GuidedRail } from "@/components/guided-rail"
@@ -51,32 +52,19 @@ const AMOUNT_TONE_CLASS = {
 export default async function DashboardPage() {
   const landlord = await requireLandlordProfile()
   const status = landlord.onboarding_status ?? "done"
-  const leases = await getLandlordLeases(landlord.id)
-  const hasActiveLease = leases.some((lease) => lease.status === "active")
-
   // Prise en main guidée (welcome-flow.md), non bloquante : accueil (pending) →
   // checklist (guided) | exploration (« Passer pour l'instant »). Progression
-  // dérivée des données réelles, uniquement quand le guidage est en cours.
-  const progress = status === "guided" ? await getOnboardingProgress(landlord.id) : null
-  const showChecklist = progress != null && !progress.allDone
-  const justCompleted = progress != null && progress.allDone
-
-  // Rail de la prise en main guidée (FirstRun) : dérivé de la MÊME progression
-  // que la checklist (buildGuidedRail est pur — aucune requête supplémentaire).
-  // Il zoome sur le seul geste à faire maintenant, sous la checklist. N'est
-  // « actif » qu'en statut « guided » tant qu'il reste une étape.
-  const rail = progress ? buildGuidedRail(status, progress) : null
-
-  const onboardingLayer = (
-    <>
-      {status === "pending" && <WelcomeOverlay firstName={landlord.first_name} />}
-      {showChecklist && progress && <PremiersPas progress={progress} />}
-      {rail?.active && <GuidedRail rail={rail} />}
-      {justCompleted && <OnboardingComplete />}
-    </>
-  )
+  // dérivée des données réelles, uniquement quand le guidage est en cours,
+  // chargée dans la MÊME vague que les baux (indépendantes).
+  const [leases, progress] = await Promise.all([
+    getLandlordLeases(landlord.id),
+    status === "guided" ? getOnboardingProgress(landlord.id) : null,
+  ])
+  const hasActiveLease = leases.some((lease) => lease.status === "active")
 
   if (!hasActiveLease) {
+    const showChecklist = progress != null && !progress.allDone
+    const justCompleted = progress != null && progress.allDone
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-8 px-6 py-12 lg:max-w-xl lg:gap-10">
         {status === "pending" && <WelcomeOverlay firstName={landlord.first_name} />}
@@ -132,20 +120,11 @@ export default async function DashboardPage() {
     )
   }
 
-  const [balances, leaseBalances, tenants, units] = await Promise.all([
-    getLandlordDueBalances(landlord.id),
-    getLandlordLeaseBalances(landlord.id),
-    getLandlordTenants(landlord.id),
-    getLandlordUnits(landlord.id),
-  ])
-
-  const summary = buildDashboardSummary(balances)
-  const overview = buildLedgerOverview(leaseBalances, leases)
-  const upcoming = computeUpcomingReminders(balances, overdueByLease(leaseBalances))
-  const tenantName = new Map(tenants.map((t) => [t.id, `${t.first_name} ${t.last_name}`]))
-  const unitName = new Map(units.map((u) => [u.id, u.name]))
   const month = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
 
+  // Streaming (fluidité de nav) : le cadre (header « Bonjour ») peint tout de
+  // suite, la zone données arrive en flux sous <Suspense>. La navigation ne
+  // bloque plus sur la vague de requêtes la plus lente.
   return (
     <main className="mx-auto w-full max-w-md space-y-8 px-6 py-10 lg:max-w-2xl lg:space-y-12 lg:py-16">
       <header>
@@ -155,7 +134,56 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-muted-foreground lg:mt-2 lg:text-base">{month}</p>
       </header>
 
-      {onboardingLayer}
+      <Suspense fallback={<DashboardDataSkeleton />}>
+        <DashboardData landlord={landlord} status={status} leases={leases} progress={progress} month={month} />
+      </Suspense>
+    </main>
+  )
+}
+
+// Zone données du dashboard, rendue en flux : UNE vague Promise.all au lieu
+// d'attentes en série avant tout paint. La progression guidée arrive déjà
+// chargée du parent (même render, vague des baux).
+async function DashboardData({
+  landlord,
+  status,
+  leases,
+  progress,
+  month,
+}: {
+  landlord: Landlord
+  status: OnboardingStatus
+  leases: Lease[]
+  progress: OnboardingProgress | null
+  month: string
+}) {
+  const [balances, leaseBalances, tenants, units] = await Promise.all([
+    getLandlordDueBalances(landlord.id),
+    getLandlordLeaseBalances(landlord.id),
+    getLandlordTenants(landlord.id),
+    getLandlordUnits(landlord.id),
+  ])
+  const showChecklist = progress != null && !progress.allDone
+  const justCompleted = progress != null && progress.allDone
+
+  // Rail de la prise en main guidée (FirstRun) : dérivé de la MÊME progression
+  // que la checklist (buildGuidedRail est pur — aucune requête supplémentaire).
+  // Il zoome sur le seul geste à faire maintenant, sous la checklist. N'est
+  // « actif » qu'en statut « guided » tant qu'il reste une étape.
+  const rail = progress ? buildGuidedRail(status, progress) : null
+
+  const summary = buildDashboardSummary(balances)
+  const overview = buildLedgerOverview(leaseBalances, leases)
+  const upcoming = computeUpcomingReminders(balances, overdueByLease(leaseBalances))
+  const tenantName = new Map(tenants.map((t) => [t.id, `${t.first_name} ${t.last_name}`]))
+  const unitName = new Map(units.map((u) => [u.id, u.name]))
+
+  return (
+    <>
+      {status === "pending" && <WelcomeOverlay firstName={landlord.first_name} />}
+      {showChecklist && progress && <PremiersPas progress={progress} />}
+      {rail?.active && <GuidedRail rail={rail} />}
+      {justCompleted && <OnboardingComplete />}
 
       <div className="flex overflow-hidden rounded-2xl border border-border bg-card">
         <Stat label="Payé" value={summary.paid} className="text-accent" />
@@ -273,7 +301,22 @@ export default async function DashboardPage() {
       >
         Créer un bail
       </Link>
-    </main>
+    </>
+  )
+}
+
+// Squelette de la zone données (mêmes tokens que loading.tsx : rien qui
+// clignote fort), affiché pendant le flux Suspense.
+function DashboardDataSkeleton() {
+  return (
+    <div aria-busy className="space-y-8 lg:space-y-12">
+      <div className="h-[90px] animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none lg:h-[130px]" />
+      <div className="space-y-3 lg:space-y-4">
+        <div className="h-4 w-28 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+        <div className="h-48 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      </div>
+      <p className="sr-only">Chargement…</p>
+    </div>
   )
 }
 
