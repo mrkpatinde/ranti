@@ -1,0 +1,35 @@
+/* Ranti typography — Fraunces (display serif : titres, prix, wordmark) +
+   Hanken Grotesk (corps, labels, boutons). Chiffres du ledger en tabular-nums.
+   Références PSP / transactions en mono système. */
+:root {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Poids */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+
+  /* Échelle typographique (rem, base 16px) */
+  --text-hero: clamp(2.5rem, 7vw, 4.75rem); /* héro landing */
+  --text-h1: 3rem;      /* 48 */
+  --text-h2: 2.25rem;   /* 36 */
+  --text-h3: 1.375rem;  /* 22 */
+  --text-lede: 1.1875rem; /* 19 — chapô */
+  --text-body: 1rem;    /* 16 */
+  --text-small: 0.875rem; /* 14 */
+  --text-micro: 0.75rem;  /* 12 */
+
+  /* Hauteurs de ligne */
+  --leading-title: 1.05;
+  --leading-snug: 1.2;
+  --leading-body: 1.55;
+
+  /* Interlettrage */
+  --tracking-tight: -0.03em; /* titres display */
+  --tracking-normal: 0;
+  --tracking-wide: 0.08em;   /* labels majuscules (dl dt) */
+}

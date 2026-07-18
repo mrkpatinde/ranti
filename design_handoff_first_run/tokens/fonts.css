@@ -1,0 +1,4 @@
+/* Ranti webfonts — the production brand type, loaded via next/font/google in
+   the app (Fraunces + Hanken Grotesk). Consumers get the same faces from the
+   Google Fonts CDN, so the specimens match the shipped product exactly. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap");

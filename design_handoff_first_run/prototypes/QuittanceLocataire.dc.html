@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Quittance côté locataire" description="Page publique mobile-first que le locataire ouvre depuis le lien WhatsApp ou le QR (ranti.app/q/<ref>). Il vérifie la quittance et confirme la réception en un geste, sans compte. États : à confirmer / confirmée. Maquette : export PDF et vérification serveur à câbler (commentaires DEV dans le code)." -->
+<helmet>
+<script src="./ds-base.js"></script>
+<style>
+body{margin:0}
+@keyframes ql-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes ql-pop{0%{opacity:0;transform:scale(.7)}70%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:var(--paper);font-family:var(--font-sans);color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:clamp(18px,4vw,44px) 16px clamp(32px,6vw,56px);box-sizing:border-box">
+  <div style="width:430px;max-width:100%;display:flex;flex-direction:column;gap:18px">
+    <header style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <x-import component-from-global-scope="RantiDesignSystem_ac6719.RantiWordmark" size="30" subtitle="Registre de loyer" hint-size="150px,40px"></x-import>
+      <span style="font-size:0.72rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--ink-muted)">Lien vérifié</span>
+    </header>
+    <sc-if value="{{ pending }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <h1 style="margin:0;font-family:var(--font-display);font-weight:800;font-size:clamp(1.5rem,6vw,1.8rem);line-height:1.08;letter-spacing:-0.03em;color:var(--ink-title)">Bonjour Adjovi, votre quittance est prête.</h1>
+        <p style="margin:0;font-size:0.95rem;line-height:1.55;color:var(--ink-muted)">Florentine Dossou a enregistré votre loyer de juillet. Vérifiez, puis confirmez la réception — c'est gratuit et sans compte.</p>
+      </div>
+    </sc-if>
+    <sc-if value="{{ confirmed }}">
+      <div style="display:flex;gap:12px;align-items:flex-start;border:1px solid var(--olive);background:var(--olive-wash);border-radius:var(--radius-lg);padding:14px 16px;animation:ql-rise var(--dur-medium) var(--ease-enter) both">
+        <span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:var(--olive);display:flex;align-items:center;justify-content:center;margin-top:1px;animation:ql-pop var(--dur-medium) var(--ease-enter) both"><svg viewBox="0 0 24 24" style="width:15px;height:15px" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="var(--paper)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:0.95rem;font-weight:600;color:var(--olive-deep)">Quittance confirmée — merci, Adjovi.</span>
+          <span style="font-size:0.85rem;line-height:1.45;color:var(--ink)">Votre confirmation du 17 juillet 2026 est enregistrée dans le registre. Gardez ce lien : il reste votre preuve.</span>
+        </div>
+      </div>
+    </sc-if>
+    <div style="background:var(--surface-card);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow-proof);overflow:hidden">
+      <div style="padding:22px 24px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <h2 style="margin:0;font-family:var(--font-display);font-weight:800;font-size:1.4rem;letter-spacing:-0.02em;color:var(--ink-title)">Quittance de loyer</h2>
+            <span style="font-size:0.85rem;font-variant-numeric:tabular-nums;color:var(--ink-muted)">N° RNT-2026-0148 · 17 juillet 2026</span>
+          </div>
+          <sc-if value="{{ confirmed }}"><x-import component-from-global-scope="RantiDesignSystem_ac6719.StatusBadge" tone="confirmed" dot="{{ true }}" hint-size="100px,26px">Confirmée</x-import></sc-if>
+          <sc-if value="{{ pending }}" hint-placeholder-val="{{ true }}"><span style="flex-shrink:0;font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--muted-surface);color:var(--ink-muted)">À confirmer</span></sc-if>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;gap:16px"><span style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted)">Bailleur</span><span style="font-size:0.9rem;font-weight:500;color:var(--ink);text-align:right">Florentine Dossou</span></div>
+          <div style="display:flex;justify-content:space-between;gap:16px"><span style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted)">Locataire</span><span style="font-size:0.9rem;font-weight:500;color:var(--ink);text-align:right">Adjovi Hounkpatin</span></div>
+          <div style="display:flex;justify-content:space-between;gap:16px"><span style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted)">Logement</span><span style="font-size:0.9rem;font-weight:500;color:var(--ink);text-align:right">Villa 3 ch — Fidjrossè</span></div>
+          <div style="display:flex;justify-content:space-between;gap:16px"><span style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted)">Période réglée</span><span style="font-size:0.9rem;font-weight:500;color:var(--ink);text-align:right">Juillet 2026</span></div>
+          <div style="display:flex;justify-content:space-between;gap:16px"><span style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted)">Reçu le</span><span style="font-size:0.9rem;font-weight:500;color:var(--ink);text-align:right">16 juillet 2026</span></div>
+        </div>
+        <div style="border-top:1px dashed var(--line);padding-top:16px;display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+          <span style="font-size:0.95rem;font-weight:600;color:var(--ink)">Montant réglé</span>
+          <span style="font-family:var(--font-display);font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink-title)">100 000 FCFA</span>
+        </div>
+        <p style="margin:0;font-size:0.82rem;line-height:1.5;color:var(--ink-muted)">Je soussignée Florentine Dossou, bailleur, reconnais avoir reçu la somme de <strong style="color:var(--ink);font-weight:600">cent mille francs CFA</strong> au titre du loyer de juillet 2026, dont quittance pour solde de ladite période.</p>
+        <p style="margin:0;font-size:0.75rem;line-height:1.5;color:var(--ink-muted)">Intégrité du document — empreinte SHA-256 : <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.72rem;color:var(--ink)">c7a19b4e…d80f42e0</span></p>
+      </div>
+      <!-- DEV (maquette) : la confirmation est locale. À câbler : POST de confirmation vers le registre (horodatage serveur), verrouillage après confirmation, et export PDF de la quittance. -->
+      <sc-if value="{{ pending }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid var(--line);background:var(--muted-surface);padding:18px 24px;display:flex;flex-direction:column;gap:10px">
+        <button type="button" onClick="{{ confirm }}" style="display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);font-size:1rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:15px 24px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Confirmer la réception</button>
+        <p style="margin:0;font-size:0.8rem;line-height:1.5;text-align:center;color:var(--ink-muted)">En confirmant, vous attestez que ce loyer a bien été réglé. Votre confirmation est ajoutée au registre.</p>
+      </div>
+      </sc-if>
+      <sc-if value="{{ confirmed }}">
+      <div style="border-top:1px solid var(--line);background:var(--muted-surface);padding:16px 24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button type="button" style="flex:1;min-width:170px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);font-size:0.92rem;font-weight:600;color:var(--ink);background:var(--surface-card);border:1px solid var(--line);border-radius:var(--radius-full);padding:12px 18px;cursor:pointer;transition:background var(--dur-short) var(--ease-standard)" style-hover="background:var(--olive-wash)"><svg viewBox="0 0 24 24" style="width:16px;height:16px" aria-hidden="true"><path d="M12 3v11m0 0l-4-4m4 4l4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Télécharger en PDF</button>
+      </div>
+      </sc-if>
+    </div>
+    <sc-if value="{{ showAide }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;gap:12px;align-items:center;border:1px solid var(--line-soft);background:var(--surface-card);border-radius:var(--radius-lg);padding:13px 16px">
+      <span style="flex-shrink:0;width:36px;height:36px;border-radius:999px;background:var(--olive-wash);color:var(--olive-deep);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><path d="M6 3h12v18H6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6M9 12h6M9 16h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      <span style="font-size:0.85rem;line-height:1.5;color:var(--ink-muted)">Un doute sur cette quittance ? Toutes les réponses sont dans le <strong style="color:var(--ink);font-weight:600">centre d'aide Ranti</strong>.</span>
+    </div>
+    </sc-if>
+    <p style="margin:0;text-align:center;font-size:0.78rem;line-height:1.5;color:var(--ink-muted)">Document édité par Ranti pour Florentine Dossou · vérifiable sur ranti.app/q/RNT-2026-0148</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:880},&quot;etat&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;a-confirmer&quot;,&quot;options&quot;:[&quot;a-confirmer&quot;,&quot;confirmee&quot;],&quot;tsType&quot;:&quot;\&quot;a-confirmer\&quot; | \&quot;confirmee\&quot;&quot;,&quot;section&quot;:&quot;Aperçu&quot;},&quot;afficherAide&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Contenu&quot;}}">
+class Component extends DCLogic {
+  state = { clicked: false };
+  renderVals(){
+    const confirmed = this.state.clicked || this.props.etat === "confirmee";
+    return {
+      confirmed, pending: !confirmed,
+      showAide: this.props.afficherAide ?? true,
+      confirm: () => this.setState({ clicked: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

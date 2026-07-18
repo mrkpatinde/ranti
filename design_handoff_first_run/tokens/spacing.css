@@ -1,0 +1,23 @@
+/* Ranti spacing & radii — base 8px, densité confortable (lisibilité mobile
+   > densité, cible Android terrain). Rayons : pills réservées aux CTA/badges. */
+:root {
+  /* Échelle d'espacement */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Rayons de bordure */
+  --radius-sm: 8px;    /* chips / tags */
+  --radius-md: 14px;   /* boutons, inputs */
+  --radius-lg: 16px;   /* cards standard */
+  --radius-xl: 20px;   /* cards preuve */
+  --radius-full: 999px;/* pills CTA + avatars */
+
+  /* Largeur de contenu */
+  --content-max: 1152px; /* max-w-6xl */
+}

@@ -1,0 +1,52 @@
+/* Ranti color system — palette "sérieux tranquille" : papier crème chaud,
+   encre anthracite, un seul accent olive réservé aux appels à l'action.
+   Base values in hex; the production app derives shadcn HSL tokens from these
+   exact colors (see apps/web globals.css). Semantic aliases follow. */
+:root {
+  /* ── Neutrals — papier / encre / filets ── */
+  --paper: #f7f7f2;        /* surface blanc cassé chaud (app background) */
+  --surface: #ffffff;      /* surface des cartes */
+  --surface-2: #fcfcf8;    /* surface alt / foreground clair */
+  --muted-surface: #f2f2ec;/* fond muted */
+  --ink: #292929;          /* encre anthracite — corps + primary */
+  --ink-title: #211f1c;    /* encre titres (un cran plus profond) */
+  --ink-muted: #72726e;    /* texte secondaire */
+  --line: #d5d5d2;         /* filet neutre standard */
+  --line-soft: #e4e3db;    /* filet plus clair */
+
+  /* ── Olive — l'equity de marque, CTA/liens/marque ── */
+  --olive: #5b6f00;        /* accent principal (boutons d'action) */
+  --olive-bright: #788c15; /* accent vif (dark-mode CTA, hover clair) */
+  --olive-deep: #4c5616;   /* hover du CTA olive */
+  --olive-chip: #e5eacd;   /* pastille olive */
+  --olive-wash: #f2f6e1;   /* teinte verte douce — secondary/wash */
+  --ring: #b2c248;         /* anneau de focus */
+
+  /* ── Feuille — authentifié / confirmé ── */
+  --leaf: #94f27f;         /* vert feuille — certifié, barre du logo */
+
+  /* ── Signaux ── */
+  --warning: #bd4a30;      /* retard / warning (texte) */
+  --warning-wash: #ffe7e2; /* fond retard / warning */
+  --danger: #e95d3d;       /* erreur / destructive */
+  --danger-fg: #ffffff;
+
+  /* ── Aliases sémantiques (à préférer dans l'UI) ── */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --text-body: var(--ink);
+  --text-title: var(--ink-title);
+  --text-muted: var(--ink-muted);
+  --surface-card: var(--surface);
+  --border-color: var(--line);
+  --border-soft: var(--line-soft);
+  --accent: var(--olive);
+  --accent-foreground: var(--surface-2);
+  --primary: var(--ink);
+  --primary-foreground: var(--surface-2);
+  --secondary: var(--olive-wash);
+  --secondary-foreground: var(--ink);
+  --confirmed: var(--leaf);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--danger-fg);
+}

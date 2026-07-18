@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+[data-fr-toast="true"]{opacity:0 !important;transform:translateY(-6px)}
+@keyframes fr-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fr-pop{0%{opacity:0;transform:scale(.7)}70%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+@keyframes fr-pulse{0%{box-shadow:0 0 0 0 rgba(91,111,0,.32)}70%{box-shadow:0 0 0 10px rgba(91,111,0,0)}100%{box-shadow:0 0 0 0 rgba(91,111,0,0)}}
+@keyframes fr-line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+</style>
+</helmet>
+<main style="max-width:620px;margin:0 auto;padding:clamp(24px,4vw,48px) clamp(16px,3vw,32px) clamp(40px,6vw,64px);display:flex;flex-direction:column;gap:clamp(22px,3vw,30px)">
+
+  <!-- Header -->
+  <header>
+    <sc-if value="{{ vals.viewAccueil }}" hint-placeholder-val="{{ true }}">
+      <h1 style="margin:0;font-family:var(--font-display);font-weight:800;font-size:clamp(1.9rem,6vw,2.5rem);letter-spacing:-0.03em;line-height:1.04;color:var(--ink-title)">Bonjour Florentine</h1>
+      <p style="margin:8px 0 0;font-size:0.95rem;color:var(--ink-muted)">juillet 2026</p>
+      <sc-if value="{{ vals.minimalGuide }}">
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:0.85rem;font-weight:600;color:var(--ink)">Prise en main</span><span style="font-size:0.8rem;font-variant-numeric:tabular-nums;color:var(--ink-muted)">{{ vals.doneCount }} sur {{ vals.total }}</span></div>
+          <div style="height:6px;border-radius:999px;background:var(--muted-surface);overflow:hidden">
+            <sc-if value="{{ vals.stageEmpty }}" hint-placeholder-val="{{ true }}"><div style="height:100%;border-radius:999px;background:var(--olive);width:0;transition:width var(--dur-medium) var(--ease-standard)"></div></sc-if>
+            <sc-if value="{{ vals.leaseThree }}"><div style="height:100%;border-radius:999px;background:var(--olive);width:33%;transition:width var(--dur-medium) var(--ease-standard)"></div></sc-if>
+            <sc-if value="{{ vals.leaseFour }}"><div style="height:100%;border-radius:999px;background:var(--olive);width:25%;transition:width var(--dur-medium) var(--ease-standard)"></div></sc-if>
+            <sc-if value="{{ vals.reminderFour }}"><div style="height:100%;border-radius:999px;background:var(--olive);width:75%;transition:width var(--dur-medium) var(--ease-standard)"></div></sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+    <sc-if value="{{ vals.notAccueil }}">
+      <h1 style="margin:0;font-family:var(--font-display);font-weight:800;font-size:clamp(1.9rem,6vw,2.5rem);letter-spacing:-0.03em;line-height:1.04;color:var(--ink-title)">{{ vals.viewTitle }}</h1>
+      <p style="margin:8px 0 0;font-size:0.95rem;color:var(--ink-muted)">{{ vals.viewSubtitle }}</p>
+    </sc-if>
+  </header>
+
+  <!-- ============ ACCUEIL ============ -->
+  <sc-if value="{{ vals.viewAccueil }}" hint-placeholder-val="{{ true }}">
+
+  <!-- Premiers pas checklist -->
+  <sc-if value="{{ vals.showChecklist }}" hint-placeholder-val="{{ true }}">
+  <section style="border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-card);box-shadow:var(--shadow-cta);overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line-soft)">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <h2 style="margin:0;font-family:var(--font-display);font-weight:700;font-size:1.15rem;letter-spacing:-0.01em;color:var(--ink-title)">{{ vals.checklistTitle }}</h2>
+        <p style="margin:0;font-size:0.85rem;color:var(--ink-muted)">{{ vals.checklistSub }}</p>
+      </div>
+      <span style="flex-shrink:0;font-family:var(--font-display);font-weight:800;font-size:1.1rem;font-variant-numeric:tabular-nums;color:var(--olive)">{{ vals.doneCount }}/{{ vals.total }}</span>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <sc-for list="{{ vals.steps }}" as="s" hint-placeholder-count="3">
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:15px 22px;border-top:1px solid var(--line-soft)">
+          <sc-if value="{{ s.done }}"><span style="flex-shrink:0;width:24px;height:24px;border-radius:999px;background:var(--olive);display:flex;align-items:center;justify-content:center;margin-top:1px"><svg viewBox="0 0 24 24" style="width:14px;height:14px" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="var(--paper)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></sc-if>
+          <sc-if value="{{ s.active }}"><span style="flex-shrink:0;width:24px;height:24px;border-radius:999px;box-sizing:border-box;border:2px solid var(--olive);display:flex;align-items:center;justify-content:center;margin-top:1px;animation:fr-pulse 2s var(--ease-standard) infinite"><span style="width:8px;height:8px;border-radius:999px;background:var(--olive)"></span></span></sc-if>
+          <sc-if value="{{ s.locked }}"><span style="flex-shrink:0;width:24px;height:24px;border-radius:999px;box-sizing:border-box;border:2px solid var(--line);margin-top:1px"></span></sc-if>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+            <sc-if value="{{ s.done }}"><span style="font-size:0.95rem;font-weight:500;color:var(--ink-muted);text-decoration:line-through;text-decoration-color:var(--line)">{{ s.label }}</span></sc-if>
+            <sc-if value="{{ s.notDone }}" hint-placeholder-val="{{ true }}"><span style="font-size:0.95rem;font-weight:600;color:var(--ink)">{{ s.label }}</span></sc-if>
+            <span style="font-size:0.82rem;line-height:1.45;color:var(--ink-muted)">{{ s.desc }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+  </sc-if>
+
+  <!-- Ledger strip -->
+  <div style="display:flex;border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card)">
+    <div style="flex:1;min-width:0;padding:clamp(12px,2.5vw,18px) clamp(12px,2.5vw,20px);display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:0.78rem;font-weight:500;color:var(--ink-muted)">Payé</span>
+      <sc-if value="{{ vals.paidPos }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--olive-deep)">{{ vals.paidTotal }}</span></sc-if>
+      <sc-if value="{{ vals.paidZero }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink-muted)">0</span></sc-if>
+    </div>
+    <div style="flex:1;min-width:0;padding:clamp(12px,2.5vw,18px) clamp(12px,2.5vw,20px);display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line)">
+      <span style="font-size:0.78rem;font-weight:500;color:var(--ink-muted)">Attendu</span>
+      <sc-if value="{{ vals.duePos }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink)">{{ vals.dueTotal }}</span></sc-if>
+      <sc-if value="{{ vals.dueZero }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink-muted)">0</span></sc-if>
+    </div>
+    <div style="flex:1;min-width:0;padding:clamp(12px,2.5vw,18px) clamp(12px,2.5vw,20px);display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line)">
+      <span style="font-size:0.78rem;font-weight:500;color:var(--ink-muted)">Retard</span>
+      <sc-if value="{{ vals.latePos }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--warning)">{{ vals.lateTotal }}</span></sc-if>
+      <sc-if value="{{ vals.lateZero }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink-muted)">0</span></sc-if>
+    </div>
+  </div>
+
+  <!-- À encaisser -->
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <sc-if value="{{ vals.stagePaid }}"><h2 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--ink-muted)">{{ vals.leasesHeading }}</h2></sc-if>
+    <sc-if value="{{ vals.notPaid }}" hint-placeholder-val="{{ true }}"><h2 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--ink-muted)">À encaisser</h2></sc-if>
+
+    <sc-if value="{{ vals.stageEmpty }}" hint-placeholder-val="{{ true }}">
+    <div style="border:1px dashed var(--line);border-radius:var(--radius-lg);padding:clamp(24px,4vw,30px) 24px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <span style="font-family:var(--font-display);font-weight:700;font-size:1.1rem;color:var(--ink-title)">Aucun bail pour l'instant.</span>
+        <span style="font-size:0.9rem;line-height:1.5;color:var(--ink-muted)">Créez votre premier bail : Ranti génère les échéances et prépare les relances.</span>
+      </div>
+      <button type="button" onClick="{{ vals.createLease }}" style="display:inline-flex;align-items:center;gap:10px;font-family:var(--font-sans);font-size:1rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:14px 26px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard);animation:fr-pulse 2s var(--ease-standard) infinite" style-hover="filter:brightness(1.06)">Créer mon premier bail</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ vals.stageExplore }}">
+    <div style="border:1px dashed var(--line);border-radius:var(--radius-lg);padding:clamp(24px,4vw,30px) 24px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <span style="font-family:var(--font-display);font-weight:700;font-size:1.1rem;color:var(--ink-title)">Votre registre est prêt quand vous l'êtes.</span>
+        <span style="font-size:0.9rem;line-height:1.5;color:var(--ink-muted)">Regardez tranquillement. Le jour où vous ajoutez un bail, Ranti génère les échéances et prépare les quittances — rien n'est obligatoire pour l'instant.</span>
+      </div>
+      <button type="button" onClick="{{ vals.createLease }}" style="display:inline-flex;align-items:center;gap:10px;font-family:var(--font-sans);font-size:1rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:14px 26px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Créer un bail</button>
+      <button type="button" onClick="{{ vals.resumeOnboarding }}" style="background:transparent;border:0;padding:4px;font-family:var(--font-sans);font-size:0.88rem;font-weight:600;color:var(--ink-muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px" style-hover="color:var(--ink)">Reprendre la prise en main guidée</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ vals.stageLease }}">
+    <sc-if value="{{ vals.leaseNotLate }}" hint-placeholder-val="{{ true }}">
+    <div style="border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card);animation:fr-rise var(--dur-medium) var(--ease-enter) both">
+      <div style="display:flex;align-items:center;gap:14px;padding:16px 20px">
+        <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--olive)"></span>
+        <span style="min-width:0;flex:1">
+          <span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ vals.leaseName }}</span>
+          <span style="display:block;font-size:0.875rem;color:var(--ink-muted)">{{ vals.leaseHome }} · attendu</span>
+        </span>
+        <span style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap">{{ vals.leaseAmount }}</span>
+      </div>
+      <div style="border-top:1px solid var(--line-soft);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--muted-surface)">
+        <span style="font-size:0.85rem;color:var(--ink-muted)">Vous avez encaissé ce loyer ?</span>
+        <button type="button" onClick="{{ vals.validatePayment }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.92rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:11px 20px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard);animation:fr-pulse 2s var(--ease-standard) infinite" style-hover="filter:brightness(1.06)">Valider le paiement</button>
+      </div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ vals.leaseLate }}">
+    <div style="border:1px solid var(--warning);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card);animation:fr-rise var(--dur-medium) var(--ease-enter) both">
+      <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap">
+        <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--warning)"></span>
+        <span style="min-width:120px;flex:1">
+          <span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ vals.leaseName }}</span>
+          <span style="display:block;font-size:0.875rem;color:var(--warning)">{{ vals.leaseHome }} · {{ vals.leaseLateText }}</span>
+        </span>
+        <span style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap">{{ vals.leaseAmount }}</span>
+      </div>
+      <div style="border-top:1px solid var(--line-soft);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--warning-wash)">
+        <span style="font-size:0.85rem;color:var(--warning)">Échéance dépassée — encaissez ou relancez.</span>
+        <button type="button" onClick="{{ vals.validatePayment }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.92rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:11px 20px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard);animation:fr-pulse 2s var(--ease-standard) infinite" style-hover="filter:brightness(1.06)">Valider le paiement</button>
+      </div>
+    </div>
+    </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ vals.stagePaid }}">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <sc-for list="{{ vals.leaseRows }}" as="l" hint-placeholder-count="1">
+        <sc-if value="{{ l.isPaid }}">
+        <div style="border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card);animation:fr-rise var(--dur-medium) var(--ease-enter) both">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap">
+            <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--olive)"></span>
+            <span style="min-width:120px;flex:1">
+              <span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ l.name }}</span>
+              <span style="display:block;font-size:0.875rem;color:var(--ink-muted)">{{ l.subline }}</span>
+            </span>
+            <x-import component-from-global-scope="RantiDesignSystem_ac6719.StatusBadge" tone="confirmed" dot="{{ true }}" hint-size="120px,26px">Quittance {{ l.quittanceRef }}</x-import>
+          </div>
+          <div style="border-top:1px solid var(--line-soft);padding:12px 20px;display:flex;justify-content:flex-end;background:var(--muted-surface)">
+            <button type="button" onClick="{{ vals.openQuittance }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;color:var(--olive);background:transparent;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px" style-hover="color:var(--olive-deep)">Voir la quittance</button>
+          </div>
+        </div>
+        </sc-if>
+        <sc-if value="{{ l.isDue }}">
+        <div style="border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card);animation:fr-rise var(--dur-medium) var(--ease-enter) both">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap">
+            <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--olive)"></span>
+            <span style="min-width:120px;flex:1">
+              <span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ l.name }}</span>
+              <span style="display:block;font-size:0.875rem;color:var(--ink-muted)">{{ l.subline }}</span>
+            </span>
+            <span style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap">{{ l.amount }}</span>
+          </div>
+          <div style="border-top:1px solid var(--line-soft);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--muted-surface)">
+            <span style="font-size:0.85rem;color:var(--ink-muted)">Vous avez encaissé ce loyer ?</span>
+            <button type="button" onClick="{{ vals.validateAdded }}" data-id="{{ l.id }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.92rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:11px 20px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Valider le paiement</button>
+          </div>
+        </div>
+        </sc-if>
+        <sc-if value="{{ l.isLate }}">
+        <div style="border:1px solid var(--warning);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card);animation:fr-rise var(--dur-medium) var(--ease-enter) both">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap">
+            <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--warning)"></span>
+            <span style="min-width:120px;flex:1">
+              <span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ l.name }}</span>
+              <span style="display:block;font-size:0.875rem;color:var(--warning)">{{ l.subline }}</span>
+            </span>
+            <span style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap">{{ l.amount }}</span>
+          </div>
+          <div style="border-top:1px solid var(--line-soft);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--warning-wash)">
+            <span style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--warning)"><svg viewBox="0 0 24 24" style="width:15px;height:15px;flex-shrink:0" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Relance {{ vals.retardCanalLabel }} envoyée hier — Ranti s'en occupe</span>
+            <button type="button" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;color:var(--ink);background:var(--surface-card);border:1px solid var(--line);border-radius:var(--radius-full);padding:10px 18px;cursor:pointer;transition:background var(--dur-short) var(--ease-standard)" style-hover="background:var(--muted-surface)">Relancer à nouveau</button>
+          </div>
+        </div>
+        </sc-if>
+      </sc-for>
+    </div>
+    <sc-if value="{{ vals.allClear }}"><p style="margin:0;font-size:0.875rem;color:var(--olive)">Tout est encaissé. Rien à relancer.</p></sc-if>
+    <sc-if value="{{ vals.relanceOn }}">
+    <div data-fr-toast="{{ vals.relanceLeaving }}" style="display:flex;gap:12px;align-items:flex-start;border:1px solid var(--olive);background:var(--olive-wash);border-radius:var(--radius-lg);padding:14px 16px;transition:opacity 600ms var(--ease-standard),transform 600ms var(--ease-standard);opacity:1;animation:fr-rise var(--dur-medium) var(--ease-enter) both">
+      <span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:var(--olive);display:flex;align-items:center;justify-content:center;margin-top:1px;animation:fr-pop var(--dur-medium) var(--ease-enter) both"><svg viewBox="0 0 24 24" style="width:15px;height:15px" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="var(--paper)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:0.92rem;font-weight:600;color:var(--olive-deep)">Relance activée</span>
+        <span style="font-size:0.85rem;line-height:1.45;color:var(--ink)">Ranti enverra le message par {{ vals.relanceCanalLabel }} {{ vals.relanceMomentLabel }}. Vous n'avez plus rien à faire.</span>
+      </div>
+    </div>
+    </sc-if>
+    </sc-if>
+  </section>
+
+  <!-- Active recap -->
+  <sc-if value="{{ vals.stageActive }}">
+  <section style="border:1px solid var(--line);border-radius:var(--radius-lg);padding:22px;display:flex;flex-direction:column;gap:16px;animation:fr-rise var(--dur-medium) var(--ease-enter) .1s both">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:52px;height:52px;flex-shrink:0;border-radius:14px;background:var(--ink);display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 12px;box-sizing:border-box;animation:fr-pop var(--dur-medium) var(--ease-enter) both">
+        <span style="height:4px;border-radius:2px;background:var(--paper);transform-origin:left;animation:fr-line var(--dur-medium) var(--ease-enter) .1s both"></span>
+        <span style="height:4px;width:78%;border-radius:2px;background:var(--leaf);transform-origin:left;animation:fr-line var(--dur-medium) var(--ease-enter) .26s both"></span>
+        <span style="height:4px;width:52%;border-radius:2px;background:var(--paper);transform-origin:left;animation:fr-line var(--dur-medium) var(--ease-enter) .42s both"></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <h2 style="margin:0;font-family:var(--font-display);font-weight:800;font-size:1.4rem;letter-spacing:-0.02em;color:var(--ink-title)">Votre espace est actif.</h2>
+        <p style="margin:0;font-size:0.9rem;line-height:1.5;color:var(--ink-muted)">Un bail enregistré, un paiement validé, une quittance éditée. Tout est à jour ce mois-ci.</p>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--line-soft);padding-top:16px;display:flex;flex-direction:column;gap:12px">
+      <p style="margin:0;font-size:0.9rem;line-height:1.5;color:var(--ink)">Ajoutez un autre locataire pour suivre tous vos loyers au même endroit.</p>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <button type="button" onClick="{{ vals.addTenant }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.95rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:13px 22px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Ajouter un locataire</button>
+        <button type="button" onClick="{{ vals.restart }}" style="background:transparent;border:0;padding:6px;font-family:var(--font-sans);font-size:0.88rem;font-weight:600;color:var(--ink-muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px" style-hover="color:var(--ink)">Rejouer la prise en main</button>
+      </div>
+    </div>
+  </section>
+  </sc-if>
+
+  </sc-if>
+  <!-- ============ /ACCUEIL ============ -->
+
+  <!-- ============ ENCAISSEMENTS ============ -->
+  <sc-if value="{{ vals.viewEncaissements }}">
+  <div style="display:flex;flex-direction:column;gap:clamp(22px,3vw,30px)">
+    <div style="display:flex;border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card)">
+      <div style="flex:1;min-width:0;padding:clamp(12px,2.5vw,18px) clamp(12px,2.5vw,20px);display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:0.78rem;font-weight:500;color:var(--ink-muted)">Payé</span>
+        <sc-if value="{{ vals.allPaidPos }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--olive-deep)">{{ vals.allPaidTotal }}</span></sc-if>
+        <sc-if value="{{ vals.allPaidZero }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink-muted)">0</span></sc-if>
+      </div>
+      <div style="flex:1;min-width:0;padding:clamp(12px,2.5vw,18px) clamp(12px,2.5vw,20px);display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line)">
+        <span style="font-size:0.78rem;font-weight:500;color:var(--ink-muted)">Attendu</span>
+        <sc-if value="{{ vals.allDuePos }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink)">{{ vals.allDueTotal }}</span></sc-if>
+        <sc-if value="{{ vals.allDueZero }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink-muted)">0</span></sc-if>
+      </div>
+      <div style="flex:1;min-width:0;padding:clamp(12px,2.5vw,18px) clamp(12px,2.5vw,20px);display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line)">
+        <span style="font-size:0.78rem;font-weight:500;color:var(--ink-muted)">Retard</span>
+        <sc-if value="{{ vals.allLatePos }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--warning)">{{ vals.allLateTotal }}</span></sc-if>
+        <sc-if value="{{ vals.allLateZero }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,4.2vw,1.5rem);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--ink-muted)">0</span></sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ vals.hasAnyLease }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--ink-muted)">Loyers de juillet</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ vals.allRows }}" as="l" hint-placeholder-count="2">
+          <sc-if value="{{ l.isPaid }}">
+          <div style="border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card)">
+            <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap">
+              <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--olive)"></span>
+              <span style="min-width:120px;flex:1"><span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ l.name }}</span><span style="display:block;font-size:0.875rem;color:var(--ink-muted)">{{ l.subline }}</span></span>
+              <x-import component-from-global-scope="RantiDesignSystem_ac6719.StatusBadge" tone="confirmed" dot="{{ true }}" hint-size="120px,26px">Quittance {{ l.quittanceRef }}</x-import>
+            </div>
+            <div style="border-top:1px solid var(--line-soft);padding:12px 20px;display:flex;justify-content:flex-end;background:var(--muted-surface)">
+              <button type="button" onClick="{{ vals.openQuittance }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;color:var(--olive);background:transparent;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px" style-hover="color:var(--olive-deep)">Voir la quittance</button>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ l.isDue }}">
+          <div style="border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card)">
+            <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap">
+              <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--olive)"></span>
+              <span style="min-width:120px;flex:1"><span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ l.name }}</span><span style="display:block;font-size:0.875rem;color:var(--ink-muted)">{{ l.subline }}</span></span>
+              <span style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap">{{ l.amount }}</span>
+            </div>
+            <div style="border-top:1px solid var(--line-soft);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--muted-surface)">
+              <span style="font-size:0.85rem;color:var(--ink-muted)">Vous avez encaissé ce loyer ?</span>
+              <button type="button" onClick="{{ vals.validateRow }}" data-id="{{ l.id }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.92rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:11px 20px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Valider le paiement</button>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ l.isLate }}">
+          <div style="border:1px solid var(--warning);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card)">
+            <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap">
+              <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--warning)"></span>
+              <span style="min-width:120px;flex:1"><span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ l.name }}</span><span style="display:block;font-size:0.875rem;color:var(--warning)">{{ l.subline }}</span></span>
+              <span style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap">{{ l.amount }}</span>
+            </div>
+            <div style="border-top:1px solid var(--line-soft);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--warning-wash)">
+              <span style="font-size:0.85rem;color:var(--warning)">Échéance dépassée — encaissez ou relancez.</span>
+              <button type="button" onClick="{{ vals.validateRow }}" data-id="{{ l.id }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.92rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:11px 20px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Valider le paiement</button>
+            </div>
+          </div>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ vals.noAnyLease }}">
+    <div style="border:1px dashed var(--line);border-radius:var(--radius-lg);padding:clamp(24px,4vw,30px) 24px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <span style="font-family:var(--font-display);font-weight:700;font-size:1.1rem;color:var(--ink-title)">Aucun encaissement pour l'instant.</span>
+        <span style="font-size:0.9rem;line-height:1.5;color:var(--ink-muted)">Créez un bail : les échéances apparaîtront ici, prêtes à encaisser.</span>
+      </div>
+      <button type="button" onClick="{{ vals.createLease }}" style="display:inline-flex;align-items:center;gap:10px;font-family:var(--font-sans);font-size:1rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:14px 26px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Créer un bail</button>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+  <!-- ============ /ENCAISSEMENTS ============ -->
+
+  <!-- ============ RELANCES ============ -->
+  <sc-if value="{{ vals.viewRelances }}">
+  <div style="display:flex;flex-direction:column;gap:clamp(22px,3vw,30px)">
+    <section style="border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-card);box-shadow:var(--shadow-cta);overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;padding:20px 22px">
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+          <h2 style="margin:0;font-family:var(--font-display);font-weight:700;font-size:1.15rem;letter-spacing:-0.01em;color:var(--ink-title)">Relance automatique</h2>
+          <sc-if value="{{ vals.relanceActive }}"><p style="margin:0;font-size:0.85rem;color:var(--ink-muted)">Ranti relance par {{ vals.relanceCanalLabel }} {{ vals.momentLabel }}.</p></sc-if>
+          <sc-if value="{{ vals.relanceInactive }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:0.85rem;color:var(--ink-muted)">Désactivée — vous relancez à la main.</p></sc-if>
+        </div>
+        <sc-if value="{{ vals.relanceActive }}"><button type="button" onClick="{{ vals.toggleRelance }}" role="switch" aria-checked="true" style="width:46px;height:26px;border-radius:999px;border:0;cursor:pointer;background:var(--olive);position:relative;flex-shrink:0;transition:background var(--dur-short) var(--ease-standard)"><span style="position:absolute;top:3px;left:23px;width:20px;height:20px;border-radius:999px;background:var(--paper);transition:left var(--dur-short) var(--ease-standard)"></span></button></sc-if>
+        <sc-if value="{{ vals.relanceInactive }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ vals.toggleRelance }}" role="switch" aria-checked="false" style="width:46px;height:26px;border-radius:999px;border:0;cursor:pointer;background:var(--line);position:relative;flex-shrink:0;transition:background var(--dur-short) var(--ease-standard)"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:999px;background:var(--surface-card);transition:left var(--dur-short) var(--ease-standard)"></span></button></sc-if>
+      </div>
+      <sc-if value="{{ vals.relanceActive }}">
+      <div style="border-top:1px solid var(--line-soft);padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:0.8rem;font-weight:600;color:var(--ink)">Canal</span>
+          <div style="display:flex;gap:10px">
+            <sc-if value="{{ vals.settingsCanalWa }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ vals.setCanalWa }}" style="flex:1;padding:11px;border-radius:var(--radius-md);cursor:pointer;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;border:1.5px solid var(--olive);background:var(--olive-wash);color:var(--olive-deep)">WhatsApp</button></sc-if>
+            <sc-if value="{{ vals.settingsCanalSms }}"><button type="button" onClick="{{ vals.setCanalWa }}" style="flex:1;padding:11px;border-radius:var(--radius-md);cursor:pointer;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;border:1.5px solid var(--line);background:var(--surface-card);color:var(--ink-muted)">WhatsApp</button></sc-if>
+            <sc-if value="{{ vals.settingsCanalSms }}"><button type="button" onClick="{{ vals.setCanalSms }}" style="flex:1;padding:11px;border-radius:var(--radius-md);cursor:pointer;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;border:1.5px solid var(--olive);background:var(--olive-wash);color:var(--olive-deep)">SMS</button></sc-if>
+            <sc-if value="{{ vals.settingsCanalWa }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ vals.setCanalSms }}" style="flex:1;padding:11px;border-radius:var(--radius-md);cursor:pointer;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;border:1.5px solid var(--line);background:var(--surface-card);color:var(--ink-muted)">SMS</button></sc-if>
+          </div>
+        </div>
+        <div style="border:1px solid var(--line-soft);background:var(--muted-surface);border-radius:var(--radius-md);padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:0.72rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--ink-muted)">Aperçu {{ vals.relanceCanalLabel }}</span>
+          <span style="font-size:0.88rem;line-height:1.5;color:var(--ink)">Bonjour, votre loyer arrive à échéance. Merci de régler dès que possible. — Florentine (via Ranti)</span>
+        </div>
+      </div>
+      </sc-if>
+    </section>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--ink-muted)">À relancer</h2>
+      <sc-if value="{{ vals.hasLate }}">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ vals.lateRows }}" as="l" hint-placeholder-count="1">
+          <div style="border:1px solid var(--warning);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-card)">
+            <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;flex-wrap:wrap">
+              <span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--warning)"></span>
+              <span style="min-width:120px;flex:1"><span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ l.name }}</span><span style="display:block;font-size:0.875rem;color:var(--warning)">{{ l.subline }}</span></span>
+              <span style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap">{{ l.amount }}</span>
+            </div>
+            <div style="border-top:1px solid var(--line-soft);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--warning-wash)">
+              <span style="font-size:0.85rem;color:var(--warning)">Relance {{ vals.relanceCanalLabel }} prête à partir.</span>
+              <button type="button" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:10px 18px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Relancer maintenant</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{ vals.noLate }}" hint-placeholder-val="{{ true }}">
+      <div style="border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-card);padding:clamp(22px,4vw,28px) 24px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center">
+        <span style="width:40px;height:40px;border-radius:999px;background:var(--olive-wash);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:20px;height:20px" aria-hidden="true"><path d="M5 12.5l4 4 10-10" fill="none" stroke="var(--olive-deep)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span style="font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--ink-title)">Aucun loyer en retard.</span>
+        <span style="font-size:0.9rem;line-height:1.5;color:var(--ink-muted)">Rien à relancer pour l'instant. Ranti veille et vous préviendra.</span>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+  <!-- ============ /RELANCES ============ -->
+
+  <!-- ============ BAUX ============ -->
+  <sc-if value="{{ vals.viewBaux }}">
+  <div style="display:flex;flex-direction:column;gap:clamp(22px,3vw,30px)">
+    <sc-if value="{{ vals.hasAnyLease }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <h2 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--ink-muted)">{{ vals.leaseCount }} bail suivi</h2>
+        <button type="button" onClick="{{ vals.addTenant }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;color:var(--ink);background:var(--surface-card);border:1px solid var(--line);border-radius:var(--radius-full);padding:9px 16px;cursor:pointer;transition:background var(--dur-short) var(--ease-standard)" style-hover="background:var(--muted-surface)">+ Locataire</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ vals.allRows }}" as="l" hint-placeholder-count="2">
+          <div style="border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-card);padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <sc-if value="{{ l.isPaid }}"><span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--olive)"></span></sc-if>
+            <sc-if value="{{ l.isDue }}"><span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--ink-muted)"></span></sc-if>
+            <sc-if value="{{ l.isLate }}"><span style="width:10px;height:10px;border-radius:999px;flex-shrink:0;background:var(--warning)"></span></sc-if>
+            <span style="min-width:120px;flex:1"><span style="display:block;font-size:1.05rem;font-weight:500;color:var(--ink)">{{ l.name }}</span><span style="display:block;font-size:0.875rem;color:var(--ink-muted)">{{ l.home }} · {{ l.amount }}</span></span>
+            <sc-if value="{{ l.isPaid }}"><span style="flex-shrink:0;font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--olive-wash);color:var(--olive-deep)">{{ l.statusLabel }}</span></sc-if>
+            <sc-if value="{{ l.isDue }}"><span style="flex-shrink:0;font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--muted-surface);color:var(--ink-muted)">{{ l.statusLabel }}</span></sc-if>
+            <sc-if value="{{ l.isLate }}"><span style="flex-shrink:0;font-size:0.78rem;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--warning-wash);color:var(--warning)">{{ l.statusLabel }}</span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ vals.noAnyLease }}">
+    <div style="border:1px dashed var(--line);border-radius:var(--radius-lg);padding:clamp(24px,4vw,30px) 24px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <span style="font-family:var(--font-display);font-weight:700;font-size:1.1rem;color:var(--ink-title)">Aucun bail enregistré.</span>
+        <span style="font-size:0.9rem;line-height:1.5;color:var(--ink-muted)">Enregistrez un logement et son occupant pour démarrer le suivi des loyers.</span>
+      </div>
+      <button type="button" onClick="{{ vals.createLease }}" style="display:inline-flex;align-items:center;gap:10px;font-family:var(--font-sans);font-size:1rem;font-weight:600;color:var(--accent-foreground);background:var(--olive);box-shadow:var(--shadow-cta);border:0;border-radius:var(--radius-full);padding:14px 26px;cursor:pointer;transition:filter var(--dur-short) var(--ease-standard)" style-hover="filter:brightness(1.06)">Créer un bail</button>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+  <!-- ============ /BAUX ============ -->
+
+  <!-- ============ PARAMÈTRES ============ -->
+  <sc-if value="{{ vals.viewParametres }}">
+  <div style="display:flex;flex-direction:column;gap:clamp(18px,2.5vw,24px)">
+    <div style="border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-card);padding:20px 22px;display:flex;align-items:center;gap:16px">
+      <span style="width:52px;height:52px;flex-shrink:0;border-radius:999px;background:var(--olive-wash);color:var(--olive-deep);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:1.15rem">FD</span>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+        <span style="font-family:var(--font-display);font-weight:700;font-size:1.15rem;color:var(--ink-title)">Florentine Dossou</span>
+        <span style="font-size:0.875rem;color:var(--ink-muted)">Propriétaire · Cotonou</span>
+      </div>
+    </div>
+
+    <section style="border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-card);overflow:hidden">
+      <div style="padding:16px 22px;border-bottom:1px solid var(--line-soft)"><h2 style="margin:0;font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--ink-title)">Relances</h2></div>
+      <div style="padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px;border-bottom:1px solid var(--line-soft)">
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:0.95rem;font-weight:500;color:var(--ink)">Relances automatiques</span><span style="font-size:0.82rem;color:var(--ink-muted)">Ranti relance seul les loyers en retard</span></div>
+        <sc-if value="{{ vals.relanceActive }}"><button type="button" onClick="{{ vals.toggleRelance }}" role="switch" aria-checked="true" style="width:46px;height:26px;border-radius:999px;border:0;cursor:pointer;background:var(--olive);position:relative;flex-shrink:0;transition:background var(--dur-short) var(--ease-standard)"><span style="position:absolute;top:3px;left:23px;width:20px;height:20px;border-radius:999px;background:var(--paper);transition:left var(--dur-short) var(--ease-standard)"></span></button></sc-if>
+        <sc-if value="{{ vals.relanceInactive }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ vals.toggleRelance }}" role="switch" aria-checked="false" style="width:46px;height:26px;border-radius:999px;border:0;cursor:pointer;background:var(--line);position:relative;flex-shrink:0;transition:background var(--dur-short) var(--ease-standard)"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:999px;background:var(--surface-card);transition:left var(--dur-short) var(--ease-standard)"></span></button></sc-if>
+      </div>
+      <div style="padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+        <span style="font-size:0.95rem;font-weight:500;color:var(--ink)">Canal préféré</span>
+        <div style="display:flex;gap:8px">
+          <sc-if value="{{ vals.settingsCanalWa }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ vals.setCanalWa }}" style="padding:8px 16px;border-radius:999px;cursor:pointer;font-family:var(--font-sans);font-size:0.85rem;font-weight:600;border:1.5px solid var(--olive);background:var(--olive-wash);color:var(--olive-deep)">WhatsApp</button></sc-if>
+          <sc-if value="{{ vals.settingsCanalSms }}"><button type="button" onClick="{{ vals.setCanalWa }}" style="padding:8px 16px;border-radius:999px;cursor:pointer;font-family:var(--font-sans);font-size:0.85rem;font-weight:600;border:1.5px solid var(--line);background:var(--surface-card);color:var(--ink-muted)">WhatsApp</button></sc-if>
+          <sc-if value="{{ vals.settingsCanalSms }}"><button type="button" onClick="{{ vals.setCanalSms }}" style="padding:8px 16px;border-radius:999px;cursor:pointer;font-family:var(--font-sans);font-size:0.85rem;font-weight:600;border:1.5px solid var(--olive);background:var(--olive-wash);color:var(--olive-deep)">SMS</button></sc-if>
+          <sc-if value="{{ vals.settingsCanalWa }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ vals.setCanalSms }}" style="padding:8px 16px;border-radius:999px;cursor:pointer;font-family:var(--font-sans);font-size:0.85rem;font-weight:600;border:1.5px solid var(--line);background:var(--surface-card);color:var(--ink-muted)">SMS</button></sc-if>
+        </div>
+      </div>
+    </section>
+
+    <section style="border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-card);overflow:hidden">
+      <div style="padding:16px 22px;border-bottom:1px solid var(--line-soft)"><h2 style="margin:0;font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--ink-title)">Compte</h2></div>
+      <div style="padding:15px 22px;display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line-soft)"><span style="font-size:0.9rem;color:var(--ink-muted)">Langue</span><span style="font-size:0.9rem;font-weight:500;color:var(--ink)">Français</span></div>
+      <div style="padding:15px 22px;display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line-soft)"><span style="font-size:0.9rem;color:var(--ink-muted)">Devise</span><span style="font-size:0.9rem;font-weight:500;color:var(--ink)">Franc CFA (FCFA)</span></div>
+      <div style="padding:15px 22px;display:flex;justify-content:space-between;gap:16px"><span style="font-size:0.9rem;color:var(--ink-muted)">Offre</span><span style="font-size:0.9rem;font-weight:500;color:var(--ink)">Ranti Essentiel</span></div>
+    </section>
+
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <button type="button" onClick="{{ vals.restart }}" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:0.9rem;font-weight:600;color:var(--ink);background:var(--surface-card);border:1px solid var(--line);border-radius:var(--radius-full);padding:11px 20px;cursor:pointer;transition:background var(--dur-short) var(--ease-standard)" style-hover="background:var(--muted-surface)">Rejouer la prise en main</button>
+    </div>
+  </div>
+  </sc-if>
+  <!-- ============ /PARAMÈTRES ============ -->
+
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:620,&quot;height&quot;:760}}"></script>
+</body>
+</html>

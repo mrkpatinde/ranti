@@ -1,0 +1,20 @@
+/* Ranti elevation & motion — ombres discrètes, chaudes (teintées encre), pas
+   de halo coloré. Motion minimal-fonctionnel : rien qui rebondit. */
+:root {
+  /* Ombres */
+  --shadow-menu: 0 4px 12px -6px rgba(41, 41, 41, 0.12);   /* menus / popovers */
+  --shadow-card: 0 14px 50px -18px rgba(41, 41, 41, 0.22); /* cards preuve */
+  --shadow-proof: 0 24px 80px -28px rgba(41, 41, 41, 0.32);/* quittance / LCP */
+  --shadow-cta: 0 6px 16px -6px rgba(91, 111, 0, 0.45);    /* CTA olive au repos */
+  --shadow-cta-hover: 0 16px 34px -12px rgba(91, 111, 0, 0.55);
+
+  /* Courbes d'animation */
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1); /* @kind other */ /* ease-out doux (lp-rise) */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+
+  /* Durées */
+  --dur-micro: 80ms;  /* @kind other */
+  --dur-short: 200ms; /* @kind other */
+  --dur-medium: 320ms;/* @kind other */
+  --dur-long: 600ms;  /* @kind other */
+}
