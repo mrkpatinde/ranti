@@ -62,6 +62,10 @@
 }
 
 :root {
+  /* Palette claire uniquement : le design fait foi = design_handoff_first_run/
+     (crème), aucun mode sombre. color-scheme: light fige le rendu clair
+     (contrôles de formulaire, ascenseurs) même sur un appareil en mode sombre. */
+  color-scheme: light;
   --background: 60 24% 96%; /* #f7f7f2 — papier crème DA (décision CEO
      2026-07-17 : les couleurs de direction-artistique.html font foi,
      supersède le patch terrain #f9f8f6 du 2026-07-16) */
@@ -96,105 +100,11 @@
   --radius: 1rem; /* 16px — rayon standard des cartes */
 }
 
-/* Variante sombre = palette sombre de direction-artistique.html (papier
-   #17171a, surfaces #1f1f22, encre #eceae3, olive éclairci #aebd4a). */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 240 6% 10%; /* #17171a — papier sombre DA */
-    --foreground: 47 19% 91%; /* #eceae3 — encre corps DA */
-    --card: 240 5% 13%; /* #1f1f22 — surface carte DA */
-    --card-foreground: 47 19% 91%;
-    --border: 240 5% 22%; /* #34343a — filet DA */
-    --input: 240 5% 22%;
-    --ring: 70 74% 32%; /* #788c15 — anneau de focus DA dark */
-    --primary: 50 21% 95%; /* #f4f3ee — encre titres DA (boutons inversés) */
-    --primary-foreground: 240 6% 10%; /* #17171a */
-    --secondary: 72 22% 13%; /* #26291a — wash olive sombre DA */
-    --secondary-foreground: 68 58% 71%; /* #d4e08a — olive-deep sombre DA */
-    --muted: 240 5% 15%; /* #232327 — surface atténuée DA */
-    --muted-foreground: 60 2% 62%; /* #9e9e99 — encre atténuée DA */
-    --accent: 68 47% 52%; /* #aebd4a — olive éclairci DA */
-    --accent-foreground: 240 6% 10%; /* #17171a — contraste AA sur olive */
-    --popover: 240 5% 13%;
-    --popover-foreground: 47 19% 91%;
-    --destructive: 11 83% 65%; /* #f0785c — erreur éclaircie DA */
-    --destructive-foreground: 240 6% 10%;
-    --warning: 12 77% 75%; /* #f0a08c — retard/attention éclairci DA */
-    --warning-foreground: 240 6% 10%;
-    --ink-title: 50 21% 95%; /* #f4f3ee — encre titres claire DA */
-    --olive-deep: 68 58% 71%; /* #d4e08a — olive-deep sombre DA */
-    --olive-chip: 73 23% 16%; /* #2f3320 — chip olive sombre DA (halo) */
-    --warning-wash: 12 35% 17%; /* #3a221c — fond retard sombre DA */
-    --surface-2: 240 5% 15%; /* #232327 — surface haute sombre DA */
-    --line-soft: 240 7% 18%; /* #2a2a30 — filet doux sombre DA */
-  }
-}
-
-/* Force le thème clair sur un sous-arbre (documents publics « papier » : la
-   quittance locataire /recu doit rester crème, jamais inversée en dark sur un
-   téléphone en mode sombre). Les variables résolvent depuis l'ancêtre le plus
-   proche : redéclarées ici sur le conteneur, elles priment sur le :root dark. */
-.force-light {
-  color-scheme: light;
-  --background: 60 24% 96%;
-  --foreground: 0 0% 16%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 16%;
-  --border: 60 3% 83%;
-  --input: 60 3% 83%;
-  --ring: 68 50% 52%;
-  --primary: 0 0% 16%;
-  --primary-foreground: 60 40% 98%;
-  --secondary: 71 54% 92%;
-  --secondary-foreground: 0 0% 16%;
-  --muted: 60 19% 94%;
-  --muted-foreground: 60 2% 44%;
-  --accent: 71 100% 22%;
-  --accent-foreground: 60 40% 98%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 16%;
-  --destructive: 11 80% 58%;
-  --destructive-foreground: 0 0% 100%;
-  --warning: 11 59% 46%;
-  --warning-foreground: 60 40% 98%;
-  --ink-title: 36 8% 12%;
-  --olive-deep: 71 100% 15%;
-  --olive-chip: 70 41% 86%;
-  --warning-wash: 11 100% 94%;
-  --surface-2: 60 40% 98%;
-  --line-soft: 53 14% 88%;
-  /* Réémet les alias @theme sur ce sous-arbre : ils sont résolus là où ils
-     sont déclarés (piège CSS var), donc les redéclarer ici les fait
-     re-résoudre sur les tokens clairs ci-dessus (sinon les utilitaires bg
-     et text restent sombres). */
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-warning: hsl(var(--warning));
-  --color-warning-foreground: hsl(var(--warning-foreground));
-  --color-ink-title: hsl(var(--ink-title));
-  --color-olive-deep: hsl(var(--olive-deep));
-  --color-olive-chip: hsl(var(--olive-chip));
-  --color-warning-wash: hsl(var(--warning-wash));
-  --color-surface-2: hsl(var(--surface-2));
-  --color-line-soft: hsl(var(--line-soft));
-}
+/* Pas de mode sombre. Le design de Ranti fait foi = design_handoff_first_run/
+   (palette crème claire uniquement). L'ancien bloc @media (prefers-color-scheme:
+   dark) venait de direction-artistique.html (hors handoff) et rendait de travers
+   sur mobile en mode sombre (aucune variante « dark: » stylée dans l'app).
+   Retiré : color-scheme: light sur :root fige le rendu clair partout. */
 
 @layer base {
   * {

@@ -96,7 +96,7 @@ export default async function RecuPage({
   const isDisputed = receipt.tenant_ack === "disputed";
 
   return (
-    <main className="force-light mx-auto flex min-h-screen w-full max-w-md flex-col items-stretch bg-background px-4 py-10 [font-variant-numeric:tabular-nums] sm:py-14">
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col items-stretch bg-background px-4 py-10 [font-variant-numeric:tabular-nums] sm:py-14">
       {/* En-tête : marque + lien vérifié (pas de kicker majuscule - DESIGN.md) */}
       <header className="mb-5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
