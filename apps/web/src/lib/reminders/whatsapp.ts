@@ -22,6 +22,23 @@ export interface ReminderNotice {
    * déclare son paiement. Absente si l'échéance n'a pas de jeton.
    */
   confirmUrl?: string | null
+  /**
+   * Nom du propriétaire, fourni UNIQUEMENT au tout premier message envoyé à ce
+   * locataire : Ranti se présente et explique le processus avant le rappel
+   * (décision 2026-07-18). null/absent = locataire déjà contacté.
+   */
+  introFrom?: string | null
+}
+
+// Présentation de Ranti au tout premier contact : qui parle, pour qui, et la
+// règle d'or non-custodiale (les paiements restent directs).
+export function buildFirstContactIntro(landlordName: string): string {
+  return (
+    `Je suis Ranti, le registre de loyer qu'utilise ${landlordName} pour tenir ` +
+    `vos quittances. Je vous transmets ses rappels et vos quittances à ` +
+    `confirmer. Vos paiements restent directs entre vous et votre ` +
+    `propriétaire : Ranti ne touche jamais l'argent. `
+  )
 }
 
 function frDate(dateStr: string): string {
@@ -46,7 +63,8 @@ function frMonth(dateStr: string): string {
 // préparé, jamais une paraphrase.
 export function buildReminderMessage(input: Omit<ReminderNotice, "phone">): string {
   const name = input.tenantName?.trim()
-  const greeting = name ? `Bonjour ${name}, ` : "Bonjour, "
+  const intro = input.introFrom ? buildFirstContactIntro(input.introFrom) : ""
+  const greeting = (name ? `Bonjour ${name}, ` : "Bonjour, ") + intro
   const montant = formatFcfa(input.amount)
 
   const confirmUrl = input.confirmUrl?.trim()

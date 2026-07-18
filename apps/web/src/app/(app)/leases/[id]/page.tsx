@@ -169,6 +169,12 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
           confirmUrl: relanceDue.confirmation_token
             ? `${publicUrl}/confirmer/${relanceDue.confirmation_token}`
             : null,
+          // Tout premier message à ce locataire : Ranti se présente et
+          // explique le processus (décision 2026-07-18).
+          introFrom:
+            reminders.length === 0
+              ? `${landlord.first_name} ${landlord.last_name}`.trim()
+              : null,
         })
       : null
 

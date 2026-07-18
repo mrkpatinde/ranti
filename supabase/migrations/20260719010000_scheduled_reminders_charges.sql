@@ -83,6 +83,15 @@ select
   sr.created_at,
   'loyer'::text as kind,
   null::text as charge_label,
+  -- Tout premier contact de Ranti avec ce locataire : l'operateur DOIT ouvrir
+  -- par la presentation de Ranti et du processus (decision 2026-07-18).
+  (not exists (
+     select 1 from public.reminders rm
+     join public.rent_dues rd2 on rd2.id = rm.rent_due_id
+     where rd2.tenant_id = rd.tenant_id
+   ) and not exists (
+     select 1 from public.reminder_events ev where ev.tenant_id = rd.tenant_id
+   )) as first_contact,
   l.phone as landlord_phone,
   concat_ws(' ', l.first_name, l.last_name) as landlord_name,
   t.phone as tenant_phone,
@@ -112,6 +121,13 @@ select
   sr.created_at,
   'charge'::text as kind,
   tx.label as charge_label,
+  (not exists (
+     select 1 from public.reminders rm
+     join public.rent_dues rd2 on rd2.id = rm.rent_due_id
+     where rd2.tenant_id = le.tenant_id
+   ) and not exists (
+     select 1 from public.reminder_events ev where ev.tenant_id = le.tenant_id
+   )) as first_contact,
   l.phone as landlord_phone,
   concat_ws(' ', l.first_name, l.last_name) as landlord_name,
   t.phone as tenant_phone,

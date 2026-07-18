@@ -14,6 +14,7 @@ export type ReminderWithContext = {
   status: "sent" | "delivered" | "failed"
   rent_due: {
     id: string
+    tenant_id: string
     due_date: string
     period_start: string
     period_end: string
@@ -25,7 +26,7 @@ export type ReminderWithContext = {
 }
 
 const RENT_DUE_SELECT =
-  "id, due_date, period_start, period_end, amount_due, status, tenant:tenants(first_name, last_name), unit:units(name)"
+  "id, tenant_id, due_date, period_start, period_end, amount_due, status, tenant:tenants(first_name, last_name), unit:units(name)"
 
 // Les types ranti-ops vers les fenêtres affichées côté propriétaire.
 const OPS_TYPE_TO_TEMPLATE: Record<string, string> = {

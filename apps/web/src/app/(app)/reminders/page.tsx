@@ -125,6 +125,12 @@ export default async function RemindersPage({
       }),
   ]
 
+  // Locataires déjà contactés par Ranti (au moins une relance tracée) : le
+  // tout premier message se présente et explique le processus.
+  const contactedTenants = new Set(
+    reminders.map((r) => r.rent_due?.tenant_id).filter((id): id is string => Boolean(id)),
+  )
+
   const now = new Date()
   const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
 
@@ -281,6 +287,9 @@ export default async function RemindersPage({
                     amount: Math.max(0, due.amount_due - due.amount_paid),
                     dueDate: due.due_date,
                     late: r.late,
+                    introFrom: contactedTenants.has(r.tenantId)
+                      ? null
+                      : `${landlord.first_name} ${landlord.last_name}`.trim(),
                   })
                   if (!wa) return null
                   return (
