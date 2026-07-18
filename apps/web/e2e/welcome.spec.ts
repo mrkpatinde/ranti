@@ -5,9 +5,12 @@ test("landing shows the primary call to action", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /Le registre de loyer des propriétaires africains/ }),
   ).toBeVisible()
-  await expect(page.getByRole("link", { name: "Gérer vos loyers" }).first()).toBeVisible()
+  // CTA au-dessus de la ligne de flottaison (bouton du form signInWithGoogle)
+  // + entrée connexion (handoff §8).
+  await expect(page.getByRole("button", { name: "Commencer avec Google" }).first()).toBeVisible()
   await expect(page.getByRole("link", { name: "Se connecter" }).first()).toBeVisible()
-  await expect(page.getByText("3 mois gratuits").first()).toBeVisible()
+  // Micro-preuve du tarif ADR-024 (« 3 mois gratuits » banni depuis v0.3.27.0).
+  await expect(page.getByText("Gratuit pour un logement").first()).toBeVisible()
 })
 
 test("the demo verification page is static and honest about being an example", async ({ page }) => {
@@ -18,17 +21,14 @@ test("the demo verification page is static and honest about being an example", a
   await expect(page.getByText("Document authentique", { exact: true })).toHaveCount(0)
 })
 
-test("the landing shows the quittance; the document verifies, the caption converts", async ({ page }) => {
+test("the landing shows the real product, not a generic mockup", async ({ page }) => {
+  // Handoff §8 : l'aperçu produit reflète le VRAI dashboard (« Bonjour
+  // Florentine », bandeau Payé/Attendu, CTA « Confirmer un paiement »),
+  // dans la section « Comment ça marche ».
   await page.goto("/")
-  await expect(page.getByRole("img", { name: /Quittance de loyer Ranti/ })).toBeVisible()
-  // Le document lui-même reste cliquable vers sa vérification (preuve).
-  await expect(
-    page.getByRole("link", { name: /Vérifier cette quittance d'exemple en ligne/ }),
-  ).toHaveAttribute("href", "/verifier/demo")
-  // La légende convertit : « Créer votre compte » mène à l'inscription.
-  await expect(
-    page.getByRole("link", { name: /Créer votre compte/ }),
-  ).toHaveAttribute("href", "/signup")
+  await expect(page.getByRole("heading", { name: "Comment ça marche" })).toBeVisible()
+  await expect(page.getByText("Bonjour Florentine")).toBeVisible()
+  await expect(page.getByText("Confirmer un paiement")).toBeVisible()
 })
 
 test("signup offers Google only", async ({ page }) => {
