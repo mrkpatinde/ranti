@@ -1,12 +1,36 @@
-// Modales du portage FirstRun (FirstRun.dc.html) : nouveau bail, valider un
-// paiement, activation de relance, centre d'aide, quittance. Etat local via
-// dispatch. Copy des tirets cadratins remplaces par virgule / deux-points
-// (regle section 2 du CLAUDE.md handoff).
+"use client"
 
+// Modales du parcours FirstRun cablees a la base (phase 3) : nouveau bail (cree
+// un vrai bail + echeances), valider un paiement (encaissement + quittance
+// reelle), activation de relance (persistee), centre d'aide, quittance reelle.
+// Aucun tiret cadratin (regle section 2 du CLAUDE.md handoff). Aucune valeur
+// inventee : la quittance n'affiche que ce que le serveur renvoie (sec. 11).
+
+import { useState } from "react"
 import {
-  SEED, type Action, type State, oliveCta, ghostBtn, inputStyle, fieldLabel,
+  type Action, type State, type PayTarget, oliveCta, ghostBtn, inputStyle, fieldLabel,
   fieldLabelSpan, CloseIcon, Wordmark, DefRow, ModalScrim,
 } from "./shared"
+import { useFirstRun } from "./context"
+
+// Types de logement (valeurs UNIT_TYPES) avec libelles FR, repris tels quels de
+// /leases/new (aucune divergence de vocabulaire).
+const UNIT_TYPE_OPTIONS = [
+  { value: "room", label: "Chambre" },
+  { value: "apartment", label: "Appartement" },
+  { value: "house", label: "Maison" },
+  { value: "shop", label: "Boutique" },
+  { value: "store", label: "Magasin" },
+  { value: "office", label: "Bureau" },
+  { value: "warehouse", label: "Entrepôt" },
+  { value: "other", label: "Autre" },
+]
+
+const PAYMENT_METHODS = [
+  { value: "cash", label: "Espèces" },
+  { value: "mobile_money", label: "Mobile Money" },
+  { value: "bank_transfer", label: "Virement bancaire" },
+]
 
 function DialogStepper({ index, total }: { index: number; total: number }) {
   return (
@@ -45,33 +69,112 @@ const modalCard: React.CSSProperties = {
   animation: "fr-rise var(--dur-medium) var(--ease-enter) both",
 }
 
+// Encart d'erreur inline (reseau instable, terrain Android) : le message revient
+// dans la modale, la saisie n'est jamais perdue.
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div role="alert" style={{ border: "1px solid var(--warning)", background: "var(--warning-wash)", color: "var(--warning)", borderRadius: "var(--radius-md)", padding: "11px 14px", fontSize: "0.85rem", lineHeight: 1.4 }}>{message}</div>
+  )
+}
+
+const groupLabel: React.CSSProperties = { fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-muted)" }
+
+function fieldValue(form: HTMLFormElement, name: string): string {
+  const el = form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null
+  return el?.value?.trim() ?? ""
+}
+
 export function NouveauBailModal({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
+  const { createBail } = useFirstRun()
   const first = state.formMode === "first"
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  // Cle d'idempotence stable par ouverture de modale (#167) : un renvoi apres
+  // timeout ne cree jamais un bail en double.
+  const [requestId] = useState(() => crypto.randomUUID())
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const el = e.currentTarget.elements as unknown as Record<string, HTMLInputElement>
-    dispatch({
-      type: "save-tenant",
-      name: (el.occupant?.value || "").trim() || SEED.locataire,
-      home: (el.logement?.value || "").trim() || SEED.logement,
-      amount: (el.loyer?.value || "").trim() || SEED.montant,
+    if (pending) return
+    const f = e.currentTarget
+    setError(null)
+    setPending(true)
+    const res = await createBail({
+      propertyName: fieldValue(f, "property_name"),
+      propertyCity: fieldValue(f, "property_city"),
+      unitName: fieldValue(f, "unit_name"),
+      unitType: fieldValue(f, "unit_type"),
+      firstName: fieldValue(f, "first_name"),
+      lastName: fieldValue(f, "last_name"),
+      phone: fieldValue(f, "phone"),
+      email: fieldValue(f, "email"),
+      monthlyRentAmount: fieldValue(f, "monthly_rent_amount"),
+      dueDay: fieldValue(f, "due_day"),
+      startDate: fieldValue(f, "start_date"),
+      requestId,
     })
+    if (res.ok) {
+      dispatch({
+        type: "save-tenant",
+        name: res.tenantName,
+        home: res.unitLabel,
+        amount: res.amountLabel,
+        refs: { leaseId: res.leaseId, unitId: res.unitId, tenantId: res.tenantId, dueId: res.dueId, dueAmount: res.dueAmount },
+      })
+    } else {
+      setError(res.error)
+      setPending(false)
+    }
   }
+
   return (
     <ModalScrim>
       <form onSubmit={onSubmit} onClick={(e) => e.stopPropagation()} style={modalCard}>
         {first && <DialogStepper index={0} total={state.includeReminder ? 4 : 3} />}
         <ModalHeader title="Nouveau bail" sub="Ranti génère les échéances à partir de ces informations." onClose={() => dispatch({ type: "close-tenant-form" })} />
-        <div style={{ padding: "22px 26px", display: "flex", flexDirection: "column", gap: 16 }}>
-          <label style={fieldLabel}><span style={fieldLabelSpan}>Occupant</span><input name="occupant" type="text" placeholder="Nom du locataire" className="fr-in" style={inputStyle} /></label>
-          <label style={fieldLabel}><span style={fieldLabelSpan}>Logement</span><input name="logement" type="text" placeholder="Ex. Studio, Akpakpa" className="fr-in" style={inputStyle} /></label>
-          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Loyer mensuel</span><input name="loyer" type="text" inputMode="numeric" placeholder="100 000 FCFA" className="fr-in" style={inputStyle} /></label>
-            <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Jour d&apos;échéance</span><input name="jour" type="text" inputMode="numeric" placeholder="5 du mois" className="fr-in" style={inputStyle} /></label>
+        <div style={{ padding: "22px 26px", display: "flex", flexDirection: "column", gap: 18, maxHeight: "56vh", overflowY: "auto" }}>
+          {error && <ErrorBanner message={error} />}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <span style={groupLabel}>Lieu</span>
+            <label style={fieldLabel}><span style={fieldLabelSpan}>Nom du lieu</span><input name="property_name" type="text" placeholder="Ex. Résidence Les Cocotiers" className="fr-in" style={inputStyle} /></label>
+            <label style={fieldLabel}><span style={fieldLabelSpan}>Ville</span><input name="property_city" type="text" placeholder="Ex. Cotonou" className="fr-in" style={inputStyle} /></label>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <span style={groupLabel}>Logement</span>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Nom du logement</span><input name="unit_name" type="text" placeholder="Ex. Studio A1" className="fr-in" style={inputStyle} /></label>
+              <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Type</span>
+                <select name="unit_type" className="fr-in" style={{ ...inputStyle, cursor: "pointer" }} defaultValue="">
+                  <option value="" disabled>Choisir</option>
+                  {UNIT_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <span style={groupLabel}>Locataire</span>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Prénom</span><input name="first_name" type="text" placeholder="Prénom" className="fr-in" style={inputStyle} /></label>
+              <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Nom</span><input name="last_name" type="text" placeholder="Nom" className="fr-in" style={inputStyle} /></label>
+            </div>
+            <label style={fieldLabel}><span style={fieldLabelSpan}>Téléphone</span><input name="phone" type="tel" inputMode="tel" placeholder="+229 01 23 45 67 89" className="fr-in" style={inputStyle} /></label>
+            <label style={fieldLabel}><span style={fieldLabelSpan}>Email (facultatif)</span><input name="email" type="email" placeholder="Adresse email" className="fr-in" style={inputStyle} /></label>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <span style={groupLabel}>Bail</span>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Loyer mensuel</span><input name="monthly_rent_amount" type="text" inputMode="numeric" placeholder="100 000" className="fr-in" style={inputStyle} /></label>
+              <label style={{ ...fieldLabel, flex: 1, minWidth: 120 }}><span style={fieldLabelSpan}>Jour d&apos;échéance</span><input name="due_day" type="text" inputMode="numeric" placeholder="5" className="fr-in" style={inputStyle} /></label>
+            </div>
+            <label style={fieldLabel}><span style={fieldLabelSpan}>Date de début</span><input name="start_date" type="date" className="fr-in" style={inputStyle} /></label>
           </div>
         </div>
-        <div style={{ padding: "0 26px 24px", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <button type="submit" style={{ ...oliveCta, flex: 1, minWidth: 180, fontSize: "1rem", padding: "14px 24px" }}>Enregistrer le bail</button>
+        <div style={{ padding: "18px 26px 24px", borderTop: "1px solid var(--line-soft)", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <button type="submit" disabled={pending} style={{ ...oliveCta, flex: 1, minWidth: 180, fontSize: "1rem", padding: "14px 24px", opacity: pending ? 0.7 : 1, cursor: pending ? "wait" : "pointer" }}>{pending ? "Enregistrement…" : "Enregistrer le bail"}</button>
           <button type="button" onClick={() => dispatch({ type: "close-tenant-form" })} style={{ ...ghostBtn, fontSize: "0.95rem", padding: "14px 12px" }}>Annuler</button>
         </div>
       </form>
@@ -80,27 +183,62 @@ export function NouveauBailModal({ state, dispatch }: { state: State; dispatch: 
 }
 
 export function ValiderPaiementModal({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
+  const { recordPayment, todayIso } = useFirstRun()
+  const target: PayTarget | null = state.payTarget
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [requestId] = useState(() => crypto.randomUUID())
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (pending || !target) return
+    const f = e.currentTarget
+    setError(null)
+    setPending(true)
+    const res = await recordPayment({
+      tenantId: target.tenantId,
+      unitId: target.unitId,
+      dueId: target.dueId,
+      dueAmount: target.dueAmount,
+      amount: fieldValue(f, "montant"),
+      method: fieldValue(f, "moyen"),
+      receivedAt: fieldValue(f, "date") || null,
+      requestId,
+    })
+    if (res.ok) {
+      dispatch({ type: "save-payment", receipt: res.receipt })
+    } else {
+      setError(res.error)
+      setPending(false)
+    }
+  }
+
   return (
     <ModalScrim>
-      <form onSubmit={(e) => { e.preventDefault(); dispatch({ type: "save-payment" }) }} onClick={(e) => e.stopPropagation()} style={modalCard}>
-        <DialogStepper index={1} total={state.includeReminder ? 4 : 3} />
+      <form onSubmit={onSubmit} onClick={(e) => e.stopPropagation()} style={modalCard}>
+        {target?.kind === "primary" && <DialogStepper index={1} total={state.includeReminder ? 4 : 3} />}
         <ModalHeader title="Valider un paiement" sub="Confirmez le règlement encaissé, Ranti édite la quittance." onClose={() => dispatch({ type: "close-payment-form" })} />
         <div style={{ padding: "22px 26px", display: "flex", flexDirection: "column", gap: 16 }}>
+          {error && <ErrorBanner message={error} />}
           <div style={{ display: "flex", alignItems: "center", gap: 12, border: "1px solid var(--line-soft)", background: "var(--muted-surface)", borderRadius: "var(--radius-md)", padding: "12px 14px" }}>
             <span style={{ width: 9, height: 9, borderRadius: 999, flexShrink: 0, background: "var(--olive)" }} />
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: "block", fontSize: "0.95rem", fontWeight: 500, color: "var(--ink)" }}>{state.lease.name}</span>
-              <span style={{ display: "block", fontSize: "0.82rem", color: "var(--ink-muted)" }}>{state.lease.home}</span>
+              <span style={{ display: "block", fontSize: "0.95rem", fontWeight: 500, color: "var(--ink)" }}>{target?.name}</span>
+              <span style={{ display: "block", fontSize: "0.82rem", color: "var(--ink-muted)" }}>{target?.home}</span>
             </span>
           </div>
-          <label style={fieldLabel}><span style={fieldLabelSpan}>Montant reçu</span><input name="montant" type="text" inputMode="numeric" placeholder="100 000 FCFA" className="fr-in" style={inputStyle} /></label>
+          <label style={fieldLabel}><span style={fieldLabelSpan}>Montant reçu</span><input name="montant" type="text" inputMode="numeric" defaultValue={target && target.dueAmount > 0 ? String(target.dueAmount) : ""} placeholder="100 000" className="fr-in" style={inputStyle} /></label>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Date de réception</span><input name="date" type="date" defaultValue="2026-07-16" max="2026-07-16" className="fr-in" style={inputStyle} /></label>
-            <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Moyen</span><select name="moyen" className="fr-in" style={{ ...inputStyle, cursor: "pointer" }}><option>Espèces</option><option>Mobile Money</option><option>Virement bancaire</option></select></label>
+            <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Date de réception</span><input name="date" type="date" defaultValue={todayIso} max={todayIso} className="fr-in" style={inputStyle} /></label>
+            <label style={{ ...fieldLabel, flex: 1, minWidth: 140 }}><span style={fieldLabelSpan}>Moyen</span>
+              <select name="moyen" className="fr-in" style={{ ...inputStyle, cursor: "pointer" }} defaultValue="cash">
+                {PAYMENT_METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </label>
           </div>
         </div>
         <div style={{ padding: "0 26px 24px", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <button type="submit" style={{ ...oliveCta, flex: 1, minWidth: 180, fontSize: "1rem", padding: "14px 24px" }}>Valider le paiement</button>
+          <button type="submit" disabled={pending} style={{ ...oliveCta, flex: 1, minWidth: 180, fontSize: "1rem", padding: "14px 24px", opacity: pending ? 0.7 : 1, cursor: pending ? "wait" : "pointer" }}>{pending ? "Validation…" : "Valider le paiement"}</button>
           <button type="button" onClick={() => dispatch({ type: "close-payment-form" })} style={{ ...ghostBtn, fontSize: "0.95rem", padding: "14px 12px" }}>Annuler</button>
         </div>
       </form>
@@ -121,7 +259,11 @@ function CanalBtn({ active, label, onClick }: { active: boolean; label: string; 
 }
 
 export function RelanceModal({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
+  const { landlord } = useFirstRun()
   const canalLabel = state.relCanal === "whatsapp" ? "WhatsApp" : "SMS"
+  const tenantFirst = state.lease.name.trim().split(/\s+/)[0] || "votre locataire"
+  const previewAmount = state.lease.amount || "votre loyer"
+  const previewHome = state.lease.home ? ` pour ${state.lease.home}` : ""
   return (
     <ModalScrim>
       <div onClick={(e) => e.stopPropagation()} style={{ ...modalCard, width: 480 }}>
@@ -155,7 +297,7 @@ export function RelanceModal({ state, dispatch }: { state: State; dispatch: Reac
           </div>
           <div style={{ border: "1px solid var(--line-soft)", background: "var(--muted-surface)", borderRadius: "var(--radius-md)", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={{ fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--ink-muted)" }}>Aperçu {canalLabel}</span>
-            <span style={{ fontSize: "0.88rem", lineHeight: 1.5, color: "var(--ink)" }}>Bonjour Adjovi, votre loyer de 100 000 FCFA pour la Villa 3 ch, Fidjrossè arrive à échéance. Merci de régler dès que possible. Florentine (via Ranti)</span>
+            <span style={{ fontSize: "0.88rem", lineHeight: 1.5, color: "var(--ink)" }}>Bonjour {tenantFirst}, votre loyer de {previewAmount}{previewHome} arrive à échéance. Merci de régler dès que possible. {landlord.firstName} (via Ranti)</span>
           </div>
         </div>
         <div style={{ padding: "0 28px 26px", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
@@ -195,8 +337,27 @@ export function CentreAideModal({ dispatch }: { dispatch: React.Dispatch<Action>
   )
 }
 
-export function QuittanceModal({ dispatch }: { dispatch: React.Dispatch<Action> }) {
+const MONTHS_FR_LONG = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+]
+
+// Format « 17 juillet 2026 » a partir d'un timestamptz ISO renvoye par le
+// serveur. Rendu cote client uniquement (la modale ne s'affiche qu'apres action).
+function formatDate(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return `${d.getDate()} ${MONTHS_FR_LONG[d.getMonth()]} ${d.getFullYear()}`
+}
+
+export function QuittanceModal({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
+  const { landlord } = useFirstRun()
   const close = () => dispatch({ type: "close-quittance" })
+  const r = state.receipt
+  if (!r) return null
+
+  const title = r.kind === "quittance" ? "Quittance de loyer" : "Reçu de paiement"
+  const periodPhrase = r.periodLabel ? ` au titre du loyer de ${r.periodLabel}` : ""
   return (
     <ModalScrim onClose={close}>
       <div onClick={(e) => e.stopPropagation()} style={{ ...modalCard, width: 440 }}>
@@ -207,39 +368,30 @@ export function QuittanceModal({ dispatch }: { dispatch: React.Dispatch<Action> 
         <div style={{ padding: "24px 26px", display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.5rem", letterSpacing: "-0.02em", color: "var(--ink-title)" }}>Quittance de loyer</h2>
-              <span style={{ fontSize: "0.85rem", fontVariantNumeric: "tabular-nums", color: "var(--ink-muted)" }}>N° {SEED.ref} · 17 juillet 2026</span>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.5rem", letterSpacing: "-0.02em", color: "var(--ink-title)" }}>{title}</h2>
+              <span style={{ fontSize: "0.85rem", fontVariantNumeric: "tabular-nums", color: "var(--ink-muted)" }}>N° {r.receiptNumber} · {formatDate(r.issuedAt)}</span>
             </div>
             <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 7, fontSize: "0.78rem", fontWeight: 600, padding: "5px 12px", borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)" }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--olive)" }} />Confirmée</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <DefRow label="Bailleur" value={SEED.bailleur} />
-            <DefRow label="Locataire" value={SEED.locataire} />
-            <DefRow label="Logement" value={SEED.logement} />
-            <DefRow label="Période réglée" value="Juillet 2026" />
-            <DefRow label="Reçu le" value="16 juillet 2026" />
+            <DefRow label="Bailleur" value={landlord.fullName} />
+            {r.tenantName && <DefRow label="Locataire" value={r.tenantName} />}
+            {r.unitLabel && <DefRow label="Logement" value={r.unitLabel} />}
+            {r.periodLabel && <DefRow label="Période réglée" value={r.periodLabel} />}
+            <DefRow label="Reçu le" value={formatDate(r.issuedAt)} />
           </div>
           <div style={{ borderTop: "1px dashed var(--line)", paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
             <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--ink)" }}>Montant réglé</span>
-            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.6rem", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: "var(--ink-title)" }}>{SEED.montant}</span>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.6rem", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: "var(--ink-title)" }}>{r.amountLabel}</span>
           </div>
-          <p style={{ margin: 0, fontSize: "0.82rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Je soussignée Florentine Dossou, bailleur, reconnais avoir reçu la somme de <strong style={{ color: "var(--ink)", fontWeight: 600 }}>cent mille francs CFA</strong> au titre du loyer de juillet 2026, dont quittance pour solde de ladite période.</p>
-          <div style={{ display: "flex", gap: 12, alignItems: "center", border: "1px solid var(--line-soft)", background: "var(--muted-surface)", borderRadius: "var(--radius-md)", padding: "12px 14px" }}>
-            <span aria-hidden="true" style={{ flexShrink: 0, width: 48, height: 48, borderRadius: 8, background: "var(--surface-card)", border: "1px solid var(--line)", display: "grid", gridTemplateColumns: "repeat(5,1fr)", gridTemplateRows: "repeat(5,1fr)", gap: 1, padding: 5 }}>
-              {[1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1].map((on, i) => <span key={i} style={{ background: on ? "var(--ink)" : "transparent" }} />)}
-            </span>
-            <span style={{ fontSize: "0.8rem", lineHeight: 1.45, color: "var(--ink-muted)" }}>Confirmée par le locataire le 16 juillet 2026 · vérifiable sur ranti.app/q/{SEED.ref} · empreinte SHA-256 <span style={{ fontFamily: "ui-monospace,SFMono-Regular,Menlo,monospace", fontSize: "0.72rem", color: "var(--ink)" }}>c7a19b4e…d80f42e0</span></span>
+          <p style={{ margin: 0, fontSize: "0.82rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Je soussigné(e) {landlord.fullName}, bailleur, reconnais avoir reçu la somme de <strong style={{ color: "var(--ink)", fontWeight: 600 }}>{r.amountLabel}</strong>{periodPhrase}, dont quittance pour solde de ladite période.</p>
+          <div style={{ border: "1px solid var(--line-soft)", background: "var(--muted-surface)", borderRadius: "var(--radius-md)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: "0.8rem", lineHeight: 1.45, color: "var(--ink-muted)" }}>{r.tenantConfirmed ? "Confirmée par le locataire." : "En attente de confirmation du locataire."} Vérifiable sur <span style={{ color: "var(--ink)", fontWeight: 500 }}>{r.verifyRef}</span></span>
+            {r.sha256 && (
+              <span style={{ fontSize: "0.8rem", lineHeight: 1.45, color: "var(--ink-muted)" }}>Empreinte SHA-256 <span style={{ fontFamily: "ui-monospace,SFMono-Regular,Menlo,monospace", fontSize: "0.72rem", color: "var(--ink)" }}>{r.sha256}</span></span>
+            )}
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 2 }}>
-            <button type="button" style={{ ...oliveCta, flex: 1, minWidth: 150, fontSize: "0.92rem", padding: "12px 18px" }}>
-              <svg viewBox="0 0 24 24" style={{ width: 16, height: 16 }} aria-hidden="true"><path d="M12 3a9 9 0 00-7.7 13.6L3 21l4.6-1.2A9 9 0 1012 3z" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>
-              Partager sur WhatsApp
-            </button>
-            <button type="button" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "var(--font-sans)", fontSize: "0.92rem", fontWeight: 600, color: "var(--ink)", background: "var(--surface-card)", border: "1px solid var(--line)", borderRadius: "var(--radius-full)", padding: "12px 18px", cursor: "pointer" }}>
-              <svg viewBox="0 0 24 24" style={{ width: 16, height: 16 }} aria-hidden="true"><path d="M12 3v11m0 0l-4-4m4 4l4-4M5 19h14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              PDF
-            </button>
-          </div>
+          <p style={{ margin: 0, fontSize: "0.78rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Le partage WhatsApp et l&apos;export PDF arrivent bientôt. La quittance est déjà consultable par votre locataire via son lien.</p>
         </div>
       </div>
     </ModalScrim>

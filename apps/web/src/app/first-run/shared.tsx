@@ -1,14 +1,10 @@
-// Atomes partages du portage FirstRun (types, seed de demo, styles inline repris
-// des valeurs du prototype, wordmark, icones). Importe par page.tsx, modals.tsx
-// et views.tsx. Aucun tiret cadratin (regle section 2 du CLAUDE.md handoff).
+// Atomes partages du portage FirstRun (types, styles inline repris des valeurs
+// du prototype, wordmark, icones). Importe par page.tsx, modals.tsx et views.tsx.
+// Aucun tiret cadratin (regle section 2 du CLAUDE.md handoff). Phase 3 :
+// l'identite reelle du bailleur vient du contexte (plus de seed), les baux et
+// quittances portent des identifiants reels crees en base.
 
-export const SEED = {
-  bailleur: "Florentine Dossou",
-  locataire: "Adjovi Hounkpatin",
-  logement: "Villa 3 ch, Fidjrossè",
-  montant: "100 000 FCFA",
-  ref: "RNT-2026-0148",
-}
+import type { FirstRunReceiptView } from "./actions"
 
 export type Step = "welcome" | "explore" | "setup" | "lease" | "reminder" | "active"
 export type View = "accueil" | "encaissements" | "relances" | "baux" | "parametres"
@@ -16,7 +12,36 @@ export type Canal = "whatsapp" | "sms"
 export type Moment = "avant" | "echeance" | "retard"
 export type FormMode = "first" | "tenant"
 
-export type Lease = { id: string; name: string; home: string; amount: string; status: "due" | "paid" }
+export type ReceiptView = FirstRunReceiptView
+
+// Identifiants reels rattaches a un bail cree en base (phase 3).
+export type LeaseRefs = {
+  leaseId: string
+  unitId: string
+  tenantId: string
+  dueId: string | null
+  dueAmount: number
+}
+
+export type Lease = LeaseRefs & {
+  id: string // cle locale de rendu
+  name: string
+  home: string
+  amount: string
+  status: "due" | "paid"
+  receipt?: ReceiptView | null
+}
+
+// Bail principal du parcours guide : refs absentes tant qu'il n'est pas cree.
+export type PrimaryLease = Partial<LeaseRefs> & { name: string; home: string; amount: string }
+
+// Cible d'encaissement : le bail principal (guide) ou un bail ajoute ensuite.
+export type PayTarget = LeaseRefs & {
+  kind: "primary" | "added"
+  addedId?: string
+  name: string
+  home: string
+}
 
 export type State = {
   step: Step
@@ -28,8 +53,10 @@ export type State = {
   formMode: FormMode
   showPaymentForm: boolean
   showSupport: boolean
-  lease: { name: string; home: string; amount: string }
+  lease: PrimaryLease
   addedLeases: Lease[]
+  payTarget: PayTarget | null
+  receipt: ReceiptView | null
   relCanal: Canal
   relMoment: Moment
   relanceOn: boolean
@@ -44,10 +71,10 @@ export type Action =
   | { type: "toggle-menu" }
   | { type: "open-tenant-form"; mode: FormMode }
   | { type: "close-tenant-form" }
-  | { type: "save-tenant"; name: string; home: string; amount: string }
-  | { type: "open-payment-form" }
+  | { type: "save-tenant"; name: string; home: string; amount: string; refs: LeaseRefs }
+  | { type: "open-payment-form"; target: PayTarget }
   | { type: "close-payment-form" }
-  | { type: "save-payment" }
+  | { type: "save-payment"; receipt: ReceiptView }
   | { type: "pick-canal"; canal: Canal }
   | { type: "pick-moment"; moment: Moment }
   | { type: "activate-reminder" }
@@ -55,9 +82,8 @@ export type Action =
   | { type: "toggle-relance" }
   | { type: "open-support" }
   | { type: "close-support" }
-  | { type: "open-quittance" }
+  | { type: "open-quittance"; receipt?: ReceiptView | null }
   | { type: "close-quittance" }
-  | { type: "validate-added"; id: string }
   | { type: "restart" }
   | { type: "logout" }
 

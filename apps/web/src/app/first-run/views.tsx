@@ -1,14 +1,19 @@
-// Vues du portage FirstRun (FirstRunMain.dc.html) : accueil + encaissements,
-// relances, baux, parametres. Modele derive de l'etat local (seed + baux
-// ajoutes). Copy sans tiret cadratin (section 2 du CLAUDE.md handoff).
+"use client"
+
+// Vues du parcours FirstRun cablees a la base (phase 3) : accueil + encaissements,
+// relances, baux, parametres. Le modele derive de l'etat local, mais l'identite
+// (bailleur, mois) vient du contexte reel et les quittances portent le vrai
+// numero. Copy sans tiret cadratin (section 2 du CLAUDE.md handoff).
 
 import {
-  SEED, type Action, type State, type Lease, oliveCta, ghostBtn, CheckIcon,
+  type Action, type State, type Lease, type PayTarget, type ReceiptView,
+  oliveCta, ghostBtn, CheckIcon,
 } from "./shared"
+import { useFirstRun } from "./context"
 
 // ---- modele partage ----
 
-type Row = { id: string; name: string; home: string; amount: string; status: "due" | "paid" | "late" }
+type Row = { id: string; name: string; home: string; amount: string; status: "due" | "paid" | "late"; receipt?: ReceiptView | null }
 
 function num(s: string) {
   return parseInt(s.replace(/[^\d]/g, ""), 10) || 0
@@ -22,9 +27,9 @@ function allRows(state: State): Row[] {
   const hasPrimary = state.step === "lease" || state.step === "reminder" || state.step === "active"
   if (hasPrimary) {
     const paid = state.step === "reminder" || state.step === "active"
-    rows.push({ id: "primary", name: state.lease.name, home: state.lease.home, amount: state.lease.amount, status: paid ? "paid" : "due" })
+    rows.push({ id: "primary", name: state.lease.name, home: state.lease.home, amount: state.lease.amount, status: paid ? "paid" : "due", receipt: state.receipt })
   }
-  state.addedLeases.forEach((l: Lease) => rows.push({ id: l.id, name: l.name, home: l.home, amount: l.amount, status: l.status }))
+  state.addedLeases.forEach((l: Lease) => rows.push({ id: l.id, name: l.name, home: l.home, amount: l.amount, status: l.status, receipt: l.receipt }))
   return rows
 }
 
@@ -32,6 +37,21 @@ function totals(rows: Row[]) {
   let paid = 0, due = 0, late = 0
   rows.forEach((r) => { const v = num(r.amount); if (r.status === "paid") paid += v; else if (r.status === "late") late += v; else due += v })
   return { paid, due, late }
+}
+
+// Construit la cible d'encaissement (identifiants reels du bail) a partir de
+// l'etat, cote principal (parcours guide) ou cote bail ajoute.
+function primaryTarget(state: State): PayTarget {
+  const l = state.lease
+  return { kind: "primary", name: l.name, home: l.home, leaseId: l.leaseId ?? "", unitId: l.unitId ?? "", tenantId: l.tenantId ?? "", dueId: l.dueId ?? null, dueAmount: l.dueAmount ?? 0 }
+}
+function addedTarget(l: Lease): PayTarget {
+  return { kind: "added", addedId: l.id, name: l.name, home: l.home, leaseId: l.leaseId, unitId: l.unitId, tenantId: l.tenantId, dueId: l.dueId, dueAmount: l.dueAmount }
+}
+function payRow(state: State, dispatch: React.Dispatch<Action>, rowId: string) {
+  if (rowId === "primary") { dispatch({ type: "open-payment-form", target: primaryTarget(state) }); return }
+  const l = state.addedLeases.find((x) => x.id === rowId)
+  if (l) dispatch({ type: "open-payment-form", target: addedTarget(l) })
 }
 
 function accueilModel(state: State) {
@@ -116,13 +136,20 @@ function EmptyLease({ title, body, cta, onCta }: { title: string; body: string; 
   )
 }
 
+function QuittanceBadge({ receipt }: { receipt?: ReceiptView | null }) {
+  return (
+    <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 7, fontSize: "0.78rem", fontWeight: 600, padding: "5px 12px", borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)" }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--olive)" }} />Quittance {receipt?.receiptNumber ?? ""}</span>
+  )
+}
+
 // ---- ACCUEIL ----
 
 function Accueil({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
+  const { landlord, monthLabel } = useFirstRun()
   const m = accueilModel(state)
   return (
     <main style={mainWrap}>
-      <ViewHeader title="Bonjour Florentine" subtitle="juillet 2026" />
+      <ViewHeader title={`Bonjour ${landlord.firstName}`} subtitle={monthLabel} />
 
       {m.showChecklist && (
         <section style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-lg)", background: "var(--surface-card)", boxShadow: "var(--shadow-cta)", overflow: "hidden" }}>
@@ -195,7 +222,7 @@ function Accueil({ state, dispatch }: { state: State; dispatch: React.Dispatch<A
             <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.5, color: "var(--ink)" }}>Ajoutez un autre locataire pour suivre tous vos loyers au même endroit.</p>
             <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
               <button type="button" onClick={() => dispatch({ type: "open-tenant-form", mode: "tenant" })} style={{ ...oliveCta, fontSize: "0.95rem", padding: "13px 22px" }}>Ajouter un locataire</button>
-              <button type="button" onClick={() => dispatch({ type: "restart" })} style={{ ...ghostBtn, padding: 6, fontSize: "0.88rem", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}>Rejouer la prise en main</button>
+              <a href="/dashboard" style={{ ...ghostBtn, textDecoration: "none", color: "var(--olive)", padding: 6, fontSize: "0.88rem", fontWeight: 600 }}>Aller à mon tableau de bord</a>
             </div>
           </div>
         </section>
@@ -217,7 +244,7 @@ function LeaseCardDue({ state, dispatch }: { state: State; dispatch: React.Dispa
       </div>
       <div style={{ borderTop: "1px solid var(--line-soft)", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", background: "var(--muted-surface)" }}>
         <span style={{ fontSize: "0.85rem", color: "var(--ink-muted)" }}>Vous avez encaissé ce loyer ?</span>
-        <button type="button" onClick={() => dispatch({ type: "open-payment-form" })} style={{ ...oliveCta, fontSize: "0.92rem", padding: "11px 20px", animation: "fr-pulse 2s var(--ease-standard) infinite" }}>Valider le paiement</button>
+        <button type="button" onClick={() => payRow(state, dispatch, "primary")} style={{ ...oliveCta, fontSize: "0.92rem", padding: "11px 20px", animation: "fr-pulse 2s var(--ease-standard) infinite" }}>Valider le paiement</button>
       </div>
     </div>
   )
@@ -232,10 +259,10 @@ function LeaseCardPaid({ state, dispatch }: { state: State; dispatch: React.Disp
           <span style={{ display: "block", fontSize: "1.05rem", fontWeight: 500, color: "var(--ink)" }}>{state.lease.name}</span>
           <span style={{ display: "block", fontSize: "0.875rem", color: "var(--ink-muted)" }}>{state.lease.home} · à jour</span>
         </span>
-        <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 7, fontSize: "0.78rem", fontWeight: 600, padding: "5px 12px", borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)" }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--olive)" }} />Quittance {SEED.ref}</span>
+        <QuittanceBadge receipt={state.receipt} />
       </div>
       <div style={{ borderTop: "1px solid var(--line-soft)", padding: "12px 20px", display: "flex", justifyContent: "flex-end", background: "var(--muted-surface)" }}>
-        <button type="button" onClick={() => dispatch({ type: "open-quittance" })} style={{ ...ghostBtn, color: "var(--olive)", padding: "4px 2px", fontSize: "0.9rem", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}>Voir la quittance</button>
+        <button type="button" onClick={() => dispatch({ type: "open-quittance", receipt: state.receipt })} style={{ ...ghostBtn, color: "var(--olive)", padding: "4px 2px", fontSize: "0.9rem", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}>Voir la quittance</button>
       </div>
     </div>
   )
@@ -244,27 +271,28 @@ function LeaseCardPaid({ state, dispatch }: { state: State; dispatch: React.Disp
 // ---- ENCAISSEMENTS ----
 
 function Encaissements({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
+  const { monthLabel } = useFirstRun()
   const rows = allRows(state)
   const t = totals(rows)
   return (
     <main style={mainWrap}>
-      <ViewHeader title="Encaissements" subtitle="Vos loyers de juillet 2026" />
+      <ViewHeader title="Encaissements" subtitle={`Vos loyers de ${monthLabel}`} />
       <LedgerStrip paid={t.paid} due={t.due} late={t.late} />
       {rows.length === 0 ? (
         <EmptyLease title="Aucun encaissement pour l'instant." body="Créez un bail : les échéances apparaîtront ici, prêtes à encaisser." cta="Créer un bail" onCta={() => dispatch({ type: "open-tenant-form", mode: "first" })} />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <h2 style={sectionTitle}>Loyers de juillet</h2>
+          <h2 style={sectionTitle}>Loyers de {monthLabel}</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {rows.map((r) => r.status === "paid" ? (
               <div key={r.id} style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-lg)", overflow: "hidden", background: "var(--surface-card)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 20px", flexWrap: "wrap" }}>
                   <span style={{ width: 10, height: 10, borderRadius: 999, flexShrink: 0, background: "var(--olive)" }} />
                   <span style={{ minWidth: 120, flex: 1 }}><span style={{ display: "block", fontSize: "1.05rem", fontWeight: 500, color: "var(--ink)" }}>{r.name}</span><span style={{ display: "block", fontSize: "0.875rem", color: "var(--ink-muted)" }}>{r.home} · réglé ce mois</span></span>
-                  <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 7, fontSize: "0.78rem", fontWeight: 600, padding: "5px 12px", borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)" }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--olive)" }} />Quittance {SEED.ref}</span>
+                  <QuittanceBadge receipt={r.receipt} />
                 </div>
                 <div style={{ borderTop: "1px solid var(--line-soft)", padding: "12px 20px", display: "flex", justifyContent: "flex-end", background: "var(--muted-surface)" }}>
-                  <button type="button" onClick={() => dispatch({ type: "open-quittance" })} style={{ ...ghostBtn, color: "var(--olive)", padding: "4px 2px", fontSize: "0.9rem", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}>Voir la quittance</button>
+                  <button type="button" onClick={() => dispatch({ type: "open-quittance", receipt: r.receipt })} style={{ ...ghostBtn, color: "var(--olive)", padding: "4px 2px", fontSize: "0.9rem", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}>Voir la quittance</button>
                 </div>
               </div>
             ) : (
@@ -276,7 +304,7 @@ function Encaissements({ state, dispatch }: { state: State; dispatch: React.Disp
                 </div>
                 <div style={{ borderTop: "1px solid var(--line-soft)", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", background: "var(--muted-surface)" }}>
                   <span style={{ fontSize: "0.85rem", color: "var(--ink-muted)" }}>Vous avez encaissé ce loyer ?</span>
-                  <button type="button" onClick={() => r.id === "primary" ? dispatch({ type: "open-payment-form" }) : dispatch({ type: "validate-added", id: r.id })} style={{ ...oliveCta, fontSize: "0.92rem", padding: "11px 20px" }}>Valider le paiement</button>
+                  <button type="button" onClick={() => payRow(state, dispatch, r.id)} style={{ ...oliveCta, fontSize: "0.92rem", padding: "11px 20px" }}>Valider le paiement</button>
                 </div>
               </div>
             ))}
@@ -298,6 +326,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
 }
 
 function Relances({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
+  const { landlord } = useFirstRun()
   const canalLabel = state.relCanal === "whatsapp" ? "WhatsApp" : "SMS"
   return (
     <main style={mainWrap}>
@@ -323,7 +352,7 @@ function Relances({ state, dispatch }: { state: State; dispatch: React.Dispatch<
             </div>
             <div style={{ border: "1px solid var(--line-soft)", background: "var(--muted-surface)", borderRadius: "var(--radius-md)", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 6 }}>
               <span style={{ fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--ink-muted)" }}>Aperçu {canalLabel}</span>
-              <span style={{ fontSize: "0.88rem", lineHeight: 1.5, color: "var(--ink)" }}>Bonjour, votre loyer arrive à échéance. Merci de régler dès que possible. Florentine (via Ranti)</span>
+              <span style={{ fontSize: "0.88rem", lineHeight: 1.5, color: "var(--ink)" }}>Bonjour, votre loyer arrive à échéance. Merci de régler dès que possible. {landlord.firstName} (via Ranti)</span>
             </div>
           </div>
         )}
@@ -381,6 +410,7 @@ function Baux({ state, dispatch }: { state: State; dispatch: React.Dispatch<Acti
 // ---- PARAMETRES ----
 
 function Parametres({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) {
+  const { landlord } = useFirstRun()
   const line = (label: string, value: string) => (
     <div style={{ padding: "15px 22px", display: "flex", justifyContent: "space-between", gap: 16, borderBottom: "1px solid var(--line-soft)" }}><span style={{ fontSize: "0.9rem", color: "var(--ink-muted)" }}>{label}</span><span style={{ fontSize: "0.9rem", fontWeight: 500, color: "var(--ink)" }}>{value}</span></div>
   )
@@ -388,10 +418,10 @@ function Parametres({ state, dispatch }: { state: State; dispatch: React.Dispatc
     <main style={{ ...mainWrap, gap: "clamp(18px,2.5vw,24px)" }}>
       <ViewHeader title="Paramètres" subtitle="Votre compte et vos préférences" />
       <div style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-lg)", background: "var(--surface-card)", padding: "20px 22px", display: "flex", alignItems: "center", gap: 16 }}>
-        <span style={{ width: 52, height: 52, flexShrink: 0, borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.15rem" }}>FD</span>
+        <span style={{ width: 52, height: 52, flexShrink: 0, borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.15rem" }}>{landlord.initials}</span>
         <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.15rem", color: "var(--ink-title)" }}>{SEED.bailleur}</span>
-          <span style={{ fontSize: "0.875rem", color: "var(--ink-muted)" }}>Propriétaire · Cotonou</span>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.15rem", color: "var(--ink-title)" }}>{landlord.fullName}</span>
+          <span style={{ fontSize: "0.875rem", color: "var(--ink-muted)" }}>Propriétaire</span>
         </div>
       </div>
       <section style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-lg)", background: "var(--surface-card)", overflow: "hidden" }}>
@@ -408,7 +438,7 @@ function Parametres({ state, dispatch }: { state: State; dispatch: React.Dispatc
         <div style={{ padding: "15px 22px", display: "flex", justifyContent: "space-between", gap: 16 }}><span style={{ fontSize: "0.9rem", color: "var(--ink-muted)" }}>Offre</span><span style={{ fontSize: "0.9rem", fontWeight: 500, color: "var(--ink)" }}>Ranti Essentiel</span></div>
       </section>
       <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-        <button type="button" onClick={() => dispatch({ type: "restart" })} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--font-sans)", fontSize: "0.9rem", fontWeight: 600, color: "var(--ink)", background: "var(--surface-card)", border: "1px solid var(--line)", borderRadius: "var(--radius-full)", padding: "11px 20px", cursor: "pointer" }}>Rejouer la prise en main</button>
+        <a href="/dashboard" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--font-sans)", fontSize: "0.9rem", fontWeight: 600, color: "var(--ink)", background: "var(--surface-card)", border: "1px solid var(--line)", borderRadius: "var(--radius-full)", padding: "11px 20px", cursor: "pointer", textDecoration: "none" }}>Aller à mon tableau de bord</a>
       </div>
     </main>
   )

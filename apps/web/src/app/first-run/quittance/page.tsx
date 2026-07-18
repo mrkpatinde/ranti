@@ -2,12 +2,20 @@
 
 import { useState } from "react"
 import "../first-run.css"
-import { SEED, oliveCta, Wordmark, DefRow, CheckIcon } from "../shared"
+import { oliveCta, Wordmark, DefRow, CheckIcon } from "../shared"
 
 // Portage fidele de QuittanceLocataire.dc.html : page publique mobile-first que
 // le locataire ouvre via lien / QR (ranti.app/q/<ref>). Etats a-confirmer /
-// confirmee, en local. Aucune DB (phase 2). Copy sans tiret cadratin (section 2
-// du CLAUDE.md handoff).
+// confirmee, en local. Apercu statique HORS perimetre phase 3 : la vraie page
+// locataire cablee a la base vit sur /recu/[token]. Constantes de demo locales
+// (le parcours proprietaire, lui, est cable). Copy sans tiret cadratin.
+const DEMO = {
+  bailleur: "Florentine Dossou",
+  locataire: "Adjovi Hounkpatin",
+  logement: "Villa 3 ch, Fidjrossè",
+  montant: "100 000 FCFA",
+  ref: "RNT-2026-0148",
+}
 
 export default function QuittanceLocatairePage() {
   const [confirmed, setConfirmed] = useState(false)
@@ -41,7 +49,7 @@ export default function QuittanceLocatairePage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.4rem", letterSpacing: "-0.02em", color: "var(--ink-title)" }}>Quittance de loyer</h2>
-                <span style={{ fontSize: "0.85rem", fontVariantNumeric: "tabular-nums", color: "var(--ink-muted)" }}>N° {SEED.ref} · 17 juillet 2026</span>
+                <span style={{ fontSize: "0.85rem", fontVariantNumeric: "tabular-nums", color: "var(--ink-muted)" }}>N° {DEMO.ref} · 17 juillet 2026</span>
               </div>
               {confirmed ? (
                 <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 7, fontSize: "0.78rem", fontWeight: 600, padding: "5px 12px", borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)" }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--olive)" }} />Confirmée</span>
@@ -50,15 +58,15 @@ export default function QuittanceLocatairePage() {
               )}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <DefRow label="Bailleur" value={SEED.bailleur} />
-              <DefRow label="Locataire" value={SEED.locataire} />
-              <DefRow label="Logement" value={SEED.logement} />
+              <DefRow label="Bailleur" value={DEMO.bailleur} />
+              <DefRow label="Locataire" value={DEMO.locataire} />
+              <DefRow label="Logement" value={DEMO.logement} />
               <DefRow label="Période réglée" value="Juillet 2026" />
               <DefRow label="Reçu le" value="16 juillet 2026" />
             </div>
             <div style={{ borderTop: "1px dashed var(--line)", paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
               <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--ink)" }}>Montant réglé</span>
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.6rem", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: "var(--ink-title)" }}>{SEED.montant}</span>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.6rem", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: "var(--ink-title)" }}>{DEMO.montant}</span>
             </div>
             <p style={{ margin: 0, fontSize: "0.82rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Je soussignée Florentine Dossou, bailleur, reconnais avoir reçu la somme de <strong style={{ color: "var(--ink)", fontWeight: 600 }}>cent mille francs CFA</strong> au titre du loyer de juillet 2026, dont quittance pour solde de ladite période.</p>
             <p style={{ margin: 0, fontSize: "0.75rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Intégrité du document, empreinte SHA-256 : <span style={{ fontFamily: "ui-monospace,SFMono-Regular,Menlo,monospace", fontSize: "0.72rem", color: "var(--ink)" }}>c7a19b4e…d80f42e0</span></p>
@@ -87,7 +95,7 @@ export default function QuittanceLocatairePage() {
           <span style={{ fontSize: "0.85rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Un doute sur cette quittance ? Toutes les réponses sont dans le <strong style={{ color: "var(--ink)", fontWeight: 600 }}>centre d&apos;aide Ranti</strong>.</span>
         </div>
 
-        <p style={{ margin: 0, textAlign: "center", fontSize: "0.78rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Document édité par Ranti pour Florentine Dossou · vérifiable sur ranti.app/q/{SEED.ref}</p>
+        <p style={{ margin: 0, textAlign: "center", fontSize: "0.78rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Document édité par Ranti pour Florentine Dossou · vérifiable sur ranti.app/q/{DEMO.ref}</p>
       </div>
     </div>
   )
