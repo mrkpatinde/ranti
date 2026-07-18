@@ -3,9 +3,9 @@ import Link from "next/link";
 import { ReopenConsent } from "@/components/reopen-consent";
 
 export const metadata: Metadata = {
-  title: "Politique de confidentialité — Ranti",
+  title: "Politique de confidentialité de Ranti",
   description:
-    "Comment Ranti collecte, utilise et protège vos données personnelles.",
+    "Comment Ranti collecte, utilise et protège vos données personnelles. Ranti ne traite aucune donnée bancaire.",
 };
 
 export default function PrivacyPage() {
@@ -15,162 +15,215 @@ export default function PrivacyPage() {
         href="/"
         className="text-sm text-muted-foreground hover:text-foreground transition"
       >
-        &larr; Retour à l&rsquo;accueil
+        &larr; Retour à l’accueil
       </Link>
 
       <h1 className="mt-8 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
         Politique de confidentialité
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Dernière mise à jour : 3 juillet 2026
+        Dernière mise à jour : 18 juillet 2026
       </p>
+
+      <div className="mt-6 rounded-2xl border border-line-soft bg-muted px-5 py-4 text-sm leading-relaxed text-foreground/80">
+        <p>
+          <strong>Responsable de traitement :</strong> Adonis KPATINDE, entrepreneur individuel,
+          Bénin.
+        </p>
+        <p className="mt-1">
+          <strong>Contact / exercice des droits :</strong>{" "}
+          <span className="font-medium text-foreground">kadorel93@gmail.com</span>
+        </p>
+        <p className="mt-3">
+          Ranti ne traite <strong>aucune donnée bancaire</strong> et ne manipule aucun paiement.
+        </p>
+      </div>
 
       <div className="mt-10 space-y-8 text-foreground/80 leading-relaxed">
         <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            1. Qui sommes-nous
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">1. Notre principe</h2>
           <p className="mt-2">
-            Ranti est un registre de loyers destiné aux propriétaires et
-            locataires en Afrique de l&rsquo;Ouest. Le service est édité par
-            Adonis KPATINDE, entrepreneur individuel basé au Bénin.
+            Ranti vous aide à suivre vos loyers, relancer vos locataires et délivrer des
+            quittances. Pour cela, nous traitons certaines données personnelles, les vôtres et
+            celles de vos locataires, avec le minimum nécessaire. <strong>Nous ne collectons
+            aucune coordonnée bancaire et ne traitons aucun flux d’argent</strong>, puisque Ranti
+            ne touche jamais aux loyers.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            2. Données que nous collectons
-          </h2>
-          <p className="mt-2">Ranti collecte uniquement les données nécessaires au fonctionnement du service :</p>
+          <h2 className="text-lg font-semibold text-foreground">2. Données que nous traitons</h2>
+          <p className="mt-2">
+            <strong>Vous, propriétaire :</strong>
+          </p>
           <ul className="mt-2 list-disc pl-5 space-y-1">
             <li>
-              <strong>Propriétaire</strong> : numéro de téléphone, nom, prénom.
+              identité et contact : nom, adresse e-mail (via connexion Google), numéro de
+              téléphone, pays ;
             </li>
             <li>
-              <strong>Biens immobiliers</strong> : adresse, type de logement, nom du logement.
+              données d’usage : baux, logements, montants de loyer, échéances, paiements que vous
+              déclarez, quittances, relances ;
             </li>
             <li>
-              <strong>Locataires</strong> : nom, prénom, téléphone (pour les relances de paiement).
-            </li>
-            <li>
-              <strong>Baux et paiements</strong> : montant du loyer, date d&rsquo;échéance, historique des encaissements.
-            </li>
-            <li>
-              <strong>Données techniques</strong> : adresse email (si connexion Google), identifiant de session, logs de connexion.
+              données techniques : journaux de connexion, type d’appareil, éventuels cookies
+              nécessaires au fonctionnement.
             </li>
           </ul>
           <p className="mt-3">
-            Nous ne collectons jamais de données bancaires, de pièces d&rsquo;identité, ni de données de géolocalisation précise.
+            <strong>Vos locataires (données que vous renseignez) :</strong>
           </p>
-          <p className="mt-3">
-            Chaque quittance porte un lien de vérification publique (QR code). Cette page publique affiche uniquement
-            le numéro du document, sa date, le bien, le prénom et l&rsquo;initiale du locataire — <strong>jamais les
-            montants</strong> ni les coordonnées.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            3. Comment nous utilisons vos données
-          </h2>
           <ul className="mt-2 list-disc pl-5 space-y-1">
-            <li>Créer et gérer votre compte propriétaire.</li>
-            <li>Générer les échéances de loyer et suivre les paiements.</li>
-            <li>Envoyer des relances automatiques aux locataires par SMS (d&rsquo;autres canaux pourront être proposés et seront mentionnés ici).</li>
-            <li>Produire des reçus et quittances.</li>
-            <li>Améliorer le service et détecter les anomalies techniques.</li>
+            <li>nom, numéro de téléphone, et le cas échéant e-mail ;</li>
+            <li>informations liées au bail et aux paiements que vous déclarez.</li>
           </ul>
           <p className="mt-3">
-            Vos données ne sont jamais vendues, louées, ni partagées avec des tiers à des fins commerciales.
+            Vous nous fournissez ces données et <strong>vous garantissez avoir informé le
+            locataire</strong> que ses coordonnées sont utilisées pour la gestion de son bail
+            (suivi, relances, quittances).
+          </p>
+          <p className="mt-3">
+            <strong>Nous ne traitons pas</strong> de numéros de carte, de comptes bancaires ou
+            Mobile Money aux fins d’encaissement. Une référence de transaction que vous
+            renseignez sert uniquement de justificatif rattaché à un paiement ; Ranti n’exécute
+            aucun paiement.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            4. Base légale du traitement
-          </h2>
-          <p className="mt-2">
-            Le traitement de vos données repose sur l&rsquo;exécution du contrat (fourniture du service Ranti) et sur
-            votre consentement explicite lors de la création du compte. Vous pouvez retirer votre consentement à tout
-            moment en supprimant votre compte.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            5. Où sont stockées vos données
-          </h2>
-          <p className="mt-2">
-            Ranti utilise Supabase comme infrastructure de base de données. Les serveurs de Supabase sont hébergés en
-            Europe (AWS Irlande, région eu-west-1). Les données sont chiffrées en transit (TLS) et au repos.
-          </p>
-          <p className="mt-2">
-            Les sessions utilisateur sont gérées par Supabase Auth. Aucun mot de passe n&rsquo;est stocké en clair — seuls
-            des hashs cryptographiques sont conservés.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            6. Durée de conservation
-          </h2>
-          <p className="mt-2">
-            Vos données sont conservées tant que votre compte est actif. Si vous supprimez votre compte, toutes vos
-            données personnelles (profil, propriétés, locataires, baux) sont supprimées définitivement sous 30 jours.
-            Les journaux techniques sont conservés 90 jours maximum.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            7. Vos droits
-          </h2>
-          <p className="mt-2">Conformément aux lois applicables en zone UEMOA, vous disposez des droits suivants :</p>
+          <h2 className="text-lg font-semibold text-foreground">3. Pourquoi nous les traitons</h2>
           <ul className="mt-2 list-disc pl-5 space-y-1">
-            <li>Accéder à vos données personnelles.</li>
-            <li>Rectifier des données inexactes.</li>
-            <li>Supprimer votre compte et toutes les données associées.</li>
-            <li>Vous opposer au traitement de vos données.</li>
-            <li>Exporter vos données dans un format structuré.</li>
+            <li>
+              fournir le service : suivi des loyers, préparation et envoi des relances,
+              génération des quittances ;
+            </li>
+            <li>authentifier votre compte et le sécuriser ;</li>
+            <li>assurer le support et améliorer le produit ;</li>
+            <li>respecter nos obligations légales.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-foreground">4. Bases légales</h2>
+          <p className="mt-2">
+            Selon la réglementation applicable en matière de protection des données personnelles
+            (notamment celle applicable au Bénin, sous le contrôle de l’APDP, Autorité de
+            Protection des Données Personnelles), nous nous appuyons sur : l’<strong>exécution du
+            contrat</strong> (vous fournir le service), notre <strong>intérêt légitime</strong>
+            (sécurité, amélioration), le <strong>consentement</strong> lorsqu’il est requis, et le
+            <strong> respect d’obligations légales</strong>. Pour les données des locataires, le
+            traitement repose sur l’intérêt légitime du propriétaire à gérer son bail, sous sa
+            responsabilité.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-foreground">5. Qui a accès aux données</h2>
+          <p className="mt-2">
+            Vos données ne sont <strong>jamais vendues</strong>. Elles peuvent être traitées par
+            des prestataires techniques agissant pour notre compte, uniquement pour faire
+            fonctionner le service :
+          </p>
+          <ul className="mt-2 list-disc pl-5 space-y-1">
+            <li>
+              hébergement et base de données : Supabase (serveurs AWS en Europe, Irlande,
+              eu-west-1) ;
+            </li>
+            <li>authentification : Google ;</li>
+            <li>envoi de messages aux locataires : fournisseur WhatsApp / SMS.</li>
           </ul>
           <p className="mt-3">
-            Pour exercer ces droits, contactez-nous à l&rsquo;adresse ci-dessous. Nous répondrons sous 15 jours ouvrés.
+            Aucun prestataire de paiement n’intervient, puisque Ranti ne manipule pas d’argent.
+            Nous pouvons divulguer des données si la loi l’exige.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            8. Cookies
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">6. Le locataire</h2>
           <p className="mt-2">
-            Ranti utilise uniquement des cookies techniques essentiels au fonctionnement du service (cookie de session
-            Supabase). Aucun cookie publicitaire ou de tracking n&rsquo;est déposé.
+            Le locataire n’a pas de compte. Il reçoit des liens ponctuels pour confirmer un
+            paiement ou consulter une quittance. Il peut confirmer ou contester l’exactitude d’un
+            document ; les deux positions sont conservées.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-foreground">7. Durée de conservation</h2>
+          <p className="mt-2">
+            Nous conservons les données tant que votre compte est actif, puis pendant la durée
+            nécessaire à nos obligations légales (par exemple comptables) ou à la preuve. Vous
+            pouvez demander la suppression de votre compte ; certaines données peuvent être
+            conservées le temps légalement requis.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-foreground">8. Sécurité</h2>
+          <p className="mt-2">
+            Nous mettons en œuvre des mesures raisonnables pour protéger vos données (contrôle
+            d’accès, chiffrement en transit, cloisonnement par compte). Aucun système n’étant
+            infaillible, nous vous invitons à protéger vos identifiants.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-foreground">9. Transferts internationaux</h2>
+          <p className="mt-2">
+            Nos prestataires techniques peuvent héberger des données en dehors de votre pays. Le
+            cas échéant, nous veillons à ce que des garanties appropriées encadrent ces transferts.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-foreground">10. Vos droits</h2>
+          <p className="mt-2">
+            Vous disposez d’un droit d’<strong>accès</strong>, de <strong>rectification</strong>,
+            d’<strong>effacement</strong>, d’<strong>opposition</strong> et de{" "}
+            <strong>portabilité</strong> sur vos données, dans les conditions prévues par la loi
+            applicable. Pour les exercer, écrivez à{" "}
+            <span className="font-medium text-foreground">kadorel93@gmail.com</span>. Vous pouvez
+            aussi saisir l’autorité de protection des données compétente (l’APDP au Bénin).
           </p>
           <p className="mt-3">
-            Votre consentement est recueilli via Axeptio. Vous pouvez revenir sur vos choix à tout moment :{" "}
-            <ReopenConsent />.
+            Concernant les données de vos locataires, c’est à vous, en tant que propriétaire, de
+            relayer et traiter leurs demandes ; nous vous y aidons sur demande.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            9. Contact
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">11. Cookies</h2>
           <p className="mt-2">
-            Pour toute question relative à cette politique de confidentialité ou pour exercer vos droits :
+            Nous utilisons uniquement les cookies nécessaires au fonctionnement et à la sécurité
+            du service (cookie de session Supabase). Aucun cookie publicitaire ou de tracking
+            n’est déposé.
           </p>
-          <p className="mt-2">
-            Email : <span className="text-foreground font-medium">kadorel93@gmail.com</span>
+          <p className="mt-3">
+            Votre consentement est recueilli via Axeptio. Vous pouvez revenir sur vos choix à tout
+            moment : <ReopenConsent />.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-foreground">
-            10. Modifications
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">12. Mineurs</h2>
           <p className="mt-2">
-            Cette politique peut être mise à jour. En cas de modification substantielle, vous serez informé par email ou
-            via une notification dans l&rsquo;application.
+            Le service s’adresse à des adultes gérant des biens locatifs. Nous ne collectons pas
+            sciemment de données de mineurs.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-foreground">13. Modifications</h2>
+          <p className="mt-2">
+            Nous pouvons faire évoluer cette politique. Toute modification substantielle vous sera
+            notifiée par email ou via une notification dans l’application.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold text-foreground">14. Contact</h2>
+          <p className="mt-2">
+            Pour toute question relative à vos données :{" "}
+            <span className="font-medium text-foreground">kadorel93@gmail.com</span>.
           </p>
         </section>
       </div>
