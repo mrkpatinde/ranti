@@ -18,11 +18,13 @@ const kindLabels: Record<string, string> = {
 
 // ADR-013 — bandeau d'acquittement locataire (deux voix). Couleurs sobres,
 // mentions strictement factuelles : Ranti documente, n'arbitre pas.
+// Palette = direction-artistique.html uniquement (décision CEO 2026-07-17) :
+// neutres papier/encre DA, certifié = wash + olive-deep, contesté = warning.
 const ackBanner: Record<string, { bg: string; fg: string; label: string }> = {
-  unilateral: { bg: "#F5F5F4", fg: "#525252", label: "Déclaration du propriétaire — non confirmée par le locataire." },
-  read: { bg: "#F5F5F4", fg: "#525252", label: "Reçu ouvert par le locataire, non encore confirmé." },
-  certified: { bg: "#ECF6E8", fg: "#3A6B22", label: "Certifié — le locataire a confirmé l'exactitude de ce reçu." },
-  disputed: { bg: "#FBEAEA", fg: "#A32D2D", label: "Contesté — le locataire déclare une version différente (ci-dessous)." },
+  unilateral: { bg: "#f2f2ec", fg: "#72726e", label: "Déclaration du propriétaire — non confirmée par le locataire." },
+  read: { bg: "#f2f2ec", fg: "#72726e", label: "Reçu ouvert par le locataire, non encore confirmé." },
+  certified: { bg: "#f2f6e1", fg: "#3f4d00", label: "Certifié — le locataire a confirmé l'exactitude de ce reçu." },
+  disputed: { bg: "#ffe7e2", fg: "#bd4a30", label: "Contesté — le locataire déclare une version différente (ci-dessous)." },
 }
 
 const contestNatureLabels: Record<string, string> = {
@@ -36,26 +38,26 @@ function formatDate(iso: string): string {
 }
 
 const s = StyleSheet.create({
-  page: { padding: 40, fontSize: 10, color: "#0A0A0A", fontFamily: "Helvetica" },
+  page: { padding: 40, fontSize: 10, color: "#292929", fontFamily: "Helvetica" },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  headerBox: { borderBottomWidth: 1, borderBottomColor: "#E5E5E5", paddingBottom: 14, marginBottom: 14 },
+  headerBox: { borderBottomWidth: 1, borderBottomColor: "#e4e3db", paddingBottom: 14, marginBottom: 14 },
   logoMark: { width: 28, height: 28, backgroundColor: "#292929", borderRadius: 6, padding: 6, justifyContent: "center" },
-  bar: { height: 2.5, backgroundColor: "#FFFFFF", borderRadius: 2, marginBottom: 2.5 },
-  brand: { fontSize: 13, fontFamily: "Helvetica-Bold" },
-  muted: { color: "#737373" },
-  title: { fontSize: 15, fontFamily: "Helvetica-Bold", textAlign: "right" },
-  block: { borderBottomWidth: 1, borderBottomColor: "#E5E5E5", paddingVertical: 14 },
-  label: { fontSize: 8, color: "#A3A3A3", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 },
+  bar: { height: 2.5, backgroundColor: "#f7f7f2", borderRadius: 2, marginBottom: 2.5 },
+  brand: { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#211f1c" },
+  muted: { color: "#72726e" },
+  title: { fontSize: 15, fontFamily: "Helvetica-Bold", textAlign: "right", color: "#211f1c" },
+  block: { borderBottomWidth: 1, borderBottomColor: "#e4e3db", paddingVertical: 14 },
+  label: { fontSize: 8, color: "#72726e", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 },
   strong: { fontFamily: "Helvetica-Bold" },
   lineRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 },
-  total: { fontSize: 18, fontFamily: "Helvetica-Bold" },
-  mention: { paddingVertical: 14, color: "#525252", lineHeight: 1.5 },
+  total: { fontSize: 18, fontFamily: "Helvetica-Bold", color: "#211f1c" },
+  mention: { paddingVertical: 14, color: "#72726e", lineHeight: 1.5 },
   qr: { width: 70, height: 70 },
-  qrBox: { width: 70, height: 70, borderWidth: 1, borderColor: "#D4D4D4", alignItems: "center", justifyContent: "center" },
-  sigLine: { width: 160, borderTopWidth: 1, borderTopColor: "#D4D4D4", paddingTop: 4, fontSize: 8, color: "#A3A3A3", textAlign: "center" },
+  qrBox: { width: 70, height: 70, borderWidth: 1, borderColor: "#d5d5d2", alignItems: "center", justifyContent: "center" },
+  sigLine: { width: 160, borderTopWidth: 1, borderTopColor: "#d5d5d2", paddingTop: 4, fontSize: 8, color: "#72726e", textAlign: "center" },
   ackBand: { borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 14 },
-  contestBox: { borderWidth: 1, borderColor: "#E7C3C3", backgroundColor: "#FBEAEA", borderRadius: 4, padding: 12, marginTop: 4, marginBottom: 10 },
-  fingerprint: { fontSize: 7, color: "#A3A3A3", marginTop: 8, lineHeight: 1.4 },
+  contestBox: { borderWidth: 1, borderColor: "#bd4a30", backgroundColor: "#ffe7e2", borderRadius: 4, padding: 12, marginTop: 4, marginBottom: 10 },
+  fingerprint: { fontSize: 7, color: "#72726e", marginTop: 8, lineHeight: 1.4 },
 })
 
 export function ReceiptPdf({
@@ -90,7 +92,7 @@ export function ReceiptPdf({
             <Text style={s.title}>{kind}</Text>
             <Text style={[s.muted, { textAlign: "right" }]}>N° {receipt.receipt_number}</Text>
             <Text style={[s.muted, { textAlign: "right" }]}>Émise le {formatDate(receipt.issued_at)}</Text>
-            {receipt.status === "cancelled" ? <Text style={[{ textAlign: "right", color: "#A32D2D" }]}>Annulée</Text> : null}
+            {receipt.status === "cancelled" ? <Text style={[{ textAlign: "right", color: "#bd4a30" }]}>Annulée</Text> : null}
           </View>
         </View>
 
@@ -140,10 +142,10 @@ export function ReceiptPdf({
 
         {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
           <View style={s.contestBox}>
-            <Text style={[s.label, { color: "#A32D2D" }]}>
+            <Text style={[s.label, { color: "#bd4a30" }]}>
               {contestNatureLabels[receipt.contest_nature] ?? "Contestation"} — version du locataire
             </Text>
-            <Text style={{ color: "#A32D2D" }}>
+            <Text style={{ color: "#bd4a30" }}>
               {receipt.contest_nature === "not_paid"
                 ? "Le locataire déclare ne pas avoir payé ce loyer."
                 : receipt.contest_nature === "amount"

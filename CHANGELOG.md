@@ -3,6 +3,32 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.27.0] - 2026-07-17
+
+### Added
+
+- **Nouvelle landing (portage « Landing.html » du design system)** : wordmark
+  animé « Ledger Draw », héro Fraunces, maquette du registre sur téléphone,
+  « Comment ça marche » en trois gestes, FAQ native, fond atmosphérique
+  (halos olive lents, grille de points — coupés sous reduced-motion). Tout en
+  tokens sémantiques, zéro hex en dur (hors glyphe Google et bezel du mockup).
+- **Consentement cookies (Axeptio)** : bandeau au chargement, réouverture des
+  choix depuis la politique de confidentialité.
+
+### Changed
+
+- **Tarif ADR-024 sur toutes les surfaces publiques** : abonnement par
+  paliers, **gratuit pour un logement**, aucune commission sur les loyers —
+  landing, CGU et DESIGN.md réalignés ; le « 3 mois gratuits puis 5 % »
+  disparaît (le rail d'encaissement reste gelé, pas supprimé).
+- **Couleurs : direction-artistique.html fait foi, strictement, partout**
+  (décision CEO). Light : papier crème `#f7f7f2`, surface atténuée `#f2f2ec`.
+  Dark : palette sombre de la DA (papier `#17171a`, surface `#1f1f22`, encre
+  `#eceae3`, olive `#aebd4a`). Landing, manifest PWA, PDF quittance et
+  nouveaux sous-tons (olive-deep `#3f4d00`, chip, wash retard, filets)
+  réalignés — plus aucune couleur hors palette dans le projet (seule
+  exception : logo Google officiel). Supersède le patch terrain `#f9f8f6`.
+
 ## [0.3.26.0] - 2026-07-17
 
 ### Added
