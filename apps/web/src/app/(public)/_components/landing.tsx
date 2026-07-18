@@ -31,20 +31,14 @@ function Header() {
         <Link href="/" className="flex items-center" aria-label="Ranti — accueil">
           <RantiWordmark size={30} />
         </Link>
-        <div className="flex items-center gap-2.5">
-          <Link
-            href={AUTH_PATHS.signIn}
-            className="rounded-full px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
-          >
-            Se connecter
-          </Link>
-          <Link
-            href={AUTH_PATHS.signUp}
-            className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition hover:bg-olive-deep"
-          >
-            Commencer
-          </Link>
-        </div>
+        {/* Une seule entrée au header (décision 2026-07-18) : le grand CTA
+            « Commencer avec Google » du hero reste l'unique appel à l'action. */}
+        <Link
+          href={AUTH_PATHS.signIn}
+          className="rounded-full px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+        >
+          Se connecter
+        </Link>
       </div>
     </header>
   );

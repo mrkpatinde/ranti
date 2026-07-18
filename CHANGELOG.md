@@ -3,6 +3,14 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.29.3] - 2026-07-18
+
+### Changed
+
+- **Landing : un seul appel à l'action.** Le bouton « Commencer » du header
+  est retiré ; « Se connecter » reste seul, et le grand « Commencer avec
+  Google » du hero demeure l'unique CTA, visible sans scroller.
+
 ## [0.3.29.2] - 2026-07-18
 
 ### Added
