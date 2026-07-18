@@ -5,7 +5,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
 import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
-import { formatFcfa } from "@/lib/format"
+import { formatFcfa, monthYearLabel } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { receiptClause } from "@/lib/receipts/clause"
 import { cancelReceipt, getReceipt } from "@/lib/receipts"
@@ -169,7 +169,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
           {/* Clause notariale partagée : même formulation que la page locataire,
               le PDF et la modale FirstRun (revue 2026-07-18). */}
-          <p className="py-4 text-sm leading-6 text-foreground/70">{receiptClause({ landlordName: `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire", tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind })}</p>
+          <p className="py-4 text-sm leading-6 text-foreground/70">{receiptClause({ landlordName: `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire", tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind, period: snap.allocations?.length === 1 ? monthYearLabel(snap.allocations[0].period_start) : null })}</p>
 
           <div className="flex items-end justify-between gap-4 pt-2">
             <div className="flex items-center gap-3">

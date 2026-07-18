@@ -1,4 +1,4 @@
-import { formatFcfa, formatFcfaNumber, MONTHS_FR } from "@/lib/format"
+import { formatFcfa, formatFcfaNumber, monthYearLabel } from "@/lib/format"
 
 // Aides pures des actions FirstRun, extraites hors du module "use server"
 // (qui ne peut exporter que des fonctions async) pour etre testables.
@@ -49,15 +49,9 @@ export function mapCollectionError(message: string): string {
   return "Encaissement impossible. Reessayez."
 }
 
-// period_start = "YYYY-MM-DD" -> "juillet 2026" (pas de new Date pour eviter
-// tout decalage de fuseau sur une date sans heure). Mois accentues partages
-// (lib/format.ts).
+// period_start = "YYYY-MM-DD" -> "juillet 2026" (delegue a lib/format).
 export function monthLabel(isoDate: string | null): string | null {
-  if (!isoDate) return null
-  const m = isoDate.match(/^(\d{4})-(\d{2})/)
-  if (!m) return null
-  const month = MONTHS_FR[Number.parseInt(m[2], 10) - 1]
-  return month ? `${month} ${m[1]}` : null
+  return monthYearLabel(isoDate)
 }
 
 // Chiffres uniquement (meme regle que lib/collections readAmount) :

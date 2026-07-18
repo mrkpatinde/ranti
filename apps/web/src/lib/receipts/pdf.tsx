@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
-import { formatFcfa } from "@/lib/format"
+import { formatFcfa, monthYearLabel } from "@/lib/format"
 import type { Landlord } from "@/lib/landlords"
 import { receiptClause } from "./clause"
 import type { Receipt } from "./types"
@@ -139,7 +139,7 @@ export function ReceiptPdf({
           <Text style={s.total}>{formatFcfa(receipt.total_amount)}</Text>
         </View>
 
-        <Text style={s.mention}>{receiptClause({ landlordName: `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire", tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind })}</Text>
+        <Text style={s.mention}>{receiptClause({ landlordName: `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire", tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind, period: snap.allocations?.length === 1 ? monthYearLabel(snap.allocations[0].period_start) : null })}</Text>
 
         {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
           <View style={s.contestBox}>

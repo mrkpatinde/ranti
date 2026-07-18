@@ -390,7 +390,7 @@ function Baux({ state, dispatch }: { state: State; dispatch: React.Dispatch<Acti
       <ViewHeader title="Baux" subtitle="Tous vos logements suivis" />
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-          <h2 style={sectionTitle}>{rows.length} bail suivi</h2>
+          <h2 style={sectionTitle}>{rows.length > 1 ? `${rows.length} baux suivis` : "1 bail suivi"}</h2>
           <button type="button" onClick={() => dispatch({ type: "open-tenant-form", mode: "tenant" })} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--font-sans)", fontSize: "0.9rem", fontWeight: 600, color: "var(--ink)", background: "var(--surface-card)", border: "1px solid var(--line)", borderRadius: "var(--radius-full)", padding: "9px 16px", cursor: "pointer" }}>+ Locataire</button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

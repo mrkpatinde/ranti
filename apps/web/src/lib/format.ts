@@ -32,3 +32,13 @@ export const MONTHS_FR = [
   "janvier", "février", "mars", "avril", "mai", "juin",
   "juillet", "août", "septembre", "octobre", "novembre", "décembre",
 ] as const
+
+// "YYYY-MM-DD" -> « juillet 2026 ». Pas de new Date : aucune dérive de fuseau
+// sur une date sans heure. null si le format ou le mois est invalide.
+export function monthYearLabel(isoDate: string | null): string | null {
+  if (!isoDate) return null
+  const m = isoDate.match(/^(\d{4})-(\d{2})/)
+  if (!m) return null
+  const month = MONTHS_FR[Number.parseInt(m[2], 10) - 1]
+  return month ? `${month} ${m[1]}` : null
+}

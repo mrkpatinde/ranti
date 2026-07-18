@@ -120,20 +120,30 @@ export function NouveauBailModal({ state, dispatch }: { state: State; dispatch: 
     const f = e.currentTarget
     setError(null)
     setPending(true)
-    const res = await createBail({
-      propertyName: fieldValue(f, "property_name"),
-      propertyCity: fieldValue(f, "property_city"),
-      unitName: fieldValue(f, "unit_name"),
-      unitType: fieldValue(f, "unit_type"),
-      firstName: fieldValue(f, "first_name"),
-      lastName: fieldValue(f, "last_name"),
-      phone: fieldValue(f, "phone"),
-      email: fieldValue(f, "email"),
-      monthlyRentAmount: fieldValue(f, "monthly_rent_amount"),
-      dueDay: fieldValue(f, "due_day"),
-      startDate: fieldValue(f, "start_date"),
-      requestId,
-    })
+    // Une action qui LEVE (reseau coupe, serveur injoignable) ne doit pas figer
+    // la modale : on revient en etat editable avec le MEME requestId, le renvoi
+    // rejoue la meme cle d'idempotence (#167).
+    let res
+    try {
+      res = await createBail({
+        propertyName: fieldValue(f, "property_name"),
+        propertyCity: fieldValue(f, "property_city"),
+        unitName: fieldValue(f, "unit_name"),
+        unitType: fieldValue(f, "unit_type"),
+        firstName: fieldValue(f, "first_name"),
+        lastName: fieldValue(f, "last_name"),
+        phone: fieldValue(f, "phone"),
+        email: fieldValue(f, "email"),
+        monthlyRentAmount: fieldValue(f, "monthly_rent_amount"),
+        dueDay: fieldValue(f, "due_day"),
+        startDate: fieldValue(f, "start_date"),
+        requestId,
+      })
+    } catch {
+      setError("Reseau indisponible. Vos champs sont conserves : reessayez.")
+      setPending(false)
+      return
+    }
     if (res.ok) {
       dispatch({
         type: "save-tenant",
@@ -224,16 +234,26 @@ export function ValiderPaiementModal({ state, dispatch }: { state: State; dispat
     const f = e.currentTarget
     setError(null)
     setPending(true)
-    const res = await recordPayment({
-      tenantId: target.tenantId,
-      unitId: target.unitId,
-      dueId: target.dueId,
-      dueAmount: target.dueAmount,
-      amount: fieldValue(f, "montant"),
-      method: fieldValue(f, "moyen"),
-      receivedAt: fieldValue(f, "date") || null,
-      requestId,
-    })
+    // Meme garde que le bail : une action qui leve garde la modale editable,
+    // le renvoi rejoue la meme cle (record_collection renvoie alors la MEME
+    // reception, confirm est no-op, generate_receipt renvoie la quittance).
+    let res
+    try {
+      res = await recordPayment({
+        tenantId: target.tenantId,
+        unitId: target.unitId,
+        dueId: target.dueId,
+        dueAmount: target.dueAmount,
+        amount: fieldValue(f, "montant"),
+        method: fieldValue(f, "moyen"),
+        receivedAt: fieldValue(f, "date") || null,
+        requestId,
+      })
+    } catch {
+      setError("Reseau indisponible. Reessayez : le paiement ne sera jamais compte deux fois.")
+      setPending(false)
+      return
+    }
     if (res.ok) {
       dispatch({ type: "save-payment", receipt: res.receipt })
     } else {
@@ -395,7 +415,7 @@ export function QuittanceModal({ state, dispatch }: { state: State; dispatch: Re
               <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.5rem", letterSpacing: "-0.02em", color: "var(--ink-title)" }}>{title}</h2>
               <span style={{ fontSize: "0.85rem", fontVariantNumeric: "tabular-nums", color: "var(--ink-muted)" }}>N° {r.receiptNumber} · {formatDate(r.issuedAt)}</span>
             </div>
-            <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 7, fontSize: "0.78rem", fontWeight: 600, padding: "5px 12px", borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)" }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--olive)" }} />Confirmée</span>
+            <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 7, fontSize: "0.78rem", fontWeight: 600, padding: "5px 12px", borderRadius: 999, background: r.tenantConfirmed ? "var(--olive-wash)" : "var(--muted-surface)", color: r.tenantConfirmed ? "var(--olive-deep)" : "var(--ink-muted)" }}>{r.tenantConfirmed && <span style={{ width: 7, height: 7, borderRadius: 999, background: "var(--olive)" }} />}{r.tenantConfirmed ? "Confirmée" : "À confirmer"}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <DefRow label="Bailleur" value={landlord.fullName} />
@@ -408,7 +428,7 @@ export function QuittanceModal({ state, dispatch }: { state: State; dispatch: Re
             <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--ink)" }}>Montant réglé</span>
             <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.6rem", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: "var(--ink-title)" }}>{r.amountLabel}</span>
           </div>
-          <p style={{ margin: 0, fontSize: "0.82rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>{receiptClause({ landlordName: landlord.fullName, tenantName: r.tenantName || "le locataire", amount: r.totalAmount, kind: r.kind })}</p>
+          <p style={{ margin: 0, fontSize: "0.82rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>{receiptClause({ landlordName: landlord.fullName, tenantName: r.tenantName || "le locataire", amount: r.totalAmount, kind: r.kind, period: r.periodLabel })}</p>
           <div style={{ border: "1px solid var(--line-soft)", background: "var(--muted-surface)", borderRadius: "var(--radius-md)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={{ fontSize: "0.8rem", lineHeight: 1.45, color: "var(--ink-muted)" }}>{r.tenantConfirmed ? "Confirmée par le locataire." : "En attente de confirmation du locataire."} Vérifiable sur <span style={{ color: "var(--ink)", fontWeight: 500 }}>{r.verifyRef}</span></span>
             {r.sha256 && (

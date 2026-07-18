@@ -1,14 +1,20 @@
 import { setOnboardingStatus } from "@/lib/onboarding/actions"
 import { setReminderSettings } from "@/lib/reminders/actions"
 import { signOut } from "@/lib/auth/actions"
-import type { Action, State, Step } from "./shared"
+import type { Action, Canal, Moment, State, Step } from "./shared"
 
 // Machine d'etat du parcours FirstRun (phase 3), extraite du composant client
 // pour etre testable : reducer pur + matrice d'effets de persistance. Le
 // composant (first-run-client.tsx) enveloppe dispatch pour appeler runEffects
 // sur l'etat FRAIS avant de reduire.
 
-export function makeFresh(step: Step): State {
+// Reglages de relance persistes (landlords.reminders_enabled / channel /
+// moment) : semes a l'initialisation pour que les toggles Relances/Parametres
+// refletent la base et qu'un clic n'ecrase jamais un reglage existant avec
+// les defauts d'UI (revue adversariale 2026-07-18, F4).
+export type ReminderSeed = { active: boolean; canal: Canal; moment: Moment }
+
+export function makeFresh(step: Step, reminders?: ReminderSeed): State {
   return {
     step,
     view: "accueil",
@@ -23,10 +29,10 @@ export function makeFresh(step: Step): State {
     addedLeases: [],
     payTarget: null,
     receipt: null,
-    relCanal: "whatsapp",
-    relMoment: "echeance",
-    relanceOn: false,
-    relanceActive: false,
+    relCanal: reminders?.canal ?? "whatsapp",
+    relMoment: reminders?.moment ?? "echeance",
+    relanceOn: reminders?.active ?? false,
+    relanceActive: reminders?.active ?? false,
   }
 }
 

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { formatFcfa } from "@/lib/format";
+import { formatFcfa, monthYearLabel } from "@/lib/format";
 import { SubmitButton } from "@/components/submit-button";
 import { RantiLogo } from "@/components/ranti-logo";
 import { createClient } from "@/lib/supabase/server";
@@ -266,6 +266,10 @@ export default async function RecuPage({
               tenantName,
               amount: receipt.total_amount,
               kind: receipt.kind,
+              period:
+                receipt.allocations.length === 1
+                  ? monthYearLabel(receipt.allocations[0].period_start)
+                  : null,
             })}
           </p>
 

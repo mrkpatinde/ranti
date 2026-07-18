@@ -46,6 +46,11 @@ export default async function FirstRunPage() {
       monthLabel={monthLabel}
       todayIso={todayIso}
       initialStep={STEP_BY_STATUS[landlord.onboarding_status as Exclude<OnboardingStatus, "done">] ?? "welcome"}
+      initialReminders={{
+        active: landlord.reminders_enabled,
+        canal: landlord.reminder_channel ?? "whatsapp",
+        moment: landlord.reminder_moment ?? "echeance",
+      }}
     />
   )
 }
