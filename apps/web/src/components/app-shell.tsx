@@ -8,7 +8,7 @@ import type { Landlord } from "@/lib/landlords"
 import { RantiLogo } from "@/components/ranti-logo"
 import { AccountMenu } from "@/components/account-menu"
 import { ResumeOnboarding } from "@/components/resume-onboarding"
-import { SUPPORT_EMAIL_URL, SUPPORT_WHATSAPP_URL } from "@/lib/support"
+import { HelpCenter } from "@/components/help-center"
 
 // Nav aplatie autour du bail (clé de voûte). « Baux » ouvre l'arbre
 // Lieu → Logement → Locataire/bail (hub = /properties). Les quittances sont
@@ -97,22 +97,7 @@ function MobileNavMenu({ pathname, resumable }: { pathname: string; resumable: b
             </div>
             <div className="space-y-1 border-t border-border pt-1.5">
               <p className="px-3.5 pb-0.5 text-[11px] font-medium text-muted-foreground">Aide</p>
-              {SUPPORT_WHATSAPP_URL && (
-                <a
-                  href={SUPPORT_WHATSAPP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
-                >
-                  WhatsApp Ranti
-                </a>
-              )}
-              <a
-                href={SUPPORT_EMAIL_URL}
-                className="block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
-              >
-                Écrire un email
-              </a>
+              <HelpCenter />
             </div>
           </div>
         </>
@@ -159,22 +144,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
           {resumable && <ResumeOnboarding />}
           <div className="space-y-1">
             <p className="px-3.5 pb-1 text-[11px] font-medium text-muted-foreground">Aide</p>
-            {SUPPORT_WHATSAPP_URL && (
-              <a
-                href={SUPPORT_WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
-              >
-                WhatsApp Ranti
-              </a>
-            )}
-            <a
-              href={SUPPORT_EMAIL_URL}
-              className="block rounded-lg px-3.5 py-3 text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground"
-            >
-              Écrire un email
-            </a>
+            <HelpCenter />
           </div>
           <NavLink href="/settings/profile" label="Paramètres" pathname={pathname} />
           <div className="px-3.5 py-2">

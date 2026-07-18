@@ -13,8 +13,15 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions
   de chaque étape (faite / active / verrouillée). Réutilise
   `getOnboardingProgress`, aucun état stocké. Composant `GuidedRail` : le
   stepper compact FirstRun (segments, position, CTA « Continuer » vers la
-  prochaine cible), tokens sémantiques, jamais bloquant. Pas encore branché à
-  une page.
+  prochaine cible), tokens sémantiques, jamais bloquant. Branché au tableau de
+  bord en statut « guided » (dérivé de la progression déjà chargée, aucune
+  requête en plus), sous la checklist « Premiers pas ».
+- **Centre d'aide (handoff FirstRun)** : bouton « Centre d'aide » (barre
+  latérale + menu mobile) ouvrant la modale « Aide Ranti » — guides du centre
+  d'aide Notion et canaux directs (WhatsApp, email) en repli. URL Notion via
+  `NEXT_PUBLIC_NOTION_HELP_URL` (facultative, le lien se masque si absente,
+  comme WhatsApp). `aria-modal` avec focus à l'ouverture + restauration à la
+  fermeture. Remplace les liens d'aide bruts de la barre latérale.
 
 ## [0.3.27.0] - 2026-07-17
 
