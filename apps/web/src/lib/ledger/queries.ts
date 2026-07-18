@@ -68,3 +68,33 @@ export async function getLeaseLedgerCharges(
 
   return (data ?? []) as LedgerCharge[]
 }
+
+// ── Charges relançables (relances programmées, 2026-07-18) ──────────────────
+
+export type OpenCharge = {
+  id: string
+  lease_id: string
+  type: "reparation" | "frais"
+  label: string
+  amount: number
+}
+
+// Charges VALIDÉES par le locataire, non remplacées : les seules qu'une
+// relance peut viser (pending = pas encore certaine, disputed = litige que
+// Ranti documente sans presser). Le filtre « le bail porte un impayé au grand
+// livre » s'applique côté appelant (lease_balances déjà chargée).
+export async function getLandlordOpenCharges(landlordId: string): Promise<OpenCharge[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("id, lease_id, type, label, amount")
+    .eq("landlord_id", landlordId)
+    .in("type", ["reparation", "frais"])
+    .eq("direction", "debit")
+    .eq("status", "validated")
+    .is("replaced_by", null)
+    .order("occurred_at", { ascending: false })
+
+  if (error) failQuery("getLandlordOpenCharges", error)
+  return (data ?? []) as OpenCharge[]
+}

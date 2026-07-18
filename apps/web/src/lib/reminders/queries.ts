@@ -132,7 +132,8 @@ export async function getLeaseReminders(
 
 export type ScheduledReminder = {
   id: string
-  rent_due_id: string
+  rent_due_id: string | null
+  charge_id: string | null
   scheduled_for: string
   channel: "whatsapp" | "sms"
   status: "pending" | "sent" | "cancelled"
@@ -145,7 +146,7 @@ export async function getScheduledReminders(landlordId: string): Promise<Schedul
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("scheduled_reminders")
-    .select("id, rent_due_id, scheduled_for, channel, status, created_at")
+    .select("id, rent_due_id, charge_id, scheduled_for, channel, status, created_at")
     .eq("landlord_id", landlordId)
     .eq("status", "pending")
     .order("scheduled_for", { ascending: true })
