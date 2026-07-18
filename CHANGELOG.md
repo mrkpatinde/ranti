@@ -3,6 +3,22 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.28.1] - 2026-07-18
+
+### Added
+
+- **Preview fidèle du prototype FirstRun** (route isolée `/first-run` +
+  `/first-run/quittance`, hors AppShell) : portage 1:1 de
+  `design_handoff_first_run/prototypes/` en composants de notre stack, état
+  local et seed de démo, aucune DB (l'adaptation de la base est la phase 2).
+  Couche de tokens scopée aux valeurs exactes de `tokens/colors.css`,
+  `spacing.css`, `effects.css`. Coquille desktop et mobile, welcome, accueil
+  (checklist, bandeau, cartes), vues Encaissements / Relances / Baux /
+  Paramètres, modales (nouveau bail, valider un paiement, relance, centre
+  d'aide, quittance), page locataire (à confirmer / confirmée). Copy sans
+  tiret cadratin (règle du CLAUDE.md handoff). `prefers-reduced-motion`
+  coupe les animations.
+
 ## [0.3.28.0] - 2026-07-18
 
 ### Added
