@@ -15,7 +15,9 @@ import { getLandlordUnits } from "@/lib/units"
 import { buildDashboardSummary } from "@/lib/dashboard/summary"
 import { computeUpcomingReminders } from "@/lib/reminders/schedule"
 import { getOnboardingProgress } from "@/lib/onboarding/progress"
+import { buildGuidedRail } from "@/lib/onboarding/guided"
 import { ResumeOnboarding } from "@/components/resume-onboarding"
+import { GuidedRail } from "@/components/guided-rail"
 import { WelcomeOverlay } from "./_components/welcome-overlay"
 import { PremiersPas } from "./_components/premiers-pas"
 import { OnboardingComplete } from "./_components/onboarding-complete"
@@ -59,10 +61,17 @@ export default async function DashboardPage() {
   const showChecklist = progress != null && !progress.allDone
   const justCompleted = progress != null && progress.allDone
 
+  // Rail de la prise en main guidée (FirstRun) : dérivé de la MÊME progression
+  // que la checklist (buildGuidedRail est pur — aucune requête supplémentaire).
+  // Il zoome sur le seul geste à faire maintenant, sous la checklist. N'est
+  // « actif » qu'en statut « guided » tant qu'il reste une étape.
+  const rail = progress ? buildGuidedRail(status, progress) : null
+
   const onboardingLayer = (
     <>
       {status === "pending" && <WelcomeOverlay firstName={landlord.first_name} />}
       {showChecklist && progress && <PremiersPas progress={progress} />}
+      {rail?.active && <GuidedRail rail={rail} />}
       {justCompleted && <OnboardingComplete />}
     </>
   )

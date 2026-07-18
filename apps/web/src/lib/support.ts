@@ -12,3 +12,9 @@ export const SUPPORT_WHATSAPP_URL = SUPPORT_WHATSAPP
   ? `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("Bonjour Ranti, j'ai besoin d'aide.")}`
   : null
 export const SUPPORT_EMAIL_URL = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Demande d'assistance Ranti")}`
+
+// Centre d'aide Notion (dev-notes handoff FirstRun) : URL publique du centre
+// d'aide, canal principal en attendant le support WhatsApp. Même parti pris que
+// WhatsApp — pas de fallback : sans env configurée, le bouton « Ouvrir le centre
+// d'aide » n'est pas affiché plutôt que de pointer vers une page inexistante.
+export const SUPPORT_NOTION_URL = process.env.NEXT_PUBLIC_NOTION_HELP_URL ?? null
