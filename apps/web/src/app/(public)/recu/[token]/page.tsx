@@ -5,7 +5,9 @@ import { RantiLogo } from "@/components/ranti-logo";
 import { createClient } from "@/lib/supabase/server";
 import type { ReceiptByToken } from "@/lib/receipts/types";
 import { receiptClause } from "@/lib/receipts/clause";
+import type { EreceiptConsentStatus } from "@/lib/receipts/consent";
 import { certifyReceipt } from "./actions";
+import { ConsentScreen } from "./consent-screen";
 import { ContestForm } from "./contest-form";
 
 // ============================================================
@@ -64,6 +66,32 @@ export default async function RecuPage({
   }
 
   const supabase = await createClient();
+
+  const errorMsg =
+    typeof sp.error === "string" ? (ERROR_MESSAGES[sp.error] ?? null) : null;
+
+  // Conformité quittance électronique : au PREMIER accès, écran de
+  // consentement AVANT tout affichage (le document n'est pas même marqué
+  // « lu » : get_receipt_by_token, qui pose read, n'est appelée qu'après
+  // l'accord). Une seule fois par locataire, write-once côté DB.
+  const { data: consentData, error: consentError } = await supabase.rpc(
+    "ereceipt_consent_status",
+    { p_token: token },
+  );
+  const consent = (consentData as EreceiptConsentStatus[] | null)?.[0];
+  if (consentError || !consent || !consent.found) {
+    notFound();
+  }
+  if (!consent.granted_at) {
+    return (
+      <ConsentScreen
+        token={token}
+        tenantFirstName={consent.tenant_first_name}
+        errorMsg={errorMsg}
+      />
+    );
+  }
+
   const { data, error } = await supabase.rpc("get_receipt_by_token", {
     p_token: token,
   });
@@ -72,9 +100,6 @@ export default async function RecuPage({
   if (error || !receipt) {
     notFound();
   }
-
-  const errorMsg =
-    typeof sp.error === "string" ? (ERROR_MESSAGES[sp.error] ?? null) : null;
 
   const kind = KIND_LABEL[receipt.kind] ?? "Document";
   const docNoun = receipt.kind === "quittance" ? "quittance" : "reçu";
