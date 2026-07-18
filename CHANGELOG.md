@@ -3,6 +3,17 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.31.0] - 2026-07-18
+
+### Added
+
+- **Programmer une relance** : depuis la page Relances, choisissez une
+  échéance impayée, la date d'envoi (calendrier) et le canal ; Ranti l'envoie
+  ce jour-là. Vos relances programmées s'affichent et restent annulables tant
+  qu'elles ne sont pas parties.
+- **Relancer maintenant** : sur chaque relance à venir, un bouton ouvre
+  WhatsApp avec le message par défaut pré-rempli ; vous relisez et envoyez.
+
 ## [0.3.30.0] - 2026-07-18
 
 ### Added
