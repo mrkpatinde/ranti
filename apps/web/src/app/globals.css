@@ -92,7 +92,7 @@
   --leaf: 109 82% 72%; /* #94f27f — feuille DA (authentifié/confirmé) ;
      « feuille inchangée » en dark, donc pas de surcharge sombre. */
   --ink-title: 36 8% 12%; /* #211f1c — encre titres (H1/H2/wordmark/chiffres) */
-  --olive-deep: 71 100% 15%; /* #3f4d00 — olive profond DA (hover, chiffre « Payé ») */
+  --olive-deep: 69 59% 21%; /* #4c5616 - hover CTA olive, chiffre « Payé » (design_handoff_first_run/tokens/colors.css) */
   --olive-chip: 70 41% 86%; /* #e5eacd — chip olive (halo de fond) */
   --warning-wash: 11 100% 94%; /* #ffe7e2 — fond du badge « En retard » */
   --surface-2: 60 40% 98%; /* #fcfcf8 — surface haute (barre CTA du mockup) */
