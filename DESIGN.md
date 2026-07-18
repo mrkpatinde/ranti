@@ -2,7 +2,8 @@
 
 > Source de vérité visuelle. Lire avant toute décision UI. Ne pas dévier sans validation explicite.
 > Créé par /design-consultation le 2026-07-15. Boussole : **« Ça, c'est fiable / sérieux »** — sérieux tranquille, la quittance fait foi, rien ne clignote.
-> **Référence visuelle vivante : [`direction-artistique.html`](direction-artistique.html)** (racine du repo) — style-guide rendu (cachet certifié, spécimens typo, palette clair/sombre, composants, interdits). En cas d'écart entre ce fichier et la DA, **la DA fait foi** (décision CEO 2026-07-17).
+> **Référence visuelle vivante : [`direction-artistique.html`](direction-artistique.html)** (racine du repo) — style-guide rendu (cachet certifié, spécimens typo, palette, composants, interdits). En cas d'écart entre ce fichier et la DA, **la DA fait foi** (décision CEO 2026-07-17).
+> **Prototype FirstRun : `design_handoff_first_run/`** (racine du repo, non versionné) : pour la prise en main guidée et les tokens qu'il définit (dont la décision clair-seul), le handoff fait foi ; son `CLAUDE.md` est contraignant (2026-07-18).
 
 ## Product Context
 - **Ce que c'est :** registre de loyer pour propriétaires ouest-africains (Bénin d'abord) — suivi des baux, relances WhatsApp depuis le bail, quittances certifiées vérifiables.
@@ -27,14 +28,15 @@
 - **Scale (rem, base 16px) :** hero clamp(2.5,7vw,4.75) · h2 2.25–3 · h3 1.375 · lede 1.1875 · body 1 · small 0.875 · micro 0.75. Line-height : titres 1.05, corps 1.55.
 
 ## Color
-> Palette de référence = **direction-artistique.html**, strictement (décision CEO 2026-07-17 : seules les couleurs de la DA existent dans le projet). L'app utilise des **tokens sémantiques HSL** (`globals.css` `@theme`, style shadcn) qui portent cette palette. Mapping : `--background` = papier crème **#f7f7f2**, `--foreground`/`--primary` = encre #292929, `--accent` = olive #5b6f00 (CTA), `--secondary` = teinte verte #f2f6e1, `--destructive` = #e95d3d, `--warning` = #bd4a30 (retard/attention). Dark mode = palette sombre DA (papier #17171a, surface #1f1f22, encre #eceae3, olive #aebd4a, ring #788c15). **Utiliser les classes tokens** (`bg-accent`, `text-foreground`, `bg-warning/10`…) dans l'app, PAS des hex en dur ni la palette Tailwind générique (`red-*`, `amber-*` interdites — elles cassent le dark mode). Le PDF quittance et le manifest PWA portent les hex DA en dur (pas de CSS là-bas) ; seule exception tolérée : les couleurs officielles du logo Google (bouton OAuth — marque tierce).
+> Palette de référence = **direction-artistique.html**, strictement (décision CEO 2026-07-17 : seules les couleurs de la DA existent dans le projet). L'app utilise des **tokens sémantiques HSL** (`globals.css` `@theme`, style shadcn) qui portent cette palette. Mapping : `--background` = papier crème **#f7f7f2**, `--foreground`/`--primary` = encre #292929, `--accent` = olive #5b6f00 (CTA), `--secondary` = teinte verte #f2f6e1, `--destructive` = #e95d3d, `--warning` = #bd4a30 (retard/attention). Pas de mode sombre : palette claire seule, `color-scheme: light` forcé dans `globals.css` (le bloc `prefers-color-scheme: dark` est supprimé ; `design_handoff_first_run/` fait foi, v0.3.29.0). **Utiliser les classes tokens** (`bg-accent`, `text-foreground`, `bg-warning/10`…) dans l'app, PAS des hex en dur ni la palette Tailwind générique (`red-*`, `amber-*` interdites : hors palette DA). Le PDF quittance et le manifest PWA portent les hex DA en dur (pas de CSS là-bas) ; seule exception tolérée : les couleurs officielles du logo Google (bouton OAuth — marque tierce).
 - **Approche :** restreinte. L'olive est l'equity de marque — chaud, terre/CFA, africain, démarque du bleu fintech générique.
 - **Primary :** `#5b6f00` (olive) — CTA, liens, marque. Accent vif : `#788c15`.
 - **Secondary / signaux :** `#94f27f` (feuille) = authentifié/confirmé (quittance, badge « ne détient jamais vos fonds »).
 - **Neutrals :** papier `#f7f7f2` (crème DA) · surface `#ffffff` / `#fcfcf8` · encre titres `#211f1c` · corps `#292929` · muted `#72726e` · filets `#e4e3db` / `#d5d5d2`.
 - **Tints olive :** chip `#e5eacd` · wash `#f2f6e1`.
 - **Sémantique :** succès = olive/feuille · retard/warning = `#bd4a30` sur `#ffe7e2` · erreur = rouge plus profond · info = muted.
-- **Dark mode :** redessiner les surfaces (papier `#17171a`, surface `#1f1f22`, encre `#f4f3ee`) ; **éclaircir l'olive** vers `#aebd4a` / accent `#c3d46a` pour le contraste (l'olive foncé disparaît sur fond sombre). Feuille inchangée.
+- **Mode sombre : supprimé (2026-07-18, v0.3.29.0).** Palette claire unique, `color-scheme: light` fige le rendu clair (formulaires, ascenseurs) même sur un appareil en mode sombre. La palette sombre de `direction-artistique.html` reste une archive de style-guide, elle n'est plus câblée nulle part.
+- **Olive profond (`--olive-deep`) :** `#4c5616` (hover CTA, chiffre « Payé ») ; token exact de `design_handoff_first_run/tokens/colors.css`, supersède `#3f4d00`.
 
 ## Spacing
 - **Base :** 8px.
@@ -80,3 +82,4 @@
 | 2026-07-15 | Système de design initial | /design-consultation ; boussole « fiable/sérieux » ; évolution de l'equity olive/cream/serif en prod, saut typo (Fraunces) + motif cachet certifié ; recherche obligo.com |
 | 2026-07-16 | Mise en conformité post-critique | Token `--warning` câblé ; palette Tailwind brute éradiquée (dark mode réparé) ; olive dark aligné sur la spec (#aebd4a) ; primitives `components/ui` (Button/Alert/Badge) + `formatFcfa` unique ; CTA = olive partout ; eyebrows retirés des pages locataire ; cibles tactiles ≥ 44 px ; nav dé-pillée |
 | 2026-07-17 | direction-artistique.html publiée, couleurs DA verrouillées **et appliquées partout** | Style-guide rendu depuis DESIGN.md + tokens prod (v0.3.26.0). Décision CEO : strictement les couleurs de la DA dans tout le projet — `globals.css` (light + dark DA), landing, manifest PWA, PDF quittance réalignés ; papier `#f7f7f2` référence, supersède le patch terrain `#f9f8f6` du 2026-07-16. Seule exception : couleurs officielles logo Google (OAuth) |
+| 2026-07-18 | Mode sombre supprimé ; `design_handoff_first_run/` fait foi (v0.3.29.0) | Le mode sombre système inversait l'app sur mobile alors que le prototype FirstRun est crème seul. `prefers-color-scheme: dark` retiré de `globals.css`, `color-scheme: light` forcé ; `--olive-deep` réaligné sur le token exact du handoff (`#4c5616`) ; tirets cadratins purgés des surfaces locataire |

@@ -28,7 +28,8 @@ export async function certifyReceipt(token: string) {
   }
 
   revalidatePath("/", "layout");
-  redirect(`/recu/${token}?certified=1`);
+  // Pas de query param : le bandeau d'état persistant (tenant_ack) suffit.
+  redirect(`/recu/${token}`);
 }
 
 export async function contestReceipt(token: string, formData: FormData) {
@@ -60,5 +61,6 @@ export async function contestReceipt(token: string, formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect(`/recu/${token}?contested=1`);
+  // Pas de query param : le bandeau d'état persistant (tenant_ack) suffit.
+  redirect(`/recu/${token}`);
 }

@@ -3,6 +3,68 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.29.0] - 2026-07-18
+
+### Added
+
+- **Prise en main FirstRun câblée à la base** : `/first-run` derrière l'auth
+  (`requireLandlordProfile`, redirige vers `/dashboard` si l'onboarding est
+  terminé) avec l'identité réelle du bailleur. Le parcours guidé crée un vrai
+  bail, valide un vrai paiement et édite une vraie quittance : server actions
+  non-redirigeantes (`createBailFirstRun` via `bulk_onboard_portfolio`,
+  `recordPaymentFirstRun` via `record_collection` + `confirm_collection` +
+  `generate_receipt`), idempotence par `request_id`, reprise sûre après une
+  coupure réseau (la même clé rejoue la même écriture). Statut d'onboarding et
+  réglages de relance persistés (et resservis à l'ouverture), déconnexion
+  Supabase réelle. Portage fidèle du prototype
+  `design_handoff_first_run/` : coquille desktop/mobile, welcome, 4 vues,
+  modales, tokens exacts, `prefers-reduced-motion`.
+- **Modale bail complète** : lieu + ville, type de logement, prénom/nom,
+  téléphone, date de début, avec bouton « Choisir dans les contacts »
+  (Contact Picker, Android Chrome/Edge), aussi sur `/leases/new`.
+- **Clause notariale de quittance** avec montant en toutes lettres
+  (`amountInWordsFcfa`) et période nommée, identique sur les 4 surfaces :
+  page publique `/recu/[token]`, PDF, page bailleur `/receipts/[id]`, modale
+  FirstRun. Quittance = solde de la période ; reçu = paiement partiel.
+- **Base de données** : colonnes de relance par bailleur (`reminders_enabled`
+  / `reminder_channel` / `reminder_moment`, patron `onboarding_status`) ;
+  référence de quittance `RNT-AAAA-NNNN` (séquence annuelle par bailleur,
+  ex. `RNT-2026-0001`, sans plafond ; les existantes gardent `R-NNNNNN`).
+- **CGU + confidentialité enrichies** (structure non-custodial, éditeur
+  WI'SOFT SOLUTIONS) et mentions légales société dans le pied de page.
+
+### Changed
+
+- **Libellé locataire « Confirmer le paiement »** (au lieu de « la
+  réception ») et message de confirmation unique après certification.
+- **Identité légale unifiée** : WI'SOFT SOLUTIONS (RCCM, IFU) et un seul
+  email de contact sur la landing, les CGU et la confidentialité.
+
+### Fixed
+
+- **Séquence RNT sans plafond** : la 10 000e quittance d'une année ne
+  produit plus de collision (lpad tronquait), l'émission ne peut plus se
+  bloquer. Appliqué en prod.
+- **Fond clair partout** : le mode sombre système n'inverse plus l'app sur
+  mobile (`design_handoff_first_run/` fait foi, palette crème seule) ;
+  `--olive-deep` aligné sur le token exact du handoff.
+- **Réseau instable** : une action qui échoue en pleine soumission ne fige
+  plus les modales bail/paiement ; la saisie est conservée et le renvoi ne
+  compte jamais un paiement deux fois.
+- **Badge de quittance honnête** : « À confirmer » tant que le locataire n'a
+  pas certifié (au lieu d'un « Confirmée » codé en dur).
+- **Montants et mois uniformes** : formatage FCFA unique (espace insécable,
+  plus de « / » sur PDF), mois accentués partagés, montant de paiement
+  strictement numérique, tirets cadratins purgés des surfaces locataire.
+- **Spec e2e landing réaligné** sur la landing DA (périmé depuis la refonte
+  v0.3.27.0, référençait un tarif banni).
+
+### Removed
+
+- **Maquette publique `/first-run/quittance`** : fausse empreinte SHA-256 et
+  faux « Lien vérifié » sur l'origine de prod ; la vraie page locataire vit
+  sur `/recu/[token]`.
+
 ## [0.3.28.0] - 2026-07-18
 
 ### Added

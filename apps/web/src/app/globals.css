@@ -5,7 +5,7 @@
  * direction-artistique.html (racine du repo, décision CEO 2026-07-17).
  * Palette DA : papier crème (#f7f7f2), encre anthracite (#292929), accent
  * vert olive (#5b6f00) réservé aux appels à l'action, teintes vertes douces
- * pour les états. Dark = palette sombre DA (papier #17171a, olive #aebd4a).
+ * pour les états. Palette claire uniquement (pas de mode sombre, cf. :root).
  */
 
 @theme inline {
@@ -43,7 +43,7 @@
 
   /* Sous-tons DA additionnels (tokens/colors.css) — portés pour la landing :
      encre titres, olive profond, chip olive, wash retard, surface haute,
-     filet doux. Chacun a sa valeur claire ET sombre (dark mode préservé). */
+     filet doux. Valeurs claires uniquement (pas de mode sombre). */
   --color-ink-title: hsl(var(--ink-title));
   --color-olive-deep: hsl(var(--olive-deep));
   --color-olive-chip: hsl(var(--olive-chip));
@@ -62,6 +62,10 @@
 }
 
 :root {
+  /* Palette claire uniquement : le design fait foi = design_handoff_first_run/
+     (crème), aucun mode sombre. color-scheme: light fige le rendu clair
+     (contrôles de formulaire, ascenseurs) même sur un appareil en mode sombre. */
+  color-scheme: light;
   --background: 60 24% 96%; /* #f7f7f2 — papier crème DA (décision CEO
      2026-07-17 : les couleurs de direction-artistique.html font foi,
      supersède le patch terrain #f9f8f6 du 2026-07-16) */
@@ -85,10 +89,9 @@
   --destructive-foreground: 0 0% 100%;
   --warning: 11 59% 46%; /* #bd4a30 — retard/attention (DESIGN.md) */
   --warning-foreground: 60 40% 98%;
-  --leaf: 109 82% 72%; /* #94f27f — feuille DA (authentifié/confirmé) ;
-     « feuille inchangée » en dark, donc pas de surcharge sombre. */
+  --leaf: 109 82% 72%; /* #94f27f — feuille DA (authentifié/confirmé) */
   --ink-title: 36 8% 12%; /* #211f1c — encre titres (H1/H2/wordmark/chiffres) */
-  --olive-deep: 71 100% 15%; /* #3f4d00 — olive profond DA (hover, chiffre « Payé ») */
+  --olive-deep: 69 59% 21%; /* #4c5616 - hover CTA olive, chiffre « Payé » (design_handoff_first_run/tokens/colors.css) */
   --olive-chip: 70 41% 86%; /* #e5eacd — chip olive (halo de fond) */
   --warning-wash: 11 100% 94%; /* #ffe7e2 — fond du badge « En retard » */
   --surface-2: 60 40% 98%; /* #fcfcf8 — surface haute (barre CTA du mockup) */
@@ -96,39 +99,11 @@
   --radius: 1rem; /* 16px — rayon standard des cartes */
 }
 
-/* Variante sombre = palette sombre de direction-artistique.html (papier
-   #17171a, surfaces #1f1f22, encre #eceae3, olive éclairci #aebd4a). */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 240 6% 10%; /* #17171a — papier sombre DA */
-    --foreground: 47 19% 91%; /* #eceae3 — encre corps DA */
-    --card: 240 5% 13%; /* #1f1f22 — surface carte DA */
-    --card-foreground: 47 19% 91%;
-    --border: 240 5% 22%; /* #34343a — filet DA */
-    --input: 240 5% 22%;
-    --ring: 70 74% 32%; /* #788c15 — anneau de focus DA dark */
-    --primary: 50 21% 95%; /* #f4f3ee — encre titres DA (boutons inversés) */
-    --primary-foreground: 240 6% 10%; /* #17171a */
-    --secondary: 72 22% 13%; /* #26291a — wash olive sombre DA */
-    --secondary-foreground: 68 58% 71%; /* #d4e08a — olive-deep sombre DA */
-    --muted: 240 5% 15%; /* #232327 — surface atténuée DA */
-    --muted-foreground: 60 2% 62%; /* #9e9e99 — encre atténuée DA */
-    --accent: 68 47% 52%; /* #aebd4a — olive éclairci DA */
-    --accent-foreground: 240 6% 10%; /* #17171a — contraste AA sur olive */
-    --popover: 240 5% 13%;
-    --popover-foreground: 47 19% 91%;
-    --destructive: 11 83% 65%; /* #f0785c — erreur éclaircie DA */
-    --destructive-foreground: 240 6% 10%;
-    --warning: 12 77% 75%; /* #f0a08c — retard/attention éclairci DA */
-    --warning-foreground: 240 6% 10%;
-    --ink-title: 50 21% 95%; /* #f4f3ee — encre titres claire DA */
-    --olive-deep: 68 58% 71%; /* #d4e08a — olive-deep sombre DA */
-    --olive-chip: 73 23% 16%; /* #2f3320 — chip olive sombre DA (halo) */
-    --warning-wash: 12 35% 17%; /* #3a221c — fond retard sombre DA */
-    --surface-2: 240 5% 15%; /* #232327 — surface haute sombre DA */
-    --line-soft: 240 7% 18%; /* #2a2a30 — filet doux sombre DA */
-  }
-}
+/* Pas de mode sombre. Le design de Ranti fait foi = design_handoff_first_run/
+   (palette crème claire uniquement). L'ancien bloc @media (prefers-color-scheme:
+   dark) venait de direction-artistique.html (hors handoff) et rendait de travers
+   sur mobile en mode sombre (aucune variante « dark: » stylée dans l'app).
+   Retiré : color-scheme: light sur :root fige le rendu clair partout. */
 
 @layer base {
   * {

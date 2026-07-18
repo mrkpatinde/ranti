@@ -2,6 +2,8 @@
 
 ## Statut
 
+Version 1.6 (2026-07-18, v0.3.29.0) : colonnes de prise en main et de relance sur `landlords` (`onboarding_status`, `reminders_enabled`, `reminder_channel`, `reminder_moment`) ; référence de quittance `RNT-AAAA-NNNN` (migrations `20260717130000`, `20260718120000`, `20260718130000`, `20260718160000`, appliquées en prod).
+
 Version 1.5 — réaligné sur le schéma live (audit 2026-07-16) : `app_users` supprimée du modèle (ADR-010, lien direct `landlords.auth_user_id`), `lease_reminder_rules` et `receipt_items` déclassées en cible non implémentée, schéma `reminders` corrigé sur la table réelle.
 
 Ce document décrit le modèle de référence de la base de données de Ranti. La source de vérité exécutable reste `supabase/migrations/`.
@@ -34,7 +36,11 @@ La base doit protéger la mémoire fiable des loyers et répondre clairement à 
 
 Propriétaire ou espace propriétaire. Il n'existe PAS de table `app_users` : le profil métier est lié directement à Supabase Auth par `landlords.auth_user_id = auth.users.id` (ADR-010), et `current_landlord_id()` résout l'appartenance depuis `auth.uid()`.
 
-Champs réels : `id`, `auth_user_id`, `phone`, `first_name`, `last_name`, `civility` (colonne conservée, retirée de l'UI depuis PR #122), `payment_alias`, `payment_alias_type`, `created_at`, `updated_at`, `deleted_at`.
+Champs réels : `id`, `auth_user_id`, `phone`, `first_name`, `last_name`, `civility` (colonne conservée, retirée de l'UI depuis PR #122), `payment_alias`, `payment_alias_type`, `onboarding_status`, `reminders_enabled`, `reminder_channel`, `reminder_moment`, `created_at`, `updated_at`, `deleted_at`.
+
+Prise en main guidée (welcome-flow.md) : `onboarding_status` = `pending` | `guided` | `exploring` | `done` (défaut `pending` ; les propriétaires antérieurs à la migration sont passés `done`). La progression des étapes est dérivée des données réelles au rendu (`lib/onboarding/progress.ts`), jamais stockée.
+
+Réglages de relance par propriétaire (FirstRun, v0.3.29.0) : `reminders_enabled` (booléen, défaut `false`), `reminder_channel` (`whatsapp` | `sms`, `null` = défaut UI whatsapp), `reminder_moment` (`avant` | `echeance` | `retard`, `null` = défaut UI echeance). Persistance seule : le respect côté file de relance (`ops_reminder_queue`, logique ADR-023 gelée) est un suivi, pas encore câblé. Colonnes non-identité : le verrou ADR-002 ne se déclenche pas sur leur update ; écriture via la policy `landlords_update_own`, aucun RPC requis.
 
 Contraintes : `auth_user_id` unique ; `phone` unique ; un utilisateur auth = un propriétaire au MVP.
 
@@ -174,6 +180,8 @@ Contraintes :
 - Un reçu ou une quittance est généré automatiquement après validation propriétaire quand les conditions sont réunies.
 - Un reçu généré ne se modifie pas silencieusement.
 - `snapshot` conserve les informations importantes au moment de génération.
+
+Format du numéro (`receipt_number`) : depuis le 2026-07-18, `private.generate_receipt_core` émet `RNT-AAAA-NNNN` (année d'émission + séquence annuelle par propriétaire, minimum 4 chiffres, jamais tronquée au-delà de 9999 : `RNT-2026-9999` puis `RNT-2026-10000`). Génération sérialisée par `pg_advisory_xact_lock` par propriétaire. Les documents antérieurs gardent `R-NNNNNN` (pas de backfill) ; les deux préfixes ne collisionnent pas. Migrations `20260718130000` + correctif `20260718160000`.
 
 ### `receipt_items` — NON IMPLÉMENTÉE (remplacée par `receipts.snapshot`)
 
@@ -463,7 +471,7 @@ Préférer `archived`, `cancelled`, `reversed`, `deleted_at` avec audit, ou une 
 1. Prestataire d'authentification initial.
 2. Format exact de l'identifiant utilisateur.
 3. Politique de stockage des preuves.
-4. Format du numéro de reçu.
+4. Format du numéro de reçu. *(Résolu 2026-07-18 : `RNT-AAAA-NNNN`, voir `receipts`.)*
 5. Stratégie exacte de génération des échéances.
 6. Stratégie de correction d'un reçu déjà généré.
 7. SQL exact pour empêcher les baux actifs qui se chevauchent sur un même logement.

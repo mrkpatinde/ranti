@@ -2,6 +2,8 @@
 
 ## Statut
 
+Version 1.5 — mise à jour 2026-07-18 (v0.3.29.0) : prise en main guidée (FirstRun) câblée à la base ; nouvelle section « Prise en main guidée » ci-dessous. Le statut d'onboarding vit sur `landlords.onboarding_status`.
+
 Version 1.4 — mise à jour 2026-07-16 : le document rejoint l'UI livrée — civilité retirée du profil minimal (PR #122), tableau de bord vide aligné sur l'action unique « Créer un bail » (ADR-020, la section citait encore « Ajouter un bien »).
 
 Version 1.3 — mise à jour 2026-07-15 : entrée d'onboarding unique « créer un bail » (ADR-020) ; l'écran bail crée lieu + logement + occupant + bail et génère les échéances immédiatement.
@@ -98,6 +100,30 @@ Action principale :
 > Créer un bail
 
 Aucune autre action ne doit concurrencer ce premier pas.
+
+---
+
+## Prise en main guidée (FirstRun)
+
+Depuis la v0.3.26.0, l'arrivée sur le tableau de bord est accompagnée d'une prise en main guidée, portée du prototype `design_handoff_first_run/` (qui fait foi visuellement).
+
+### Statut d'onboarding
+
+`landlords.onboarding_status` persiste l'intention, jamais la progression :
+
+- `pending` : accueil pas encore vu (nouvelle inscription) ;
+- `guided` : prise en main en cours (checklist « Premiers pas ») ;
+- `exploring` : « Passer pour l'instant », tableau de bord vide honnête ;
+- `done` : premiers pas terminés.
+
+La progression des étapes (bail, encaissement, quittance, relance) est dérivée des données réelles au rendu (`lib/onboarding/progress.ts`), jamais stockée.
+
+### Surfaces
+
+- **Rail « Premiers pas » sur le tableau de bord** (v0.3.28.0) : checklist guidée + centre d'aide.
+- **Parcours `/first-run`** (v0.3.29.0) : portage fidèle du prototype (welcome, 4 vues, modales), derrière l'auth (`requireLandlordProfile`) et câblé à la base. Le parcours crée un vrai bail (`bulk_onboard_portfolio`), valide un vrai paiement (`record_collection` + `confirm_collection`) et émet une vraie quittance (`generate_receipt`) ; idempotence par `request_id` (une reprise après coupure réseau rejoue la même écriture, jamais deux paiements). Les réglages de relance saisis dans le parcours sont persistés sur `landlords` et resservis à l'ouverture. Un bailleur `done` est redirigé vers `/dashboard`.
+
+Limites connues (TODOS) : `/first-run` n'est pas encore la destination automatique après connexion, et un bailleur `guided`/`exploring` qui recharge la route revoit un état de départ (la progression n'est pas encore hydratée depuis les données).
 
 ---
 

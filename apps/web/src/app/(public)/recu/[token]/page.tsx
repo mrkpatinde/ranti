@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
-import { formatFcfa } from "@/lib/format";
+import { formatFcfa, monthYearLabel } from "@/lib/format";
 import { SubmitButton } from "@/components/submit-button";
 import { RantiLogo } from "@/components/ranti-logo";
 import { createClient } from "@/lib/supabase/server";
 import type { ReceiptByToken } from "@/lib/receipts/types";
+import { receiptClause } from "@/lib/receipts/clause";
 import { certifyReceipt } from "./actions";
 import { ContestForm } from "./contest-form";
 
 // ============================================================
-// Reçu partagé — page publique, zéro auth (ADR-013).
+// Reçu partagé - page publique, zéro auth (ADR-013).
 // Les données viennent de la RPC SECURITY DEFINER get_receipt_by_token,
 // qui pose aussi l'état `read` à la première ouverture. L'anon ne lit
 // aucune table directement.
@@ -74,8 +75,6 @@ export default async function RecuPage({
 
   const errorMsg =
     typeof sp.error === "string" ? (ERROR_MESSAGES[sp.error] ?? null) : null;
-  const justCertified = sp.certified === "1";
-  const justContested = sp.contested === "1";
 
   const kind = KIND_LABEL[receipt.kind] ?? "Document";
   const docNoun = receipt.kind === "quittance" ? "quittance" : "reçu";
@@ -97,8 +96,8 @@ export default async function RecuPage({
   const isDisputed = receipt.tenant_ack === "disputed";
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col items-stretch px-4 py-10 [font-variant-numeric:tabular-nums] sm:py-14">
-      {/* En-tête : marque + lien vérifié (pas de kicker majuscule — DESIGN.md) */}
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col items-stretch bg-background px-4 py-10 [font-variant-numeric:tabular-nums] sm:py-14">
+      {/* En-tête : marque + lien vérifié (pas de kicker majuscule - DESIGN.md) */}
       <header className="mb-5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <RantiLogo size={30} />
@@ -124,13 +123,12 @@ export default async function RecuPage({
             disponible.
           </h1>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-            {landlordName} a enregistré votre paiement. Vérifiez, puis confirmez la
-            réception — c&apos;est gratuit et sans compte.
+            {`${landlordName} a enregistré votre paiement. Vérifiez, puis confirmez-le. C'est gratuit et sans compte.`}
           </p>
         </div>
       )}
 
-      {/* Bandeau confirmé — coche dans un cercle olive */}
+      {/* Bandeau confirmé - coche dans un cercle olive */}
       {isCertified && (
         <div className="mb-4 flex items-start gap-3 rounded-[19px] border border-accent/40 bg-secondary px-4 py-3.5">
           <span className="mt-px flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
@@ -147,7 +145,7 @@ export default async function RecuPage({
           </span>
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-semibold text-foreground">
-              {kind} confirmée — merci.
+              {kind} confirmée, merci.
             </span>
             <span className="text-[0.82rem] leading-snug text-muted-foreground">
               Votre confirmation est enregistrée dans le registre. Gardez ce lien :
@@ -162,19 +160,9 @@ export default async function RecuPage({
           {errorMsg}
         </div>
       )}
-      {justCertified && (
-        <div className="mb-4 rounded-[19px] border border-accent/25 bg-secondary px-5 py-4 text-sm text-foreground">
-          Merci. Vous avez confirmé l&apos;exactitude de ce reçu.
-        </div>
-      )}
-      {justContested && (
-        <div className="mb-4 rounded-[19px] border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">
-          Votre contestation est enregistrée. Le propriétaire en est informé.
-        </div>
-      )}
       {isDisputed && (
         <div className="mb-4 rounded-[19px] border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">
-          {kind} contestée — votre version est enregistrée à côté de celle du
+          {kind} contestée : votre version est enregistrée à côté de celle du
           propriétaire.
         </div>
       )}
@@ -270,6 +258,21 @@ export default async function RecuPage({
             </span>
           </div>
 
+          {/* Clause notariale : montant en chiffres + toutes lettres, formulation
+              adaptée (quittance = solde, reçu = paiement partiel) */}
+          <p className="text-[0.82rem] leading-relaxed text-muted-foreground">
+            {receiptClause({
+              landlordName,
+              tenantName,
+              amount: receipt.total_amount,
+              kind: receipt.kind,
+              period:
+                receipt.allocations.length === 1
+                  ? monthYearLabel(receipt.allocations[0].period_start)
+                  : null,
+            })}
+          </p>
+
           {/* Version du locataire si contesté (deux voix) */}
           {isDisputed && receipt.contest_nature && (
             <div className="rounded-[15px] border border-destructive/25 bg-destructive/[0.06] p-4">
@@ -296,7 +299,7 @@ export default async function RecuPage({
           {/* Empreinte d'intégrité si certifié */}
           {isCertified && receipt.sha256_fingerprint && (
             <p className="break-all text-[0.75rem] leading-relaxed text-muted-foreground">
-              Intégrité — empreinte SHA-256 :{" "}
+              Intégrité, empreinte SHA-256 :{" "}
               <span className="font-mono text-[0.72rem] text-foreground">
                 {receipt.sha256_fingerprint}
               </span>
@@ -314,7 +317,7 @@ export default async function RecuPage({
                     className="inline-flex w-full items-center justify-center rounded-full bg-accent px-6 py-3.5 text-base font-semibold text-accent-foreground shadow-[0_1px_2px_rgba(91,111,0,0.22),0_8px_20px_-8px_rgba(91,111,0,0.38)] transition hover:brightness-105 disabled:opacity-60"
                     pendingLabel="Envoi…"
                   >
-                    Confirmer la réception
+                    Confirmer le paiement
                   </SubmitButton>
                 </form>
                 <p className="text-center text-xs leading-relaxed text-muted-foreground">

@@ -289,6 +289,17 @@ function SiteFooter() {
             Confidentialité
           </Link>
         </div>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <span>WI'SOFT SOLUTIONS</span>
+          <span aria-hidden="true">·</span>
+          <span>RCCM RB/COT/20 A 62590</span>
+          <span aria-hidden="true">·</span>
+          <span>IFU 0202377982188</span>
+          <span aria-hidden="true">·</span>
+          <a href="mailto:mrkpatinde@gmail.com" className="transition hover:text-foreground">
+            mrkpatinde@gmail.com
+          </a>
+        </div>
       </div>
     </footer>
   );

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react"
 import { SubmitButton } from "@/components/submit-button"
+import { useContactPicker } from "@/lib/contacts/use-contact-picker"
 import { createBail, type BailFormState } from "@/lib/onboarding/actions"
 import type { BailRowInput } from "@/lib/onboarding/validation"
 
@@ -201,6 +202,24 @@ function RowFields({
   const k = row.key
   const multi = total > 1
 
+  // Contact Picker (Chrome/Edge Android) : preremplit l'occupant depuis les
+  // contacts du proprietaire. Invisible ailleurs, saisie manuelle inchangee.
+  const { supported: contactsSupported, pick: pickContact } = useContactPicker()
+
+  async function onPickContact() {
+    const contact = await pickContact()
+    if (!contact) return
+    const fill = (id: string, value: string, onlyIfEmpty: boolean) => {
+      const el = document.getElementById(id) as HTMLInputElement | null
+      if (el && value && (!onlyIfEmpty || !el.value.trim())) el.value = value
+    }
+    // Le telephone est le champ vise : toujours rempli. Les noms ne remplacent
+    // jamais une saisie deja faite.
+    fill(`phone-${k}`, contact.phone, false)
+    fill(`first_name-${k}`, contact.firstName, true)
+    fill(`last_name-${k}`, contact.lastName, true)
+  }
+
   return (
     <section
       className={`space-y-4 ${multi ? `rounded-2xl border bg-card p-4 ${hasError ? "border-destructive/60 ring-1 ring-destructive/40" : "border-border"}` : ""}`}
@@ -244,7 +263,18 @@ function RowFields({
 
       {row.occupied ? (
         <>
-          <h3 className={subTitle}>Occupant</h3>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className={subTitle}>Occupant</h3>
+            {contactsSupported ? (
+              <button
+                type="button"
+                onClick={onPickContact}
+                className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary"
+              >
+                Choisir dans les contacts
+              </button>
+            ) : null}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <label htmlFor={`first_name-${k}`} className={labelClass}>Prénom<Req /></label>

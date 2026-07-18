@@ -1,0 +1,116 @@
+/* Couche de tokens du prototype FirstRun, portee 1:1 depuis
+   design_handoff_first_run/ (README + CLAUDE.md du handoff). Scopee sous
+   .fr-scope pour ne rien fuir dans le reste de l'app.
+
+   COULEURS : valeurs exactes du CLAUDE.md handoff, section 3. Ne pas devier.
+   TYPO : var(--font-display) = Fraunces, var(--font-sans) = Hanken, deja
+   definies globalement par l'app (layout.tsx / globals.css).
+
+   RAYON / OMBRE / DUREE / EASING : valeurs exactes de
+   design_handoff_first_run/tokens/spacing.css + tokens/effects.css. */
+.fr-scope {
+  /* Couleurs (exactes, tokens/colors.css) */
+  --paper: #f7f7f2;
+  --surface: #ffffff;
+  --surface-card: #ffffff;
+  --surface-2: #fcfcf8;
+  --muted-surface: #f2f2ec;
+  --ink: #292929;
+  --ink-title: #211f1c;
+  --ink-muted: #72726e;
+  --line: #d5d5d2;
+  --line-soft: #e4e3db;
+  --olive: #5b6f00;
+  --olive-bright: #788c15;
+  --olive-deep: #4c5616;
+  --olive-chip: #e5eacd;
+  --olive-wash: #f2f6e1;
+  --ring: #b2c248;
+  --leaf: #94f27f;
+  --warning: #bd4a30;
+  --warning-wash: #ffe7e2;
+  --danger: #e95d3d;
+  --accent-foreground: #fcfcf8;
+  --primary-foreground: #fcfcf8;
+
+  /* Rayons (exactes, tokens/spacing.css) */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+  --content-max: 1152px;
+
+  /* Ombres (exactes, tokens/effects.css) */
+  --shadow-menu: 0 4px 12px -6px rgba(41, 41, 41, 0.12);
+  --shadow-card: 0 14px 50px -18px rgba(41, 41, 41, 0.22);
+  --shadow-proof: 0 24px 80px -28px rgba(41, 41, 41, 0.32);
+  --shadow-cta: 0 6px 16px -6px rgba(91, 111, 0, 0.45);
+  --shadow-cta-hover: 0 16px 34px -12px rgba(91, 111, 0, 0.55);
+
+  /* Courbes et durees (exactes, tokens/effects.css) */
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-micro: 80ms;
+  --dur-short: 200ms;
+  --dur-medium: 320ms;
+  --dur-long: 600ms;
+
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+
+.fr-scope *,
+.fr-scope *::before,
+.fr-scope *::after {
+  box-sizing: border-box;
+}
+
+.fr-in::placeholder {
+  color: var(--ink-muted);
+  opacity: 0.7;
+}
+
+/* Animations portees du prototype (FirstRun.dc.html / FirstRunMain.dc.html). */
+@keyframes fr-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fr-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fr-pop {
+  0% { opacity: 0; transform: scale(0.7); }
+  70% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes fr-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(91, 111, 0, 0.32); }
+  70% { box-shadow: 0 0 0 10px rgba(91, 111, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(91, 111, 0, 0); }
+}
+@keyframes fr-line {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Bascule coquille desktop / mobile (le prototype le fait via ResizeObserver a
+   860px ; ici en CSS pur). Les styles inline portent display:grid/flex, donc
+   on force avec !important. */
+.fr-mobile { display: none !important; }
+.fr-desktop { display: grid !important; }
+@media (max-width: 859px) {
+  .fr-desktop { display: none !important; }
+  .fr-mobile { display: flex !important; }
+}
+
+/* Section 9 du handoff : reduced-motion coupe toutes les animations. */
+@media (prefers-reduced-motion: reduce) {
+  .fr-scope *,
+  .fr-scope *::before,
+  .fr-scope *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
