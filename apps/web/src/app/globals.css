@@ -5,7 +5,7 @@
  * direction-artistique.html (racine du repo, décision CEO 2026-07-17).
  * Palette DA : papier crème (#f7f7f2), encre anthracite (#292929), accent
  * vert olive (#5b6f00) réservé aux appels à l'action, teintes vertes douces
- * pour les états. Dark = palette sombre DA (papier #17171a, olive #aebd4a).
+ * pour les états. Palette claire uniquement (pas de mode sombre, cf. :root).
  */
 
 @theme inline {
@@ -43,7 +43,7 @@
 
   /* Sous-tons DA additionnels (tokens/colors.css) — portés pour la landing :
      encre titres, olive profond, chip olive, wash retard, surface haute,
-     filet doux. Chacun a sa valeur claire ET sombre (dark mode préservé). */
+     filet doux. Valeurs claires uniquement (pas de mode sombre). */
   --color-ink-title: hsl(var(--ink-title));
   --color-olive-deep: hsl(var(--olive-deep));
   --color-olive-chip: hsl(var(--olive-chip));
