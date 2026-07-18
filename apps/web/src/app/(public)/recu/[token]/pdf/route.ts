@@ -24,6 +24,21 @@ export async function GET(
   }
 
   const supabase = await createClient()
+
+  // Même porte de consentement que la page : un lien PDF direct ne doit pas
+  // contourner l'accord à la quittance électronique. Sans accord, retour à la
+  // page qui affiche l'écran de consentement.
+  const { data: consentData } = await supabase.rpc("ereceipt_consent_status", {
+    p_token: token,
+  })
+  const consent = (consentData as { found: boolean; granted_at: string | null }[] | null)?.[0]
+  if (!consent || !consent.found) {
+    return new Response("Reçu introuvable.", { status: 404 })
+  }
+  if (!consent.granted_at) {
+    return Response.redirect(new URL(`/recu/${token}`, request.url), 302)
+  }
+
   const { data, error } = await supabase.rpc("get_receipt_by_token", { p_token: token })
   const row = (data as ReceiptByToken[] | null)?.[0]
   if (error || !row) {

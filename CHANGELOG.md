@@ -3,6 +3,19 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.30.0] - 2026-07-18
+
+### Added
+
+- **Consentement à la quittance électronique** (conformité) : au premier accès
+  à un lien de quittance, le locataire accepte explicitement « J'accepte de
+  recevoir mes quittances de loyer au format électronique via Ranti. » avant
+  tout affichage. L'accord est enregistré une seule fois par locataire,
+  horodaté et immuable (le libellé accepté est archivé mot pour mot) ; il
+  vaut pour toutes les quittances suivantes. Le PDF et les actions confirmer /
+  contester sont soumis à la même porte, et la quittance n'est considérée
+  remise qu'après l'accord.
+
 ## [0.3.29.3] - 2026-07-18
 
 ### Changed
