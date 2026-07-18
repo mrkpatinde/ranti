@@ -11,9 +11,8 @@ import { createClient } from "@/lib/supabase/server"
 // ADR-002). Persistance seule ; le respect côté file de relance
 // (ops_reminder_queue, ADR-023 gelé) est un suivi séparé.
 //
-// NOTE : point de câblage de la phase 3 (la preview /first-run n'est pas encore
-// branchée sur la DB). Jamais bloquant : une erreur DB est journalisée, pas
-// propagée.
+// Appelée par le parcours /first-run (phase 3) et ses vues Relances /
+// Paramètres. Jamais bloquant : une erreur DB est journalisée, pas propagée.
 
 const CHANNELS: readonly ReminderChannel[] = ["whatsapp", "sms"]
 const MOMENTS: readonly ReminderMoment[] = ["avant", "echeance", "retard"]

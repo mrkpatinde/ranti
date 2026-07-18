@@ -39,9 +39,10 @@ function threeDigits(n: number, last: boolean, centCanPlural: boolean): string {
 }
 
 // Entier positif -> mots. « mille » invariable ; « million »/« milliard » nom
-// (prennent « s » au pluriel).
+// (prennent « s » au pluriel). Non-fini (NaN/Infinity) -> zéro : jamais de
+// texte tronqué dans une clause légale.
 export function integerToFrenchWords(value: number): string {
-  const n = Math.max(0, Math.floor(value))
+  const n = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0
   if (n === 0) return "zéro"
 
   const parts: string[] = []
@@ -60,7 +61,7 @@ export function integerToFrenchWords(value: number): string {
 
 // Montant FCFA en toutes lettres, ex. 100000 -> « cent mille francs CFA ».
 export function amountInWordsFcfa(amount: number): string {
-  const n = Math.max(0, Math.floor(amount))
+  const n = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0
   // « zéro franc » et « un franc » au singulier ; pluriel à partir de deux.
   return `${integerToFrenchWords(n)} ${n <= 1 ? "franc" : "francs"} CFA`
 }

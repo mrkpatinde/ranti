@@ -5,6 +5,10 @@ import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import { validateBailForm, type BailFormInput } from "@/lib/onboarding/validation"
 import type { ReceiptKind, ReceiptSnapshot } from "@/lib/receipts/types"
+import {
+  PAYMENT_METHOD_VALUES, fcfa, mapBailError, mapCollectionError, monthLabel,
+  parseStrictAmount, validRequestId,
+} from "./helpers"
 
 // Phase 3 : actions serveur du parcours FirstRun. Contrairement aux actions
 // historiques (createBail, recordCollection, generateReceipt) qui redirigent
@@ -12,51 +16,8 @@ import type { ReceiptKind, ReceiptSnapshot } from "@/lib/receipts/types"
 // guide reste sur une seule page et affiche la quittance en place. Elles
 // reutilisent les MEMES RPC (bulk_onboard_portfolio, record_collection,
 // confirm_collection, generate_receipt) et la MEME validation (validateBailForm),
-// donc aucune regle metier n'est dupliquee. Jamais bloquant cote statut/relances
-// (setOnboardingStatus / setReminderSettings sont ailleurs, non-redirigeantes).
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const METHODS = new Set(["cash", "mobile_money", "bank_transfer", "other"])
-
-function validRequestId(value: string): string | null {
-  return UUID_RE.test(value.trim()) ? value.trim() : null
-}
-
-function fcfa(amount: number, currency: string): string {
-  const n = Number.isFinite(amount) ? amount : 0
-  return `${n.toLocaleString("fr-FR")} ${currency === "XOF" ? "FCFA" : currency}`
-}
-
-// Meme table de correspondance que lib/onboarding/actions.ts::mapRpcError, mais
-// pour une seule ligne (le flow guide ne cree qu'un bail a la fois).
-function mapBailError(error: { code?: string; message?: string }): string {
-  switch (error.code) {
-    case "23505":
-      return "Un logement porte deja ce nom dans ce lieu."
-    case "23P01":
-      return "Ce logement a deja un bail actif sur cette periode."
-    case "23514":
-      return "Valeur invalide (loyer ou jour d'echeance)."
-    case "PR400":
-      return "Renseignez le lieu : donnez-lui un nom (2 caracteres min.)."
-    case "P0002":
-      return "Lieu introuvable."
-    case "P0001":
-      return "Ajoutez au moins un logement."
-    default:
-      return "Enregistrement impossible. Verifiez les champs et reessayez."
-  }
-}
-
-function mapCollectionError(message: string): string {
-  if (message.includes("DUPLICATE_PAYMENT")) return "Cet encaissement a deja ete enregistre."
-  if (message.includes("allocations_exceed")) return "La somme allouee depasse le montant recu."
-  if (message.includes("allocation_exceeds_due")) return "L'allocation depasse le reste du de l'echeance."
-  if (message.includes("amount_invalid")) return "Indiquez un montant valide."
-  if (message.includes("method_invalid")) return "Methode de paiement invalide."
-  if (message.includes("due_")) return "L'echeance ne correspond pas a ce bail."
-  return "Encaissement impossible. Reessayez."
-}
+// donc aucune regle metier n'est dupliquee. Aides pures dans ./helpers
+// (un module "use server" ne peut exporter que des fonctions async).
 
 // ── Creer le premier bail (ou un bail supplementaire) ───────────────────────
 
@@ -193,30 +154,15 @@ export type FirstRunPaymentResult =
   | { ok: true; receipt: FirstRunReceiptView }
   | { ok: false; error: string }
 
-const MONTHS_FR = [
-  "janvier", "fevrier", "mars", "avril", "mai", "juin",
-  "juillet", "aout", "septembre", "octobre", "novembre", "decembre",
-]
-
-// period_start = "YYYY-MM-DD" -> "juillet 2026" (pas de new Date pour eviter
-// tout decalage de fuseau sur une date sans heure).
-function monthLabel(isoDate: string | null): string | null {
-  if (!isoDate) return null
-  const m = isoDate.match(/^(\d{4})-(\d{2})/)
-  if (!m) return null
-  const month = MONTHS_FR[Number.parseInt(m[2], 10) - 1]
-  return month ? `${month} ${m[1]}` : null
-}
-
 export async function recordPaymentFirstRun(
   input: FirstRunPaymentInput,
 ): Promise<FirstRunPaymentResult> {
   await requireLandlordProfile()
 
   if (!input.tenantId || !input.unitId) return { ok: false, error: "Bail introuvable." }
-  const amount = Number.parseInt(input.amount.replace(/\s/g, ""), 10)
+  const amount = parseStrictAmount(input.amount)
   if (!Number.isInteger(amount) || amount <= 0) return { ok: false, error: "Indiquez un montant valide." }
-  if (!METHODS.has(input.method)) return { ok: false, error: "Methode de paiement invalide." }
+  if (!PAYMENT_METHOD_VALUES.has(input.method)) return { ok: false, error: "Methode de paiement invalide." }
 
   const supabase = await createClient()
 

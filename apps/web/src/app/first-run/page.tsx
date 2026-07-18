@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { MONTHS_FR } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import type { OnboardingStatus } from "@/lib/landlords"
 import type { Step } from "./shared"
@@ -9,11 +10,6 @@ import { FirstRunClient } from "./first-run-client"
 // client et calcule les libelles de date cote serveur (aucune hydratation
 // divergente). Un bailleur qui a deja termine l'onboarding est renvoye vers son
 // vrai tableau de bord.
-
-const MONTHS_FR = [
-  "janvier", "février", "mars", "avril", "mai", "juin",
-  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-]
 
 // L'etape initiale reflete le statut d'onboarding deja persiste (welcome-flow).
 const STEP_BY_STATUS: Record<Exclude<OnboardingStatus, "done">, Step> = {

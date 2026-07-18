@@ -104,8 +104,6 @@ function reducer(state: State, action: Action): State {
       return { ...state, showQuittance: true, receipt: action.receipt ?? state.receipt }
     case "close-quittance":
       return { ...state, showQuittance: false }
-    case "restart":
-      return makeFresh("welcome")
     case "logout":
       return makeFresh("welcome")
     default:

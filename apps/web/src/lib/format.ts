@@ -25,3 +25,10 @@ export function formatFcfa(amount: number): string {
 export function formatFcfaNumber(amount: number): string {
   return groupThousands(amount, NBSP)
 }
+
+// Mois français accentués, seule source de vérité (quittances, en-têtes de
+// période). Index 0 = janvier.
+export const MONTHS_FR = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+] as const

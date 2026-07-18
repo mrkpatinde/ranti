@@ -84,7 +84,6 @@ export type Action =
   | { type: "close-support" }
   | { type: "open-quittance"; receipt?: ReceiptView | null }
   | { type: "close-quittance" }
-  | { type: "restart" }
   | { type: "logout" }
 
 export const oliveCta: React.CSSProperties = {

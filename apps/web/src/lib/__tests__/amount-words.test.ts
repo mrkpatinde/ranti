@@ -50,4 +50,9 @@ describe("amountInWordsFcfa", () => {
     expect(amountInWordsFcfa(100000.99)).toBe("cent mille francs CFA")
     expect(amountInWordsFcfa(-50)).toBe("zéro franc CFA")
   })
+  it("retombe sur zéro pour un montant non fini (jamais de clause tronquée)", () => {
+    expect(amountInWordsFcfa(Number.NaN)).toBe("zéro franc CFA")
+    expect(amountInWordsFcfa(Number.POSITIVE_INFINITY)).toBe("zéro franc CFA")
+    expect(integerToFrenchWords(Number.NaN)).toBe("zéro")
+  })
 })
