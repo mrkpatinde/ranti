@@ -3,6 +3,16 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.29.1] - 2026-07-18
+
+### Changed
+
+- **Un seul menu sur mobile** : le hamburger et l'avatar côte à côte faisaient
+  doublon. Le menu unique porte désormais l'identité en tête (avatar, nom,
+  « Propriétaire »), puis la navigation, l'aide, Paramètres et
+  « Se déconnecter ». Appliqué à l'espace connecté (AppShell) et au parcours
+  de prise en main (/first-run).
+
 ## [0.3.29.0] - 2026-07-18
 
 ### Added
