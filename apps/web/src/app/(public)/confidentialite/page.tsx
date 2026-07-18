@@ -27,12 +27,12 @@ export default function PrivacyPage() {
 
       <div className="mt-6 rounded-2xl border border-line-soft bg-muted px-5 py-4 text-sm leading-relaxed text-foreground/80">
         <p>
-          <strong>Responsable de traitement :</strong> Adonis KPATINDE, entrepreneur individuel,
+          <strong>Responsable de traitement :</strong> WI&apos;SOFT SOLUTIONS (RCCM RB/COT/20 A 62590, IFU 0202377982188),
           Bénin.
         </p>
         <p className="mt-1">
           <strong>Contact / exercice des droits :</strong>{" "}
-          <span className="font-medium text-foreground">kadorel93@gmail.com</span>
+          <span className="font-medium text-foreground">mrkpatinde@gmail.com</span>
         </p>
         <p className="mt-3">
           Ranti ne traite <strong>aucune donnée bancaire</strong> et ne manipule aucun paiement.
@@ -181,7 +181,7 @@ export default function PrivacyPage() {
             d’<strong>effacement</strong>, d’<strong>opposition</strong> et de{" "}
             <strong>portabilité</strong> sur vos données, dans les conditions prévues par la loi
             applicable. Pour les exercer, écrivez à{" "}
-            <span className="font-medium text-foreground">kadorel93@gmail.com</span>. Vous pouvez
+            <span className="font-medium text-foreground">mrkpatinde@gmail.com</span>. Vous pouvez
             aussi saisir l’autorité de protection des données compétente (l’APDP au Bénin).
           </p>
           <p className="mt-3">
@@ -223,7 +223,7 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold text-foreground">14. Contact</h2>
           <p className="mt-2">
             Pour toute question relative à vos données :{" "}
-            <span className="font-medium text-foreground">kadorel93@gmail.com</span>.
+            <span className="font-medium text-foreground">mrkpatinde@gmail.com</span>.
           </p>
         </section>
       </div>

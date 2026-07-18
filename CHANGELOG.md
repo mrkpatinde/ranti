@@ -32,6 +32,33 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions
   `RNT-2026-0001`). Les quittances existantes gardent `R-NNNNNN` (pas de
   backfill, pas de collision).
 
+### Phase 3 : parcours FirstRun câblé à la base
+
+- **`/first-run` derrière l'auth** (`requireLandlordProfile`, redirige vers
+  `/dashboard` si l'onboarding est terminé) avec l'identité réelle du bailleur.
+  Nouvelles server actions non-redirigeantes (`createBailFirstRun` via
+  `bulk_onboard_portfolio`, `recordPaymentFirstRun` via `record_collection` +
+  `confirm_collection` + `generate_receipt`) qui renvoient la quittance réelle,
+  idempotence par `request_id`. Statut d'onboarding et réglages de relance
+  persistés, déconnexion Supabase réelle. Modale bail étendue aux champs
+  obligatoires (lieu + ville, type, prénom/nom, téléphone, date de début) avec
+  bouton « Choisir dans les contacts » (Contact Picker, Android Chrome/Edge),
+  aussi sur `/leases/new`.
+
+### Quittance locataire et thème
+
+- **Clause notariale partagée** (`receiptClause` + montant en toutes lettres
+  `amountInWordsFcfa`) sur la page publique `/recu/[token]`, le PDF et la
+  modale FirstRun ; formulation adaptée quittance (solde) / reçu (paiement
+  partiel). Libellé locataire « Confirmer le paiement », message de
+  confirmation unique (flash redondant retiré), tirets cadratins purgés.
+- **Pas de mode sombre** : `design_handoff_first_run/` fait foi (palette crème
+  claire) ; le bloc `prefers-color-scheme: dark` est retiré et `color-scheme:
+  light` figé, le rendu mobile ne s'inverse plus. `--olive-deep` aligné sur le
+  token exact du handoff (`#4c5616`).
+- **CGU + confidentialité enrichies** (structure non-custodial) et mentions
+  légales société dans le pied de page de la landing.
+
 ## [0.3.28.0] - 2026-07-18
 
 ### Added

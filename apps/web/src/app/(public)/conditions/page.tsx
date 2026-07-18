@@ -26,12 +26,12 @@ export default function TermsPage() {
 
       <div className="mt-6 rounded-2xl border border-line-soft bg-muted px-5 py-4 text-sm leading-relaxed text-foreground/80">
         <p>
-          <strong>Éditeur :</strong> Adonis KPATINDE, entrepreneur individuel, basé au Bénin
+          <strong>Éditeur :</strong> WI&apos;SOFT SOLUTIONS, RCCM RB/COT/20 A 62590, IFU 0202377982188, Bénin
           (ci-après « <strong>Ranti</strong> », « nous »).
         </p>
         <p className="mt-1">
           <strong>Contact :</strong>{" "}
-          <span className="font-medium text-foreground">kadorel93@gmail.com</span>
+          <span className="font-medium text-foreground">mrkpatinde@gmail.com</span>
         </p>
         <p className="mt-3">
           Ranti ne détient et ne transfère aucun fonds : ces conditions décrivent un
@@ -247,7 +247,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-foreground">15. Contact</h2>
           <p className="mt-2">
             Pour toute question relative aux présentes conditions :{" "}
-            <span className="font-medium text-foreground">kadorel93@gmail.com</span>.
+            <span className="font-medium text-foreground">mrkpatinde@gmail.com</span>.
           </p>
         </section>
       </div>
