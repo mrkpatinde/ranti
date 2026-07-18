@@ -80,4 +80,14 @@ après le verrou dans une future migration de la fonction.
 modals…) et les libellés de méthode de paiement en 2. Exporter depuis
 `lib/units` / `lib/receipts` et consommer partout.
 
+## Performance
+
+### Étendre le streaming Suspense aux pages Relances et Encaissements
+**Priority:** P2
+`/reminders` (vague de 9 requêtes) et `/collections` (4 requêtes) bloquent
+encore toute la navigation sur leur `Promise.all` sans zone Suspense, alors
+que ce sont les vagues les plus lourdes du groupe `(app)`. Appliquer la même
+structure cadre statique + zone streamée que `/dashboard` et `/leases/[id]`
+(ship v0.3.33.0). Mitigé aujourd'hui par le `loading.tsx` du groupe.
+
 ## Completed

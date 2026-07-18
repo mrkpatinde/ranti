@@ -3,7 +3,24 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
-## [0.3.32.0] - 2026-07-18
+## [0.3.33.0] - 2026-07-18
+
+### Changed
+
+- **Navigation nettement plus fluide** : en passant d'un écran à l'autre,
+  l'en-tête et la structure de la page s'affichent immédiatement ; les
+  chiffres et les listes arrivent juste derrière, sous un squelette discret.
+  Fini la page blanche qui attend que tout soit chargé (accueil et fiche
+  de bail).
+- **Moins d'allers-retours vers la base** : les lectures répétées d'une même
+  navigation (session, profil, baux) sont dédupliquées, et les requêtes de la
+  fiche de bail partent désormais toutes en même temps. Les écrans se
+  chargent plus vite, surtout sur connexion lente.
+
+### Added
+
+- Tests unitaires du fil des relances d'un bail (fusion SMS automatiques +
+  relances WhatsApp, gestion d'erreur).
 
 ### Added
 
