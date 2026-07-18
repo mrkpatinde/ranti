@@ -75,8 +75,6 @@ export default async function RecuPage({
 
   const errorMsg =
     typeof sp.error === "string" ? (ERROR_MESSAGES[sp.error] ?? null) : null;
-  const justCertified = sp.certified === "1";
-  const justContested = sp.contested === "1";
 
   const kind = KIND_LABEL[receipt.kind] ?? "Document";
   const docNoun = receipt.kind === "quittance" ? "quittance" : "reçu";
@@ -160,16 +158,6 @@ export default async function RecuPage({
       {errorMsg && (
         <div className="mb-4 rounded-[19px] border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">
           {errorMsg}
-        </div>
-      )}
-      {justCertified && (
-        <div className="mb-4 rounded-[19px] border border-accent/25 bg-secondary px-5 py-4 text-sm text-foreground">
-          Merci. Vous avez confirmé l&apos;exactitude de ce reçu.
-        </div>
-      )}
-      {justContested && (
-        <div className="mb-4 rounded-[19px] border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">
-          Votre contestation est enregistrée. Le propriétaire en est informé.
         </div>
       )}
       {isDisputed && (
