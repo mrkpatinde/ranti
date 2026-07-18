@@ -123,7 +123,7 @@ export default async function RecuPage({
             disponible.
           </h1>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-            {`${landlordName} a enregistré votre paiement. Vérifiez, puis confirmez la réception. C'est gratuit et sans compte.`}
+            {`${landlordName} a enregistré votre paiement. Vérifiez, puis confirmez-le. C'est gratuit et sans compte.`}
           </p>
         </div>
       )}
@@ -313,7 +313,7 @@ export default async function RecuPage({
                     className="inline-flex w-full items-center justify-center rounded-full bg-accent px-6 py-3.5 text-base font-semibold text-accent-foreground shadow-[0_1px_2px_rgba(91,111,0,0.22),0_8px_20px_-8px_rgba(91,111,0,0.38)] transition hover:brightness-105 disabled:opacity-60"
                     pendingLabel="Envoi…"
                   >
-                    Confirmer la réception
+                    Confirmer le paiement
                   </SubmitButton>
                 </form>
                 <p className="text-center text-xs leading-relaxed text-muted-foreground">
