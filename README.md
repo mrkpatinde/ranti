@@ -4,13 +4,15 @@ Ranti est le registre de loyer actif des propriétaires africains.
 
 ## Statut
 
-Vérifié le 2026-07-17 contre le code (v0.3.5.2).
+Vérifié le 2026-07-17 contre le code (v0.3.5.2) ; complété le 2026-07-18 (v0.3.29.0 : prise en main FirstRun, référence RNT, note ADR-024).
 
 La boucle propriétaire est livrée de bout en bout : propriétés, logements, locataires, baux, génération des échéances, encaissements avec allocations, reçus/quittances, audit logs.
 
 **Relances — semi-automatiques, pas automatiques.** Les échéances et les gabarits existent ; le déclencheur, non. Le cron `/api/cron/reminders` (planifié par `apps/web/vercel.json`) est **dormant par défaut** : il ne fait rien tant que `REMINDERS_SMS_ENABLED` n'est pas défini (`1`/`true`), et cette variable n'est pas activée. Le canal de relance **de fait est WhatsApp**, envoyé depuis le cockpit ops `ranti-ops` — un geste opérateur, pas un automatisme. La dormance est délibérée : sans cross-dedup entre le cron et `reminder_events`, activer le SMS enverrait une double relance (SMS + WhatsApp) sur la même échéance.
 
 Confirmation locataire par lien public à token (`/confirmer/[token]`) : livrée. Le locataire ne crée pas de compte — il déclare avoir payé, le propriétaire valide.
+
+**Mise à jour (ADR-024, 2026-07-17) : retour non-custodial.** La commission transactionnelle de 5 % est abandonnée ; le modèle est l'abonnement par paliers (gratuit pour un logement) et « Ranti ne touche jamais l'argent » redevient la promesse publique. Le rail custodial FeexPay (ADR-019) est gelé. Le paragraphe ci-dessous décrit l'épisode ADR-019 et est conservé comme trace.
 
 **Rapport à l'argent — la promesse a changé (ADR-019, 2026-07-15).** « Ranti ne détient jamais les fonds » est **abandonné** comme cible produit. Le rail **FeexPay** est désormais le chemin d'encaissement **unique et obligatoire** : le locataire paie 100 % du loyer sans surcharge, les fonds transitent par le wallet marchand FeexPay **au nom de Ranti**, 5 % TTC sont prélevés sur le brut et 95 % reversés au propriétaire.
 
@@ -84,7 +86,11 @@ Livré :
 - briques de relance (cron + gabarits SMS) — **dormantes**, voir « Statut » ;
 - confirmation locataire par lien public ;
 - vérification publique des quittances (`/verifier/[id]`, exemple statique `/verifier/demo`) ;
-- système de design (`DESIGN.md`) appliqué aux écrans.
+- prise en main guidée FirstRun : rail « Premiers pas » sur le tableau de bord (v0.3.28.0) et parcours `/first-run` câblé à la base (bail, paiement et quittance réels, statut `landlords.onboarding_status` ; v0.3.29.0, voir `docs/welcome-flow.md`) ;
+- réglages de relance par bailleur persistés (`reminders_enabled`, canal, moment) : persistance seule, la file de relance ne les applique pas encore ;
+- référence de quittance `RNT-AAAA-NNNN` (séquence annuelle par bailleur) et clause notariale avec montant en toutes lettres, identiques sur les 4 surfaces (page publique, PDF, page bailleur, modale FirstRun) ;
+- pages légales enrichies (CGU, confidentialité ; éditeur WI'SOFT SOLUTIONS) et mentions société dans le pied de page ;
+- système de design (`DESIGN.md`) appliqué aux écrans ; palette claire seule depuis v0.3.29.0 (pas de mode sombre, `design_handoff_first_run/` fait foi).
 
 À compléter :
 

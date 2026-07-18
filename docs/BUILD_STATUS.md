@@ -1,6 +1,6 @@
 # Ranti — Build Status
 
-Dernière mise à jour : 2026-07-17 (passe de resynchronisation docs ↔ code, v0.3.5.2)
+Dernière mise à jour : 2026-07-18 (table des versions complétée jusqu'à v0.3.29.0 ; les mesures de la section 0 datent du 2026-07-17)
 
 > Les sections 1 à 3 bis décrivent l'état au **2026-07-03** et sont conservées
 > comme trace historique. L'état courant est en **section 0**.
@@ -25,6 +25,11 @@ Livré depuis le 2026-07-03 (non couvert par les sections ci-dessous) :
 | v0.3.5.0 | **Verrou d'identité propriétaire (ADR-002)** — live 2026-07-16 |
 | v0.3.5.1 | Grants `private *_core` — le repo rejoint la prod |
 | v0.3.5.2 | **Retrait de la saisie assistée** : vocal Gemini (ADR-012) + collage SMS (ADR-014) supprimés |
+| v0.3.6.x–v0.3.25.x | Voir `CHANGELOG.md` (grand livre ADR-023, PWA hors connexion, optimistic UI, etc.) |
+| v0.3.26.0 | Prise en main guidée (prototype FirstRun de bout en bout), `direction-artistique.html`, moindre privilège `anon` |
+| v0.3.27.0 | Nouvelle landing DA, consentement Axeptio, **tarif ADR-024** (abonnement par paliers, « 5 % » banni des surfaces publiques, rail custodial gelé) |
+| v0.3.28.0 | Rail guidé « Premiers pas » branché sur le tableau de bord + centre d'aide (FirstRun) |
+| v0.3.29.0 | **FirstRun câblé à la base** (`/first-run` : bail, paiement, quittance réels), colonnes de relance bailleur + référence `RNT-AAAA-NNNN` (prod), clause notariale + montant en toutes lettres, mode sombre supprimé, CGU/confidentialité éditeur WI'SOFT SOLUTIONS |
 
 Écarts ouverts au 2026-07-17 :
 
