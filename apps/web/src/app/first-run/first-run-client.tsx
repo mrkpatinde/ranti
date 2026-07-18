@@ -60,13 +60,21 @@ function MobileHeader({ state, dispatch, landlord }: { state: State; dispatch: R
   return (
     <header style={{ position: "sticky", top: 0, zIndex: 4, borderBottom: "1px solid var(--line)", background: "var(--surface-card)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
       <Wordmark size={28} />
-      <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+      {/* Un seul contrôle : le menu porte aussi l'identité (décision
+          2026-07-18, menu + avatar côte à côte faisaient doublon). */}
+      <div style={{ display: "flex", alignItems: "center", position: "relative" }}>
         <button type="button" onClick={() => dispatch({ type: "toggle-menu" })} aria-label="Menu" style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--line)", borderRadius: 999, background: "var(--surface-card)", color: "var(--ink)", cursor: "pointer" }}>
           <svg viewBox="0 0 24 24" style={{ width: 18, height: 18 }} aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
         </button>
-        <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.9rem" }}>{landlord.initials}</span>
         {state.menuOpen && (
-          <div style={{ position: "absolute", top: 48, right: 0, zIndex: 20, width: 220, background: "var(--surface-card)", border: "1px solid var(--line)", borderRadius: 16, boxShadow: "var(--shadow-proof)", padding: 6, display: "flex", flexDirection: "column", gap: 2, animation: "fr-fade var(--dur-short) var(--ease-standard) both" }}>
+          <div style={{ position: "absolute", top: 48, right: 0, zIndex: 20, width: 230, background: "var(--surface-card)", border: "1px solid var(--line)", borderRadius: 16, boxShadow: "var(--shadow-proof)", padding: 6, display: "flex", flexDirection: "column", gap: 2, animation: "fr-fade var(--dur-short) var(--ease-standard) both" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px 10px", borderBottom: "1px solid var(--line-soft)", marginBottom: 4 }}>
+              <span style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 999, background: "var(--olive-wash)", color: "var(--olive-deep)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "0.85rem" }}>{landlord.initials}</span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{landlord.fullName}</span>
+                <span style={{ display: "block", fontSize: "0.75rem", color: "var(--ink-muted)" }}>Propriétaire</span>
+              </span>
+            </div>
             {showResume && (
               <button type="button" onClick={() => dispatch({ type: "resume" })} style={{ textAlign: "left", width: "100%", border: "1.5px solid var(--olive)", cursor: "pointer", fontFamily: "var(--font-sans)", display: "flex", alignItems: "center", gap: 9, borderRadius: "var(--radius-full)", padding: "9px 14px", marginBottom: 4, fontSize: "0.9rem", fontWeight: 600, background: "var(--olive-wash)", color: "var(--olive-deep)" }}>
                 <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, flexShrink: 0 }} aria-hidden="true"><path d="M7 5v14l11-7z" fill="currentColor" /></svg>Reprendre la prise en main

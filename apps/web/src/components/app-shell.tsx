@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation"
 import { ChevronLeft, Menu, X } from "lucide-react"
 import type { Landlord } from "@/lib/landlords"
 import { RantiLogo } from "@/components/ranti-logo"
-import { AccountMenu } from "@/components/account-menu"
 import { ResumeOnboarding } from "@/components/resume-onboarding"
 import { HelpCenter } from "@/components/help-center"
 
@@ -52,10 +51,22 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
   )
 }
 
-// Menu de navigation mobile : rangé dans un bouton à droite (ADR : nav qui
-// débordait en bande horizontale → repliée). Ouvre au tap, ferme au clic
-// extérieur, à Échap, ou en suivant un lien.
-function MobileNavMenu({ pathname, resumable }: { pathname: string; resumable: boolean }) {
+// Menu mobile unique : nav + profil + aide + déconnexion dans UN seul bouton
+// (décision 2026-07-18 : deux contrôles côte à côte, menu + avatar, faisaient
+// doublon). Le bloc identité vit en tête du menu ; Paramètres et
+// « Se déconnecter » ferment la liste. Ouvre au tap, ferme au clic extérieur,
+// à Échap, ou en suivant un lien.
+function MobileNavMenu({
+  pathname,
+  resumable,
+  initials,
+  ownerName,
+}: {
+  pathname: string
+  resumable: boolean
+  initials: string
+  ownerName: string
+}) {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -89,8 +100,17 @@ function MobileNavMenu({ pathname, resumable }: { pathname: string; resumable: b
             className="fixed inset-0 z-10 cursor-default"
           />
           <div className="absolute right-0 z-20 mt-2 w-60 space-y-1 overflow-hidden rounded-2xl border border-border bg-card p-1.5 shadow-sm">
+            <div className="flex items-center gap-3 px-3 pb-2 pt-1.5">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-foreground">
+                {initials}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">{ownerName}</p>
+                <p className="text-xs text-muted-foreground">Propriétaire</p>
+              </div>
+            </div>
             {resumable && <ResumeOnboarding onNavigate={() => setOpen(false)} />}
-            <div className="space-y-1" onClick={() => setOpen(false)}>
+            <div className="space-y-1 border-t border-border pt-1.5" onClick={() => setOpen(false)}>
               {MAIN_NAV.map((item) => (
                 <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
               ))}
@@ -98,6 +118,19 @@ function MobileNavMenu({ pathname, resumable }: { pathname: string; resumable: b
             <div className="space-y-1 border-t border-border pt-1.5">
               <p className="px-3.5 pb-0.5 text-[11px] font-medium text-muted-foreground">Aide</p>
               <HelpCenter />
+            </div>
+            <div className="space-y-1 border-t border-border pt-1.5">
+              <div onClick={() => setOpen(false)}>
+                <NavLink href="/settings/profile" label="Paramètres" pathname={pathname} />
+              </div>
+              <form action="/auth/signout" method="post">
+                <button
+                  type="submit"
+                  className="block w-full rounded-lg px-3.5 py-3 text-left text-sm font-medium text-destructive transition hover:bg-destructive/10"
+                >
+                  Se déconnecter
+                </button>
+              </form>
             </div>
           </div>
         </>
@@ -175,10 +208,12 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
               ) : null}
               <Link href="/dashboard" className="font-display text-lg font-extrabold tracking-tight">Ranti</Link>
             </div>
-            <div className="flex items-center gap-2">
-              <MobileNavMenu pathname={pathname} resumable={resumable} />
-              <AccountMenu initials={initialsOf(landlord.first_name, landlord.last_name)} ownerName={ownerName} />
-            </div>
+            <MobileNavMenu
+              pathname={pathname}
+              resumable={resumable}
+              initials={initialsOf(landlord.first_name, landlord.last_name)}
+              ownerName={ownerName}
+            />
           </div>
         </header>
 
