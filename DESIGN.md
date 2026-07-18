@@ -61,7 +61,7 @@
 - Voix **« vous »** partout (ADR-014 supersédé).
 - Ne jamais dire « IA » sur les surfaces publiques (Ranti = sujet visible, IA sous le capot).
 - Preuve **honnête** : jamais de faux témoignage, pas de copie de l'échelle Obligo (1M foyers). Ancre de confiance = quittance vérifiable + histoire pilote réelle.
-- Tarif **unique** : « 3 mois gratuits, puis 5 % sur chaque paiement de loyer réussi » ; jamais de vocabulaire d'abonnement/résiliation.
+- Tarif : **abonnement par paliers** (ADR-024, supersède le « 5 % » — la commission transactionnelle est abandonnée) : gratuit pour un logement, puis paliers payants (grille B-1). Copie landing : « Gratuit pour un logement · Ranti ne touche jamais l'argent ». Le vocabulaire d'abonnement est désormais légitime ; ne plus jamais afficher « 5 % ».
 
 ## Composants (source unique)
 - `components/ui/button.tsx` — `buttonClasses`/`Button` : primary (**olive, toujours** — l'encre n'est plus un fond de bouton d'action), secondary (outline), destructive, destructive-outline. Cible tactile ≥ 44 px (py-3).

@@ -88,9 +88,9 @@ export default function TermsPage() {
             4. Tarification
           </h2>
           <p className="mt-2">
-            Ranti applique un tarif unique :{" "}
-            <strong>3 mois gratuits à l&rsquo;ouverture de votre registre, puis 5 % sur chaque paiement de loyer
-            réussi</strong>. Il n&rsquo;y a rien d&rsquo;autre à payer.
+            Ranti fonctionne par abonnement :{" "}
+            <strong>gratuit pour un logement</strong>, puis des paliers payants selon le nombre de logements
+            suivis. Ranti ne prend aucune commission sur vos loyers et ne touche jamais l&rsquo;argent.
           </p>
           <p className="mt-2">
             Vous pouvez arrêter d&rsquo;utiliser Ranti quand vous voulez. Toute évolution de ce tarif sera annoncée au
