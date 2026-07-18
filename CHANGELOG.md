@@ -3,7 +3,7 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
-## [0.3.31.1] - 2026-07-18
+## [0.3.32.0] - 2026-07-18
 
 ### Added
 
@@ -12,6 +12,17 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions
   locataire (réparations, frais) des baux en impayé. Le message distingue
   toujours la nature de la dette ; une charge contestée ou pas encore validée
   n'est jamais proposée.
+- **Ranti se présente au premier message** : le tout premier message envoyé à
+  un locataire s'ouvre par une présentation (« Je suis Ranti, le registre de
+  loyer qu'utilise votre propriétaire… vos paiements restent directs, Ranti ne
+  touche jamais l'argent ») avant le rappel. Ensuite, messages habituels.
+
+### Removed
+
+- **Paiement par le rail** retiré des écrans (il reviendra dans une mise à
+  jour) : plus de page Transactions ni de cartes « Paiements par le rail »
+  dans Encaissements. La validation des charges par le locataire est
+  inchangée.
 
 ## [0.3.31.0] - 2026-07-18
 
