@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ReopenConsent } from "@/components/reopen-consent";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité — Ranti",
@@ -144,6 +145,10 @@ export default function PrivacyPage() {
           <p className="mt-2">
             Ranti utilise uniquement des cookies techniques essentiels au fonctionnement du service (cookie de session
             Supabase). Aucun cookie publicitaire ou de tracking n&rsquo;est déposé.
+          </p>
+          <p className="mt-3">
+            Votre consentement est recueilli via Axeptio. Vous pouvez revenir sur vos choix à tout moment :{" "}
+            <ReopenConsent />.
           </p>
         </section>
 

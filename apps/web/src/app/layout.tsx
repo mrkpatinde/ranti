@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { AxeptioConsent } from "@/components/axeptio";
 import { OfflineBanner } from "@/components/offline-banner";
 import { SwRegister } from "@/components/sw-register";
 import "./globals.css";
@@ -39,6 +40,7 @@ export default function RootLayout({
         <SwRegister />
         <OfflineBanner />
         {children}
+        <AxeptioConsent />
       </body>
     </html>
   );
