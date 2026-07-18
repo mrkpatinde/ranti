@@ -7,9 +7,10 @@ import { scheduleReminder } from "@/lib/reminders/actions"
 // l'échéance impayée, la date d'envoi (calendrier natif, min = aujourd'hui) et
 // le canal. ranti-ops envoie à la date dite. Formulaire serveur, zéro JS.
 
-export type OpenDueOption = {
-  dueId: string
-  label: string // « Awa Simon · Chambre 1 · échéance du 5 août · reste 100 000 FCFA »
+export type ScheduleTarget = {
+  /** "due:<id>" (échéance de loyer) ou "charge:<id>" (charge validée). */
+  value: string
+  label: string
 }
 
 export function buildDueLabel(opts: {
@@ -26,16 +27,27 @@ export function buildDueLabel(opts: {
   return `${opts.tenantName} · ${opts.unitName} · échéance du ${dateLabel} · reste ${formatFcfa(opts.remaining)}`
 }
 
+export function buildChargeLabel(opts: {
+  tenantName: string
+  unitName: string
+  type: "reparation" | "frais"
+  label: string
+  amount: number
+}): string {
+  const nature = opts.type === "reparation" ? "Réparation" : "Frais"
+  return `${opts.tenantName} · ${opts.unitName} · ${nature} « ${opts.label} » · ${formatFcfa(opts.amount)}`
+}
+
 export function ScheduleReminderForm({
-  dues,
+  targets,
   defaultChannel,
   todayIso,
 }: {
-  dues: OpenDueOption[]
+  targets: ScheduleTarget[]
   defaultChannel: ReminderChannel | null
   todayIso: string
 }) {
-  if (dues.length === 0) return null
+  if (targets.length === 0) return null
 
   const inputClass =
     "w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition focus:border-primary"
@@ -51,14 +63,14 @@ export function ScheduleReminderForm({
       </div>
       <form action={scheduleReminder} className="space-y-4 px-4 py-4 sm:px-5">
         <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-foreground">Échéance à relancer</span>
-          <select name="rent_due_id" required className={inputClass} defaultValue="">
+          <span className="text-sm font-medium text-foreground">Dette à relancer</span>
+          <select name="target" required className={inputClass} defaultValue="">
             <option value="" disabled>
-              Choisir une échéance impayée
+              Choisir un loyer impayé ou une charge validée
             </option>
-            {dues.map((d) => (
-              <option key={d.dueId} value={d.dueId}>
-                {d.label}
+            {targets.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
               </option>
             ))}
           </select>
