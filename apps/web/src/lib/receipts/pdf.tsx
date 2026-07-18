@@ -2,6 +2,7 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 import { formatFcfa } from "@/lib/format"
 import type { Landlord } from "@/lib/landlords"
+import { receiptClause } from "./clause"
 import type { Receipt } from "./types"
 
 const methodLabels: Record<string, string> = {
@@ -16,15 +17,15 @@ const kindLabels: Record<string, string> = {
   receipt: "Reçu de paiement",
 }
 
-// ADR-013 — bandeau d'acquittement locataire (deux voix). Couleurs sobres,
+// ADR-013 - bandeau d'acquittement locataire (deux voix). Couleurs sobres,
 // mentions strictement factuelles : Ranti documente, n'arbitre pas.
 // Palette = direction-artistique.html uniquement (décision CEO 2026-07-17) :
 // neutres papier/encre DA, certifié = wash + olive-deep, contesté = warning.
 const ackBanner: Record<string, { bg: string; fg: string; label: string }> = {
-  unilateral: { bg: "#f2f2ec", fg: "#72726e", label: "Déclaration du propriétaire — non confirmée par le locataire." },
+  unilateral: { bg: "#f2f2ec", fg: "#72726e", label: "Déclaration du propriétaire, non confirmée par le locataire." },
   read: { bg: "#f2f2ec", fg: "#72726e", label: "Reçu ouvert par le locataire, non encore confirmé." },
-  certified: { bg: "#f2f6e1", fg: "#3f4d00", label: "Certifié — le locataire a confirmé l'exactitude de ce reçu." },
-  disputed: { bg: "#ffe7e2", fg: "#bd4a30", label: "Contesté — le locataire déclare une version différente (ci-dessous)." },
+  certified: { bg: "#f2f6e1", fg: "#3f4d00", label: "Certifié : le locataire a confirmé l'exactitude de ce reçu." },
+  disputed: { bg: "#ffe7e2", fg: "#bd4a30", label: "Contesté : le locataire déclare une version différente (ci-dessous)." },
 }
 
 const contestNatureLabels: Record<string, string> = {
@@ -138,12 +139,12 @@ export function ReceiptPdf({
           <Text style={s.total}>{formatFcfa(receipt.total_amount)}</Text>
         </View>
 
-        <Text style={s.mention}>{receipt.kind === "quittance" ? "Le présent document vaut quittance : le loyer de la période ci-dessus est intégralement payé." : "Reçu de paiement pour la somme ci-dessus. Le loyer n'est pas intégralement soldé : ce document ne vaut pas quittance."}</Text>
+        <Text style={s.mention}>{receiptClause({ landlordName: `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire", tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind })}</Text>
 
         {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
           <View style={s.contestBox}>
             <Text style={[s.label, { color: "#bd4a30" }]}>
-              {contestNatureLabels[receipt.contest_nature] ?? "Contestation"} — version du locataire
+              {contestNatureLabels[receipt.contest_nature] ?? "Contestation"} · version du locataire
             </Text>
             <Text style={{ color: "#bd4a30" }}>
               {receipt.contest_nature === "not_paid"

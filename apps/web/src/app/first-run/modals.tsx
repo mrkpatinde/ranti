@@ -11,6 +11,7 @@ import {
   type Action, type State, type PayTarget, oliveCta, ghostBtn, inputStyle, fieldLabel,
   fieldLabelSpan, CloseIcon, Wordmark, DefRow, ModalScrim,
 } from "./shared"
+import { receiptClause } from "@/lib/receipts/clause"
 import { useFirstRun } from "./context"
 
 // Types de logement (valeurs UNIT_TYPES) avec libelles FR, repris tels quels de
@@ -357,7 +358,6 @@ export function QuittanceModal({ state, dispatch }: { state: State; dispatch: Re
   if (!r) return null
 
   const title = r.kind === "quittance" ? "Quittance de loyer" : "Reçu de paiement"
-  const periodPhrase = r.periodLabel ? ` au titre du loyer de ${r.periodLabel}` : ""
   return (
     <ModalScrim onClose={close}>
       <div onClick={(e) => e.stopPropagation()} style={{ ...modalCard, width: 440 }}>
@@ -384,7 +384,7 @@ export function QuittanceModal({ state, dispatch }: { state: State; dispatch: Re
             <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--ink)" }}>Montant réglé</span>
             <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "1.6rem", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: "var(--ink-title)" }}>{r.amountLabel}</span>
           </div>
-          <p style={{ margin: 0, fontSize: "0.82rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>Je soussigné(e) {landlord.fullName}, bailleur, reconnais avoir reçu la somme de <strong style={{ color: "var(--ink)", fontWeight: 600 }}>{r.amountLabel}</strong>{periodPhrase}, dont quittance pour solde de ladite période.</p>
+          <p style={{ margin: 0, fontSize: "0.82rem", lineHeight: 1.5, color: "var(--ink-muted)" }}>{receiptClause({ landlordName: landlord.fullName, tenantName: r.tenantName || "le locataire", amount: r.totalAmount, kind: r.kind })}</p>
           <div style={{ border: "1px solid var(--line-soft)", background: "var(--muted-surface)", borderRadius: "var(--radius-md)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={{ fontSize: "0.8rem", lineHeight: 1.45, color: "var(--ink-muted)" }}>{r.tenantConfirmed ? "Confirmée par le locataire." : "En attente de confirmation du locataire."} Vérifiable sur <span style={{ color: "var(--ink)", fontWeight: 500 }}>{r.verifyRef}</span></span>
             {r.sha256 && (
