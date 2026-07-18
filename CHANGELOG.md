@@ -3,6 +3,17 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.29.2] - 2026-07-18
+
+### Added
+
+- **Réglages de relance sur la page Relances** : le propriétaire choisit le
+  canal (WhatsApp / SMS) et le moment privilégié (3 jours avant, le jour de
+  l'échéance, en cas de retard), voit le message par défaut exactement tel
+  qu'il sera préparé, et active ou coupe la relance automatique. Un
+  calendrier « À venir » montre, par échéance, la prochaine fenêtre d'envoi
+  (J-5, veille, jour J, J+3, J+10) avec le locataire, le logement et la date.
+
 ## [0.3.29.1] - 2026-07-18
 
 ### Changed
