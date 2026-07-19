@@ -64,11 +64,11 @@ const SCHEDULE_ERRORS: Record<string, string> = {
   not_pending: "Cette relance a déjà été envoyée ou annulée.",
 }
 
-function scheduleError(message: string): string {
+function scheduleError(message: string, fallback = "Programmation impossible. Réessayez."): string {
   for (const [code, label] of Object.entries(SCHEDULE_ERRORS)) {
     if (message.includes(code)) return label
   }
-  return "Programmation impossible. Réessayez."
+  return fallback
 }
 
 export async function scheduleReminder(formData: FormData): Promise<void> {
@@ -109,16 +109,29 @@ export async function scheduleReminder(formData: FormData): Promise<void> {
   redirect("/reminders?notice=reminder_scheduled")
 }
 
-export async function cancelScheduledReminder(formData: FormData): Promise<void> {
+// Retourne l'erreur au lieu de rediriger : consommée par le composant client
+// optimiste (ScheduledReminders), qui masque la ligne immédiatement et
+// restaure + affiche l'erreur si la RPC échoue. La revalidation apporte
+// l'état réel en cas de succès.
+export async function cancelScheduledReminder(
+  formData: FormData,
+): Promise<{ error: string | null }> {
   await requireLandlordProfile()
   const supabase = await createClient()
 
   const id = String(formData.get("id") ?? "")
-  if (!id) redirect("/reminders?error=" + encodeURIComponent("Relance introuvable."))
+  if (!id) return { error: "Relance introuvable." }
 
   const { error } = await supabase.rpc("cancel_scheduled_reminder", { p_id: id })
-  if (error) redirect(`/reminders?error=${encodeURIComponent(scheduleError(error.message))}`)
+  if (error) {
+    // Revalider AUSSI sur échec : « not_pending » signifie que la ligne a déjà
+    // été envoyée ou annulée ailleurs (autre onglet, cron ops) ; sans purge,
+    // le retour d'état optimiste restaurerait une ligne fantôme jusqu'à la
+    // prochaine navigation.
+    revalidatePath("/reminders")
+    return { error: scheduleError(error.message, "Annulation impossible. Réessayez.") }
+  }
 
   revalidatePath("/reminders")
-  redirect("/reminders")
+  return { error: null }
 }

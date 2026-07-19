@@ -12,17 +12,31 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: () => createClient(),
 }))
 
+import { QueryError } from "@/lib/supabase/query-error"
 import { getLeaseReminders } from "../queries"
 
 // Builder PostgREST minimal : select/eq/in/order rendent la chaîne, limit
-// résout le résultat — assez pour le chemin de getLeaseReminders.
+// résout le résultat. eq/in ENREGISTRENT leurs arguments : le scoping
+// (landlord_id, rent_due_id) fait partie du contrat — un filtre perdu ne
+// serait rattrapé que par la RLS, silencieusement.
+type FilterCalls = Record<string, { eq: unknown[][]; in: unknown[][] }>
+
 function makeSupabase(results: Record<string, { data: unknown; error: unknown }>) {
+  const calls: FilterCalls = {}
   return {
+    calls,
     from(table: string) {
+      calls[table] ??= { eq: [], in: [] }
       const chain = {
         select: () => chain,
-        eq: () => chain,
-        in: () => chain,
+        eq: (...args: unknown[]) => {
+          calls[table].eq.push(args)
+          return chain
+        },
+        in: (...args: unknown[]) => {
+          calls[table].in.push(args)
+          return chain
+        },
         order: () => chain,
         limit: () => Promise.resolve(results[table]),
       }
@@ -54,8 +68,7 @@ describe("getLeaseReminders", () => {
   })
 
   it("fusionne SMS auto et relances ops (canal normalisé, fenêtre lisible), récent d'abord", async () => {
-    createClient.mockResolvedValue(
-      makeSupabase({
+    const sb = makeSupabase({
         reminders: {
           data: [
             { id: "a-1", channel: "sms", template: "j-5", sent_at: "2026-07-01T08:00:00Z", status: "sent", rent_due: RENT_DUE },
@@ -69,7 +82,7 @@ describe("getLeaseReminders", () => {
           error: null,
         },
       })
-    )
+    createClient.mockResolvedValue(sb)
 
     const rows = await getLeaseReminders("ll-1", ["rd-1"])
 
@@ -77,6 +90,12 @@ describe("getLeaseReminders", () => {
     // Tri décroissant sur sent_at : la relance ops (07-09) passe devant.
     expect(rows[0]).toMatchObject({ id: "m-1", channel: "whatsapp_manual", template: "j+3" })
     expect(rows[1]).toMatchObject({ id: "a-1", channel: "sms", template: "j-5" })
+    // Scoping verrouillé sur les DEUX tables : bailleur + échéances du bail.
+    // Un filtre perdu passerait tous les tests sinon (rattrapé que par la RLS).
+    expect(sb.calls.reminders.eq).toContainEqual(["landlord_id", "ll-1"])
+    expect(sb.calls.reminders.in).toContainEqual(["rent_due_id", ["rd-1"]])
+    expect(sb.calls.reminder_events.eq).toContainEqual(["landlord_id", "ll-1"])
+    expect(sb.calls.reminder_events.in).toContainEqual(["rent_due_id", ["rd-1"]])
   })
 
   it("garde le type ops inconnu tel quel comme fenêtre", async () => {
@@ -106,7 +125,8 @@ describe("getLeaseReminders", () => {
       })
     )
 
-    await expect(getLeaseReminders("ll-1", ["rd-1"])).rejects.toThrow()
+    await expect(getLeaseReminders("ll-1", ["rd-1"])).rejects.toThrow(QueryError)
+    await expect(getLeaseReminders("ll-1", ["rd-1"])).rejects.toThrow("[reminders]")
   })
 
   it("jette QueryError quand la lecture des relances ops échoue", async () => {
@@ -117,6 +137,7 @@ describe("getLeaseReminders", () => {
       })
     )
 
-    await expect(getLeaseReminders("ll-1", ["rd-1"])).rejects.toThrow()
+    await expect(getLeaseReminders("ll-1", ["rd-1"])).rejects.toThrow(QueryError)
+    await expect(getLeaseReminders("ll-1", ["rd-1"])).rejects.toThrow("[reminder_events]")
   })
 })
