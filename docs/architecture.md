@@ -130,7 +130,7 @@ l'envoi automatisé des notifications de charges côté ranti-ops (vue
 
 - Mutations sensibles transactionnelles.
 - Idempotence sur les générations et confirmations.
-- Cache client de navigation (30 s, `staleTimes`) : toute écriture d'argent doit purger l'ensemble des surfaces qui l'affichent via `revalidateMoneySurfaces` (`apps/web/src/lib/cache/money.ts`) ; aucune surface argent ne doit être ajoutée sans y être inscrite. Deux flux hérités restent à raccorder au helper : `createBail` (onboarding) et `recordPaymentFirstRun` (FirstRun).
+- Cache client de navigation (30 s, `staleTimes`) : toute écriture d'argent doit purger l'ensemble des surfaces qui l'affichent via `revalidateMoneySurfaces` (`apps/web/src/lib/cache/money.ts`) ; aucune surface argent ne doit être ajoutée sans y être inscrite.
 - Audit logs sur actions critiques.
 - Pas de suppression silencieuse de données financières.
 - Prestataires externes comme adaptateurs, jamais source de vérité métier.
