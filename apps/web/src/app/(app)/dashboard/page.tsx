@@ -56,6 +56,21 @@ export default async function DashboardPage() {
   // checklist (guided) | exploration (« Passer pour l'instant »). Progression
   // dérivée des données réelles, uniquement quand le guidage est en cours,
   // chargée dans la MÊME vague que les baux (indépendantes).
+  // Pré-lancement de la vague données (fluidité) : ces quatre lectures ne
+  // dépendent que de landlord.id ; parties AVANT l'attente des baux, elles
+  // économisent un aller-retour série complet sur le premier paint des
+  // chiffres. Sans bail actif (onboarding), elles partent au rebut : quatre
+  // lectures légères, coût accepté (même patron que la fiche bail sur id
+  // inconnu). Le catch noop évite un « unhandled rejection » sur la branche
+  // abandonnée ; l'await sous Suspense reçoit et gère toujours l'erreur.
+  const dataPromises = Promise.all([
+    getLandlordDueBalances(landlord.id),
+    getLandlordLeaseBalances(landlord.id),
+    getLandlordTenants(landlord.id),
+    getLandlordUnits(landlord.id),
+  ])
+  dataPromises.catch(() => {})
+
   const [leases, progress] = await Promise.all([
     getLandlordLeases(landlord.id),
     status === "guided" ? getOnboardingProgress(landlord.id) : null,
@@ -135,7 +150,14 @@ export default async function DashboardPage() {
       </header>
 
       <Suspense fallback={<DashboardDataSkeleton />}>
-        <DashboardData landlord={landlord} status={status} leases={leases} progress={progress} month={month} />
+        <DashboardData
+          landlord={landlord}
+          status={status}
+          leases={leases}
+          progress={progress}
+          month={month}
+          data={dataPromises}
+        />
       </Suspense>
     </main>
   )
@@ -150,19 +172,25 @@ async function DashboardData({
   leases,
   progress,
   month,
+  data,
 }: {
   landlord: Landlord
   status: OnboardingStatus
   leases: Lease[]
   progress: OnboardingProgress | null
   month: string
+  data: Promise<
+    [
+      Awaited<ReturnType<typeof getLandlordDueBalances>>,
+      Awaited<ReturnType<typeof getLandlordLeaseBalances>>,
+      Awaited<ReturnType<typeof getLandlordTenants>>,
+      Awaited<ReturnType<typeof getLandlordUnits>>,
+    ]
+  >
 }) {
-  const [balances, leaseBalances, tenants, units] = await Promise.all([
-    getLandlordDueBalances(landlord.id),
-    getLandlordLeaseBalances(landlord.id),
-    getLandlordTenants(landlord.id),
-    getLandlordUnits(landlord.id),
-  ])
+  // Vague pré-lancée par le parent (avant même l'attente des baux) : ici on
+  // ne fait que la consommer sous Suspense.
+  const [balances, leaseBalances, tenants, units] = await data
   const showChecklist = progress != null && !progress.allDone
   const justCompleted = progress != null && progress.allDone
 
