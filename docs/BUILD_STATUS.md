@@ -31,7 +31,7 @@ Livré depuis le 2026-07-03 (non couvert par les sections ci-dessous) :
 | v0.3.28.0 | Rail guidé « Premiers pas » branché sur le tableau de bord + centre d'aide (FirstRun) |
 | v0.3.29.0 | **FirstRun câblé à la base** (`/first-run` : bail, paiement, quittance réels), colonnes de relance bailleur + référence `RNT-AAAA-NNNN` (prod), clause notariale + montant en toutes lettres, mode sombre supprimé, CGU/confidentialité éditeur WI'SOFT SOLUTIONS |
 | v0.3.30.0–v0.3.32.0 | Voir `CHANGELOG.md` : consentement à la quittance électronique, programmation de relances (« Programmer » / « Relancer maintenant »), relances des charges validées, présentation Ranti au premier message, retrait du rail de paiement des écrans |
-| v0.3.33.0 | **Navigation quasi instantanée** : streaming Suspense + squelettes au gabarit de chaque écran, cache client 30 s (`staleTimes`) purgé par `revalidateMoneySurfaces` (`lib/cache/money.ts`) à chaque écriture d'argent, session validée localement dans le proxy (`getClaims`, zéro aller-retour Auth par navigation), lectures dédupliquées par render (React `cache()`), annulation optimiste d'une relance programmée |
+| v0.3.33.0 | **Navigation quasi instantanée** : streaming Suspense + squelettes au gabarit de chaque écran, cache client 30 s (`staleTimes`) purgé par `revalidateMoneySurfaces` (`lib/cache/money.ts`) sur les écritures d'argent, session validée localement dans le proxy (`getClaims` ; plus d'appel Auth systématique par navigation, repli `getUser` sur jeton legacy HS256), lectures dédupliquées par render (React `cache()`), annulation optimiste d'une relance programmée |
 
 Écarts ouverts au 2026-07-17 :
 
