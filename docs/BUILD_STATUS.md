@@ -1,6 +1,6 @@
 # Ranti — Build Status
 
-Dernière mise à jour : 2026-07-18 (table des versions complétée jusqu'à v0.3.29.0 ; les mesures de la section 0 datent du 2026-07-17)
+Dernière mise à jour : 2026-07-19 (table des versions complétée jusqu'à v0.3.33.0 ; les mesures de la section 0 datent du 2026-07-17)
 
 > Les sections 1 à 3 bis décrivent l'état au **2026-07-03** et sont conservées
 > comme trace historique. L'état courant est en **section 0**.
@@ -30,6 +30,8 @@ Livré depuis le 2026-07-03 (non couvert par les sections ci-dessous) :
 | v0.3.27.0 | Nouvelle landing DA, consentement Axeptio, **tarif ADR-024** (abonnement par paliers, « 5 % » banni des surfaces publiques, rail custodial gelé) |
 | v0.3.28.0 | Rail guidé « Premiers pas » branché sur le tableau de bord + centre d'aide (FirstRun) |
 | v0.3.29.0 | **FirstRun câblé à la base** (`/first-run` : bail, paiement, quittance réels), colonnes de relance bailleur + référence `RNT-AAAA-NNNN` (prod), clause notariale + montant en toutes lettres, mode sombre supprimé, CGU/confidentialité éditeur WI'SOFT SOLUTIONS |
+| v0.3.30.0–v0.3.32.0 | Voir `CHANGELOG.md` : consentement à la quittance électronique, programmation de relances (« Programmer » / « Relancer maintenant »), relances des charges validées, présentation Ranti au premier message, retrait du rail de paiement des écrans |
+| v0.3.33.0 | **Navigation quasi instantanée** : streaming Suspense + squelettes au gabarit de chaque écran, cache client 30 s (`staleTimes`) purgé par `revalidateMoneySurfaces` (`lib/cache/money.ts`) à chaque écriture d'argent, session validée localement dans le proxy (`getClaims`, zéro aller-retour Auth par navigation), lectures dédupliquées par render (React `cache()`), annulation optimiste d'une relance programmée |
 
 Écarts ouverts au 2026-07-17 :
 

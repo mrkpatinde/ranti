@@ -74,6 +74,8 @@ La sécurité doit être appliquée à deux niveaux :
 
 Une ressource hors périmètre doit retourner `404` plutôt que révéler son existence.
 
+Session dans le proxy (v0.3.33.0) : le middleware valide le jeton d'accès localement (signature ES256, JWKS en cache) au lieu d'interroger le serveur Auth à chaque navigation. Limite assumée, patron recommandé par Supabase : une session révoquée à distance (déconnexion globale, réinitialisation de mot de passe) reste valable jusqu'à l'expiration du jeton d'accès (TTL projet, 1 h par défaut).
+
 ## Données sensibles
 
 Ranti manipule :
@@ -128,6 +130,7 @@ l'envoi automatisé des notifications de charges côté ranti-ops (vue
 
 - Mutations sensibles transactionnelles.
 - Idempotence sur les générations et confirmations.
+- Cache client de navigation (30 s, `staleTimes`) : toute écriture d'argent purge l'ensemble des surfaces qui l'affichent via `revalidateMoneySurfaces` (`apps/web/src/lib/cache/money.ts`) ; aucune surface argent ne doit être ajoutée sans y être inscrite.
 - Audit logs sur actions critiques.
 - Pas de suppression silencieuse de données financières.
 - Prestataires externes comme adaptateurs, jamais source de vérité métier.
