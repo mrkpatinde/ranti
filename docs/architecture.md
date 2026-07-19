@@ -74,7 +74,7 @@ La sécurité doit être appliquée à deux niveaux :
 
 Une ressource hors périmètre doit retourner `404` plutôt que révéler son existence.
 
-Session dans le proxy (v0.3.33.0) : le middleware valide le jeton d'accès localement (signature ES256, JWKS en cache) au lieu d'interroger le serveur Auth à chaque navigation. Limite assumée, patron recommandé par Supabase : une session révoquée à distance (déconnexion globale, réinitialisation de mot de passe) reste valable jusqu'à l'expiration du jeton d'accès (TTL projet, 1 h par défaut).
+Session dans le proxy (v0.3.33.0, **ADR-025**) : le middleware valide le jeton d'accès localement (signature ES256, JWKS en cache) au lieu d'interroger le serveur Auth à chaque navigation. Limite assumée, patron recommandé par Supabase : une session révoquée à distance (déconnexion globale) reste valable jusqu'à l'expiration du jeton d'accès. Fenêtre bornée par `jwt_expiry` abaissé à **15 min** (mitigation ADR-025 ; à régler à l'identique dans le dashboard prod). Rayon de souffle accepté tant que Ranti reste non-custodial (ADR-024) — à revisiter si le rail custodial revient.
 
 ## Données sensibles
 
