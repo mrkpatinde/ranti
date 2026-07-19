@@ -1,8 +1,7 @@
+import { Suspense } from "react"
 import { formatFcfa } from "@/lib/format"
 import Link from "next/link"
-import { SubmitButton } from "@/components/submit-button"
 import { Alert } from "@/components/ui/alert"
-import { badgeClasses } from "@/components/ui/badge"
 import { CollectionCard } from "./collection-card"
 import {
   getLandlordCollections,
@@ -50,41 +49,10 @@ const statusOrder: Record<CollectionStatus, number> = {
   cancelled: 2,
 }
 
-export default async function CollectionsPage({ searchParams }: CollectionsPageProps) {
-  const landlord = await requireLandlordProfile()
-  const params = await searchParams
-
-  const [collections, tenants, units, receipts] = await Promise.all([
-    getLandlordCollections(landlord.id),
-    getLandlordTenants(landlord.id),
-    getLandlordUnits(landlord.id),
-    getLandlordReceipts(landlord.id),
-  ])
-
-  const receiptByReception = new Map(
-    receipts.filter((r) => r.status !== "cancelled").map((r) => [r.rent_reception_id, r]),
-  )
-  // Encaissements dont le document a été annulé (flux de correction) :
-  // l'encaissement reste confirmé, il faut le dire clairement au propriétaire.
-  const cancelledReceiptReceptions = new Set(
-    receipts.filter((r) => r.status === "cancelled").map((r) => r.rent_reception_id),
-  )
-
-  const tenantName = (id: string): string => {
-    const t = tenants.find((tenant) => tenant.id === id)
-    return t ? `${t.first_name} ${t.last_name}` : "Locataire"
-  }
-  const unitName = (id: string): string => units.find((u) => u.id === id)?.name ?? "Logement"
-
-  const sorted = [...collections].sort((a, b) => {
-    const byStatus = statusOrder[a.status] - statusOrder[b.status]
-    if (byStatus !== 0) return byStatus
-    return b.received_at.localeCompare(a.received_at)
-  })
-
-  const draftCount = collections.filter((c: Collection) => c.status === "draft").length
-  const notice = params?.notice ? noticeLabels[params.notice] : null
-
+export default function CollectionsPage({ searchParams }: CollectionsPageProps) {
+  // Streaming (fluidité de nav) : le cadre (titre + « Encaisser un loyer »)
+  // peint tout de suite, les cartes arrivent en flux sous <Suspense> au lieu
+  // de bloquer la navigation sur la vague de requêtes.
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
       <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
@@ -116,7 +84,56 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
           </Link>
         </div>
 
-        {notice ? <Alert variant="success">{notice}</Alert> : null}
+        <Suspense fallback={<CollectionsSkeleton />}>
+          <CollectionsData searchParams={searchParams} />
+        </Suspense>
+      </section>
+    </main>
+  )
+}
+
+async function CollectionsData({ searchParams }: CollectionsPageProps) {
+  const landlord = await requireLandlordProfile()
+  const params = await searchParams
+
+  const [collections, tenants, units, receipts] = await Promise.all([
+    getLandlordCollections(landlord.id),
+    getLandlordTenants(landlord.id),
+    getLandlordUnits(landlord.id),
+    getLandlordReceipts(landlord.id),
+  ])
+
+  const receiptByReception = new Map(
+    receipts.filter((r) => r.status !== "cancelled").map((r) => [r.rent_reception_id, r]),
+  )
+  // Encaissements dont le document a été annulé (flux de correction) :
+  // l'encaissement reste confirmé, il faut le dire clairement au propriétaire.
+  const cancelledReceiptReceptions = new Set(
+    receipts.filter((r) => r.status === "cancelled").map((r) => r.rent_reception_id),
+  )
+
+  // Maps plutôt que find-dans-la-boucle : la liste des encaissements grandit
+  // sans borne avec l'historique (même patron que le dashboard).
+  const tenantNames = new Map(tenants.map((t) => [t.id, `${t.first_name} ${t.last_name}`]))
+  const unitNames = new Map(units.map((u) => [u.id, u.name]))
+  const tenantName = (id: string): string => tenantNames.get(id) ?? "Locataire"
+  const unitName = (id: string): string => unitNames.get(id) ?? "Logement"
+
+  const sorted = [...collections].sort((a, b) => {
+    const byStatus = statusOrder[a.status] - statusOrder[b.status]
+    if (byStatus !== 0) return byStatus
+    return b.received_at.localeCompare(a.received_at)
+  })
+
+  const draftCount = collections.filter((c: Collection) => c.status === "draft").length
+  // Object.hasOwn : un ?notice=__proto__ forgé renverrait Object.prototype
+  // (truthy), invalide comme enfant JSX, et ferait tomber la page entière.
+  const notice =
+    params?.notice && Object.hasOwn(noticeLabels, params.notice) ? noticeLabels[params.notice] : null
+
+  return (
+    <>
+      {notice ? <Alert variant="success">{notice}</Alert> : null}
 
         {params?.error ? <Alert variant="error">{params.error}</Alert> : null}
 
@@ -156,7 +173,19 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
             ))}
           </div>
         )}
-      </section>
-    </main>
+    </>
+  )
+}
+
+// Silhouette des cartes encaissement (mêmes tokens que loading.tsx : rien qui
+// clignote fort), affichée pendant le flux Suspense sous le cadre déjà peint.
+function CollectionsSkeleton() {
+  return (
+    <div aria-busy className="space-y-4">
+      <div className="h-36 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      <div className="h-36 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      <div className="h-36 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      <p className="sr-only">Chargement…</p>
+    </div>
   )
 }
