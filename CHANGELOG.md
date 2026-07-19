@@ -3,24 +3,50 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
-## [0.3.33.0] - 2026-07-18
+## [0.3.33.0] - 2026-07-19
 
 ### Changed
 
-- **Navigation nettement plus fluide** : en passant d'un écran à l'autre,
-  l'en-tête et la structure de la page s'affichent immédiatement ; les
-  chiffres et les listes arrivent juste derrière, sous un squelette discret.
-  Fini la page blanche qui attend que tout soit chargé (accueil et fiche
-  de bail).
+- **Navigation quasi instantanée sur toute l'app** : en passant d'un écran à
+  l'autre, l'en-tête et la structure de la page s'affichent immédiatement ;
+  les chiffres et les listes arrivent juste derrière, sous un squelette
+  discret au gabarit exact de chaque écran (fini le saut de mise en page).
+  Accueil, fiche de bail, Encaissements et Relances streament leur contenu ;
+  tous les écrans de l'arbre Baux et les formulaires ont leur squelette
+  dédié.
+- **Revenir sur un écran déjà visité est immédiat** : pendant 30 secondes,
+  retourner sur un onglet déjà vu réutilise la page en cache, sans aucune
+  requête. Chaque enregistrement (encaissement, quittance, charge, échéance,
+  bail) rafraîchit aussitôt toutes les pages qui l'affichent.
+- **Un aller-retour réseau de moins à chaque clic** : la session est
+  désormais vérifiée localement (signature du jeton) au lieu d'interroger le
+  serveur d'authentification à chaque navigation. Sur réseau lent, chaque
+  changement de page gagne plusieurs centaines de millisecondes.
 - **Moins d'allers-retours vers la base** : les lectures répétées d'une même
-  navigation (session, profil, baux) sont dédupliquées, et les requêtes de la
-  fiche de bail partent désormais toutes en même temps. Les écrans se
-  chargent plus vite, surtout sur connexion lente.
+  navigation (session, profil, baux) sont dédupliquées, les requêtes de la
+  fiche de bail et de l'accueil partent toutes en même temps.
+- **Annuler une relance programmée répond au doigt** : la ligne disparaît au
+  clic, l'envoi s'annule en arrière-plan ; en cas d'échec, la ligne revient
+  avec l'explication.
+
+### Fixed
+
+- Un lien forgé (`?notice=` invalide) ne peut plus faire tomber les pages
+  Encaissements, Baux ou fiche de bail.
+- Confirmer ou annuler un encaissement (ou une relance programmée) sur un
+  réseau qui coupe n'écrase plus l'écran : l'action affiche « Réessayez » et
+  la carte revient à son état réel.
+- Une relance déjà envoyée ou annulée ailleurs disparaît de la liste dès
+  qu'on tente de l'annuler, au lieu de rester affichée par erreur.
 
 ### Added
 
-- Tests unitaires du fil des relances d'un bail (fusion SMS automatiques +
-  relances WhatsApp, gestion d'erreur).
+- Tests unitaires : fil des relances d'un bail (fusion SMS automatiques +
+  relances WhatsApp, scoping bailleur, gestion d'erreur), contrat
+  d'annulation d'une relance programmée, et contrat du rafraîchissement de
+  session dans le proxy.
+
+## [0.3.32.0] - 2026-07-18
 
 ### Added
 
