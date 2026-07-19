@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { readRequestId } from "@/lib/idempotency"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
@@ -62,12 +63,6 @@ async function generateDocumentForConfirmedCollection(receptionId: string): Prom
   return String(receiptId)
 }
 
-function revalidateCollectionProofPaths() {
-  revalidatePath("/dashboard")
-  revalidatePath("/collections")
-  revalidatePath("/receipts")
-}
-
 export async function recordCollection(formData: FormData) {
   await requireLandlordProfile()
 
@@ -115,6 +110,9 @@ export async function recordCollection(formData: FormData) {
     })
 
     if (cancelError) {
+      // Double échec (confirmation puis annulation auto) : une réception
+      // existe quand même en base, les surfaces doivent la montrer.
+      revalidateMoneySurfaces()
       redirect(`/collections?notice=collection_recorded_unconfirmed`)
     }
 
@@ -123,7 +121,7 @@ export async function recordCollection(formData: FormData) {
 
   const receiptId = await generateDocumentForConfirmedCollection(String(receptionId))
 
-  revalidateCollectionProofPaths()
+  revalidateMoneySurfaces()
 
   if (receiptId) {
     redirect(`/receipts/${receiptId}?notice=receipt_generated`)
@@ -161,8 +159,10 @@ export async function allocateReception(formData: FormData) {
 
   if (error) back(collectionErrorMessage(error.message))
 
-  revalidateCollectionProofPaths()
-  revalidatePath("/collections/allocate")
+  revalidateMoneySurfaces()
+  // Motif + "page" : "/collections/allocate" (sans page propre) ne purgerait
+  // aucune instance de /collections/allocate/[id].
+  revalidatePath("/(app)/collections/allocate/[id]", "page")
 
   redirect("/dashboard?notice=reception_allocated")
 }
@@ -199,7 +199,7 @@ export async function confirmCollection(
   // confirmée propose « Générer la quittance ou le reçu » (fallback existant).
   await generateDocumentForConfirmedCollection(id)
 
-  revalidateCollectionProofPaths()
+  revalidateMoneySurfaces()
   return { error: null }
 }
 
@@ -231,6 +231,6 @@ export async function cancelCollection(
     }
   }
 
-  revalidateCollectionProofPaths()
+  revalidateMoneySurfaces()
   return { error: null }
 }

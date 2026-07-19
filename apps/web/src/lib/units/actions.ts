@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import { getUnit } from "./queries"
@@ -59,7 +60,8 @@ export async function updateUnit(formData: FormData) {
     redirect(`/units/${id}/edit?error=${encodeURIComponent(message)}`)
   }
 
-  revalidatePath("/dashboard")
+  // Le nom du logement s'affiche sur les surfaces argent : rafraîchir tout.
+  revalidateMoneySurfaces()
   revalidatePath(`/units/${id}`)
   redirect(`/units/${id}?notice=unit_updated`)
 }

@@ -1,7 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 
@@ -29,8 +29,7 @@ export async function generateRentDues(formData: FormData) {
     redirect(`/leases/${leaseId}?error=${encodeURIComponent("Génération impossible. Réessayez.")}`)
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath(`/leases/${leaseId}`)
+  revalidateMoneySurfaces({ leaseId })
   redirect(`/leases/${leaseId}?notice=dues_generated`)
 }
 
@@ -60,6 +59,8 @@ export async function cancelRentDue(formData: FormData) {
     redirect(`/dashboard?error=${encodeURIComponent(message)}`)
   }
 
-  revalidatePath("/dashboard")
+  // Une échéance annulée sort des cibles de relance et du journal ; la fiche
+  // bail la montre barrée. leaseId absent ici : le motif dynamique suffit.
+  revalidateMoneySurfaces()
   redirect(`/dashboard?notice=rent_due_cancelled`)
 }

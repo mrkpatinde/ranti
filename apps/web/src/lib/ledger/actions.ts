@@ -1,7 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { readRequestId } from "@/lib/idempotency"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
@@ -68,8 +68,7 @@ export async function addLeaseCharge(formData: FormData) {
 
   if (error) back(chargeError(error))
 
-  revalidatePath(`/leases/${leaseId}`)
-  revalidatePath("/dashboard")
+  revalidateMoneySurfaces({ leaseId })
   redirect(`/leases/${leaseId}?notice=charge_added`)
 }
 
@@ -94,8 +93,7 @@ export async function withdrawLedgerLine(formData: FormData) {
     redirect(`/leases/${leaseId}?error=${encodeURIComponent(chargeError(error))}`)
   }
 
-  revalidatePath(`/leases/${leaseId}`)
-  revalidatePath("/dashboard")
+  revalidateMoneySurfaces({ leaseId })
   redirect(`/leases/${leaseId}?notice=charge_withdrawn`)
 }
 
@@ -130,7 +128,6 @@ export async function replaceLedgerCharge(formData: FormData) {
 
   if (error) back(chargeError(error))
 
-  revalidatePath(`/leases/${leaseId}`)
-  revalidatePath("/dashboard")
+  revalidateMoneySurfaces({ leaseId })
   redirect(`/leases/${leaseId}?notice=charge_replaced`)
 }

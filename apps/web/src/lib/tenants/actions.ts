@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import { getTenant } from "./queries"
@@ -86,6 +87,9 @@ export async function updateTenant(formData: FormData) {
     redirect(`/tenants/${id}/edit?error=${encodeURIComponent("Impossible d'enregistrer. Réessayez.")}`)
   }
 
+  // Le nom du locataire s'affiche sur les quittances, le journal et les
+  // relances : un renommage doit rafraîchir tout le flux argent.
+  revalidateMoneySurfaces()
   revalidatePath("/tenants")
   revalidatePath(`/tenants/${id}`)
   redirect(`/tenants/${id}?notice=tenant_updated`)

@@ -133,7 +133,18 @@ describe("verifyPaymentTransaction (ADR-018 v2 : validation propriétaire)", () 
     expect(rpc).toHaveBeenCalledWith("verify_payment_transaction", {
       p_transaction_id: TX,
     })
-    expect(revalidatePath).toHaveBeenCalledTimes(3)
+    // Toutes les surfaces du flux argent sont purgées (cache client 30 s) :
+    // dashboard, encaissements, quittances, relances, journal, liste et
+    // fiches bail (motif de segment dynamique).
+    expect(revalidatePath.mock.calls).toEqual([
+      ["/dashboard"],
+      ["/collections"],
+      ["/receipts"],
+      ["/reminders"],
+      ["/journal"],
+      ["/leases"],
+      ["/(app)/leases/[id]", "page"],
+    ])
   })
 
   it("session exigée : requireLandlordProfile appelé avant toute lecture", async () => {

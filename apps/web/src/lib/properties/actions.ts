@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import { getProperty } from "./queries"
@@ -47,7 +48,8 @@ export async function updateProperty(formData: FormData) {
     redirect(`/properties/${id}/edit?error=${encodeURIComponent("Impossible d'enregistrer. Réessayez.")}`)
   }
 
-  revalidatePath("/dashboard")
+  // Le nom du lieu s'affiche sur les surfaces argent : rafraîchir tout.
+  revalidateMoneySurfaces()
   revalidatePath(`/properties/${id}`)
   redirect(`/properties/${id}?notice=property_updated`)
 }
