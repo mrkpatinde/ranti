@@ -147,7 +147,9 @@ async function LeaseDetail({ params, searchParams }: LeaseDetailPageProps) {
   ])
   if (!lease) notFound()
 
-  const notice = sp?.notice ? noticeLabels[sp.notice] : null
+  // Object.hasOwn : un ?notice=__proto__ forgé renverrait Object.prototype
+  // (truthy), invalide comme enfant JSX, et ferait tomber la page entière.
+  const notice = sp?.notice && Object.hasOwn(noticeLabels, sp.notice) ? noticeLabels[sp.notice] : null
 
   // Ferme la boucle dashboard → retard → action : le CTA « Encaisser » mène à
   // /collections/new avec ce bail présélectionné dès qu'il reste un impayé.

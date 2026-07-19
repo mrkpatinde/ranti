@@ -66,18 +66,28 @@ export function CollectionCard({
   // Les form actions clientes tournent dans une transition : la mise à jour
   // optimiste s'applique tout de suite et se résout d'elle-même — vers les
   // données revalidées en cas de succès, vers l'état réel en cas d'échec.
+  // try/catch : sur réseau coupé, le POST de l'action rejette ; sans filet le
+  // rejet remonterait à l'error boundary racine et remplacerait toute la page.
   async function handleConfirm(formData: FormData) {
     setError(null)
     setOptimisticStatus("confirmed")
-    const result = await confirmCollection({ error: null }, formData)
-    if (result.error) setError(result.error)
+    try {
+      const result = await confirmCollection({ error: null }, formData)
+      if (result.error) setError(result.error)
+    } catch {
+      setError("Confirmation impossible. Vérifiez le réseau et réessayez.")
+    }
   }
 
   async function handleCancel(formData: FormData) {
     setError(null)
     setOptimisticStatus("cancelled")
-    const result = await cancelCollection({ error: null }, formData)
-    if (result.error) setError(result.error)
+    try {
+      const result = await cancelCollection({ error: null }, formData)
+      if (result.error) setError(result.error)
+    } catch {
+      setError("Annulation impossible. Vérifiez le réseau et réessayez.")
+    }
   }
 
   // Confirmation optimiste en vol : le serveur n'a pas encore répondu.
