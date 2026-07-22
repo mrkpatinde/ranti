@@ -2,7 +2,7 @@ import { formatFcfa } from "@/lib/format"
 import { amountInWordsFcfa } from "@/lib/amount-words"
 import type { ReceiptKind } from "./types"
 
-// Clause notariale de la quittance/reçu, partagée par la page locataire
+// Formule de quittance/reçu, partagée par la page locataire
 // (/recu/[token]), le PDF, la page bailleur et la modale FirstRun. La
 // formulation s'adapte : une quittance solde la période, un reçu constate un
 // paiement partiel. Le montant est repris en chiffres ET en toutes lettres

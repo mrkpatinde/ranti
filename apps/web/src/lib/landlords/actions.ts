@@ -123,3 +123,36 @@ export async function updateLandlordPaymentAlias(formData: FormData) {
   revalidatePath("/collections/new")
   redirect("/settings/payment?success=1")
 }
+
+/**
+ * Met à jour l'adresse postale du bailleur. Donnée mutable (contact), distincte
+ * de l'identité verrouillée (ADR-002). Figure sur la quittance pour identifier
+ * le bailleur (Loi 2022-30, art. 67). Champs vides = effacés.
+ */
+export async function updateLandlordAddress(formData: FormData) {
+  const claims = await requireAuth()
+
+  const rawAddress = String(formData.get("address") ?? "").trim()
+  const rawCity = String(formData.get("city") ?? "").trim()
+
+  if (rawAddress.length > 200 || rawCity.length > 120) {
+    settingsError("Adresse trop longue.")
+  }
+
+  const address = rawAddress.length > 0 ? rawAddress : null
+  const city = rawCity.length > 0 ? rawCity : null
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("landlords")
+    .update({ address, city })
+    .eq("auth_user_id", claims.sub)
+
+  if (error) {
+    console.error("updateLandlordAddress failed", error.code, error.message)
+    settingsError("Enregistrement impossible. Réessayez.")
+  }
+
+  revalidatePath("/settings/profile")
+  redirect("/settings/profile?success=adresse")
+}

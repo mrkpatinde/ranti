@@ -66,6 +66,10 @@ export async function GET(
         phone: null,
       },
       unit: row.unit_name ? { name: row.unit_name, type: "" } : undefined,
+      property:
+        row.property_city || row.property_address
+          ? { city: row.property_city, address: row.property_address }
+          : undefined,
       allocations: row.allocations,
     },
     tenant_ack: row.tenant_ack,
@@ -89,6 +93,8 @@ export async function GET(
     first_name: row.landlord_first_name ?? "",
     last_name: row.landlord_last_name ?? "",
     civility: null,
+    address: row.landlord_address ?? null,
+    city: row.landlord_city ?? null,
     payment_alias: null,
     payment_alias_type: null,
     onboarding_status: "done",

@@ -32,13 +32,6 @@ describe("buildReminderWaLink", () => {
     expect(msg).toContain("régulariser")
   })
 
-  it("inclut le lien de confirmation quand fourni", () => {
-    const msg = decoded(
-      buildReminderWaLink({ ...BASE, confirmUrl: "https://www.monranti.com/confirmer/abc" })!,
-    )
-    expect(msg).toContain("confirmer votre paiement ici : https://www.monranti.com/confirmer/abc")
-  })
-
   it("sans nom : salutation neutre", () => {
     const msg = decoded(buildReminderWaLink({ ...BASE, tenantName: null })!)
     expect(msg.startsWith("Bonjour, ")).toBe(true)

@@ -111,6 +111,8 @@ export default async function RecuPage({
     [receipt.landlord_first_name, receipt.landlord_last_name]
       .filter(Boolean)
       .join(" ") || "Propriétaire";
+  const landlordAddress =
+    [receipt.landlord_address, receipt.landlord_city].filter(Boolean).join(", ") || null;
 
   const canAct =
     receipt.status !== "cancelled" &&
@@ -233,6 +235,9 @@ export default async function RecuPage({
               </span>
               <span className="text-right text-sm font-medium text-foreground">
                 {landlordName}
+                {landlordAddress ? (
+                  <span className="block text-xs font-normal text-muted-foreground">{landlordAddress}</span>
+                ) : null}
               </span>
             </div>
             <div className="flex justify-between gap-4">
@@ -250,6 +255,16 @@ export default async function RecuPage({
                 </span>
                 <span className="text-right text-sm font-medium text-foreground">
                   {receipt.unit_name}
+                </span>
+              </div>
+            )}
+            {(receipt.property_address || receipt.property_city) && (
+              <div className="flex justify-between gap-4">
+                <span className="text-[0.7rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                  Adresse du logement
+                </span>
+                <span className="text-right text-sm font-medium text-foreground">
+                  {[receipt.property_address, receipt.property_city].filter(Boolean).join(", ")}
                 </span>
               </div>
             )}
@@ -283,7 +298,7 @@ export default async function RecuPage({
             </span>
           </div>
 
-          {/* Clause notariale : montant en chiffres + toutes lettres, formulation
+          {/* Formule de quittance : montant en chiffres + toutes lettres, formulation
               adaptée (quittance = solde, reçu = paiement partiel) */}
           <p className="text-[0.82rem] leading-relaxed text-muted-foreground">
             {receiptClause({

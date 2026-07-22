@@ -27,7 +27,6 @@ function previewMessage(moment: ReminderMoment): string {
     amount: 100000,
     dueDate: "2026-08-05",
     late: moment === "retard",
-    confirmUrl: null,
   })
 }
 

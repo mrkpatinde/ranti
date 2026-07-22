@@ -18,11 +18,6 @@ export interface ReminderNotice {
   /** true si l'échéance est passée (relance de retard vs simple rappel). */
   late: boolean
   /**
-   * URL publique ABSOLUE de confirmation (/confirmer/[token]) : le locataire y
-   * déclare son paiement. Absente si l'échéance n'a pas de jeton.
-   */
-  confirmUrl?: string | null
-  /**
    * Nom du propriétaire, fourni UNIQUEMENT au tout premier message envoyé à ce
    * locataire : Ranti se présente et explique le processus avant le rappel
    * (décision 2026-07-18). null/absent = locataire déjà contacté.
@@ -67,14 +62,9 @@ export function buildReminderMessage(input: Omit<ReminderNotice, "phone">): stri
   const greeting = (name ? `Bonjour ${name}, ` : "Bonjour, ") + intro
   const montant = formatFcfa(input.amount)
 
-  const confirmUrl = input.confirmUrl?.trim()
-  const confirm = confirmUrl
-    ? ` Vous pouvez confirmer votre paiement ici : ${confirmUrl}`
-    : ""
-
   return input.late
-    ? `${greeting}votre loyer de ${montant} (${frMonth(input.dueDate)}) est en retard.${confirm} Merci de régulariser.`
-    : `${greeting}petit rappel : votre loyer de ${montant} arrive à échéance le ${frDate(input.dueDate)}.${confirm} Merci.`
+    ? `${greeting}votre loyer de ${montant} (${frMonth(input.dueDate)}) est en retard. Merci de régulariser.`
+    : `${greeting}petit rappel : votre loyer de ${montant} arrive à échéance le ${frDate(input.dueDate)}. Merci.`
 }
 
 // Construit le lien wa.me pré-rempli, ou null si le numéro est inexploitable.

@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import Link from "next/link"
-import { formatFcfa, formatFcfaNumber } from "@/lib/format"
+import { formatFcfaNumber } from "@/lib/format"
 import { requireLandlordProfile, type Landlord, type OnboardingStatus } from "@/lib/landlords"
 import { getLandlordLeases, type Lease } from "@/lib/leases"
 import {
@@ -22,6 +22,18 @@ import { GuidedRail } from "@/components/guided-rail"
 import { WelcomeOverlay } from "./_components/welcome-overlay"
 import { PremiersPas } from "./_components/premiers-pas"
 import { OnboardingComplete } from "./_components/onboarding-complete"
+import { HeroBalance } from "./_components/hero-balance"
+import { CircleAction } from "@/components/ui/circle-action"
+import {
+  AlertTriangle,
+  ArrowDownLeft,
+  Bell,
+  Clock,
+  Hourglass,
+  MessageCircle,
+  Plus,
+  Receipt,
+} from "lucide-react"
 
 export const metadata = { title: "Ranti" }
 
@@ -38,6 +50,15 @@ const AMOUNT_TONE_CLASS = {
   due: "text-foreground",
   pending: "text-muted-foreground",
   disputed: "text-warning",
+} as const
+
+// Pastille ronde d'icône par ligne (référence Moneco), teintée par le ton du
+// montant : garde le signal de statut porté hier par le simple point de couleur.
+const ROW_ICON = {
+  overdue: { tint: "bg-warning/10 text-warning", Icon: Clock },
+  due: { tint: "bg-secondary text-accent", Icon: ArrowDownLeft },
+  pending: { tint: "bg-muted text-muted-foreground", Icon: Hourglass },
+  disputed: { tint: "bg-warning/10 text-warning", Icon: AlertTriangle },
 } as const
 
 // Dashboard propriétaire = lecture seule (ADR-020, dashboard-owner v2) : qui a
@@ -102,7 +123,7 @@ export default async function DashboardPage() {
             </h2>
             <p className="mt-2 text-base leading-7 text-foreground/70">
               Regardez tranquillement. Le jour où vous ajoutez un bail, Ranti génère
-              les échéances et prépare les quittances — rien n&apos;est obligatoire
+              les échéances et prépare les quittances, rien n&apos;est obligatoire
               pour l&apos;instant.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-4 lg:mt-6">
@@ -202,21 +223,48 @@ async function DashboardData({
 
   const summary = buildDashboardSummary(balances)
   const overview = buildLedgerOverview(leaseBalances, leases)
+  // Chiffre héro : le dû certain total, tous baux (Σ outstanding). Même base
+  // que la liste « À encaisser », honnête (exclut l'incertain : attente, litige).
+  const outstandingTotal = overview.rows.reduce((sum, r) => sum + r.outstanding, 0)
   const upcoming = computeUpcomingReminders(balances, overdueByLease(leaseBalances))
   const tenantName = new Map(tenants.map((t) => [t.id, `${t.first_name} ${t.last_name}`]))
   const unitName = new Map(units.map((u) => [u.id, u.name]))
 
   return (
     <>
-      {status === "pending" && <WelcomeOverlay firstName={landlord.first_name} />}
-      {showChecklist && progress && <PremiersPas progress={progress} />}
-      {rail?.active && <GuidedRail rail={rail} />}
-      {justCompleted && <OnboardingComplete />}
+      {/* Un seul guide contextuel à la fois (fini l'empilement à 4) : priorité
+          accueil > checklist > rail > félicitations. */}
+      {status === "pending" ? (
+        <WelcomeOverlay firstName={landlord.first_name} />
+      ) : showChecklist && progress ? (
+        <PremiersPas progress={progress} />
+      ) : rail?.active ? (
+        <GuidedRail rail={rail} />
+      ) : justCompleted ? (
+        <OnboardingComplete />
+      ) : null}
 
-      <div className="flex overflow-hidden rounded-2xl border border-border bg-card">
-        <Stat label="Payé" value={summary.paid} className="text-accent" />
-        <Stat label="Attendu" value={summary.expected} className="text-foreground" divider />
-        <Stat label="Retard" value={overview.totalOverdue} className="text-destructive" divider />
+      <HeroBalance amount={outstandingTotal} period={month} label="Reste à encaisser" />
+
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground lg:text-sm">
+        <span>
+          Payé <b className="font-semibold tabular-nums text-foreground">{formatFcfaNumber(summary.paid)}</b>
+        </span>
+        <span aria-hidden>·</span>
+        <span>
+          Attendu <b className="font-semibold tabular-nums text-foreground">{formatFcfaNumber(summary.expected)}</b>
+        </span>
+        <span aria-hidden>·</span>
+        <span>
+          Retard{" "}
+          <b
+            className={`font-semibold tabular-nums ${
+              overview.totalOverdue > 0 ? "text-warning" : "text-foreground"
+            }`}
+          >
+            {formatFcfaNumber(overview.totalOverdue)}
+          </b>
+        </span>
       </div>
 
       {summary.collectionRate !== null ? (
@@ -231,6 +279,27 @@ async function DashboardData({
         </div>
       ) : null}
 
+      {/* Trio d'actions (référence Moneco). Non-custodial : Encaisser =
+          enregistrer un paiement au grand livre, jamais déplacer des fonds. */}
+      <div className="flex items-start gap-3">
+        <CircleAction
+          href="/collections/new"
+          label="Encaisser"
+          variant="filled"
+          icon={<Plus size={22} strokeWidth={2} />}
+        />
+        <CircleAction
+          href="/reminders"
+          label="Relancer"
+          icon={<MessageCircle size={22} strokeWidth={1.8} />}
+        />
+        <CircleAction
+          href="/receipts"
+          label="Quittances"
+          icon={<Receipt size={22} strokeWidth={1.8} />}
+        />
+      </div>
+
       <section className="space-y-3 lg:space-y-4">
         <h2 className="text-sm font-semibold text-muted-foreground lg:text-base">À encaisser</h2>
 
@@ -242,6 +311,7 @@ async function DashboardData({
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
             {overview.rows.map((row) => {
               const { amount, tone } = leaseDebtRowAmount(row)
+              const RowIcon = ROW_ICON[tone].Icon
               return (
                 <Link
                   key={row.leaseId}
@@ -250,10 +320,10 @@ async function DashboardData({
                 >
                   <span
                     aria-hidden
-                    className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${
-                      row.overdue > 0 ? "bg-destructive" : row.disputed > 0 ? "bg-warning" : "bg-accent"
-                    }`}
-                  />
+                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${ROW_ICON[tone].tint}`}
+                  >
+                    <RowIcon size={18} strokeWidth={1.8} />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-base font-medium text-foreground lg:text-lg">
                       {tenantName.get(row.tenantId) ?? "Locataire"}
@@ -277,12 +347,6 @@ async function DashboardData({
           </div>
         )}
 
-        {overview.totalDisputed > 0 ? (
-          <p className="text-sm text-warning">
-            {formatFcfa(overview.totalDisputed)} en litige — le détail est sur la fiche du bail.
-          </p>
-        ) : null}
-
         {overview.upToDateCount > 0 ? (
           <p className="text-center text-sm text-accent lg:text-left">
             {overview.upToDateCount} locataire{overview.upToDateCount > 1 ? "s" : ""} à jour
@@ -301,8 +365,12 @@ async function DashboardData({
               >
                 <span
                   aria-hidden
-                  className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${r.late ? "bg-destructive" : "bg-accent"}`}
-                />
+                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
+                    r.late ? "bg-warning/10 text-warning" : "bg-secondary text-accent"
+                  }`}
+                >
+                  {r.late ? <Clock size={18} strokeWidth={1.8} /> : <Bell size={18} strokeWidth={1.8} />}
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-medium text-foreground lg:text-lg">
                     {tenantName.get(r.tenantId) ?? "Locataire"}
@@ -318,14 +386,16 @@ async function DashboardData({
             ))}
           </div>
           <p className="text-xs text-muted-foreground lg:text-sm">
-            Ranti s&apos;en charge automatiquement — vous n&apos;avez rien à envoyer.
+            Ranti s&apos;en charge automatiquement, vous n&apos;avez rien à envoyer.
           </p>
         </section>
       ) : null}
 
+      {/* Action de mise en place, secondaire : une seule primaire olive à
+          l'écran (le bouton rond Encaisser). */}
       <Link
         href="/leases/new"
-        className="flex w-full items-center justify-center rounded-2xl bg-accent px-5 py-4 text-base font-semibold text-accent-foreground transition hover:brightness-95 lg:inline-flex lg:w-auto lg:rounded-full lg:px-7"
+        className="flex w-full items-center justify-center rounded-2xl border border-border bg-card px-5 py-4 text-base font-medium text-foreground transition hover:border-primary lg:inline-flex lg:w-auto lg:rounded-full lg:px-7"
       >
         Créer un bail
       </Link>
@@ -338,34 +408,20 @@ async function DashboardData({
 function DashboardDataSkeleton() {
   return (
     <div aria-busy className="space-y-8 lg:space-y-12">
-      <div className="h-[90px] animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none lg:h-[130px]" />
+      <div className="h-[150px] animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none lg:h-[190px]" />
+      <div className="flex items-start gap-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex flex-1 flex-col items-center gap-2">
+            <div className="h-16 w-16 animate-pulse rounded-full border border-border bg-card motion-reduce:animate-none" />
+            <div className="h-3 w-14 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+          </div>
+        ))}
+      </div>
       <div className="space-y-3 lg:space-y-4">
         <div className="h-4 w-28 animate-pulse rounded bg-muted motion-reduce:animate-none" />
         <div className="h-48 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
       </div>
       <p className="sr-only">Chargement…</p>
-    </div>
-  )
-}
-
-function Stat({
-  label,
-  value,
-  className,
-  divider,
-}: {
-  label: string
-  value: number
-  className: string
-  divider?: boolean
-}) {
-  return (
-    <div className={`flex-1 px-3 py-4 text-center ${divider ? "border-l border-border" : ""} lg:py-6`}>
-      <div className={`text-base font-semibold tabular-nums lg:text-3xl ${className}`}>
-        {formatFcfaNumber(value)}
-        <span className="ml-1 text-[11px] font-medium text-muted-foreground lg:text-sm">FCFA</span>
-      </div>
-      <div className="mt-1 text-xs text-muted-foreground lg:mt-1.5 lg:text-sm">{label}</div>
     </div>
   )
 }

@@ -57,7 +57,7 @@ export default function VerifyDemoPage() {
         </dl>
 
         <p className="rounded-xl border border-primary/15 bg-secondary px-4 py-3 text-sm text-foreground/80">
-          Ceci est un exemple de démonstration : aucun document réel ne porte ce numéro. Une vraie vérification affiche cet écran avec la mention «&nbsp;Document authentique&nbsp;» quand le document a bien été émis par Ranti et n&apos;a pas été modifié.
+          Ceci est un exemple de démonstration : aucun document réel ne porte ce numéro. Sur une vraie vérification, Ranti recalcule l&apos;empreinte du document et affiche «&nbsp;Intégrité vérifiée&nbsp;» quand elle correspond au sceau posé à la certification, ou signale une altération si elle diffère.
         </p>
 
         <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted-foreground">

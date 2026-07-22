@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { receiptClause } from "@/lib/receipts/clause"
 
-// Clause notariale partagée par la page locataire (/recu), le PDF et la
+// Formule de quittance partagée par la page locataire (/recu), le PDF et la
 // modale FirstRun : la formulation doit rester identique sur les trois
 // surfaces et s'adapter au kind (quittance = solde, reçu = paiement partiel).
 describe("receiptClause", () => {
