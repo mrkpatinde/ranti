@@ -3,6 +3,48 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.34.0] - 2026-07-22
+
+### Added
+
+- **Quittance conforme au bail d'habitation béninois (Loi n°2022-30, art. 67)** :
+  ajout de l'adresse postale du bailleur pour l'identifier complètement sur la
+  quittance (bloc « De » du PDF et surface locataire). Nouveau champ éditable
+  dans les réglages. La règle légale quittance = solde total / reçu = paiement
+  partiel était déjà respectée. Posture de preuve gardée : l'empreinte SHA-256
+  reste une preuve d'intégrité, jamais une signature. Voir ADR-027.
+- **Registre minimaliste (référence wallet)** : le tableau de bord met en avant
+  un chiffre héro « Reste à encaisser » (masquable d'un tap), un trio de boutons
+  ronds d'action (Encaisser, Relancer, Quittances) et des pastilles d'icône sur
+  les listes. Nav mobile : barre d'onglets fixe en bas à la place du menu
+  hamburger. Réglages refondus (avatar centré, groupes en cartes). Voir
+  `DESIGN.md` (Decisions Log 2026-07-22).
+- **La preuve en avant à la prise en main** : après la création d'un bail, le
+  guidage pousse la génération d'une quittance pour un loyer déjà payé, en test.
+
+### Removed
+
+- **Charges variables retirées : Ranti devient rent-only (ADR-026)**. Les frais
+  facturés au locataire et validés par lien public sont retirés (écrans de
+  charge, page publique `/transaction/[token]`, branche charge des relances,
+  section « Charges & frais » de la fiche bail). Les objets DB des charges sont
+  conservés inactifs (dormants) ; leur suppression est un lot de suivi.
+
+### Changed
+
+- Intégrité de la quittance (empreinte scellée + vérification) et snapshot du
+  logement affinés ; nettoyage du flux locataire (retrait de l'écran
+  `/confirmer/[token]`).
+- Documentation alignée : ADR-023 supersédé en partie, plus `domain-model.md`,
+  `database.md`, `architecture.md`, `vision.md`, `BUILD_STATUS.md`.
+
+### Migrations
+
+- `20260722120000_landlord_address_on_receipt.sql` (adresse bailleur),
+  `20260719120000_verify_receipt_integrity.sql`,
+  `20260719130000_receipt_snapshot_property.sql` : **à appliquer à la prod au
+  déploiement** (le PR ne les applique pas).
+
 ## [0.3.33.0] - 2026-07-19
 
 ### Changed
