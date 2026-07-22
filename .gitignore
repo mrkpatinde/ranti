@@ -12,3 +12,6 @@ supabase/.temp/
 
 # Editor
 .vscode/
+
+# Données de coût internes, ne pas versionner (repo public)
+docs/ranti-cout-12mois.xlsx
