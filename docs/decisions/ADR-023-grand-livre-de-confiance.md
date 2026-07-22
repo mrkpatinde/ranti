@@ -10,6 +10,14 @@ même jour, livraison de la phase Expand) : colonnes `occurred_at` /
 écriture applicative, correspondance de backfill étendue aux échéances
 annulées/archivées, exigibilité héritée par la contre-passation.
 
+> **Superseded en partie (2026-07-22, ADR-026).** La phase « différenciant »,
+> les charges variables affirmées par le bailleur puis validées ou contestées
+> par le locataire (§3 Matrice ligne 2, §4 Cycle de vie du litige côté débits,
+> §7 Surface locataire pour les charges), est **retirée** : Ranti passe rent-only.
+> Le grand livre de loyer (§1, §2, §5, §6, §8, §9) et le flux crédits /
+> déclaration locataire restent en vigueur. Les objets DB des charges sont
+> conservés dormants, drop planifié. Voir ADR-026.
+
 Ce document est la **référence d'alignement** de toutes les parties prenantes
 sur les règles de gestion du grand livre. En cas de divergence entre une
 implémentation et cette ADR, c'est l'implémentation qui a tort.

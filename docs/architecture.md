@@ -45,8 +45,8 @@ Les commandes racine délèguent vers `apps/web` (`bun --cwd`). La landing vit D
 
 Cible (ADR-023 « Grand Livre de Confiance ») : le coeur métier est le
 **compte courant locatif** — toute somme due ou reçue sur un bail est une
-ligne de `transactions` (loyer, réparation, frais, règlement,
-contre-passation), avec un statut de reconnaissance
+ligne de `transactions` (loyer, règlement, contre-passation), avec un statut
+de reconnaissance
 (`pending`/`validated`/`disputed`/`withdrawn`) et un solde par bail en trois
 nombres jamais fusionnés (vue `lease_balances`).
 
@@ -107,24 +107,23 @@ Statut : cible documentée. La DB live contient déjà `receipts.kind` et `snaps
 ### Grand Livre (ADR-023)
 
 Cible : le solde de chaque bail (certain / en attente / en litige) se calcule
-en base à partir des lignes de transactions, et le locataire valide ou
-conteste les dettes affirmées par lien signé.
+en base à partir des lignes de transactions. (La validation locataire des
+dettes affirmées par lien signé concernait les charges variables, retirées :
+ADR-026.)
 
-Statut : **phases Expand, Nouvelle lecture et « différenciant » (produit)
-livrées** — table `transactions`, vue `lease_balances`, machine à états
-(terminalité, indélébilité, contre-passation bornée), miroir des tables
-héritées, garde d'égalité restreinte à la projection héritée ; le dashboard
-lit le grand livre (`lib/ledger`, une ligne par bail, dette consolidée en
-compte courant) ; charges variables (réparations/frais) créées, retirées ou
-corrigées depuis la fiche bail, validées ou contestées par le locataire via
-`/transaction/[token]` (lien signé, sans compte). « Payé / Attendu » et le
-taux de recouvrement restent des lentilles mensuelles sur
+Statut : **phases Expand et Nouvelle lecture livrées ; phase « différenciant »
+(charges variables) retirée (ADR-026, Ranti rent-only)** — table
+`transactions`, vue `lease_balances`, machine à états (terminalité,
+indélébilité, contre-passation bornée), miroir des tables héritées, garde
+d'égalité restreinte à la projection héritée ; le dashboard lit le grand livre
+(`lib/ledger`, une ligne par bail, dette consolidée en compte courant). « Payé
+/ Attendu » et le taux de recouvrement restent des lentilles mensuelles sur
 `rent_due_balances`. **Relances et fiche bail sont basculées sur le compte
 courant** : la file `ops_reminder_queue` ne sort une relance de retard que si
 le bail a un impayé au grand livre (garde reprise par la projection UI), et
-la fiche bail affiche le solde du compte en tête. Reste : branchement de
-l'envoi automatisé des notifications de charges côté ranti-ops (vue
-`ops_ledger_notifications`), puis phase Contract.
+la fiche bail affiche le solde du compte en tête. Les objets DB des charges
+(`/transaction/[token]`, `ops_ledger_notifications`, colonnes débits) restent
+dormants ; drop planifié.
 
 ## Principes d'implémentation
 

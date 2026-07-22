@@ -4,8 +4,7 @@ import { Alert } from "@/components/ui/alert"
 import { badgeClasses } from "@/components/ui/badge"
 import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
-import { getLandlordLeaseBalances, getLandlordOpenCharges, overdueByLease } from "@/lib/ledger"
-import { getLandlordLeases } from "@/lib/leases"
+import { getLandlordLeaseBalances, overdueByLease } from "@/lib/ledger"
 import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import {
   getLandlordReminders,
@@ -26,7 +25,7 @@ import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
 import { buildReminderWaLink } from "@/lib/reminders/whatsapp"
 import { ReminderSettings } from "./reminder-settings"
-import { buildChargeLabel, buildDueLabel, ScheduleReminderForm } from "./schedule-form"
+import { buildDueLabel, ScheduleReminderForm } from "./schedule-form"
 import { ScheduledReminders, type ScheduledReminderRow } from "./scheduled-reminders"
 
 // Relances automatiques : Ranti relance les locataires à partir du bail.
@@ -88,7 +87,7 @@ export default function RemindersPage({ searchParams }: RemindersPageProps) {
 async function RemindersData({ searchParams }: RemindersPageProps) {
   const landlord = await requireLandlordProfile()
   const sp = await searchParams
-  const [reminders, collections, balances, leaseBalances, tenants, units, scheduled, charges, leases] =
+  const [reminders, collections, balances, leaseBalances, tenants, units, scheduled] =
     await Promise.all([
       getLandlordReminders(landlord.id),
       getLandlordCollections(landlord.id),
@@ -97,8 +96,6 @@ async function RemindersData({ searchParams }: RemindersPageProps) {
       getLandlordTenants(landlord.id),
       getLandlordUnits(landlord.id),
       getScheduledReminders(landlord.id),
-      getLandlordOpenCharges(landlord.id),
-      getLandlordLeases(landlord.id),
     ])
 
   const draftCount = collections.filter((c) => c.status === "draft").length
@@ -111,44 +108,18 @@ async function RemindersData({ searchParams }: RemindersPageProps) {
   const unitNames = new Map(units.map((u) => [u.id, u.name]))
   const dueById = new Map(balances.map((b) => [b.id, b]))
 
-  const leaseById = new Map(leases.map((l) => [l.id, l]))
-  const chargeById = new Map(charges.map((c) => [c.id, c]))
-  // Baux portant un impayé consolidé au grand livre (charges comprises,
-  // ADR-023) : seuls leurs débits sont relançables.
-  const overdueLeases = new Set(
-    leaseBalances.filter((lb) => lb.overdue_amount > 0).map((lb) => lb.lease_id),
-  )
-
-  // Cibles proposées : échéances de loyer ouvertes + charges VALIDÉES des
-  // baux en impayé. Le message ops distingue toujours loyer et charge.
-  const scheduleTargets = [
-    ...balances
-      .filter((b) => b.status !== "paid" && b.status !== "cancelled" && b.amount_due - b.amount_paid > 0)
-      .map((b) => ({
-        value: `due:${b.id}`,
-        label: buildDueLabel({
-          tenantName: tenantNames.get(b.tenant_id) ?? "Locataire",
-          unitName: unitNames.get(b.unit_id) ?? "Logement",
-          dueDate: b.due_date,
-          remaining: b.amount_due - b.amount_paid,
-        }),
-      })),
-    ...charges
-      .filter((c) => overdueLeases.has(c.lease_id))
-      .map((c) => {
-        const lease = leaseById.get(c.lease_id)
-        return {
-          value: `charge:${c.id}`,
-          label: buildChargeLabel({
-            tenantName: lease ? (tenantNames.get(lease.tenant_id) ?? "Locataire") : "Locataire",
-            unitName: lease ? (unitNames.get(lease.unit_id) ?? "Logement") : "Logement",
-            type: c.type,
-            label: c.label,
-            amount: c.amount,
-          }),
-        }
+  // Cibles proposées : échéances de loyer ouvertes.
+  const scheduleTargets = balances
+    .filter((b) => b.status !== "paid" && b.status !== "cancelled" && b.amount_due - b.amount_paid > 0)
+    .map((b) => ({
+      value: `due:${b.id}`,
+      label: buildDueLabel({
+        tenantName: tenantNames.get(b.tenant_id) ?? "Locataire",
+        unitName: unitNames.get(b.unit_id) ?? "Logement",
+        dueDate: b.due_date,
+        remaining: b.amount_due - b.amount_paid,
       }),
-  ]
+    }))
 
   // Locataires déjà contactés par Ranti (au moins une relance tracée) : le
   // tout premier message se présente et explique le processus.
@@ -170,23 +141,13 @@ async function RemindersData({ searchParams }: RemindersPageProps) {
   )
 
   // Lignes prêtes à afficher pour le composant client (annulation optimiste) :
-  // tout le contexte (locataire, logement/charge) se résout ici, côté serveur.
+  // tout le contexte (locataire, logement) se résout ici, côté serveur.
   const scheduledRows: ScheduledReminderRow[] = scheduled.map((s) => {
     const due = s.rent_due_id ? dueById.get(s.rent_due_id) : undefined
-    const charge = s.charge_id ? chargeById.get(s.charge_id) : undefined
-    const chargeLease = charge ? leaseById.get(charge.lease_id) : undefined
     return {
       id: s.id,
-      who: due
-        ? (tenantNames.get(due.tenant_id) ?? "Locataire")
-        : chargeLease
-          ? (tenantNames.get(chargeLease.tenant_id) ?? "Locataire")
-          : "Locataire",
-      what: due
-        ? (unitNames.get(due.unit_id) ?? "Logement")
-        : charge
-          ? `${charge.type === "reparation" ? "Réparation" : "Frais"} « ${charge.label} »`
-          : "Logement",
+      who: due ? (tenantNames.get(due.tenant_id) ?? "Locataire") : "Locataire",
+      what: due ? (unitNames.get(due.unit_id) ?? "Logement") : "Logement",
       channelLabel: s.channel === "whatsapp" ? "WhatsApp" : "SMS",
       dateLabel: formatShortDate(s.scheduled_for),
     }

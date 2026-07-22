@@ -196,8 +196,9 @@ opérante jusqu'à la bascule des lectures).
 
 Toute somme due ou reçue sur un bail est une **ligne de transaction** d'un
 même grand livre : loyers (générés par le bail — la décision 002 devient la
-règle de naissance des débits `loyer`), charges variables (réparations,
-frais), règlements, contre-passations.
+règle de naissance des débits `loyer`), règlements, contre-passations. Les
+**charges variables** sont **retirées** (ADR-026, Ranti rent-only) : seul le
+loyer est désormais modélisé.
 
 Chaque ligne porte un statut de reconnaissance : `pending` (affirmé par une
 partie), `validated` (certain — indélébile), `disputed` (désaccord
@@ -208,9 +209,8 @@ intérêt ne devient jamais certaine seule** (matrice complète dans l'ADR-023).
 
 ### Pourquoi
 
-Le terrain montre que le problème central n'est pas le reçu mais les impayés,
-les litiges sur les charges variables et l'absence de source de vérité
-partagée entre propriétaire et locataire. L'échéance (décision 001) reste le
+Le terrain montre que le problème central n'est pas le reçu mais les impayés
+et l'absence de source de vérité partagée entre propriétaire et locataire. L'échéance (décision 001) reste le
 cœur de la mécanique — elle devient un débit daté du grand livre ; le reçu
 (décision 005) reste la preuve — il devient une sortie du grand livre.
 

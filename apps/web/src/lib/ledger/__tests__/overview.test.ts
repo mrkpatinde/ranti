@@ -143,12 +143,6 @@ describe("buildLedgerOverview (ADR-023 — impayés & soldes par bail)", () => {
     expect(o.rows[0].outstanding).toBe(30000)
   })
 
-  it("une charge variable en attente (pending_debits) fait apparaître le bail", () => {
-    const o = buildLedgerOverview([balance("a", { pending_debits: 5000 })], [lease("a")])
-    expect(o.rows).toHaveLength(1)
-    expect(o.rows[0].pendingDebits).toBe(5000)
-    expect(o.upToDateCount).toBe(0)
-  })
 })
 
 function row(overrides: Partial<LeaseDebtRow> = {}): LeaseDebtRow {
@@ -176,7 +170,6 @@ describe("describeLeaseDebtRow — chaque nature est nommée, jamais fusionnée 
   it("nomme chaque nature présente", () => {
     expect(describeLeaseDebtRow(row({ expected: 40000, outstanding: 40000 }))).toBe("attendu")
     expect(describeLeaseDebtRow(row({ pendingCredits: 5000 }))).toBe("déclaration à confirmer")
-    expect(describeLeaseDebtRow(row({ pendingDebits: 5000 }))).toBe("charge en attente")
     expect(describeLeaseDebtRow(row({ disputed: 5000 }))).toBe("en litige")
     expect(
       describeLeaseDebtRow(row({ overdue: 1, outstanding: 1, pendingCredits: 2, disputed: 3 })),
