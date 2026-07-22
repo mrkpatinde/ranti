@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { readRequestId } from "@/lib/idempotency"
 import { requireLandlordProfile } from "@/lib/landlords"
 import type { OnboardingStatus } from "@/lib/landlords"
@@ -153,8 +154,10 @@ export async function createBail(
   }
   const leaseIds = summary.lease_ids ?? []
 
-  revalidatePath("/dashboard")
-  revalidatePath("/leases")
+  // Ce flux active des baux et génère des échéances : purge complète des
+  // surfaces argent (cache client staleTimes 30 s) via le helper central. On
+  // garde /units et /tenants, propres à l'onboarding et hors périmètre argent.
+  revalidateMoneySurfaces(leaseIds[0] ? { leaseId: leaseIds[0] } : undefined)
   revalidatePath("/units")
   revalidatePath("/tenants")
 

@@ -1,10 +1,10 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { Alert } from "@/components/ui/alert"
 import { badgeClasses } from "@/components/ui/badge"
 import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
-import { getLandlordLeaseBalances, getLandlordOpenCharges, overdueByLease } from "@/lib/ledger"
-import { getLandlordLeases } from "@/lib/leases"
+import { getLandlordLeaseBalances, overdueByLease } from "@/lib/ledger"
 import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import {
   getLandlordReminders,
@@ -23,10 +23,10 @@ import {
 } from "@/lib/reminders/labels"
 import { getLandlordTenants } from "@/lib/tenants"
 import { getLandlordUnits } from "@/lib/units"
-import { cancelScheduledReminder } from "@/lib/reminders/actions"
 import { buildReminderWaLink } from "@/lib/reminders/whatsapp"
 import { ReminderSettings } from "./reminder-settings"
-import { buildChargeLabel, buildDueLabel, ScheduleReminderForm } from "./schedule-form"
+import { buildDueLabel, ScheduleReminderForm } from "./schedule-form"
+import { ScheduledReminders, type ScheduledReminderRow } from "./scheduled-reminders"
 
 // Relances automatiques : Ranti relance les locataires à partir du bail.
 // Cet écran porte les RÉGLAGES du propriétaire (canal, moment, message par
@@ -56,14 +56,38 @@ function formatShortDate(iso: string): string {
   return new Date(y, m - 1, d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
 }
 
-export default async function RemindersPage({
-  searchParams,
-}: {
+type RemindersPageProps = {
   searchParams?: Promise<{ notice?: string; error?: string }>
-}) {
+}
+
+export default function RemindersPage({ searchParams }: RemindersPageProps) {
+  // Streaming (fluidité de nav) : le cadre (titre + promesse de l'écran) peint
+  // tout de suite, le contenu arrive en flux sous <Suspense> au lieu de
+  // bloquer la navigation sur la plus grosse vague de requêtes de l'app.
+  return (
+    <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+      <header className="space-y-2">
+        <h1 className="font-display text-2xl font-extrabold tracking-tight lg:text-3xl text-foreground">
+          Relances
+        </h1>
+        <p className="text-sm leading-6 text-foreground/70">
+          Ranti relance automatiquement vos locataires à partir du bail : avant
+          l&apos;échéance, le jour J, puis en cas de retard. Vous choisissez le
+          canal et le moment ; le jour d&apos;échéance vient de chaque bail.
+        </p>
+      </header>
+
+      <Suspense fallback={<RemindersSkeleton />}>
+        <RemindersData searchParams={searchParams} />
+      </Suspense>
+    </main>
+  )
+}
+
+async function RemindersData({ searchParams }: RemindersPageProps) {
   const landlord = await requireLandlordProfile()
   const sp = await searchParams
-  const [reminders, collections, balances, leaseBalances, tenants, units, scheduled, charges, leases] =
+  const [reminders, collections, balances, leaseBalances, tenants, units, scheduled] =
     await Promise.all([
       getLandlordReminders(landlord.id),
       getLandlordCollections(landlord.id),
@@ -72,8 +96,6 @@ export default async function RemindersPage({
       getLandlordTenants(landlord.id),
       getLandlordUnits(landlord.id),
       getScheduledReminders(landlord.id),
-      getLandlordOpenCharges(landlord.id),
-      getLandlordLeases(landlord.id),
     ])
 
   const draftCount = collections.filter((c) => c.status === "draft").length
@@ -86,44 +108,18 @@ export default async function RemindersPage({
   const unitNames = new Map(units.map((u) => [u.id, u.name]))
   const dueById = new Map(balances.map((b) => [b.id, b]))
 
-  const leaseById = new Map(leases.map((l) => [l.id, l]))
-  const chargeById = new Map(charges.map((c) => [c.id, c]))
-  // Baux portant un impayé consolidé au grand livre (charges comprises,
-  // ADR-023) : seuls leurs débits sont relançables.
-  const overdueLeases = new Set(
-    leaseBalances.filter((lb) => lb.overdue_amount > 0).map((lb) => lb.lease_id),
-  )
-
-  // Cibles proposées : échéances de loyer ouvertes + charges VALIDÉES des
-  // baux en impayé. Le message ops distingue toujours loyer et charge.
-  const scheduleTargets = [
-    ...balances
-      .filter((b) => b.status !== "paid" && b.status !== "cancelled" && b.amount_due - b.amount_paid > 0)
-      .map((b) => ({
-        value: `due:${b.id}`,
-        label: buildDueLabel({
-          tenantName: tenantNames.get(b.tenant_id) ?? "Locataire",
-          unitName: unitNames.get(b.unit_id) ?? "Logement",
-          dueDate: b.due_date,
-          remaining: b.amount_due - b.amount_paid,
-        }),
-      })),
-    ...charges
-      .filter((c) => overdueLeases.has(c.lease_id))
-      .map((c) => {
-        const lease = leaseById.get(c.lease_id)
-        return {
-          value: `charge:${c.id}`,
-          label: buildChargeLabel({
-            tenantName: lease ? (tenantNames.get(lease.tenant_id) ?? "Locataire") : "Locataire",
-            unitName: lease ? (unitNames.get(lease.unit_id) ?? "Logement") : "Logement",
-            type: c.type,
-            label: c.label,
-            amount: c.amount,
-          }),
-        }
+  // Cibles proposées : échéances de loyer ouvertes.
+  const scheduleTargets = balances
+    .filter((b) => b.status !== "paid" && b.status !== "cancelled" && b.amount_due - b.amount_paid > 0)
+    .map((b) => ({
+      value: `due:${b.id}`,
+      label: buildDueLabel({
+        tenantName: tenantNames.get(b.tenant_id) ?? "Locataire",
+        unitName: unitNames.get(b.unit_id) ?? "Logement",
+        dueDate: b.due_date,
+        remaining: b.amount_due - b.amount_paid,
       }),
-  ]
+    }))
 
   // Locataires déjà contactés par Ranti (au moins une relance tracée) : le
   // tout premier message se présente et explique le processus.
@@ -144,19 +140,21 @@ export default async function RemindersPage({
     overdueByLease(leaseBalances),
   )
 
-  return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
-      <header className="space-y-2">
-        <h1 className="font-display text-2xl font-extrabold tracking-tight lg:text-3xl text-foreground">
-          Relances
-        </h1>
-        <p className="text-sm leading-6 text-foreground/70">
-          Ranti relance automatiquement vos locataires à partir du bail : avant
-          l&apos;échéance, le jour J, puis en cas de retard. Vous choisissez le
-          canal et le moment ; le jour d&apos;échéance vient de chaque bail.
-        </p>
-      </header>
+  // Lignes prêtes à afficher pour le composant client (annulation optimiste) :
+  // tout le contexte (locataire, logement) se résout ici, côté serveur.
+  const scheduledRows: ScheduledReminderRow[] = scheduled.map((s) => {
+    const due = s.rent_due_id ? dueById.get(s.rent_due_id) : undefined
+    return {
+      id: s.id,
+      who: due ? (tenantNames.get(due.tenant_id) ?? "Locataire") : "Locataire",
+      what: due ? (unitNames.get(due.unit_id) ?? "Logement") : "Logement",
+      channelLabel: s.channel === "whatsapp" ? "WhatsApp" : "SMS",
+      dateLabel: formatShortDate(s.scheduled_for),
+    }
+  })
 
+  return (
+    <>
       <ReminderSettings
         initialEnabled={landlord.reminders_enabled}
         initialChannel={landlord.reminder_channel}
@@ -180,51 +178,7 @@ export default async function RemindersPage({
         todayIso={todayIso}
       />
 
-      {scheduled.length > 0 ? (
-        <section className="mt-6 space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground">Relances programmées par vous</h2>
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            {scheduled.map((s) => {
-              const due = s.rent_due_id ? dueById.get(s.rent_due_id) : undefined
-              const charge = s.charge_id ? chargeById.get(s.charge_id) : undefined
-              const chargeLease = charge ? leaseById.get(charge.lease_id) : undefined
-              const who = due
-                ? (tenantNames.get(due.tenant_id) ?? "Locataire")
-                : chargeLease
-                  ? (tenantNames.get(chargeLease.tenant_id) ?? "Locataire")
-                  : "Locataire"
-              const what = due
-                ? (unitNames.get(due.unit_id) ?? "Logement")
-                : charge
-                  ? `${charge.type === "reparation" ? "Réparation" : "Frais"} « ${charge.label} »`
-                  : "Logement"
-              return (
-                <div
-                  key={s.id}
-                  className="flex items-center gap-3 border-t border-border px-4 py-3.5 first:border-t-0 sm:px-5"
-                >
-                  <span aria-hidden className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-accent" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-medium text-foreground">{who}</p>
-                    <p className="truncate text-sm text-muted-foreground">
-                      {what} · {s.channel === "whatsapp" ? "WhatsApp" : "SMS"} · le {formatShortDate(s.scheduled_for)}
-                    </p>
-                  </div>
-                  <form action={cancelScheduledReminder}>
-                    <input type="hidden" name="id" value={s.id} />
-                    <button
-                      type="submit"
-                      className="rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
-                    >
-                      Annuler
-                    </button>
-                  </form>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      ) : null}
+      <ScheduledReminders rows={scheduledRows} />
 
       {silence ? (
         <Alert variant="warning" className="mt-6">
@@ -360,6 +314,23 @@ export default async function RemindersPage({
           })
         )}
       </section>
-    </main>
+    </>
+  )
+}
+
+// Silhouette de la zone données (mêmes tokens que loading.tsx : rien qui
+// clignote fort) : carte réglages, formulaire, puis une liste. Les blocs
+// gardent la place du contenu réel pour éviter tout saut à l'arrivée du flux.
+function RemindersSkeleton() {
+  return (
+    <div aria-busy className="mt-6 space-y-6">
+      <div className="h-[92px] animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      <div className="h-44 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      <div className="space-y-3">
+        <div className="h-4 w-24 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+        <div className="h-40 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      </div>
+      <p className="sr-only">Chargement…</p>
+    </div>
   )
 }

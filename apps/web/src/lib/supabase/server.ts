@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto'
+import { cache } from 'react'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -42,7 +43,10 @@ function mintLocalAuthToken(): string | null {
   return `${header}.${payload}.${sig}`
 }
 
-export async function createClient() {
+// cache() : dédupe dans une même requête de rendu. Toutes les lib qui appellent
+// createClient() dans un render partagent alors UN client (une lecture cookies,
+// un mint token) au lieu d'en reconstruire un par appel.
+export const createClient = cache(async () => {
   const cookieStore = await cookies()
 
   const devToken = mintLocalAuthToken()
@@ -71,4 +75,4 @@ export async function createClient() {
       },
     }
   )
-}
+})

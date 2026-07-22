@@ -45,8 +45,8 @@ Les commandes racine délèguent vers `apps/web` (`bun --cwd`). La landing vit D
 
 Cible (ADR-023 « Grand Livre de Confiance ») : le coeur métier est le
 **compte courant locatif** — toute somme due ou reçue sur un bail est une
-ligne de `transactions` (loyer, réparation, frais, règlement,
-contre-passation), avec un statut de reconnaissance
+ligne de `transactions` (loyer, règlement, contre-passation), avec un statut
+de reconnaissance
 (`pending`/`validated`/`disputed`/`withdrawn`) et un solde par bail en trois
 nombres jamais fusionnés (vue `lease_balances`).
 
@@ -73,6 +73,8 @@ La sécurité doit être appliquée à deux niveaux :
 2. côté base, par RLS Supabase quand applicable.
 
 Une ressource hors périmètre doit retourner `404` plutôt que révéler son existence.
+
+Session dans le proxy (v0.3.33.0, **ADR-025**) : le middleware valide le jeton d'accès localement (signature ES256, JWKS en cache) au lieu d'interroger le serveur Auth à chaque navigation. Limite assumée, patron recommandé par Supabase : une session révoquée à distance (déconnexion globale) reste valable jusqu'à l'expiration du jeton d'accès. Fenêtre bornée par `jwt_expiry` abaissé à **15 min** (mitigation ADR-025 ; à régler à l'identique dans le dashboard prod). Rayon de souffle accepté tant que Ranti reste non-custodial (ADR-024) — à revisiter si le rail custodial revient.
 
 ## Données sensibles
 
@@ -105,29 +107,29 @@ Statut : cible documentée. La DB live contient déjà `receipts.kind` et `snaps
 ### Grand Livre (ADR-023)
 
 Cible : le solde de chaque bail (certain / en attente / en litige) se calcule
-en base à partir des lignes de transactions, et le locataire valide ou
-conteste les dettes affirmées par lien signé.
+en base à partir des lignes de transactions. (La validation locataire des
+dettes affirmées par lien signé concernait les charges variables, retirées :
+ADR-026.)
 
-Statut : **phases Expand, Nouvelle lecture et « différenciant » (produit)
-livrées** — table `transactions`, vue `lease_balances`, machine à états
-(terminalité, indélébilité, contre-passation bornée), miroir des tables
-héritées, garde d'égalité restreinte à la projection héritée ; le dashboard
-lit le grand livre (`lib/ledger`, une ligne par bail, dette consolidée en
-compte courant) ; charges variables (réparations/frais) créées, retirées ou
-corrigées depuis la fiche bail, validées ou contestées par le locataire via
-`/transaction/[token]` (lien signé, sans compte). « Payé / Attendu » et le
-taux de recouvrement restent des lentilles mensuelles sur
+Statut : **phases Expand et Nouvelle lecture livrées ; phase « différenciant »
+(charges variables) retirée (ADR-026, Ranti rent-only)** — table
+`transactions`, vue `lease_balances`, machine à états (terminalité,
+indélébilité, contre-passation bornée), miroir des tables héritées, garde
+d'égalité restreinte à la projection héritée ; le dashboard lit le grand livre
+(`lib/ledger`, une ligne par bail, dette consolidée en compte courant). « Payé
+/ Attendu » et le taux de recouvrement restent des lentilles mensuelles sur
 `rent_due_balances`. **Relances et fiche bail sont basculées sur le compte
 courant** : la file `ops_reminder_queue` ne sort une relance de retard que si
 le bail a un impayé au grand livre (garde reprise par la projection UI), et
-la fiche bail affiche le solde du compte en tête. Reste : branchement de
-l'envoi automatisé des notifications de charges côté ranti-ops (vue
-`ops_ledger_notifications`), puis phase Contract.
+la fiche bail affiche le solde du compte en tête. Les objets DB des charges
+(`/transaction/[token]`, `ops_ledger_notifications`, colonnes débits) restent
+dormants ; drop planifié.
 
 ## Principes d'implémentation
 
 - Mutations sensibles transactionnelles.
 - Idempotence sur les générations et confirmations.
+- Cache client de navigation (30 s, `staleTimes`) : toute écriture d'argent doit purger l'ensemble des surfaces qui l'affichent via `revalidateMoneySurfaces` (`apps/web/src/lib/cache/money.ts`) ; aucune surface argent ne doit être ajoutée sans y être inscrite.
 - Audit logs sur actions critiques.
 - Pas de suppression silencieuse de données financières.
 - Prestataires externes comme adaptateurs, jamais source de vérité métier.

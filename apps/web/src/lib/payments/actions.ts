@@ -6,8 +6,8 @@
 // verify_payment_transaction (SECURITY DEFINER, garde d'appartenance,
 // accordée à authenticated).
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import { paymentErrorCodeFromMessage, paymentErrorMessage } from "./errors"
@@ -41,9 +41,8 @@ export async function verifyPaymentTransaction(formData: FormData) {
     back(paymentErrorMessage(paymentErrorCodeFromMessage(error.message)))
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/collections")
-  revalidatePath("/receipts")
+  // Mêmes surfaces que les encaissements manuels : tout le flux argent.
+  revalidateMoneySurfaces()
 
   // receptionId null = la RPC a re-rejeté (bail devenu inactif / montant).
   if (!receptionId) {

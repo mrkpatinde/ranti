@@ -17,6 +17,10 @@ export type Landlord = {
   first_name: string
   last_name: string
   civility: Civility | null
+  // Adresse postale du bailleur (mutable, contact). Figure sur la quittance
+  // pour identifier complètement le bailleur (Loi 2022-30, art. 67).
+  address: string | null
+  city: string | null
   payment_alias: string | null
   payment_alias_type: "phone" | "address" | null
   onboarding_status: OnboardingStatus

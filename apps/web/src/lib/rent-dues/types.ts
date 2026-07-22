@@ -12,7 +12,8 @@ export type RentDue = {
   amount_due: number
   currency: string
   status: RentDueStatus
-  /** Jeton public du lien /confirmer/[token] (page locataire, ADR-013). */
+  /** Colonne DB héritée du flux locataire /confirmer, retiré en V1 (Zéro-Clic).
+   *  Conservée tant que la colonne existe en base ; plus lue côté app. */
   confirmation_token: string | null
   cancelled_reason: string | null
   created_at: string

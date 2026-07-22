@@ -71,12 +71,10 @@ Les cinq questions de la promesse deviennent :
 4. Qu'est-ce qui est contesté (en litige, documenté sans arbitrage) ?
 5. Qui est en retard, et de combien ?
 
-Le grand livre couvre aussi les charges variables (réparations, frais) :
-le locataire valide ou conteste chaque dette affirmée, par lien signé, sans
-compte à créer. Une ligne validée est indélébile ; toute correction est une
-contre-passation visible des deux parties. C'est ce qui crée la valeur de
-preuve en cas de conflit — avec la quittance, qui reste le document à valeur
-légale établie.
+Au MVP, Ranti reste rent-only : les charges variables sont retirées (ADR-026).
+La valeur de preuve tient à la quittance vérifiable et au solde de loyer
+partagé : une ligne validée est indélébile, toute correction est une
+contre-passation visible des deux parties.
 
 La transition est en cours (phases dans l'ADR-023) : la boucle produit
 ci-dessus reste la mécanique opérante jusqu'à la bascule des lectures.

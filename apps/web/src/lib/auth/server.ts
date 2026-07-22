@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AUTH_PATHS } from "./paths"
@@ -32,7 +33,9 @@ function getLocalAuthClaims(): AuthClaims {
   }
 }
 
-export async function getAuthClaims(): Promise<AuthClaims | null> {
+// cache() : requireAuth + getAuthUserId + les guards frappent getClaims dans le
+// même render. Un seul appel réel par requête au lieu d'un par consommateur.
+export const getAuthClaims = cache(async (): Promise<AuthClaims | null> => {
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.getClaims()
@@ -42,7 +45,7 @@ export async function getAuthClaims(): Promise<AuthClaims | null> {
   }
 
   return data.claims
-}
+})
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
   const supabase = await createClient()

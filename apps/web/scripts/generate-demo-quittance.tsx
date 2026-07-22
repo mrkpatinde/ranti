@@ -83,6 +83,8 @@ const landlord: Landlord = {
   first_name: "Florentine",
   last_name: "D.",
   civility: null,
+  address: "Lot 42, Aïbatin",
+  city: "Cotonou",
   payment_alias: null,
   payment_alias_type: null,
   onboarding_status: "done",

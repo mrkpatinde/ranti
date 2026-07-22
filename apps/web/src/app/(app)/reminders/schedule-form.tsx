@@ -8,7 +8,7 @@ import { scheduleReminder } from "@/lib/reminders/actions"
 // le canal. ranti-ops envoie à la date dite. Formulaire serveur, zéro JS.
 
 export type ScheduleTarget = {
-  /** "due:<id>" (échéance de loyer) ou "charge:<id>" (charge validée). */
+  /** "due:<id>" (échéance de loyer). */
   value: string
   label: string
 }
@@ -25,17 +25,6 @@ export function buildDueLabel(opts: {
     month: "long",
   })
   return `${opts.tenantName} · ${opts.unitName} · échéance du ${dateLabel} · reste ${formatFcfa(opts.remaining)}`
-}
-
-export function buildChargeLabel(opts: {
-  tenantName: string
-  unitName: string
-  type: "reparation" | "frais"
-  label: string
-  amount: number
-}): string {
-  const nature = opts.type === "reparation" ? "Réparation" : "Frais"
-  return `${opts.tenantName} · ${opts.unitName} · ${nature} « ${opts.label} » · ${formatFcfa(opts.amount)}`
 }
 
 export function ScheduleReminderForm({
@@ -66,7 +55,7 @@ export function ScheduleReminderForm({
           <span className="text-sm font-medium text-foreground">Dette à relancer</span>
           <select name="target" required className={inputClass} defaultValue="">
             <option value="" disabled>
-              Choisir un loyer impayé ou une charge validée
+              Choisir un loyer impayé
             </option>
             {targets.map((t) => (
               <option key={t.value} value={t.value}>

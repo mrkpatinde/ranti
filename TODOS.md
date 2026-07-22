@@ -80,4 +80,23 @@ après le verrou dans une future migration de la fonction.
 modals…) et les libellés de méthode de paiement en 2. Exporter depuis
 `lib/units` / `lib/receipts` et consommer partout.
 
+## Performance
+
+### Paginer ou segmenter la liste des encaissements
+**Priority:** P3
+`getLandlordCollections` et `getLandlordReceipts` sont sans borne et
+`/collections` rend une carte par ligne : le coût croît avec l'historique
+(~12 réceptions/an/bail) et le rendu complet est retenu 30 s dans le cache
+client. La promesse produit (« chaque encaissement reste ici ») interdit un
+simple `.limit()` : segmenter par mois ou paginer en gardant les brouillons
+toujours visibles (draftCount et confirmation en dépendent).
+
 ## Completed
+
+### Étendre le streaming Suspense aux pages Relances et Encaissements
+**Priority:** P2
+`/reminders` (vague de 9 requêtes) et `/collections` (4 requêtes) bloquaient
+la navigation sur leur `Promise.all` sans zone Suspense. Structure cadre
+statique + zone streamée appliquée (même patron que `/dashboard` et
+`/leases/[id]`), squelettes par segment au gabarit exact en plus.
+**Completed:** v0.3.33.0 (2026-07-19)

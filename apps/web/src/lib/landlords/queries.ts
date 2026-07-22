@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { failQuery } from "@/lib/supabase/query-error"
 import type { Landlord } from "./types"
@@ -7,7 +8,7 @@ import type { Landlord } from "./types"
  * if the profile has not been created yet. RLS scopes the row to the caller.
  * Throws QueryError on DB/RLS failure — never silently returns null.
  */
-export async function getCurrentLandlord(): Promise<Landlord | null> {
+export const getCurrentLandlord = cache(async (): Promise<Landlord | null> => {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -19,4 +20,4 @@ export async function getCurrentLandlord(): Promise<Landlord | null> {
   if (error) failQuery("landlords", error)
 
   return (data as Landlord | null) ?? null
-}
+})

@@ -3,6 +3,91 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.34.0] - 2026-07-22
+
+### Added
+
+- **Quittance conforme au bail d'habitation béninois (Loi n°2022-30, art. 67)** :
+  ajout de l'adresse postale du bailleur pour l'identifier complètement sur la
+  quittance (bloc « De » du PDF et surface locataire). Nouveau champ éditable
+  dans les réglages. La règle légale quittance = solde total / reçu = paiement
+  partiel était déjà respectée. Posture de preuve gardée : l'empreinte SHA-256
+  reste une preuve d'intégrité, jamais une signature. Voir ADR-027.
+- **Registre minimaliste (référence wallet)** : le tableau de bord met en avant
+  un chiffre héro « Reste à encaisser » (masquable d'un tap), un trio de boutons
+  ronds d'action (Encaisser, Relancer, Quittances) et des pastilles d'icône sur
+  les listes. Nav mobile : barre d'onglets fixe en bas à la place du menu
+  hamburger. Réglages refondus (avatar centré, groupes en cartes). Voir
+  `DESIGN.md` (Decisions Log 2026-07-22).
+- **La preuve en avant à la prise en main** : après la création d'un bail, le
+  guidage pousse la génération d'une quittance pour un loyer déjà payé, en test.
+
+### Removed
+
+- **Charges variables retirées : Ranti devient rent-only (ADR-026)**. Les frais
+  facturés au locataire et validés par lien public sont retirés (écrans de
+  charge, page publique `/transaction/[token]`, branche charge des relances,
+  section « Charges & frais » de la fiche bail). Les objets DB des charges sont
+  conservés inactifs (dormants) ; leur suppression est un lot de suivi.
+
+### Changed
+
+- Intégrité de la quittance (empreinte scellée + vérification) et snapshot du
+  logement affinés ; nettoyage du flux locataire (retrait de l'écran
+  `/confirmer/[token]`).
+- Documentation alignée : ADR-023 supersédé en partie, plus `domain-model.md`,
+  `database.md`, `architecture.md`, `vision.md`, `BUILD_STATUS.md`.
+
+### Migrations
+
+- `20260722120000_landlord_address_on_receipt.sql` (adresse bailleur),
+  `20260719120000_verify_receipt_integrity.sql`,
+  `20260719130000_receipt_snapshot_property.sql` : **à appliquer à la prod au
+  déploiement** (le PR ne les applique pas).
+
+## [0.3.33.0] - 2026-07-19
+
+### Changed
+
+- **Navigation quasi instantanée sur toute l'app** : en passant d'un écran à
+  l'autre, l'en-tête et la structure de la page s'affichent immédiatement ;
+  les chiffres et les listes arrivent juste derrière, sous un squelette
+  discret au gabarit exact de chaque écran (fini le saut de mise en page).
+  Accueil, fiche de bail, Encaissements et Relances streament leur contenu ;
+  tous les écrans de l'arbre Baux et les formulaires ont leur squelette
+  dédié.
+- **Revenir sur un écran déjà visité est immédiat** : pendant 30 secondes,
+  retourner sur un onglet déjà vu réutilise la page en cache, sans aucune
+  requête. Chaque enregistrement (encaissement, quittance, charge, échéance,
+  bail) rafraîchit aussitôt toutes les pages qui l'affichent.
+- **Un aller-retour réseau de moins à chaque clic** : la session est
+  désormais vérifiée localement (signature du jeton) au lieu d'interroger le
+  serveur d'authentification à chaque navigation. Sur réseau lent, chaque
+  changement de page gagne plusieurs centaines de millisecondes.
+- **Moins d'allers-retours vers la base** : les lectures répétées d'une même
+  navigation (session, profil, baux) sont dédupliquées, les requêtes de la
+  fiche de bail et de l'accueil partent toutes en même temps.
+- **Annuler une relance programmée répond au doigt** : la ligne disparaît au
+  clic, l'envoi s'annule en arrière-plan ; en cas d'échec, la ligne revient
+  avec l'explication.
+
+### Fixed
+
+- Un lien forgé (`?notice=` invalide) ne peut plus faire tomber les pages
+  Encaissements, Baux ou fiche de bail.
+- Confirmer ou annuler un encaissement (ou une relance programmée) sur un
+  réseau qui coupe n'écrase plus l'écran : l'action affiche « Réessayez » et
+  la carte revient à son état réel.
+- Une relance déjà envoyée ou annulée ailleurs disparaît de la liste dès
+  qu'on tente de l'annuler, au lieu de rester affichée par erreur.
+
+### Added
+
+- Tests unitaires : fil des relances d'un bail (fusion SMS automatiques +
+  relances WhatsApp, scoping bailleur, gestion d'erreur), contrat
+  d'annulation d'une relance programmée, et contrat du rafraîchissement de
+  session dans le proxy.
+
 ## [0.3.32.0] - 2026-07-18
 
 ### Added

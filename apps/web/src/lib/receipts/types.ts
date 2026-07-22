@@ -12,6 +12,7 @@ export type ContestNature = "amount" | "date" | "not_paid"
 export type ReceiptSnapshot = {
   tenant?: { first_name: string; last_name: string; phone: string | null }
   unit?: { name: string; type: string }
+  property?: { name?: string; city: string | null; address: string | null }
   reception?: {
     amount_received: number
     currency: string
@@ -60,9 +61,13 @@ export type ReceiptByToken = {
   currency: string
   landlord_first_name: string | null
   landlord_last_name: string | null
+  landlord_address: string | null
+  landlord_city: string | null
   tenant_first_name: string | null
   tenant_last_name: string | null
   unit_name: string | null
+  property_city: string | null
+  property_address: string | null
   allocations: Array<{ period_start: string; period_end: string; amount_allocated: number }>
   tenant_ack: TenantAck
   tenant_read_at: string | null

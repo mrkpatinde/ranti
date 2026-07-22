@@ -22,6 +22,10 @@ export type OnboardingProgress = {
   allDone: boolean
 }
 
+// La preuve d'abord (2026-07-22) : dès le bail créé, on pousse la génération
+// d'une quittance pour un loyer déjà payé, en guise de test. C'est la vraie
+// valeur de Ranti, ressentie en un geste (le flux /collections/new confirme un
+// paiement reçu hors Ranti et édite la quittance vérifiable aussitôt).
 const STEP_META: Omit<OnboardingStep, "done">[] = [
   {
     key: "lease",
@@ -31,14 +35,14 @@ const STEP_META: Omit<OnboardingStep, "done">[] = [
   },
   {
     key: "payment",
-    label: "Valider un paiement reçu",
-    desc: "Vous encaissez, Ranti enregistre le règlement.",
-    href: "/collections",
+    label: "Générer une quittance de test",
+    desc: "Un loyer déjà payé ? Confirmez-le, la quittance vérifiable sort aussitôt.",
+    href: "/collections/new",
   },
   {
     key: "receipt",
-    label: "Recevoir la première quittance",
-    desc: "Numérotée, votre locataire la confirme en ligne.",
+    label: "Voir votre première quittance",
+    desc: "Numérotée et vérifiable, votre locataire la confirme en ligne.",
     href: "/receipts",
   },
   {

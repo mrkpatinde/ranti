@@ -59,24 +59,21 @@ const SCHEDULE_ERRORS: Record<string, string> = {
   due_not_found: "Échéance introuvable.",
   already_scheduled: "Une relance est déjà programmée pour cette échéance à cette date.",
   channel_invalid: "Canal invalide.",
-  not_a_charge: "Cette ligne n'est pas une charge relançable.",
-  charge_not_validated: "Seule une charge validée par le locataire se relance.",
   not_pending: "Cette relance a déjà été envoyée ou annulée.",
 }
 
-function scheduleError(message: string): string {
+function scheduleError(message: string, fallback = "Programmation impossible. Réessayez."): string {
   for (const [code, label] of Object.entries(SCHEDULE_ERRORS)) {
     if (message.includes(code)) return label
   }
-  return "Programmation impossible. Réessayez."
+  return fallback
 }
 
 export async function scheduleReminder(formData: FormData): Promise<void> {
   await requireLandlordProfile()
   const supabase = await createClient()
 
-  // target = "due:<id>" (échéance de loyer) ou "charge:<id>" (charge validée
-  // du grand livre) : même formulaire, RPC dédiée par nature de dette.
+  // target = "due:<id>" (échéance de loyer).
   const target = String(formData.get("target") ?? "")
   const scheduledFor = String(formData.get("scheduled_for") ?? "")
   const channel = String(formData.get("channel") ?? "")
@@ -85,23 +82,16 @@ export async function scheduleReminder(formData: FormData): Promise<void> {
     redirect(`/reminders?error=${encodeURIComponent(msg)}`)
   }
   const [targetKind, targetId] = target.split(":")
-  if (!targetId || (targetKind !== "due" && targetKind !== "charge")) {
+  if (!targetId || targetKind !== "due") {
     back("Choisissez la dette à relancer.")
   }
   if (!scheduledFor) back("Choisissez la date d'envoi.")
 
-  const { error } =
-    targetKind === "charge"
-      ? await supabase.rpc("schedule_charge_reminder", {
-          p_charge_id: targetId,
-          p_scheduled_for: scheduledFor,
-          p_channel: channel,
-        })
-      : await supabase.rpc("schedule_reminder", {
-          p_rent_due_id: targetId,
-          p_scheduled_for: scheduledFor,
-          p_channel: channel,
-        })
+  const { error } = await supabase.rpc("schedule_reminder", {
+    p_rent_due_id: targetId,
+    p_scheduled_for: scheduledFor,
+    p_channel: channel,
+  })
 
   if (error) back(scheduleError(error.message))
 
@@ -109,16 +99,29 @@ export async function scheduleReminder(formData: FormData): Promise<void> {
   redirect("/reminders?notice=reminder_scheduled")
 }
 
-export async function cancelScheduledReminder(formData: FormData): Promise<void> {
+// Retourne l'erreur au lieu de rediriger : consommée par le composant client
+// optimiste (ScheduledReminders), qui masque la ligne immédiatement et
+// restaure + affiche l'erreur si la RPC échoue. La revalidation apporte
+// l'état réel en cas de succès.
+export async function cancelScheduledReminder(
+  formData: FormData,
+): Promise<{ error: string | null }> {
   await requireLandlordProfile()
   const supabase = await createClient()
 
   const id = String(formData.get("id") ?? "")
-  if (!id) redirect("/reminders?error=" + encodeURIComponent("Relance introuvable."))
+  if (!id) return { error: "Relance introuvable." }
 
   const { error } = await supabase.rpc("cancel_scheduled_reminder", { p_id: id })
-  if (error) redirect(`/reminders?error=${encodeURIComponent(scheduleError(error.message))}`)
+  if (error) {
+    // Revalider AUSSI sur échec : « not_pending » signifie que la ligne a déjà
+    // été envoyée ou annulée ailleurs (autre onglet, cron ops) ; sans purge,
+    // le retour d'état optimiste restaurerait une ligne fantôme jusqu'à la
+    // prochaine navigation.
+    revalidatePath("/reminders")
+    return { error: scheduleError(error.message, "Annulation impossible. Réessayez.") }
+  }
 
   revalidatePath("/reminders")
-  redirect("/reminders")
+  return { error: null }
 }

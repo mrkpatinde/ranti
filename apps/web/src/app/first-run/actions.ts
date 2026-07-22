@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 import { validateBailForm, type BailFormInput } from "@/lib/onboarding/validation"
@@ -219,8 +219,9 @@ export async function recordPaymentFirstRun(
     ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim()
     : ""
 
-  revalidatePath("/dashboard")
-  revalidatePath("/receipts")
+  // Trois écritures d'argent ici (encaissement, confirmation, quittance) :
+  // purge complète des surfaces argent via le helper (cache client 30 s).
+  revalidateMoneySurfaces()
 
   return {
     ok: true,

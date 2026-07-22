@@ -19,7 +19,10 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
   const landlord = await requireLandlordProfile()
   const params = await searchParams
   const properties = await getLandlordProperties(landlord.id)
-  const notice = params?.notice ? noticeLabels[params.notice] : null
+  // Object.hasOwn : un ?notice=__proto__ forgé renverrait Object.prototype
+  // (truthy), invalide comme enfant JSX, et ferait tomber la page entière.
+  const notice =
+    params?.notice && Object.hasOwn(noticeLabels, params.notice) ? noticeLabels[params.notice] : null
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">

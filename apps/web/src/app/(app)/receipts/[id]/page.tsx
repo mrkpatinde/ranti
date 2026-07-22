@@ -144,6 +144,9 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               <p className="mt-1.5 text-sm font-medium text-foreground">{snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}` : "Locataire"}</p>
               <p className="text-sm text-foreground/70">Locataire</p>
               {snap.unit ? <p className="text-sm text-foreground/70">{snap.unit.name}</p> : null}
+              {snap.property && (snap.property.address || snap.property.city) ? (
+                <p className="text-sm text-foreground/70">{[snap.property.address, snap.property.city].filter(Boolean).join(", ")}</p>
+              ) : null}
             </div>
           </div>
 
@@ -167,7 +170,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
             <p className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground [font-variant-numeric:tabular-nums]">{formatFcfa(receipt.total_amount)}</p>
           </div>
 
-          {/* Clause notariale partagée : même formulation que la page locataire,
+          {/* Formule de quittance partagée : même formulation que la page locataire,
               le PDF et la modale FirstRun (revue 2026-07-18). */}
           <p className="py-4 text-sm leading-6 text-foreground/70">{receiptClause({ landlordName: `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire", tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind, period: snap.allocations?.length === 1 ? monthYearLabel(snap.allocations[0].period_start) : null })}</p>
 

@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 import { failQuery } from "@/lib/supabase/query-error"
-import type { LeaseBalance, LedgerCharge } from "./types"
+import type { LeaseBalance } from "./types"
 
 // Colonnes explicites : la parité avec la vue SQL est figée par un test
-// (queries.test.ts) — même doctrine que payments/queries.ts.
+// (queries.test.ts) — même doctrine que payments/queries.ts. Les colonnes de
+// débits (pending_debits, disputed_debits) sont dormantes depuis le retrait des
+// charges (ADR-026) mais restent dans la vue, on les lit encore (valeur 0).
 export const LEASE_BALANCES_SELECT =
   "lease_id, landlord_id, certain_balance, pending_debits, pending_credits, disputed_debits, disputed_credits, overdue_amount"
 
@@ -42,59 +44,4 @@ export async function getLeaseBalance(
   if (error) failQuery("lease_balances", error)
 
   return (data as LeaseBalance | null) ?? null
-}
-
-export const LEDGER_CHARGES_SELECT =
-  "id, lease_id, type, amount, currency, occurred_at, due_date, status, validated_by, validated_at, disputed_at, contest_nature, contested_amount, tenant_comment, resolution, resolved_at, replaced_by, tenant_token, label"
-
-// Charges variables d'un bail (ADR-023 §3 ligne 2), toutes vivantes ou
-// retirées — l'historique reste lisible sur la fiche bail. Les loyers et
-// règlements ne passent pas ici : ils ont leurs propres surfaces.
-export async function getLeaseLedgerCharges(
-  landlordId: string,
-  leaseId: string,
-): Promise<LedgerCharge[]> {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from("transactions")
-    .select(LEDGER_CHARGES_SELECT)
-    .eq("landlord_id", landlordId)
-    .eq("lease_id", leaseId)
-    .in("type", ["reparation", "frais"])
-    .order("occurred_at", { ascending: false })
-
-  if (error) failQuery("transactions", error)
-
-  return (data ?? []) as LedgerCharge[]
-}
-
-// ── Charges relançables (relances programmées, 2026-07-18) ──────────────────
-
-export type OpenCharge = {
-  id: string
-  lease_id: string
-  type: "reparation" | "frais"
-  label: string
-  amount: number
-}
-
-// Charges VALIDÉES par le locataire, non remplacées : les seules qu'une
-// relance peut viser (pending = pas encore certaine, disputed = litige que
-// Ranti documente sans presser). Le filtre « le bail porte un impayé au grand
-// livre » s'applique côté appelant (lease_balances déjà chargée).
-export async function getLandlordOpenCharges(landlordId: string): Promise<OpenCharge[]> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("id, lease_id, type, label, amount")
-    .eq("landlord_id", landlordId)
-    .in("type", ["reparation", "frais"])
-    .eq("direction", "debit")
-    .eq("status", "validated")
-    .is("replaced_by", null)
-    .order("occurred_at", { ascending: false })
-
-  if (error) failQuery("getLandlordOpenCharges", error)
-  return (data ?? []) as OpenCharge[]
 }

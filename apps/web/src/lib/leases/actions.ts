@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getTenant } from "@/lib/tenants"
 import { getUnit } from "@/lib/units"
@@ -84,7 +85,9 @@ export async function createLease(formData: FormData) {
     err("Impossible de créer le bail. Réessayez.")
   }
 
-  revalidatePath("/leases")
+  // Un bail créé touche tout le flux argent ; l'arbre Baux (lieux) aussi.
+  revalidateMoneySurfaces({ leaseId: data!.id })
+  revalidatePath("/properties")
   redirect(`/leases/${data!.id}?notice=lease_created`)
 }
 
@@ -121,9 +124,8 @@ export async function activateLease(formData: FormData) {
     redirect(`/leases/${id}?error=${encodeURIComponent(message)}`)
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/leases")
-  revalidatePath(`/leases/${id}`)
+  // L'activation génère les échéances : tout le flux argent doit se rafraîchir.
+  revalidateMoneySurfaces({ leaseId: id })
   redirect(`/leases/${id}?notice=lease_activated`)
 }
 
@@ -165,8 +167,7 @@ export async function endLease(formData: FormData) {
     redirect(`/leases/${id}?error=${encodeURIComponent("Impossible de terminer le bail. Réessayez.")}`)
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/leases")
+  revalidateMoneySurfaces({ leaseId: id })
   redirect(`/leases/${id}?notice=lease_ended`)
 }
 

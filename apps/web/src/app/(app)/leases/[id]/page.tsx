@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
@@ -14,13 +15,7 @@ import {
   reminderTemplateLabels,
 } from "@/lib/reminders/labels"
 import { buildReminderWaLink } from "@/lib/reminders/whatsapp"
-import {
-  buildChargeWaLink,
-  getLeaseBalance,
-  getLeaseLedgerCharges,
-  withdrawLedgerLine,
-  type LedgerCharge,
-} from "@/lib/ledger"
+import { getLeaseBalance } from "@/lib/ledger"
 import { getTenant } from "@/lib/tenants"
 import { getUnit } from "@/lib/units"
 import type { RentDueStatus } from "@/lib/rent-dues"
@@ -50,28 +45,6 @@ const noticeLabels: Record<string, string> = {
   lease_activated: "Bail activé. Les échéances de loyer ont été générées.",
   lease_ended: "Bail terminé.",
   lease_updated: "Bail mis à jour.",
-  charge_added:
-    "Charge ajoutée — envoyez le lien de validation à votre locataire. Elle n'entre au solde qu'une fois validée.",
-  charge_withdrawn: "Charge retirée. Elle reste lisible dans l'historique.",
-  charge_replaced:
-    "Charge corrigée — la nouvelle version repart pour validation avec un nouveau lien.",
-}
-
-const chargeStatusView: Record<
-  LedgerCharge["status"],
-  { label: string; variant: BadgeVariant }
-> = {
-  pending: { label: "En attente locataire", variant: "accent" },
-  validated: { label: "Validée", variant: "success" },
-  disputed: { label: "Contestée", variant: "warning" },
-  withdrawn: { label: "Retirée", variant: "neutral" },
-}
-
-const contestNatureLabels: Record<string, string> = {
-  amount: "reconnaît un autre montant",
-  not_owed: "ne reconnaît pas cette somme",
-  already_paid: "déclare l'avoir déjà réglée",
-  other: "signale un désaccord",
 }
 
 function formatDate(iso: string): string {
@@ -102,26 +75,52 @@ const REMINDER_SCHEDULE: { when: string; what: string; late: boolean }[] = [
   { when: "À 10 jours de retard", what: "Relance — contacter le propriétaire", late: true },
 ]
 
-export default async function LeaseDetailPage({ params, searchParams }: LeaseDetailPageProps) {
+export default function LeaseDetailPage({ params, searchParams }: LeaseDetailPageProps) {
+  // Streaming (fluidité de nav) : le cadre (header « Bail ») peint tout de
+  // suite, le contenu arrive en flux sous <Suspense> au lieu de bloquer la
+  // navigation sur les requêtes du bail.
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
+      <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
+        <div>
+          <p className="mt-2 text-sm text-muted-foreground">Bail</p>
+        </div>
+        <Link href="/leases" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Tous les baux</Link>
+      </header>
+
+      <Suspense fallback={<LeaseDetailSkeleton />}>
+        <LeaseDetail params={params} searchParams={searchParams} />
+      </Suspense>
+    </main>
+  )
+}
+
+async function LeaseDetail({ params, searchParams }: LeaseDetailPageProps) {
   const landlord = await requireLandlordProfile()
   const { id } = await params
   const sp = await searchParams
 
-  const lease = await getLease(landlord.id, id)
+  // UNE seule vague : les requêtes qui ne dépendent que de l'id (échéances,
+  // solde) partent tout de suite, en parallèle du bail lui-même.
+  // unit/tenant se chaînent sur le bail, les relances sur les échéances : tout
+  // converge dans le même Promise.all. Sur un id inconnu, les requêtes id-only
+  // reviennent vides (RLS) et notFound() tombe après la vague : acceptable pour
+  // une page authentifiée.
+  const leasePromise = getLease(landlord.id, id)
+  const duesPromise = getLeaseDueBalances(landlord.id, id)
+  const [lease, unit, tenant, dues, balance, reminders] = await Promise.all([
+    leasePromise,
+    leasePromise.then((l) => (l ? getUnit(landlord.id, l.unit_id) : null)),
+    leasePromise.then((l) => (l ? getTenant(landlord.id, l.tenant_id) : null)),
+    duesPromise,
+    getLeaseBalance(landlord.id, id),
+    duesPromise.then((ds) => getLeaseReminders(landlord.id, ds.map((d) => d.id))),
+  ])
   if (!lease) notFound()
 
-  const [unit, tenant, dues, charges, balance] = await Promise.all([
-    getUnit(landlord.id, lease.unit_id),
-    getTenant(landlord.id, lease.tenant_id),
-    getLeaseDueBalances(landlord.id, lease.id),
-    getLeaseLedgerCharges(landlord.id, lease.id),
-    getLeaseBalance(landlord.id, lease.id),
-  ])
-  // Fil des relances de CE bail (filtré sur ses échéances) : relie retard et
-  // relances au même endroit. Dépend des échéances → chargé après.
-  const reminders = await getLeaseReminders(landlord.id, dues.map((d) => d.id))
-
-  const notice = sp?.notice ? noticeLabels[sp.notice] : null
+  // Object.hasOwn : un ?notice=__proto__ forgé renverrait Object.prototype
+  // (truthy), invalide comme enfant JSX, et ferait tomber la page entière.
+  const notice = sp?.notice && Object.hasOwn(noticeLabels, sp.notice) ? noticeLabels[sp.notice] : null
 
   // Ferme la boucle dashboard → retard → action : le CTA « Encaisser » mène à
   // /collections/new avec ce bail présélectionné dès qu'il reste un impayé.
@@ -136,8 +135,6 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const expectedSoon = Math.max(0, outstanding - ledgerOverdue)
   const advance = Math.max(0, Number(balance?.certain_balance ?? 0))
   const pendingCredits = Number(balance?.pending_credits ?? 0)
-  const pendingDebits = Number(balance?.pending_debits ?? 0)
-  const disputed = Number(balance?.disputed_debits ?? 0) + Number(balance?.disputed_credits ?? 0)
 
   // Relance manuelle « préparée sans envoi auto » (ADR-006 MVP) : lien wa.me
   // pré-rempli. Garde compte courant (ADR-023) : une relance de RETARD n'a de
@@ -149,7 +146,6 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
   const firstUnpaid = dues.find(
     (d) => d.status !== "cancelled" && d.amount_due - d.amount_paid > 0,
   )
-  const publicUrl = process.env.PUBLIC_URL || "https://www.monranti.com"
   const relanceLate = ledgerOverdue > 0
   const relanceDue = relanceLate
     ? firstUnpaid
@@ -166,9 +162,6 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             : Math.max(0, relanceDue.amount_due - relanceDue.amount_paid),
           dueDate: relanceDue.due_date,
           late: relanceLate,
-          confirmUrl: relanceDue.confirmation_token
-            ? `${publicUrl}/confirmer/${relanceDue.confirmation_token}`
-            : null,
           // Tout premier message à ce locataire : Ranti se présente et
           // explique le processus (décision 2026-07-18).
           introFrom:
@@ -179,15 +172,7 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
       : null
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8 lg:py-14">
-      <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
-        <div>
-          <p className="mt-2 text-sm text-muted-foreground">Bail</p>
-        </div>
-        <Link href="/leases" className="text-sm font-medium text-foreground/70 underline-offset-4 hover:underline">Tous les baux</Link>
-      </header>
-
-      <section className="flex flex-1 flex-col gap-8 py-10">
+    <section className="flex flex-1 flex-col gap-8 py-10">
         {notice ? <p className="rounded-2xl border border-primary/15 bg-secondary px-5 py-4 text-sm text-foreground">{notice}</p> : null}
         {sp?.error ? <p className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">{sp.error}</p> : null}
 
@@ -224,12 +209,6 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
               ) : null}
               {pendingCredits > 0 ? (
                 <span className="text-muted-foreground"> · {formatFcfa(pendingCredits)} à confirmer</span>
-              ) : null}
-              {pendingDebits > 0 ? (
-                <span className="text-muted-foreground"> · {formatFcfa(pendingDebits)} en attente locataire</span>
-              ) : null}
-              {disputed > 0 ? (
-                <span className="text-warning"> · {formatFcfa(disputed)} en litige</span>
               ) : null}
             </p>
           ) : null}
@@ -292,116 +271,6 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             </div>
           )}
         </div>
-
-        {lease.status === "active" || charges.length > 0 ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">Charges &amp; frais</h2>
-              {lease.status === "active" ? (
-                <Link
-                  href={`/leases/${lease.id}/charges/new`}
-                  className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:border-primary"
-                >
-                  Ajouter une charge
-                </Link>
-              ) : null}
-            </div>
-
-            {charges.length === 0 ? (
-              <p className="text-sm leading-6 text-muted-foreground">
-                Réparations, gardiennage, frais partagés : ajoutez-les ici — votre locataire les
-                valide d&apos;un tap, et le compte du bail reste incontestable.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {charges.map((charge) => {
-                  const view = chargeStatusView[charge.status]
-                  const actionable = charge.status === "pending" || charge.status === "disputed"
-                  const waLink =
-                    actionable && tenant?.phone && charge.tenant_token
-                      ? buildChargeWaLink({
-                          phone: tenant.phone,
-                          tenantName: `${tenant.first_name} ${tenant.last_name}`,
-                          label: charge.label,
-                          amount: charge.amount,
-                          actionUrl: `${publicUrl}/transaction/${charge.tenant_token}`,
-                        })
-                      : null
-                  return (
-                    <article key={charge.id} className="space-y-3 rounded-2xl border border-border px-4 py-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="font-medium text-foreground">{charge.label}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatFcfa(charge.amount)} · {formatDate(charge.occurred_at)}
-                            {charge.due_date ? ` · à régler avant le ${formatDate(charge.due_date)}` : ""}
-                          </p>
-                        </div>
-                        <span className={badgeClasses(view.variant)}>{view.label}</span>
-                      </div>
-
-                      {charge.status === "disputed" && charge.contest_nature ? (
-                        <p className="rounded-xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-warning">
-                          Votre locataire {contestNatureLabels[charge.contest_nature]}
-                          {charge.contest_nature === "amount" && charge.contested_amount != null
-                            ? ` : ${formatFcfa(charge.contested_amount)}`
-                            : ""}
-                          {charge.tenant_comment ? ` — « ${charge.tenant_comment} »` : ""}. Vous
-                          pouvez la corriger, la retirer, ou en parler avec lui — Ranti documente,
-                          ne tranche pas.
-                        </p>
-                      ) : null}
-
-                      {actionable ? (
-                        <div className="flex flex-wrap items-center gap-3">
-                          {waLink ? (
-                            <a
-                              href={waLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex rounded-full border border-primary/30 bg-card px-4 py-3 text-sm font-semibold text-primary transition hover:border-primary"
-                            >
-                              Envoyer sur WhatsApp
-                            </a>
-                          ) : null}
-                          <Link
-                            href={`/leases/${lease.id}/charges/${charge.id}/corriger`}
-                            className="rounded-full border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:border-primary"
-                          >
-                            Corriger
-                          </Link>
-                          <details className="group">
-                            <summary className="cursor-pointer list-none rounded-full border border-border px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted">
-                              Retirer
-                            </summary>
-                            <form action={withdrawLedgerLine} className="mt-3 flex flex-wrap items-center gap-3">
-                              <input type="hidden" name="lease_id" value={lease.id} />
-                              <input type="hidden" name="id" value={charge.id} />
-                              <input
-                                name="reason"
-                                type="text"
-                                required
-                                maxLength={200}
-                                placeholder="Motif du retrait (reste dans l'historique)"
-                                className="min-w-0 flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-                              />
-                              <SubmitButton
-                                className="rounded-full border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-60"
-                                pendingLabel="Retrait…"
-                              >
-                                Confirmer le retrait
-                              </SubmitButton>
-                            </form>
-                          </details>
-                        </div>
-                      ) : null}
-                    </article>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        ) : null}
 
         {lease.status === "draft" || lease.status === "active" || reminders.length > 0 ? (
           <div className="space-y-4">
@@ -479,7 +348,23 @@ export default async function LeaseDetailPage({ params, searchParams }: LeaseDet
             ) : null}
           </div>
         ) : null}
-      </section>
-    </main>
+    </section>
+  )
+}
+
+// Squelette du contenu bail (mêmes tokens que loading.tsx : rien qui clignote
+// fort) : carte résumé + lignes d'échéances, affiché pendant le flux Suspense.
+function LeaseDetailSkeleton() {
+  return (
+    <section aria-busy className="flex flex-1 flex-col gap-8 py-10">
+      <div className="h-44 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      <div className="space-y-3">
+        <div className="h-5 w-44 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+        <div className="h-16 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+        <div className="h-16 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+        <div className="h-16 animate-pulse rounded-2xl border border-border bg-card motion-reduce:animate-none" />
+      </div>
+      <p className="sr-only">Chargement…</p>
+    </section>
   )
 }

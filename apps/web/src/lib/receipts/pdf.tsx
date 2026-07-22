@@ -106,6 +106,9 @@ export function ReceiptPdf({
             <Text style={s.label}>De</Text>
             <Text style={s.strong}>{landlord.first_name} {landlord.last_name}</Text>
             <Text style={s.muted}>Propriétaire</Text>
+            {landlord.address || landlord.city ? (
+              <Text style={s.muted}>{[landlord.address, landlord.city].filter(Boolean).join(", ")}</Text>
+            ) : null}
             {landlord.phone ? <Text style={s.muted}>{landlord.phone}</Text> : null}
           </View>
           <View style={{ width: "48%" }}>
@@ -113,6 +116,9 @@ export function ReceiptPdf({
             <Text style={s.strong}>{snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}` : "Locataire"}</Text>
             <Text style={s.muted}>Locataire</Text>
             {snap.unit ? <Text style={s.muted}>{snap.unit.name}</Text> : null}
+            {snap.property && (snap.property.address || snap.property.city) ? (
+              <Text style={s.muted}>{[snap.property.address, snap.property.city].filter(Boolean).join(", ")}</Text>
+            ) : null}
           </View>
         </View>
 

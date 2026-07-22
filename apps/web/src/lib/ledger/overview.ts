@@ -22,7 +22,7 @@ export type LeaseDebtRow = {
   expected: number
   /** Dû certain total = overdue + expected. */
   outstanding: number
-  /** Débits affirmés en attente de validation locataire (charges variables). */
+  /** Dormant depuis le retrait des charges (ADR-026) : reste à 0. */
   pendingDebits: number
   /** Crédits affirmés à confirmer (brouillons, déclarations locataire). */
   pendingCredits: number
@@ -103,7 +103,6 @@ export function describeLeaseDebtRow(row: LeaseDebtRow): string {
   const parts: string[] = []
   if (row.overdue > 0) parts.push("en retard")
   if (row.expected > 0) parts.push("attendu")
-  if (row.pendingDebits > 0) parts.push("charge en attente")
   if (row.pendingCredits > 0) parts.push("déclaration à confirmer")
   if (row.disputed > 0) parts.push("en litige")
   return parts.join(" · ")

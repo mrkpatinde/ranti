@@ -1,7 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 
@@ -31,8 +31,7 @@ export async function generateReceipt(formData: FormData) {
     redirect(`/dashboard?error=${encodeURIComponent(message)}`)
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/receipts")
+  revalidateMoneySurfaces()
   redirect(`/receipts/${receiptId}?notice=receipt_generated`)
 }
 
@@ -62,9 +61,7 @@ export async function cancelReceipt(formData: FormData) {
     redirect(`/receipts/${id}?error=${encodeURIComponent("Annulation impossible. Réessayez.")}`)
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/collections")
-  revalidatePath("/receipts")
+  revalidateMoneySurfaces()
   redirect(`/receipts/${id}?notice=receipt_cancelled`)
 }
 
@@ -95,7 +92,6 @@ export async function replaceReceipt(formData: FormData) {
     redirect(`/receipts/${id}?error=${encodeURIComponent(message)}`)
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/receipts")
+  revalidateMoneySurfaces()
   redirect(`/receipts/${newId}?notice=receipt_replaced`)
 }
