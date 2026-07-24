@@ -3,7 +3,52 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
-## [0.3.35.0] - 2026-07-24
+## [0.3.36.0] - 2026-07-24
+
+### Added
+
+- **Les tarifs sont affichés, l'année en tête.** La page d'accueil montre la
+  grille complète : Découverte gratuit pour toujours (1 logement), Starter
+  49 000 F par an (1 à 5 logements), Pro 149 000 F par an (6 à 20), chaque
+  palier annuel offrant 2 mois par rapport au mensuel, qui reste possible sans
+  engagement. Un équivalent en euros (parité fixe) parle au bailleur de la
+  diaspora.
+- **Toute quittance se vérifie depuis sa seule référence.** Sur la nouvelle
+  page « Vérifier une quittance », propriétaire comme locataire saisissent le
+  numéro imprimé (RNT-année-numéro) et obtiennent le verdict d'authenticité.
+  Par confidentialité, ce chemin n'affiche ni nom, ni logement, ni montant, ne
+  divulgue aucune empreinte, et s'efface derrière le lien ou le QR du document
+  en cas de numéros identiques chez deux propriétaires.
+- **La quittance affiche le moyen de paiement.** Le document partagé au
+  locataire (page et PDF) précise désormais Espèces, Mobile Money ou Virement
+  et la date de réception, comme l'exige l'usage du bail d'habitation
+  (Loi n° 2022-30).
+- **Une page « À propos »** présente ce que fait Ranti, sa posture
+  non-custodiale et l'éditeur (WI'SOFT SOLUTIONS), reprise dans le plan du
+  site.
+
+### Changed
+
+- **La page d'accueil adopte la structure Moneco.** Héro centré avec le
+  registre posé sur une colline pastel, « Comment ça marche » sur fond encre,
+  questions fréquentes en cartes arrondies, et un pied de page en colonnes
+  (Produit, Ressources, Entreprise) aux liens tous réels ; Blog et Carrières y
+  sont annoncés « Bientôt ». La raison sociale vit sur « À propos », le pied de
+  page reste léger.
+
+### Fixed
+
+- **Un verdict de vérification ne peut plus être resservi hors-ligne.** Les
+  pages de vérification sont exclues du cache de l'application installée : sans
+  réseau, elles répondent « service indisponible » plutôt que d'afficher le
+  verdict d'une autre référence.
+- **Les dates de preuve ne glissent plus d'un jour.** Les périodes réglées
+  s'affichaient la veille sur tout appareil à l'ouest de Greenwich ; page
+  locataire, PDF et vérifications affichent désormais la date exacte partout.
+- Les liens du menu (Comment ça marche, Tarifs, Questions) ne cachent plus le
+  titre de section sous l'en-tête collant ; le lecteur d'écran annonce le
+  résultat d'une vérification ; recherche par référence accélérée par un index
+  dédié.
 
 ### Added
 
