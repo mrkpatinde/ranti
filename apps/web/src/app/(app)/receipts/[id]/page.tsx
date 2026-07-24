@@ -36,8 +36,16 @@ const ackBadge: Record<TenantAck, { label: string; variant: BadgeVariant }> = {
   disputed: { label: "Contesté par le locataire", variant: "error" },
 }
 
+// timeZone UTC épinglée : les périodes du snapshot sont des dates pures
+// (« 2026-07-01 ») parsées en minuit UTC ; sans épinglage, un runtime à
+// l'ouest d'UTC afficherait la veille et l'écran divergerait du PDF.
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 function formatPeriod(start: string, end: string): string {
