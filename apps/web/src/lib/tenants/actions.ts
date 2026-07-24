@@ -90,8 +90,6 @@ export async function updateTenant(formData: FormData) {
   // Le nom du locataire s'affiche sur les quittances, le journal et les
   // relances : un renommage doit rafraîchir tout le flux argent.
   revalidateMoneySurfaces()
-  revalidatePath("/tenants")
-  revalidatePath(`/tenants/${id}`)
   redirect(`/tenants/${id}?notice=tenant_updated`)
 }
 

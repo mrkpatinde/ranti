@@ -62,7 +62,6 @@ export async function updateUnit(formData: FormData) {
 
   // Le nom du logement s'affiche sur les surfaces argent : rafraîchir tout.
   revalidateMoneySurfaces()
-  revalidatePath(`/units/${id}`)
   redirect(`/units/${id}?notice=unit_updated`)
 }
 
