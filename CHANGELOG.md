@@ -40,8 +40,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions
 
 - **Un verdict de vérification ne peut plus être resservi hors-ligne.** Les
   pages de vérification sont exclues du cache de l'application installée : sans
-  réseau, elles répondent « service indisponible » plutôt que d'afficher le
-  verdict d'une autre référence.
+  réseau, la vérification échoue franchement plutôt que d'afficher le verdict
+  d'une autre référence.
 - **Les dates de preuve ne glissent plus d'un jour.** Les périodes réglées
   s'affichaient la veille sur tout appareil à l'ouest de Greenwich ; page
   locataire, PDF et vérifications affichent désormais la date exacte partout.

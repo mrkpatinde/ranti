@@ -152,16 +152,17 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
   énumérable ne renvoie ni nom, ni logement, ni montant, ni empreinte, et
   l'homonymie inter-propriétaires renvoie vers le lien/QR du document. Index
   dédié sur `receipt_number`. `/verifier` exclu du cache PWA (fail closed :
-  hors réseau, « service indisponible » plutôt qu'un verdict resservi).
+  hors réseau, échec réseau franc plutôt qu'un verdict resservi).
 
 - Moyen de paiement sur la quittance partagée (v0.3.36.0) : la page locataire
   `/recu/[token]` et le PDF précisent Espèces / Mobile Money / Virement et la
   date de réception (usage du bail d'habitation, Loi n° 2022-30). Vue token
   étendue (`payment_method`, `received_at`, migration `20260724100000`) ;
   libellés centralisés dans `lib/receipts/labels.ts` (PDF, page locataire,
-  page bailleur, /verifier). Dates de preuve stables sur tout fuseau (fin du
-  glissement d'un jour à l'ouest de Greenwich). 3 migrations appliquées en
-  prod.
+  page bailleur, /verifier). Dates de preuve stables sur tout fuseau — page
+  locataire, PDF et vérifications (la page reçu côté bailleur,
+  `app/(app)/receipts/[id]`, reste à aligner : suivi). 3 migrations appliquées
+  en prod.
 
 ## Recent (2026-07-16)
 

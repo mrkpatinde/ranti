@@ -2,7 +2,7 @@
 
 ## Statut
 
-Version 1.7 (2026-07-24, v0.3.36.0) : vérification publique par numéro — RPC `verify_receipt_by_number` (SECURITY DEFINER, accordée à `anon`, verdict calculé côté SQL, ni identité ni montant ni empreinte dans le retour), `get_receipt_by_token` étendue (`payment_method`, `received_at`), index sur `receipts(receipt_number)` (migrations `20260724100000`, `20260724101000`, `20260724140000`, appliquées en prod).
+Version 1.7 (2026-07-24, v0.3.36.0) : vérification publique par numéro — RPC `verify_receipt_by_number` (SECURITY DEFINER, accordée à `anon` et `authenticated`, verdict calculé côté SQL, ni identité ni montant ni empreinte dans le retour), `get_receipt_by_token` étendue (`payment_method`, `received_at`), index sur `receipts(receipt_number)` (migrations `20260724100000`, `20260724101000`, `20260724140000`, appliquées en prod).
 
 Version 1.6 (2026-07-18, v0.3.29.0) : colonnes de prise en main et de relance sur `landlords` (`onboarding_status`, `reminders_enabled`, `reminder_channel`, `reminder_moment`) ; référence de quittance `RNT-AAAA-NNNN` (migrations `20260717130000`, `20260718120000`, `20260718130000`, `20260718160000`, appliquées en prod).
 
