@@ -23,8 +23,16 @@ const contestNatureLabels: Record<string, string> = {
   not_paid: "Paiement contesté",
 }
 
+// timeZone UTC épinglée : périodes du snapshot en dates pures (minuit UTC) ;
+// sans épinglage, un runtime à l'ouest d'UTC imprimerait la veille sur le PDF,
+// qui est LE document de preuve (Loi 2022-30).
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 const s = StyleSheet.create({

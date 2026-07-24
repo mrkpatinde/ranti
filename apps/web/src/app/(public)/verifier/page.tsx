@@ -51,6 +51,7 @@ function SearchForm({ defaultValue, invalid }: { defaultValue?: string; invalid?
         placeholder="RNT-2026-0001"
         autoComplete="off"
         spellCheck={false}
+        maxLength={16}
         aria-invalid={invalid || undefined}
         aria-describedby={defaultValue ? "verify-result" : undefined}
         className="h-[52px] flex-1 rounded-full border border-border bg-card px-6 font-mono text-sm uppercase tracking-wide text-foreground placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -138,11 +139,18 @@ export default async function VerifySearchPage({
       {result !== null &&
         typeof result === "object" &&
         result.match_count === 1 &&
-        result.receipt_number && (
+        (result.receipt_number && result.integrity ? (
           <div id="verify-result" role="status">
             <VerdictCard row={result} />
           </div>
-        )}
+        ) : (
+          // Fail closed : une ligne « trouvée » sans verdict signifie un
+          // contrat RPC décalé (migration partielle) ; jamais de verdict par
+          // défaut sur une surface de preuve.
+          <p id="verify-result" role="alert" className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
+            Le service de vérification est momentanément indisponible. Réessayez plus tard.
+          </p>
+        ))}
 
       <p className="mt-8 text-xs leading-5 text-muted-foreground">
         Par confidentialité, cette recherche par référence n&apos;affiche ni nom, ni
