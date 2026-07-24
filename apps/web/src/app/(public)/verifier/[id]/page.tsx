@@ -2,10 +2,8 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { RantiLogo } from "@/components/ranti-logo"
 import { createClient } from "@/lib/supabase/server"
-import {
-  receiptIntegrityVerdict,
-  type ReceiptIntegrityState,
-} from "@/lib/receipts/integrity"
+import { receiptIntegrityVerdict } from "@/lib/receipts/integrity"
+import { kindLabels, STATE_BADGE, formatVerifyDate as formatDate } from "../_shared"
 
 // Vérification publique d'un document (cible du QR imprimé sur le PDF).
 // Aucune authentification : n'expose que l'authenticité, jamais les montants.
@@ -36,26 +34,7 @@ type IntegrityRow = {
   computed_fingerprint: string | null
 }
 
-const kindLabels: Record<string, string> = {
-  quittance: "Quittance de loyer",
-  receipt: "Reçu de paiement",
-}
-
-// Un libellé + un style de bandeau par état d'intégrité. Palette tokens
-// uniquement (DESIGN.md) : olive/secondary pour l'intègre, destructive pour
-// l'altéré/annulé, muted neutre pour le non scellé.
-const STATE_BADGE: Record<ReceiptIntegrityState, { label: string; className: string }> = {
-  verified: { label: "Intégrité vérifiée", className: "bg-secondary text-foreground ring-1 ring-primary/20" },
-  unsealed: { label: "Émis par Ranti", className: "bg-muted text-muted-foreground" },
-  tampered: { label: "Intégrité compromise", className: "bg-destructive/10 text-destructive ring-1 ring-destructive/30" },
-  cancelled: { label: "Document annulé", className: "bg-destructive/10 text-destructive ring-1 ring-destructive/30" },
-}
-
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
-}
 
 export default async function VerifyReceiptPage({ params }: VerifyPageProps) {
   const { id } = await params
