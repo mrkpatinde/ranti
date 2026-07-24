@@ -62,11 +62,18 @@ describe("robots", () => {
   const r = robots()
 
   it("autorise le public", () => {
-    expect(r.rules).toMatchObject({ userAgent: "*", allow: "/" })
+    expect(r.rules).toMatchObject({ userAgent: "*" })
+    expect(r.rules).toMatchObject({ allow: ["/", "/verifier/demo"] })
   })
 
-  it("bloque les quittances par jeton (données locataire nominatives)", () => {
-    expect(r.rules).toMatchObject({ disallow: ["/recu/"] })
+  it("sort de l'index les surfaces nominatives (quittances et vérifications réelles)", () => {
+    expect(r.rules).toMatchObject({ disallow: ["/recu/", "/verifier/"] })
+  })
+
+  it("garde /verifier/demo autorisé malgré le blocage du préfixe", () => {
+    const rules = r.rules as { allow: string[]; disallow: string[] }
+    expect(rules.allow).toContain("/verifier/demo")
+    expect(rules.disallow).toContain("/verifier/")
   })
 
   it("sitemap et host en apex", () => {

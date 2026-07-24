@@ -1,6 +1,5 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
@@ -224,6 +223,8 @@ export async function updateLease(formData: FormData) {
     err("Impossible d'enregistrer. Réessayez.")
   }
 
-  revalidatePath(`/leases/${id}`)
+  // updateLease écrit monthly_rent_amount : c'est une écriture d'argent, même
+  // bornée aux brouillons. Purge racine comme les autres, aucune exception.
+  revalidateMoneySurfaces()
   redirect(`/leases/${id}?notice=lease_updated`)
 }

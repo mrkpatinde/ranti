@@ -54,7 +54,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn().mockResolvedValue({ from, rpc }),
 }))
 
-import { activateLease, createLease, endLease } from "../actions"
+import { activateLease, createLease, endLease, updateLease } from "../actions"
 
 // Chaîne Supabase minimale : couvre insert().select().single() et
 // update().eq().eq().eq() en restant awaitable au dernier maillon.
@@ -153,6 +153,30 @@ describe("activateLease", () => {
     const url = await capture(() => activateLease(form({ id: ID })))
     expect(rpc).toHaveBeenCalledWith("activate_lease", { p_lease_id: ID })
     expect(url).toBe(`/leases/${ID}?notice=lease_activated`)
+    expect(revalidatePath.mock.calls).toEqual([["/", "layout"]])
+  })
+})
+
+describe("updateLease", () => {
+  const edited = {
+    id: ID,
+    monthly_rent_amount: "120000",
+    due_day: "5",
+    start_date: "2026-01-01",
+  }
+
+  it("bail activé : modification refusée, aucune purge", async () => {
+    getLease.mockResolvedValue({ id: ID, status: "active" })
+    const url = await capture(() => updateLease(form(edited)))
+    expect(url).toContain(`/leases/${ID}?error=`)
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+
+  it("succès : purge racine, car monthly_rent_amount est une écriture d'argent", async () => {
+    getLease.mockResolvedValue({ id: ID, status: "draft" })
+    from.mockReturnValue(chain({ error: null }))
+    const url = await capture(() => updateLease(form(edited)))
+    expect(url).toBe(`/leases/${ID}?notice=lease_updated`)
     expect(revalidatePath.mock.calls).toEqual([["/", "layout"]])
   })
 })
