@@ -51,6 +51,14 @@ const NATURE_LABEL: Record<string, string> = {
   not_paid: "Paiement contesté",
 };
 
+// Libellés des moyens de paiement (mêmes clés que le PDF, lib/receipts/pdf).
+const METHOD_LABEL: Record<string, string> = {
+  cash: "Espèces",
+  mobile_money: "Mobile Money",
+  bank_transfer: "Virement",
+  other: "Autre",
+};
+
 export default async function RecuPage({
   params,
   searchParams,
@@ -265,6 +273,22 @@ export default async function RecuPage({
                 </span>
                 <span className="text-right text-sm font-medium text-foreground">
                   {[receipt.property_address, receipt.property_city].filter(Boolean).join(", ")}
+                </span>
+              </div>
+            )}
+            {/* Moyen de paiement + date de réception (Loi 2022-30, ADR-027) */}
+            {receipt.payment_method && (
+              <div className="flex justify-between gap-4">
+                <span className="text-[0.7rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                  Moyen de paiement
+                </span>
+                <span className="text-right text-sm font-medium text-foreground">
+                  {METHOD_LABEL[receipt.payment_method] ?? receipt.payment_method}
+                  {receipt.received_at ? (
+                    <span className="block text-xs font-normal text-muted-foreground">
+                      reçu le {formatDate(receipt.received_at)}
+                    </span>
+                  ) : null}
                 </span>
               </div>
             )}

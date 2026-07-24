@@ -69,6 +69,8 @@ export type ReceiptByToken = {
   property_city: string | null
   property_address: string | null
   allocations: Array<{ period_start: string; period_end: string; amount_allocated: number }>
+  payment_method: string | null
+  received_at: string | null
   tenant_ack: TenantAck
   tenant_read_at: string | null
   tenant_certified_at: string | null

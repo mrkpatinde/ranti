@@ -70,6 +70,18 @@ export async function GET(
         row.property_city || row.property_address
           ? { city: row.property_city, address: row.property_address }
           : undefined,
+      // Moyen de paiement + date de réception (Loi 2022-30, ADR-027) : seuls
+      // ces deux champs sont affichés ; le montant de la réception n'est pas
+      // dans la vue token, le total du reçu en tient lieu.
+      reception:
+        row.payment_method && row.received_at
+          ? {
+              amount_received: row.total_amount,
+              currency: row.currency,
+              payment_method: row.payment_method,
+              received_at: row.received_at,
+            }
+          : undefined,
       allocations: row.allocations,
     },
     tenant_ack: row.tenant_ack,
