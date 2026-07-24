@@ -1,6 +1,6 @@
 # Ranti — Build Status
 
-Dernière mise à jour : 2026-07-24 (table des versions complétée jusqu'à v0.3.35.0 ; les mesures de la section 0 datent du 2026-07-17)
+Dernière mise à jour : 2026-07-24 (table des versions complétée jusqu'à v0.3.36.0 ; les mesures de la section 0 datent du 2026-07-17)
 
 > Les sections 1 à 3 bis décrivent l'état au **2026-07-03** et sont conservées
 > comme trace historique. L'état courant est en **section 0**.
@@ -32,8 +32,9 @@ Livré depuis le 2026-07-03 (non couvert par les sections ci-dessous) :
 | v0.3.29.0 | **FirstRun câblé à la base** (`/first-run` : bail, paiement, quittance réels), colonnes de relance bailleur + référence `RNT-AAAA-NNNN` (prod), clause notariale + montant en toutes lettres, mode sombre supprimé, CGU/confidentialité éditeur WI'SOFT SOLUTIONS |
 | v0.3.30.0–v0.3.32.0 | Voir `CHANGELOG.md` : consentement à la quittance électronique, programmation de relances (« Programmer » / « Relancer maintenant »), relances des charges validées, présentation Ranti au premier message, retrait du rail de paiement des écrans |
 | v0.3.33.0 | **Navigation quasi instantanée** : streaming Suspense + squelettes au gabarit de chaque écran, cache client 30 s (`staleTimes`) purgé par `revalidateMoneySurfaces` (`lib/cache/money.ts`) sur les écritures d'argent, session validée localement dans le proxy (`getClaims` ; plus d'appel Auth systématique par navigation, repli `getUser` sur jeton legacy HS256), lectures dédupliquées par render (React `cache()`), annulation optimiste d'une relance programmée |
-| v0.3.35.0 | **Adresse canonique du site déclarée** : apex `monranti.com` (`metadataBase` + `alternates.canonical`), `sitemap.xml` et `robots.txt` ; quittances (`/recu/`) et vérifications réelles (`/verifier/<id>`) hors indexation, `/verifier/demo` conservée. **Contrat de purge corrigé** : `revalidateMoneySurfaces` applique un `revalidatePath("/", "layout")` unique (seul levier qui purge le cache CLIENT), `updateLease` rattaché au contrat, appels par chemin redondants retirés. Aucune migration |
 | v0.3.34.0 | **Ranti rent-only** (retrait des charges variables, ADR-026 ; objets DB dormants) ; **quittance conforme au bail d'habitation** (Loi 2022-30 art. 67, adresse bailleur, ADR-027) ; **refonte minimaliste** (chiffre héro, boutons ronds, barre d'onglets mobile, réglages) ; preuve en avant à la prise en main. Migrations `20260722120000` + `20260719120000` + `20260719130000` à appliquer au déploiement |
+| v0.3.35.0 | **Adresse canonique du site déclarée** : apex `monranti.com` (`metadataBase` + `alternates.canonical`), `sitemap.xml` et `robots.txt` ; quittances (`/recu/`) et vérifications réelles (`/verifier/<id>`) hors indexation, `/verifier/demo` conservée. **Contrat de purge corrigé** : `revalidateMoneySurfaces` applique un `revalidatePath("/", "layout")` unique (seul levier qui purge le cache CLIENT), `updateLease` rattaché au contrat, appels par chemin redondants retirés. Aucune migration |
+| v0.3.36.0 | **Landing Moneco + tarifs B-1 annuel d'abord** (équivalent euro diaspora, footer colonnes, page `/a-propos`) ; **vérification publique par référence** (`/verifier`, RPC `verify_receipt_by_number` durcie : verdict côté SQL, ni nom ni montant ni empreinte sur ce chemin énumérable) ; **moyen de paiement sur la quittance partagée** (page `/recu/[token]` + PDF, Loi 2022-30) ; `/verifier` exclu du cache PWA (fail closed), dates de preuve stables tous fuseaux. Migrations `20260724100000`/`101000`/`140000` **appliquées en prod** |
 
 Écarts ouverts au 2026-07-17 :
 

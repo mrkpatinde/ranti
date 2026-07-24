@@ -50,6 +50,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions
   résultat d'une vérification ; recherche par référence accélérée par un index
   dédié.
 
+## [0.3.35.0] - 2026-07-24
+
 ### Added
 
 - **Le site déclare enfin son adresse unique.** Google voyait quatre versions de

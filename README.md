@@ -4,7 +4,7 @@ Ranti est le registre de loyer actif des propriétaires africains.
 
 ## Statut
 
-Vérifié le 2026-07-17 contre le code (v0.3.5.2) ; complété le 2026-07-18 (v0.3.29.0 : prise en main FirstRun, référence RNT, note ADR-024).
+Vérifié le 2026-07-17 contre le code (v0.3.5.2) ; complété le 2026-07-18 (v0.3.29.0 : prise en main FirstRun, référence RNT, note ADR-024) ; complété le 2026-07-24 (v0.3.36.0 : vérification par référence, moyen de paiement sur la quittance, landing tarifs B-1).
 
 La boucle propriétaire est livrée de bout en bout : propriétés, logements, locataires, baux, génération des échéances, encaissements avec allocations, reçus/quittances, audit logs.
 
@@ -85,11 +85,12 @@ Livré :
 - journal de bord chronologique (`app/(app)/journal/`) ;
 - briques de relance (cron + gabarits SMS) — **dormantes**, voir « Statut » ;
 - confirmation locataire par lien public ;
-- vérification publique des quittances (`/verifier/[id]`, exemple statique `/verifier/demo`) ;
+- vérification publique des quittances : par lien/QR (`/verifier/[id]`) et, depuis v0.3.36.0, par référence `RNT-AAAA-NNNN` (`/verifier`, RPC `verify_receipt_by_number` — chemin énumérable donc volontairement pauvre : ni nom, ni logement, ni montant, ni empreinte) ; exemple statique `/verifier/demo` ;
 - prise en main guidée FirstRun : rail « Premiers pas » sur le tableau de bord (v0.3.28.0) et parcours `/first-run` câblé à la base (bail, paiement et quittance réels, statut `landlords.onboarding_status` ; v0.3.29.0, voir `docs/welcome-flow.md`) ;
 - réglages de relance par bailleur persistés (`reminders_enabled`, canal, moment) : persistance seule, la file de relance ne les applique pas encore ;
 - référence de quittance `RNT-AAAA-NNNN` (séquence annuelle par bailleur) et clause notariale avec montant en toutes lettres, identiques sur les 4 surfaces (page publique, PDF, page bailleur, modale FirstRun) ;
-- pages légales enrichies (CGU, confidentialité ; éditeur WI'SOFT SOLUTIONS) et mentions société dans le pied de page ;
+- moyen de paiement (Espèces / Mobile Money / Virement) et date de réception sur la quittance partagée au locataire (page `/recu/[token]` + PDF, usage du bail d'habitation Loi n° 2022-30 ; libellés centralisés dans `lib/receipts/labels.ts`) ;
+- pages légales enrichies (CGU, confidentialité ; éditeur WI'SOFT SOLUTIONS) et page publique « À propos » (`/a-propos`) — depuis v0.3.36.0 la raison sociale vit là, le pied de page landing (colonnes Produit / Ressources / Entreprise) reste léger ;
 - système de design (`DESIGN.md`) appliqué aux écrans ; palette claire seule depuis v0.3.29.0 (pas de mode sombre, `design_handoff_first_run/` fait foi).
 
 À compléter :
