@@ -85,9 +85,9 @@ export async function createLease(formData: FormData) {
     err("Impossible de créer le bail. Réessayez.")
   }
 
-  // Un bail créé touche tout le flux argent ; l'arbre Baux (lieux) aussi.
-  revalidateMoneySurfaces({ leaseId: data!.id })
-  revalidatePath("/properties")
+  // Un bail créé touche tout le flux argent (dont l'arbre Baux/lieux) : purge
+  // globale via le helper central.
+  revalidateMoneySurfaces()
   redirect(`/leases/${data!.id}?notice=lease_created`)
 }
 
@@ -125,7 +125,7 @@ export async function activateLease(formData: FormData) {
   }
 
   // L'activation génère les échéances : tout le flux argent doit se rafraîchir.
-  revalidateMoneySurfaces({ leaseId: id })
+  revalidateMoneySurfaces()
   redirect(`/leases/${id}?notice=lease_activated`)
 }
 
@@ -167,7 +167,7 @@ export async function endLease(formData: FormData) {
     redirect(`/leases/${id}?error=${encodeURIComponent("Impossible de terminer le bail. Réessayez.")}`)
   }
 
-  revalidateMoneySurfaces({ leaseId: id })
+  revalidateMoneySurfaces()
   redirect(`/leases/${id}?notice=lease_ended`)
 }
 

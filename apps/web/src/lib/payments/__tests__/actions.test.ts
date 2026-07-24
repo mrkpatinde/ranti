@@ -118,9 +118,7 @@ describe("verifyPaymentTransaction (ADR-018 v2 : validation propriétaire)", () 
     rpc.mockResolvedValue({ data: null, error: null })
     const url = await runAndCaptureRedirect(form({ transaction_id: TX }))
     expect(url).toBe("/collections?notice=payment_transaction_rejected")
-    expect(revalidatePath).toHaveBeenCalledWith("/dashboard")
-    expect(revalidatePath).toHaveBeenCalledWith("/collections")
-    expect(revalidatePath).toHaveBeenCalledWith("/receipts")
+    expect(revalidatePath).toHaveBeenCalledWith("/", "layout")
   })
 
   it("succès : notice verified, RPC appelée avec le bon paramètre", async () => {
@@ -133,18 +131,10 @@ describe("verifyPaymentTransaction (ADR-018 v2 : validation propriétaire)", () 
     expect(rpc).toHaveBeenCalledWith("verify_payment_transaction", {
       p_transaction_id: TX,
     })
-    // Toutes les surfaces du flux argent sont purgées (cache client 30 s) :
-    // dashboard, encaissements, quittances, relances, journal, liste et
-    // fiches bail (motif de segment dynamique).
-    expect(revalidatePath.mock.calls).toEqual([
-      ["/dashboard"],
-      ["/collections"],
-      ["/receipts"],
-      ["/reminders"],
-      ["/journal"],
-      ["/leases"],
-      ["/(app)/leases/[id]", "page"],
-    ])
+    // Purge globale après écriture d'argent : un seul revalidatePath racine
+    // ("/", "layout"), seul levier qui purge aussi le cache client (voir
+    // lib/cache/money.ts).
+    expect(revalidatePath.mock.calls).toEqual([["/", "layout"]])
   })
 
   it("session exigée : requireLandlordProfile appelé avant toute lecture", async () => {

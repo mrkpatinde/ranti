@@ -1,25 +1,24 @@
 import { revalidatePath } from "next/cache"
 
-// Surfaces qui LISENT un mouvement d'argent. Avec le cache client (staleTimes
-// 30 s), toute écriture d'argent doit purger l'ENSEMBLE du flux, sinon un écran
-// affiche des chiffres périmés jusqu'à 30 s. Next 16 rafraîchit encore toutes
-// les pages visitées après une server action, mais la doc annonce que ce
-// comportement sera restreint au chemin exact ; ce helper central garantit
-// qu'aucune surface n'est oubliée le jour où la restriction s'applique.
+// Purge après toute écriture d'argent (dashboard, encaissements, quittances,
+// relances, journal, baux). Un seul levier, volontairement large.
 //
-// "/(app)/leases/[id]" + type "page" : purge toutes les instances du segment
-// dynamique (fiches bail). Passer { leaseId } ajoute aussi le chemin littéral
-// pour cibler la fiche concernée.
+// Pourquoi revalidatePath("/", "layout") et non une liste de chemins : le cache
+// CLIENT (Router Cache, créé par staleTimes:30 dans next.config) n'est purgé de
+// façon documentée QUE par revalidatePath("/", "layout") ("will purge the
+// Client Cache", doc Next). Une liste de revalidatePath par chemin ne purge que
+// les caches SERVEUR ; le refresh client observé aujourd'hui vient d'un effet
+// global aux Server Actions que la doc annonce comme temporaire. Énumérer les
+// surfaces ne protégerait donc PAS le cache client le jour où cet effet est
+// restreint, alors que le levier racine, lui, reste correct. Il auto-couvre en
+// prime toute nouvelle surface argent : rien à maintenir ici.
 //
-// NON-"use server" (fonction synchrone) : ce module est importé par les
-// server actions, pas exposé comme action lui-même.
-export function revalidateMoneySurfaces(opts?: { leaseId?: string }) {
-  revalidatePath("/dashboard")
-  revalidatePath("/collections")
-  revalidatePath("/receipts")
-  revalidatePath("/reminders")
-  revalidatePath("/journal")
-  revalidatePath("/leases")
-  revalidatePath("/(app)/leases/[id]", "page")
-  if (opts?.leaseId) revalidatePath(`/leases/${opts.leaseId}`)
+// Coût assumé : invalide aussi le cache des pages hors argent ; elles se
+// recalculent au prochain passage. Acceptable pour un registre de loyer où la
+// fraîcheur des montants prime sur la réutilisation du cache de navigation.
+//
+// NON-"use server" (fonction synchrone) : importé par les server actions, pas
+// exposé comme action lui-même.
+export function revalidateMoneySurfaces() {
+  revalidatePath("/", "layout")
 }
