@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { RantiLogo } from "@/components/ranti-logo"
 import { createClient } from "@/lib/supabase/server"
-import { receiptIntegrityVerdict } from "@/lib/receipts/integrity"
+import type { ReceiptIntegrityState } from "@/lib/receipts/integrity"
 import { kindLabels, STATE_BADGE, formatVerifyDate, REF_PATTERN } from "./_shared"
 
 // Recherche publique d'un document par sa RÉFÉRENCE (RNT-AAAA-NNNN), pour le
@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+// Contrat durci (migration 20260724140000) : le verdict est calculé côté SQL,
+// ni empreintes ni tenant_ack ne sortent par ce chemin énumérable.
 type VerifyByNumberRow = {
   match_count: number
   receipt_number: string | null
@@ -27,9 +29,7 @@ type VerifyByNumberRow = {
   status: string | null
   issued_at: string | null
   periods: Array<{ period_start: string; period_end: string }> | null
-  tenant_ack: string | null
-  stored_fingerprint: string | null
-  computed_fingerprint: string | null
+  integrity: ReceiptIntegrityState | null
 }
 
 // invalid + describedBy : après le rechargement GET, le lecteur d'écran doit
@@ -158,14 +158,10 @@ export default async function VerifySearchPage({
 }
 
 function VerdictCard({ row }: { row: VerifyByNumberRow }) {
-  const state = receiptIntegrityVerdict({
-    status: row.status ?? "issued",
-    storedFingerprint: row.stored_fingerprint,
-    computedFingerprint: row.computed_fingerprint,
-  })
+  // Le verdict arrive calculé du SQL ; par confidentialité ce chemin
+  // n'affiche pas d'empreinte (elle reste sur /verifier/[id], non énumérable).
+  const state: ReceiptIntegrityState = row.integrity ?? "unsealed"
   const badge = STATE_BADGE[state]
-  const showFingerprint =
-    row.stored_fingerprint && (state === "verified" || state === "tampered")
 
   return (
     <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-[0_14px_50px_-18px_rgba(41,41,41,0.22)]">
@@ -222,12 +218,6 @@ function VerdictCard({ row }: { row: VerifyByNumberRow }) {
         </p>
       )}
 
-      {showFingerprint ? (
-        <p className="mt-4 break-all text-xs leading-5 text-muted-foreground">
-          Empreinte SHA-256 scellée :{" "}
-          <span className="font-mono text-[0.72rem] text-foreground">{row.stored_fingerprint}</span>
-        </p>
-      ) : null}
     </div>
   )
 }
