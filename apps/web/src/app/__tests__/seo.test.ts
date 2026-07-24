@@ -24,6 +24,7 @@ describe("sitemap", () => {
   it("ne liste que les pages publiques indexables", () => {
     expect(entries.map((e) => e.url)).toEqual([
       "https://monranti.com",
+      "https://monranti.com/a-propos",
       "https://monranti.com/conditions",
       "https://monranti.com/confidentialite",
     ])
