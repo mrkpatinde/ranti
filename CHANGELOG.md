@@ -3,6 +3,39 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.35.0] - 2026-07-24
+
+### Added
+
+- **Le site déclare enfin son adresse unique.** Google voyait quatre versions de
+  la page d'accueil (avec et sans `www`, en `http` et en `https`) et en choisissait
+  une lui-même. Le site annonce désormais `monranti.com` comme adresse de
+  référence, accompagnée d'un plan du site et d'un fichier d'instructions pour les
+  moteurs de recherche. Les quittances et les vérifications portant sur un
+  document réel sont explicitement tenues hors des résultats de recherche, parce
+  qu'elles affichent un nom de locataire et un montant. La page de démonstration,
+  elle, reste visible.
+
+### Fixed
+
+- **Les montants ne restent plus affichés périmés après une écriture.** Depuis la
+  mise en cache des pages pendant 30 secondes, seul un comportement transitoire de
+  Next masquait le problème, et sa documentation annonce son retrait. Toute
+  écriture d'argent rafraîchit maintenant l'ensemble des écrans de façon garantie.
+  La modification du loyer d'un bail en brouillon, qui échappait entièrement au
+  dispositif, y est rattachée.
+- Fenêtre de révocation d'une session à distance : la note interne annonçait une
+  heure alors que le projet la borne à quinze minutes.
+
+### Changed
+
+- Les cinq écritures d'argent (création, activation, modification et fin d'un
+  bail, génération des échéances, création en lot) ainsi que la déclaration
+  d'adresse du site sont désormais couvertes par des tests, pour que ces
+  garanties ne puissent plus disparaître sans que rien ne le signale.
+- Retrait des rafraîchissements devenus redondants sur le locataire, le logement,
+  le lieu et l'allocation d'un encaissement. Aucun effet visible.
+
 ## [0.3.34.0] - 2026-07-22
 
 ### Added
