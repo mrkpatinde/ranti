@@ -1,6 +1,5 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { readRequestId } from "@/lib/idempotency"
@@ -160,10 +159,6 @@ export async function allocateReception(formData: FormData) {
   if (error) back(collectionErrorMessage(error.message))
 
   revalidateMoneySurfaces()
-  // Motif + "page" : "/collections/allocate" (sans page propre) ne purgerait
-  // aucune instance de /collections/allocate/[id].
-  revalidatePath("/(app)/collections/allocate/[id]", "page")
-
   redirect("/dashboard?notice=reception_allocated")
 }
 

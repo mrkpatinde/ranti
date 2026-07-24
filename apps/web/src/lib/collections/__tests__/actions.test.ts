@@ -62,7 +62,7 @@ describe("confirmCollection (#167 P4 — retour d'état)", () => {
     expect(r).toEqual({ error: null })
     expect(rpc).toHaveBeenCalledWith("confirm_collection", { p_reception_id: ID })
     expect(rpc).toHaveBeenCalledWith("generate_receipt", { p_reception_id: ID })
-    expect(revalidatePath).toHaveBeenCalledWith("/collections")
+    expect(revalidatePath).toHaveBeenCalledWith("/", "layout")
   })
 })
 
@@ -89,6 +89,6 @@ describe("cancelCollection (#167 P4 — retour d'état)", () => {
     const r = await cancelCollection(PREV, fd({ id: ID, reason: "erreur de saisie" }))
     expect(r).toEqual({ error: null })
     expect(rpc).toHaveBeenCalledWith("cancel_collection", { p_reception_id: ID, p_reason: "erreur de saisie" })
-    expect(revalidatePath).toHaveBeenCalledWith("/collections")
+    expect(revalidatePath).toHaveBeenCalledWith("/", "layout")
   })
 })

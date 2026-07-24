@@ -30,7 +30,11 @@ La navigation entre écrans était lente en perçu. Deux causes serveur :
 2. **Cache client `staleTimes.dynamic = 30`.** Revenir sur un onglet visité il y
    a moins de 30 s réutilise le rendu en cache, sans requête. Chaque server
    action d'écriture d'argent purge l'ensemble des surfaces via
-   `revalidateMoneySurfaces()` (`lib/cache/money.ts`).
+   `revalidateMoneySurfaces()` (`lib/cache/money.ts`), qui applique un
+   `revalidatePath("/", "layout")` unique. C'est le seul levier dont la doc Next
+   garantit qu'il purge aussi le cache CLIENT : une liste de `revalidatePath` par
+   chemin ne purge que les caches serveur, et le rafraîchissement client observé
+   vient d'un effet global aux Server Actions annoncé comme temporaire.
 
 3. **`jwt_expiry = 900` (15 min).** Voir Conséquences.
 

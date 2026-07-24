@@ -29,7 +29,7 @@ export async function generateRentDues(formData: FormData) {
     redirect(`/leases/${leaseId}?error=${encodeURIComponent("Génération impossible. Réessayez.")}`)
   }
 
-  revalidateMoneySurfaces({ leaseId })
+  revalidateMoneySurfaces()
   redirect(`/leases/${leaseId}?notice=dues_generated`)
 }
 

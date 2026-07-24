@@ -50,7 +50,6 @@ export async function updateProperty(formData: FormData) {
 
   // Le nom du lieu s'affiche sur les surfaces argent : rafraîchir tout.
   revalidateMoneySurfaces()
-  revalidatePath(`/properties/${id}`)
   redirect(`/properties/${id}?notice=property_updated`)
 }
 

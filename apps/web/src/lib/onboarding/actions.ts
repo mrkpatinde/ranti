@@ -154,12 +154,9 @@ export async function createBail(
   }
   const leaseIds = summary.lease_ids ?? []
 
-  // Ce flux active des baux et génère des échéances : purge complète des
-  // surfaces argent (cache client staleTimes 30 s) via le helper central. On
-  // garde /units et /tenants, propres à l'onboarding et hors périmètre argent.
-  revalidateMoneySurfaces(leaseIds[0] ? { leaseId: leaseIds[0] } : undefined)
-  revalidatePath("/units")
-  revalidatePath("/tenants")
+  // Ce flux active des baux et génère des échéances : purge globale des
+  // surfaces (dont /units et /tenants) via le helper central.
+  revalidateMoneySurfaces()
 
   // Mono-ligne occupée : la fiche du bail créé (comportement historique).
   // Lot : récap chiffré sur la liste des baux ; lot 100 % libre : la liste

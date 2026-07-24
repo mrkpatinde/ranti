@@ -10,13 +10,17 @@ const nextConfig: NextConfig = {
   experimental: {
     // Cache client des pages dynamiques : revenir sur un onglet visité il y a
     // moins de 30 s réutilise le rendu en cache, navigation instantanée sans
-    // requête. Les server actions purgent ce cache via revalidatePath sur
-    // toutes les surfaces du flux argent. Limites assumées (30 s de retard au
-    // pire, contre un refetch systématique avant) : les écritures EXTERNES à
-    // la session (webhook FeexPay, actions locataire côté public, envois
-    // ranti-ops) ne peuvent pas purger le cache du navigateur du
-    // propriétaire ; et le cache est PAR ONGLET, une écriture dans l'onglet A
-    // ne purge pas un onglet B ouvert sur la même session.
+    // requête. Après une écriture d'argent, la server action appelle
+    // revalidateMoneySurfaces() -> revalidatePath("/", "layout"), seul levier
+    // qui purge de façon documentée ce cache client (voir lib/cache/money.ts).
+    // Ne règle que `dynamic` : les surfaces argent sont dynamiques (auth par
+    // cookie), donc bornées à 30 s. Le défaut `static` (5 min) ne vise que des
+    // pages statiques/préchargées, hors flux argent.
+    // Limites assumées (30 s de retard au pire) : les écritures EXTERNES à la
+    // session (webhook FeexPay, actions locataire côté public, envois
+    // ranti-ops) ne peuvent pas purger le cache du navigateur du propriétaire ;
+    // et le cache est PAR ONGLET, une écriture dans l'onglet A ne purge pas un
+    // onglet B ouvert sur la même session.
     staleTimes: {
       dynamic: 30,
     },

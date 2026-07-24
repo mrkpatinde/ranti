@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { SITE_URL } from "@/lib/site";
 import { AxeptioConsent } from "@/components/axeptio";
 import { OfflineBanner } from "@/components/offline-banner";
 import { SwRegister } from "@/components/sw-register";
@@ -21,6 +22,8 @@ const hankenGrotesk = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
+  // Base des URLs absolues (canonique, OG). Apex sans www, figé (voir lib/site).
+  metadataBase: new URL(SITE_URL),
   title: "Ranti — Le registre de loyer des propriétaires africains",
   description:
     "Suivez vos loyers sans effort : relances prêtes au bon moment, quittances numérotées que votre locataire confirme et que tout le monde peut vérifier d'un lien.",

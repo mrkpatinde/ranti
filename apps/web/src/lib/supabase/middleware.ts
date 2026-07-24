@@ -40,8 +40,8 @@ export async function updateSession(request: NextRequest) {
   // HS256 retombe silencieusement sur getUser(), comportement d'avant.
   // Limite assumée (patron recommandé par Supabase) : une session révoquée à
   // distance (« se déconnecter partout », reset mot de passe) reste valable
-  // jusqu'à l'expiration du jeton d'accès (TTL projet, 1 h par défaut), là où
-  // getUser() la coupait à la navigation suivante.
+  // jusqu'à l'expiration du jeton d'accès, bornée à 15 min (jwt_expiry = 900,
+  // ADR-025), là où getUser() la coupait à la navigation suivante.
   await supabase.auth.getClaims();
 
   return supabaseResponse;

@@ -129,7 +129,7 @@ dormants ; drop planifié.
 
 - Mutations sensibles transactionnelles.
 - Idempotence sur les générations et confirmations.
-- Cache client de navigation (30 s, `staleTimes`) : toute écriture d'argent doit purger l'ensemble des surfaces qui l'affichent via `revalidateMoneySurfaces` (`apps/web/src/lib/cache/money.ts`) ; aucune surface argent ne doit être ajoutée sans y être inscrite.
+- Cache client de navigation (30 s, `staleTimes`) : toute écriture d'argent appelle `revalidateMoneySurfaces` (`apps/web/src/lib/cache/money.ts`), qui applique un `revalidatePath("/", "layout")` unique. C'est le seul levier dont la doc Next garantit qu'il purge aussi le cache CLIENT ; une liste de chemins ne purge que les caches serveur. Toute nouvelle surface argent est donc couverte d'office, il n'y a aucune liste à tenir à jour.
 - Audit logs sur actions critiques.
 - Pas de suppression silencieuse de données financières.
 - Prestataires externes comme adaptateurs, jamais source de vérité métier.
