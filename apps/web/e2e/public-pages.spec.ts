@@ -13,7 +13,12 @@ test("la landing affiche la grille tarifaire B-1 (ADR-024)", async ({ page }) =>
   await expect(page.getByText("Pro", { exact: true })).toBeVisible()
   await expect(page.getByText("1 à 5 logements")).toBeVisible()
   await expect(page.getByText("6 à 20 logements")).toBeVisible()
-  await expect(page.getByText("Abonnement annuel : 2 mois offerts.")).toBeVisible()
+  // Annuel mis en avant : « Gratuit » (jamais « 0 F ») et 2 mois offerts.
+  await expect(page.getByText("Gratuit", { exact: true })).toBeVisible()
+  await expect(page.getByText("0 F", { exact: true })).toHaveCount(0)
+  await expect(page.getByText("2 mois offerts").first()).toBeVisible()
+  await expect(page.getByText("49 000", { exact: true })).toBeVisible()
+  await expect(page.getByText("149 000", { exact: true })).toBeVisible()
   // Le « 5 % » est banni des surfaces publiques (ADR-024) : motif large pour
   // attraper aussi « 5% » et variantes d'espacement.
   await expect(page.getByText(/5\s*%/)).toHaveCount(0)

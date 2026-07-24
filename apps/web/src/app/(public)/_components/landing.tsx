@@ -63,8 +63,10 @@ function Header() {
         <Link href="/" className="flex items-center" aria-label="Ranti — accueil">
           <RantiWordmark size={30} />
         </Link>
-        {/* Nav centrale façon Moneco : ancres internes uniquement. */}
-        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
+        {/* Nav centrale façon Moneco : ancres internes uniquement. lg: et non
+            md: : trois libellés français (~420px) chevauchent le wordmark ou
+            « Se connecter » entre 768 et 1000px. */}
+        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 text-sm font-medium text-muted-foreground lg:flex">
           <a href="#how" className="transition hover:text-foreground">
             Comment ça marche
           </a>
@@ -260,35 +262,43 @@ function Steps() {
 
 // Grille B-1 (ADR-024, Master Blueprint 12/07/2026) : Découverte gratuit à vie
 // pour un logement, Starter 4 900 F/mois (1 à 5), Pro 14 900 F/mois (6 à 20),
-// annuel = 2 mois offerts. Aucun autre chiffre : rien d'inventé.
+// annuel = 2 mois offerts (donc 10 mois payés : 49 000 F et 149 000 F par an).
+// L'annuel est mis en avant (décision CEO 2026-07-24), le mensuel reste
+// lisible en équivalence. Équivalent euro à parité FIXE FCFA/EUR (655,957 F
+// pour 1 €, arrimage BCEAO) pour le bailleur diaspora (ADR-024) : ~75 €/an et
+// ~227 €/an. Aucun autre chiffre : rien d'inventé, tout dérive de B-1.
 const TIERS: Array<{
   name: string;
-  price: string;
-  cadence: string | null;
+  annual: string | null;
+  monthly: string | null;
+  euro: string | null;
   scope: string;
   detail: string;
   featured: boolean;
 }> = [
   {
     name: "Découverte",
-    price: "0 F",
-    cadence: null,
+    annual: null,
+    monthly: null,
+    euro: null,
     scope: "1 logement",
-    detail: "Gratuit à vie. Tout le registre : échéances, relances, quittances.",
+    detail: "À vie. Tout le registre : échéances, relances, quittances certifiées.",
     featured: false,
   },
   {
     name: "Starter",
-    price: formatFcfaNumber(4900),
-    cadence: "F / mois",
+    annual: formatFcfaNumber(49000),
+    monthly: formatFcfaNumber(4900),
+    euro: "≈ 75 €",
     scope: "1 à 5 logements",
     detail: "Le même registre, pour tout votre portefeuille de départ.",
     featured: true,
   },
   {
     name: "Pro",
-    price: formatFcfaNumber(14900),
-    cadence: "F / mois",
+    annual: formatFcfaNumber(149000),
+    monthly: formatFcfaNumber(14900),
+    euro: "≈ 227 €",
     scope: "6 à 20 logements",
     detail: "Pour les propriétaires établis, plusieurs biens et immeubles.",
     featured: false,
@@ -298,19 +308,54 @@ const TIERS: Array<{
 function TierCard({ tier }: { tier: (typeof TIERS)[number] }) {
   return (
     <div
-      className={`flex flex-col gap-3 rounded-[24px] border bg-card p-7 ${
-        tier.featured ? "border-accent shadow-[0_18px_44px_-20px_hsl(var(--accent)/0.45)]" : "border-line-soft"
+      className={`relative flex flex-col gap-4 rounded-[28px] border bg-card p-8 ${
+        tier.featured
+          ? "border-accent shadow-[0_24px_60px_-24px_hsl(var(--accent)/0.5)] md:-mt-3 md:mb-[-12px] md:pt-10"
+          : "border-line-soft shadow-[0_10px_30px_-22px_rgba(41,41,41,0.35)]"
       }`}
     >
-      <span className="text-sm font-semibold text-muted-foreground">{tier.name}</span>
-      <p className="flex items-baseline gap-1.5">
-        <span className="font-display text-[2.1rem] font-extrabold tracking-tight tabular-nums text-ink-title">
-          {tier.price}
+      {tier.featured ? (
+        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground">
+          Recommandé
         </span>
-        {tier.cadence ? <span className="text-sm text-muted-foreground">{tier.cadence}</span> : null}
-      </p>
-      <p className="text-sm font-semibold text-foreground">{tier.scope}</p>
-      <p className="text-sm leading-relaxed text-muted-foreground">{tier.detail}</p>
+      ) : null}
+      <span className="text-sm font-semibold uppercase tracking-[0.06em] text-muted-foreground">{tier.name}</span>
+      {tier.annual ? (
+        <>
+          <p className="flex items-baseline gap-1.5">
+            <span className="font-display text-[2.4rem] font-extrabold leading-none tracking-tight tabular-nums text-ink-title">
+              {tier.annual}
+            </span>
+            <span className="whitespace-nowrap text-sm text-muted-foreground">F / an</span>
+          </p>
+          <p className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-leaf px-3 py-1 text-xs font-semibold text-ink-title">
+              2 mois offerts
+            </span>
+            <span className="text-xs text-muted-foreground">{tier.euro} / an</span>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            soit <span className="font-semibold tabular-nums text-foreground">{tier.monthly} F</span> par mois,
+            sans engagement
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="font-display text-[2.4rem] font-extrabold leading-none tracking-tight text-ink-title">
+            Gratuit
+          </p>
+          <p>
+            <span className="inline-flex items-center rounded-full bg-olive-chip px-3 py-1 text-xs font-semibold text-foreground">
+              Pour toujours
+            </span>
+          </p>
+          <p className="text-sm text-muted-foreground">Sans carte, sans durée limitée</p>
+        </>
+      )}
+      <div className="mt-1 border-t border-line-soft pt-4">
+        <p className="text-sm font-semibold text-foreground">{tier.scope}</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{tier.detail}</p>
+      </div>
     </div>
   );
 }
@@ -325,13 +370,14 @@ function Pricing() {
           </h2>
           <PricingLine className="mt-4 text-base" />
         </div>
-        <div className="mx-auto mt-[clamp(32px,4.5vw,48px)] grid max-w-4xl gap-5 md:grid-cols-3">
+        <div className="mx-auto mt-[clamp(36px,5vw,56px)] grid max-w-4xl items-start gap-5 md:grid-cols-3">
           {TIERS.map((tier) => (
             <TierCard key={tier.name} tier={tier} />
           ))}
         </div>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Abonnement annuel : 2 mois offerts.
+        <p className="mt-7 text-center text-sm text-muted-foreground">
+          Prix en francs CFA. Le paiement mensuel est possible sur chaque palier ;
+          l'année complète offre 2 mois.
         </p>
         <div className="mt-8 flex justify-center">
           <CtaGoogle />
@@ -466,7 +512,7 @@ function SiteFooter() {
           </FooterCol>
         </div>
         <div className="mt-12 border-t border-line-soft pt-6">
-          <p className="text-xs text-muted-foreground">© 2026 Ranti. Tous droits réservés.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Ranti. Tous droits réservés.</p>
         </div>
       </div>
     </footer>
