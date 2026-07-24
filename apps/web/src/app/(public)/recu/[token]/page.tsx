@@ -3,6 +3,7 @@ import { formatFcfa, monthYearLabel } from "@/lib/format";
 import { SubmitButton } from "@/components/submit-button";
 import { RantiLogo } from "@/components/ranti-logo";
 import { createClient } from "@/lib/supabase/server";
+import { methodLabels } from "@/lib/receipts/labels";
 import type { ReceiptByToken } from "@/lib/receipts/types";
 import { receiptClause } from "@/lib/receipts/clause";
 import type { EreceiptConsentStatus } from "@/lib/receipts/consent";
@@ -51,13 +52,8 @@ const NATURE_LABEL: Record<string, string> = {
   not_paid: "Paiement contesté",
 };
 
-// Libellés des moyens de paiement (mêmes clés que le PDF, lib/receipts/pdf).
-const METHOD_LABEL: Record<string, string> = {
-  cash: "Espèces",
-  mobile_money: "Mobile Money",
-  bank_transfer: "Virement",
-  other: "Autre",
-};
+// Libellés des moyens de paiement : source unique lib/receipts/labels.
+const METHOD_LABEL = methodLabels;
 
 export default async function RecuPage({
   params,

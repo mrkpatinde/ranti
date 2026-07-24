@@ -14,8 +14,9 @@ test("la landing affiche la grille tarifaire B-1 (ADR-024)", async ({ page }) =>
   await expect(page.getByText("1 à 5 logements")).toBeVisible()
   await expect(page.getByText("6 à 20 logements")).toBeVisible()
   await expect(page.getByText("Abonnement annuel : 2 mois offerts.")).toBeVisible()
-  // Le « 5 % » est banni des surfaces publiques (ADR-024).
-  await expect(page.getByText("5 %")).toHaveCount(0)
+  // Le « 5 % » est banni des surfaces publiques (ADR-024) : motif large pour
+  // attraper aussi « 5% » et variantes d'espacement.
+  await expect(page.getByText(/5\s*%/)).toHaveCount(0)
 })
 
 test("le footer annonce Blog et Carrières sans lien mort", async ({ page }) => {

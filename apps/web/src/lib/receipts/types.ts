@@ -13,9 +13,13 @@ export type ReceiptSnapshot = {
   tenant?: { first_name: string; last_name: string; phone: string | null }
   unit?: { name: string; type: string }
   property?: { name?: string; city: string | null; address: string | null }
+  // amount_received/currency optionnels : la vue token ne les expose pas, et
+  // aucune surface ne les rend (le PDF n'affiche que méthode + date). Les
+  // rendre requis pousserait un appelant à fabriquer une valeur (ex. total du
+  // reçu) qui divergerait du snapshot scellé le jour où quelqu'un l'affiche.
   reception?: {
-    amount_received: number
-    currency: string
+    amount_received?: number
+    currency?: string
     payment_method: string
     received_at: string
   }

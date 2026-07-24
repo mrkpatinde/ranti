@@ -44,8 +44,11 @@ function CtaGoogle() {
 function PricingLine({ className = "" }: { className?: string }) {
   // Tarif ADR-024 : abonnement par paliers, gratuit pour un logement
   // (DESIGN.md et CGU réalignés, le « 5 % » est abandonné).
+  // Pas de taille de texte ici : Tailwind tranche les conflits par ordre de
+  // feuille générée, pas par ordre de className ; chaque appelant passe la
+  // sienne (text-sm au héro, text-base aux tarifs).
   return (
-    <p className={`flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground ${className}`}>
+    <p className={`flex flex-wrap items-center justify-center gap-2 text-muted-foreground ${className}`}>
       <span>Gratuit pour un logement</span>
       <span aria-hidden="true" className="opacity-40">·</span>
       <span>Ranti ne touche jamais l'argent</span>
@@ -99,7 +102,7 @@ function Hero() {
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
           <CtaGoogle />
         </div>
-        <PricingLine className="mt-[18px]" />
+        <PricingLine className="mt-[18px] text-sm" />
       </div>
       {/* Mockup téléphone posé sur une « colline » pastel, façon Moneco :
           ellipse en teinte verte douce, téléphone à cheval sur l'horizon. */}
@@ -224,7 +227,7 @@ function StepCard({ n, title, body }: { n: string; title: string; body: string }
 
 function Steps() {
   return (
-    <section id="how" className="bg-ink-title px-6 py-[clamp(64px,9vw,110px)]">
+    <section id="how" className="scroll-mt-[72px] bg-ink-title px-6 py-[clamp(64px,9vw,110px)]">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-[clamp(2.1rem,4.5vw,2.9rem)] font-extrabold tracking-[-0.02em] text-background [text-wrap:balance]">
@@ -314,7 +317,7 @@ function TierCard({ tier }: { tier: (typeof TIERS)[number] }) {
 
 function Pricing() {
   return (
-    <section id="tarifs" className="border-t border-line-soft bg-secondary px-6 py-[clamp(64px,9vw,110px)]">
+    <section id="tarifs" className="scroll-mt-[72px] border-t border-line-soft bg-secondary px-6 py-[clamp(64px,9vw,110px)]">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-[clamp(2.1rem,4.5vw,2.9rem)] font-extrabold tracking-[-0.02em] text-ink-title">
@@ -363,7 +366,7 @@ const FAQ_ITEMS: [string, string][] = [
 
 function Faq() {
   return (
-    <section id="faq" className="px-6 py-[clamp(56px,8vw,96px)]">
+    <section id="faq" className="scroll-mt-[72px] px-6 py-[clamp(56px,8vw,96px)]">
       <div className="mx-auto max-w-3xl">
         <h2 className="mb-8 text-center font-display text-[clamp(2.1rem,4.5vw,2.9rem)] font-extrabold tracking-[-0.02em] text-ink-title">
           Questions fréquentes

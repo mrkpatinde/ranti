@@ -26,8 +26,10 @@ describe("REF_PATTERN", () => {
 })
 
 describe("formatVerifyDate", () => {
-  it("rend une date française lisible", () => {
+  it("rend une date française lisible, stable quelle que soit la timezone", () => {
     expect(formatVerifyDate("2026-07-18T10:00:00Z")).toBe("18 juillet 2026")
+    // Forme date pure des périodes du snapshot : minuit UTC, jamais la veille.
+    expect(formatVerifyDate("2026-07-01")).toBe("01 juillet 2026")
   })
 })
 

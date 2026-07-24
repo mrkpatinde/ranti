@@ -22,7 +22,11 @@ const HTML_CACHE = `ranti-html-${SW_VERSION}`
 const RSC_CACHE = `ranti-rsc-${SW_VERSION}`
 const MAX_PAGE_ENTRIES = 50
 
-const NEVER_CACHE_PREFIXES = ["/api/", "/auth/", "/login", "/signup", "/recover"]
+// /verifier (recherche + verdicts) ne doit JAMAIS être servi depuis le cache :
+// la clé de cache est le pathname seul, donc /verifier?ref=X écraserait l'entrée
+// et un verdict mis en cache serait resservi hors-ligne pour n'importe quelle
+// référence. Une surface de vérification échoue fermée, elle ne rejoue pas.
+const NEVER_CACHE_PREFIXES = ["/api/", "/auth/", "/login", "/signup", "/recover", "/verifier"]
 
 self.addEventListener("install", () => {
   self.skipWaiting()

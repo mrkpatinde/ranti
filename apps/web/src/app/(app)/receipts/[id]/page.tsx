@@ -9,6 +9,7 @@ import { formatFcfa, monthYearLabel } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { receiptClause } from "@/lib/receipts/clause"
 import { cancelReceipt, getReceipt } from "@/lib/receipts"
+import { kindLabels, methodLabels } from "@/lib/receipts/labels"
 import type { ReceiptStatus, TenantAck } from "@/lib/receipts"
 import { RantiLogo } from "@/components/ranti-logo"
 
@@ -21,18 +22,6 @@ const statusLabels: Record<ReceiptStatus, string> = {
   issued: "Émise",
   cancelled: "Annulée",
 }
-
-const methodLabels: Record<string, string> = {
-  cash: "Espèces",
-  mobile_money: "Mobile Money",
-  bank_transfer: "Virement",
-  other: "Autre",
-}
-
-const kindLabels = {
-  quittance: "Quittance de loyer",
-  receipt: "Reçu de paiement",
-} as const
 
 const noticeLabels: Record<string, string> = {
   receipt_generated: "Document généré.",

@@ -32,7 +32,11 @@ type VerifyByNumberRow = {
   computed_fingerprint: string | null
 }
 
-function SearchForm({ defaultValue }: { defaultValue?: string }) {
+// invalid + describedBy : après le rechargement GET, le lecteur d'écran doit
+// relier le champ au message de résultat (aria-describedby) et annoncer un
+// format refusé (aria-invalid), sinon l'issue de la recherche est invisible
+// hors repérage visuel par couleur de fond.
+function SearchForm({ defaultValue, invalid }: { defaultValue?: string; invalid?: boolean }) {
   return (
     <form method="GET" action="/verifier" className="flex flex-col gap-3 sm:flex-row">
       <label htmlFor="ref" className="sr-only">
@@ -47,6 +51,8 @@ function SearchForm({ defaultValue }: { defaultValue?: string }) {
         placeholder="RNT-2026-0001"
         autoComplete="off"
         spellCheck={false}
+        aria-invalid={invalid || undefined}
+        aria-describedby={defaultValue ? "verify-result" : undefined}
         className="h-[52px] flex-1 rounded-full border border-border bg-card px-6 font-mono text-sm uppercase tracking-wide text-foreground placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
       <button
@@ -99,30 +105,30 @@ export default async function VerifySearchPage({
       </p>
 
       <div className="mt-7">
-        <SearchForm defaultValue={raw ?? undefined} />
+        <SearchForm defaultValue={raw ?? undefined} invalid={result === "invalid"} />
       </div>
 
       {result === "invalid" && (
-        <p className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
+        <p id="verify-result" role="alert" className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
           Ce n&apos;est pas une référence Ranti : elle a la forme RNT-2026-0001.
         </p>
       )}
 
       {result === "error" && (
-        <p className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
+        <p id="verify-result" role="alert" className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
           Le service de vérification est momentanément indisponible. Réessayez plus tard.
         </p>
       )}
 
       {raw && result === null && (
-        <p className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
+        <p id="verify-result" role="status" className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
           Aucun document ne porte la référence <span className="font-mono">{raw}</span>.
           Vérifiez la saisie, ou utilisez le lien ou le QR du document.
         </p>
       )}
 
       {result !== null && typeof result === "object" && result.match_count > 1 && (
-        <p className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
+        <p id="verify-result" role="status" className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
           Plusieurs documents portent cette référence (les numéros sont propres à
           chaque propriétaire). Par confidentialité, utilisez le lien ou le QR
           imprimé sur votre document pour obtenir le verdict.
@@ -133,7 +139,9 @@ export default async function VerifySearchPage({
         typeof result === "object" &&
         result.match_count === 1 &&
         result.receipt_number && (
-          <VerdictCard row={result} />
+          <div id="verify-result" role="status">
+            <VerdictCard row={result} />
+          </div>
         )}
 
       <p className="mt-8 text-xs leading-5 text-muted-foreground">

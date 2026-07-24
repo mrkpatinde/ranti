@@ -3,19 +3,8 @@ import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/render
 import { formatFcfa, monthYearLabel } from "@/lib/format"
 import type { Landlord } from "@/lib/landlords"
 import { receiptClause } from "./clause"
+import { kindLabels, methodLabels } from "./labels"
 import type { Receipt } from "./types"
-
-const methodLabels: Record<string, string> = {
-  cash: "Espèces",
-  mobile_money: "Mobile Money",
-  bank_transfer: "Virement",
-  other: "Autre",
-}
-
-const kindLabels: Record<string, string> = {
-  quittance: "Quittance de loyer",
-  receipt: "Reçu de paiement",
-}
 
 // ADR-013 - bandeau d'acquittement locataire (deux voix). Couleurs sobres,
 // mentions strictement factuelles : Ranti documente, n'arbitre pas.
