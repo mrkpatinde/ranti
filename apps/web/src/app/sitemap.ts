@@ -5,7 +5,7 @@ import { SITE_URL } from "@/lib/site"
 // privées (espace connecté, reçus par jeton nominatifs) sont hors sitemap et
 // bloquées côté robots.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ["", "/conditions", "/confidentialite"]
+  const routes = ["", "/a-propos", "/conditions", "/confidentialite"]
   return routes.map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: new Date(),

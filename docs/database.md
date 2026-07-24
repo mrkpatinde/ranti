@@ -2,6 +2,8 @@
 
 ## Statut
 
+Version 1.7 (2026-07-24, v0.3.36.0) : vérification publique par numéro — RPC `verify_receipt_by_number` (SECURITY DEFINER, accordée à `anon` et `authenticated`, verdict calculé côté SQL, ni identité ni montant ni empreinte dans le retour), `get_receipt_by_token` étendue (`payment_method`, `received_at`), index sur `receipts(receipt_number)` (migrations `20260724100000`, `20260724101000`, `20260724140000`, appliquées en prod).
+
 Version 1.6 (2026-07-18, v0.3.29.0) : colonnes de prise en main et de relance sur `landlords` (`onboarding_status`, `reminders_enabled`, `reminder_channel`, `reminder_moment`) ; référence de quittance `RNT-AAAA-NNNN` (migrations `20260717130000`, `20260718120000`, `20260718130000`, `20260718160000`, appliquées en prod).
 
 Version 1.5 — réaligné sur le schéma live (audit 2026-07-16) : `app_users` supprimée du modèle (ADR-010, lien direct `landlords.auth_user_id`), `lease_reminder_rules` et `receipt_items` déclassées en cible non implémentée, schéma `reminders` corrigé sur la table réelle.
@@ -182,6 +184,8 @@ Contraintes :
 - `snapshot` conserve les informations importantes au moment de génération.
 
 Format du numéro (`receipt_number`) : depuis le 2026-07-18, `private.generate_receipt_core` émet `RNT-AAAA-NNNN` (année d'émission + séquence annuelle par propriétaire, minimum 4 chiffres, jamais tronquée au-delà de 9999 : `RNT-2026-9999` puis `RNT-2026-10000`). Génération sérialisée par `pg_advisory_xact_lock` par propriétaire. Les documents antérieurs gardent `R-NNNNNN` (pas de backfill) ; les deux préfixes ne collisionnent pas. Migrations `20260718130000` + correctif `20260718160000`.
+
+Vérification publique par numéro (2026-07-24, v0.3.36.0) : la RPC `verify_receipt_by_number(p_number)` (SECURITY DEFINER, accordée à `anon` et `authenticated`) alimente la recherche `/verifier` par référence. Le numéro étant énumérable (séquence annuelle par propriétaire), le retour est volontairement pauvre : verdict d'intégrité calculé côté SQL, type de document, statut et périodes réglées — jamais de nom, de logement, de montant ni d'empreinte ; en cas d'homonymie inter-propriétaires, seul un compte est renvoyé, sans détail. Le chemin riche reste le token non énumérable (`get_receipt_by_token`), qui expose depuis cette version `payment_method` et `received_at` pour la quittance partagée. Migrations `20260724101000` + durcissement `20260724140000`.
 
 ### `receipt_items` — NON IMPLÉMENTÉE (remplacée par `receipts.snapshot`)
 
@@ -438,6 +442,7 @@ rent_reception_allocations(rent_due_id)
 payment_proofs(landlord_id, rent_due_id)
 payment_proofs(landlord_id, rent_reception_id)
 receipts(landlord_id, receipt_number)
+receipts(receipt_number) — recherche publique par référence (/verifier)
 receipts(landlord_id, tenant_id, issued_at)
 reminders(rent_due_id, sent_at desc)
 reminders(landlord_id, created_at desc)

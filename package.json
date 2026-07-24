@@ -8,5 +8,5 @@
     "lint": "bun --cwd apps/web lint",
     "test:e2e": "bun --cwd apps/web test:e2e"
   },
-  "version": "0.3.35.0"
+  "version": "0.3.36.0"
 }

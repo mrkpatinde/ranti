@@ -70,6 +70,16 @@ export async function GET(
         row.property_city || row.property_address
           ? { city: row.property_city, address: row.property_address }
           : undefined,
+      // Moyen de paiement + date de réception (Loi 2022-30, ADR-027) : seuls
+      // ces deux champs existent dans la vue token ; ne jamais fabriquer un
+      // amount_received de substitution (il divergerait du snapshot scellé).
+      reception:
+        row.payment_method && row.received_at
+          ? {
+              payment_method: row.payment_method,
+              received_at: row.received_at,
+            }
+          : undefined,
       allocations: row.allocations,
     },
     tenant_ack: row.tenant_ack,

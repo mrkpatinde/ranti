@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-07-15
+Dernière mise à jour : 2026-07-24
 
 ## Phase 0 - Foundation
 
@@ -132,6 +132,37 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Tests terrain
 - [ ] Corrections
 - [ ] Première beta privée
+
+## Recent (2026-07-24)
+
+- Landing structurée façon Moneco + tarifs B-1 annuel d'abord (v0.3.36.0,
+  décision CEO 2026-07-24) : grille complète affichée — Découverte gratuit
+  pour toujours (1 logement), Starter 49 000 F/an (1-5), Pro 149 000 F/an
+  (6-20), annuel = 2 mois offerts, mensuel toujours possible, équivalent euro
+  à parité fixe BCEAO pour le bailleur diaspora. Héro centré avec mockup
+  téléphone sur colline pastel, « Comment ça marche » sur fond encre, FAQ en
+  pilules, footer multi-colonnes (Produit / Ressources / Entreprise) aux liens
+  tous réels. Nouvelle page publique `/a-propos` (ce que fait Ranti, posture
+  non-custodiale, éditeur WI'SOFT SOLUTIONS), reprise au sitemap.
+
+- Vérification publique par référence (v0.3.36.0) : nouvelle page `/verifier`
+  — saisie du numéro imprimé `RNT-AAAA-NNNN`, verdict d'authenticité via la
+  RPC `verify_receipt_by_number` (SECURITY DEFINER, `anon`). Contrat durci
+  (migration `20260724140000`) : verdict calculé côté SQL ; ce chemin
+  énumérable ne renvoie ni nom, ni logement, ni montant, ni empreinte, et
+  l'homonymie inter-propriétaires renvoie vers le lien/QR du document. Index
+  dédié sur `receipt_number`. `/verifier` exclu du cache PWA (fail closed :
+  hors réseau, échec réseau franc plutôt qu'un verdict resservi).
+
+- Moyen de paiement sur la quittance partagée (v0.3.36.0) : la page locataire
+  `/recu/[token]` et le PDF précisent Espèces / Mobile Money / Virement et la
+  date de réception (usage du bail d'habitation, Loi n° 2022-30). Vue token
+  étendue (`payment_method`, `received_at`, migration `20260724100000`) ;
+  libellés centralisés dans `lib/receipts/labels.ts` (PDF, page locataire,
+  page bailleur, /verifier). Dates de preuve stables sur tout fuseau — page
+  locataire, PDF et vérifications (la page reçu côté bailleur,
+  `app/(app)/receipts/[id]`, reste à aligner : suivi). 3 migrations appliquées
+  en prod.
 
 ## Recent (2026-07-16)
 

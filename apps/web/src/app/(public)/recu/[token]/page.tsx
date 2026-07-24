@@ -3,6 +3,7 @@ import { formatFcfa, monthYearLabel } from "@/lib/format";
 import { SubmitButton } from "@/components/submit-button";
 import { RantiLogo } from "@/components/ranti-logo";
 import { createClient } from "@/lib/supabase/server";
+import { kindLabels, methodLabels } from "@/lib/receipts/labels";
 import type { ReceiptByToken } from "@/lib/receipts/types";
 import { receiptClause } from "@/lib/receipts/clause";
 import type { EreceiptConsentStatus } from "@/lib/receipts/consent";
@@ -20,11 +21,15 @@ import { ContestForm } from "./contest-form";
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// timeZone UTC épinglée : les périodes du snapshot sont des dates pures
+// (« 2026-07-01 ») parsées en minuit UTC ; sans épinglage, un runtime à
+// l'ouest d'UTC afficherait la veille sur la preuve remise au locataire.
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
   });
 }
 
@@ -40,16 +45,17 @@ const ERROR_MESSAGES: Record<string, string> = {
   action_failed: "Action impossible pour le moment. Réessayez.",
 };
 
-const KIND_LABEL: Record<string, string> = {
-  quittance: "Quittance de loyer",
-  receipt: "Reçu de paiement",
-};
+// Source unique lib/receipts/labels (même map que le PDF et /verifier).
+const KIND_LABEL = kindLabels;
 
 const NATURE_LABEL: Record<string, string> = {
   amount: "Montant contesté",
   date: "Période contestée",
   not_paid: "Paiement contesté",
 };
+
+// Libellés des moyens de paiement : source unique lib/receipts/labels.
+const METHOD_LABEL = methodLabels;
 
 export default async function RecuPage({
   params,
@@ -265,6 +271,22 @@ export default async function RecuPage({
                 </span>
                 <span className="text-right text-sm font-medium text-foreground">
                   {[receipt.property_address, receipt.property_city].filter(Boolean).join(", ")}
+                </span>
+              </div>
+            )}
+            {/* Moyen de paiement + date de réception (Loi 2022-30, ADR-027) */}
+            {receipt.payment_method && (
+              <div className="flex justify-between gap-4">
+                <span className="text-[0.7rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                  Moyen de paiement
+                </span>
+                <span className="text-right text-sm font-medium text-foreground">
+                  {METHOD_LABEL[receipt.payment_method] ?? receipt.payment_method}
+                  {receipt.received_at ? (
+                    <span className="block text-xs font-normal text-muted-foreground">
+                      reçu le {formatDate(receipt.received_at)}
+                    </span>
+                  ) : null}
                 </span>
               </div>
             )}

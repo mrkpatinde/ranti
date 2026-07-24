@@ -3,19 +3,8 @@ import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/render
 import { formatFcfa, monthYearLabel } from "@/lib/format"
 import type { Landlord } from "@/lib/landlords"
 import { receiptClause } from "./clause"
+import { kindLabels, methodLabels } from "./labels"
 import type { Receipt } from "./types"
-
-const methodLabels: Record<string, string> = {
-  cash: "Espèces",
-  mobile_money: "Mobile Money",
-  bank_transfer: "Virement",
-  other: "Autre",
-}
-
-const kindLabels: Record<string, string> = {
-  quittance: "Quittance de loyer",
-  receipt: "Reçu de paiement",
-}
 
 // ADR-013 - bandeau d'acquittement locataire (deux voix). Couleurs sobres,
 // mentions strictement factuelles : Ranti documente, n'arbitre pas.
@@ -34,8 +23,16 @@ const contestNatureLabels: Record<string, string> = {
   not_paid: "Paiement contesté",
 }
 
+// timeZone UTC épinglée : périodes du snapshot en dates pures (minuit UTC) ;
+// sans épinglage, un runtime à l'ouest d'UTC imprimerait la veille sur le PDF,
+// qui est LE document de preuve (Loi 2022-30).
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 const s = StyleSheet.create({

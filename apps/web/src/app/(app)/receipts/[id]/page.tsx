@@ -9,6 +9,7 @@ import { formatFcfa, monthYearLabel } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { receiptClause } from "@/lib/receipts/clause"
 import { cancelReceipt, getReceipt } from "@/lib/receipts"
+import { kindLabels, methodLabels } from "@/lib/receipts/labels"
 import type { ReceiptStatus, TenantAck } from "@/lib/receipts"
 import { RantiLogo } from "@/components/ranti-logo"
 
@@ -21,18 +22,6 @@ const statusLabels: Record<ReceiptStatus, string> = {
   issued: "Émise",
   cancelled: "Annulée",
 }
-
-const methodLabels: Record<string, string> = {
-  cash: "Espèces",
-  mobile_money: "Mobile Money",
-  bank_transfer: "Virement",
-  other: "Autre",
-}
-
-const kindLabels = {
-  quittance: "Quittance de loyer",
-  receipt: "Reçu de paiement",
-} as const
 
 const noticeLabels: Record<string, string> = {
   receipt_generated: "Document généré.",
@@ -47,8 +36,16 @@ const ackBadge: Record<TenantAck, { label: string; variant: BadgeVariant }> = {
   disputed: { label: "Contesté par le locataire", variant: "error" },
 }
 
+// timeZone UTC épinglée : les périodes du snapshot sont des dates pures
+// (« 2026-07-01 ») parsées en minuit UTC ; sans épinglage, un runtime à
+// l'ouest d'UTC afficherait la veille et l'écran divergerait du PDF.
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 function formatPeriod(start: string, end: string): string {

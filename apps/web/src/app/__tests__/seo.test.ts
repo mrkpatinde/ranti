@@ -24,6 +24,7 @@ describe("sitemap", () => {
   it("ne liste que les pages publiques indexables", () => {
     expect(entries.map((e) => e.url)).toEqual([
       "https://monranti.com",
+      "https://monranti.com/a-propos",
       "https://monranti.com/conditions",
       "https://monranti.com/confidentialite",
     ])
@@ -63,7 +64,9 @@ describe("robots", () => {
 
   it("autorise le public", () => {
     expect(r.rules).toMatchObject({ userAgent: "*" })
-    expect(r.rules).toMatchObject({ allow: ["/", "/verifier/demo"] })
+    // /verifier reste crawlable (allow explicite) pour que son meta noindex
+    // soit honoré ; le disallow /verifier/ (avec barre) couvre les verdicts.
+    expect(r.rules).toMatchObject({ allow: ["/", "/verifier", "/verifier/demo"] })
   })
 
   it("sort de l'index les surfaces nominatives (quittances et vérifications réelles)", () => {

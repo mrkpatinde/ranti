@@ -74,11 +74,54 @@ concurrents pour la même réception font échouer le second sur la contrainte
 unique (erreur transitoire inoffensive, « Réessayez »). Déplacer le check
 après le verrou dans une future migration de la fonction.
 
-### Centraliser les libellés logement/paiement
+### Centraliser les libellés logement
 **Priority:** P3
 `UNIT_TYPE_OPTIONS` existe en 4 copies (bail-form, units/edit, first-run
-modals…) et les libellés de méthode de paiement en 2. Exporter depuis
-`lib/units` / `lib/receipts` et consommer partout.
+modals…). Exporter depuis `lib/units` et consommer partout. (La moitié
+paiement/type de document est faite en v0.3.36.0 : `lib/receipts/labels.ts`
+consommé par PDF, page locataire, page reçu propriétaire et /verifier.)
+
+## Vérification publique (/verifier)
+
+### Extraire un helper SQL commun pour l'empreinte SHA-256
+**Priority:** P1
+La recette (`receipt_number || issued_at UTC || snapshot::text`) est
+copiée-collée dans 3 fonctions vivantes (`certify_receipt_by_token`,
+`verify_receipt_integrity`, `verify_receipt_by_number`) : toute évolution
+manquée dans une copie ferait diverger les verdicts entre le chemin QR et le
+chemin référence. Migration dédiée : `public.receipt_computed_fingerprint()`
+appelé par les trois. Différé au ship v0.3.36.0 (rayon d'impact = fonctions
+de preuve légale, mérite sa propre revue).
+
+### Rate limit + retrait de `status` sur verify_receipt_by_number
+**Priority:** P2
+Références séquentielles énumérables, RPC anonyme appelable en direct via
+PostgREST : risque résiduel accepté au ship v0.3.36.0 (le retour ne contient
+plus ni empreintes, ni tenant_ack, ni montants). Quand le trafic le justifie :
+règle Vercel WAF sur /verifier. Au prochain recreate : retirer `status` du
+retour (jamais rendu, `integrity` porte déjà l'annulation).
+
+### E2E des chemins RPC de la recherche par référence
+**Priority:** P2
+Verdict unique / ambigu / introuvable validés à la main contre la prod au
+ship v0.3.36.0, mais aucun E2E ne les rejoue (les specs actuelles s'arrêtent
+au refus de format, sans base). Piste : fixture seedée ou référence
+bien formée inexistante (RNT-1900-0001) pour le chemin « introuvable ».
+
+### Ambiguïté par conception des numéros bas
+**Priority:** P2
+La séquence RNT repart à 0001 par propriétaire et par année : dès deux
+propriétaires actifs, les petits numéros (ceux que tient un locataire type)
+tombent sur « plusieurs documents portent cette référence ». Décision produit
+à trancher : discriminant dans la référence imprimée (initiales, somme de
+contrôle), second champ de recherche, ou assumer le renvoi vers lien/QR.
+
+### Trancher le cache hors-ligne de /recu
+**Priority:** P3
+`/verifier` est désormais exclu du cache PWA (fail closed), mais la page
+locataire `/recu/[token]` (nominative, montants) reste cachable sur appareil
+partagé. Si c'est une fonctionnalité (relire sa quittance hors réseau), le
+documenter ; sinon l'exclure aussi.
 
 ## Performance
 
