@@ -13,7 +13,15 @@ import { createClient } from "@/lib/supabase/server"
 // (ops_reminder_queue, ADR-023 gelé) est un suivi séparé.
 //
 // Appelée par le parcours /first-run (phase 3) et ses vues Relances /
-// Paramètres. Jamais bloquant : une erreur DB est journalisée, pas propagée.
+// Paramètres.
+//
+// Le résultat est RENVOYÉ, jamais avalé (correctif 2026-07-27). Avant, une
+// erreur DB partait dans un console.error et l'appelant gardait son état
+// optimiste : le bailleur voyait « Désactivée » sur un réglage jamais écrit.
+// Sur un réglage qui gouverne des messages envoyés EN SON NOM, un échec muet
+// est le pire comportement possible. La fonction ne throw pas pour autant —
+// un throw dans une server action remonte en erreur non gérée côté client ;
+// le contrat est un résultat que l'appelant DOIT lire.
 
 const CHANNELS: readonly ReminderChannel[] = ["whatsapp", "sms"]
 const MOMENTS: readonly ReminderMoment[] = ["avant", "echeance", "retard"]
@@ -24,8 +32,14 @@ export type ReminderSettingsInput = {
   moment: ReminderMoment
 }
 
-export async function setReminderSettings(input: ReminderSettingsInput): Promise<void> {
-  if (!CHANNELS.includes(input.channel) || !MOMENTS.includes(input.moment)) return
+export type ReminderSettingsResult = { ok: true } | { ok: false; error: string }
+
+export async function setReminderSettings(
+  input: ReminderSettingsInput,
+): Promise<ReminderSettingsResult> {
+  if (!CHANNELS.includes(input.channel) || !MOMENTS.includes(input.moment)) {
+    return { ok: false, error: "Réglage invalide." }
+  }
 
   const landlord = await requireLandlordProfile()
   const supabase = await createClient()
@@ -41,10 +55,12 @@ export async function setReminderSettings(input: ReminderSettingsInput): Promise
 
   if (error) {
     console.error("setReminderSettings: update failed", error.code, error.message)
+    return { ok: false, error: "Réglage non enregistré. Réessayez." }
   }
 
   revalidatePath("/reminders")
   revalidatePath("/settings/profile")
+  return { ok: true }
 }
 
 // ── Programmer / annuler une relance ponctuelle (2026-07-18) ────────────────

@@ -90,14 +90,40 @@ describe("setReminderSettings", () => {
     expect(update).not.toHaveBeenCalled()
   })
 
-  it("erreur DB : journalisée, jamais propagée (jamais bloquant)", async () => {
+  it("succès : renvoie ok pour que l'appelant garde son état optimiste", async () => {
+    await expect(
+      setReminderSettings({ enabled: true, channel: "whatsapp", moment: "echeance" }),
+    ).resolves.toEqual({ ok: true })
+  })
+
+  // Contrat inversé le 2026-07-27. L'ancien test verrouillait le bug : il
+  // EXIGEAIT que l'échec DB soit avalé (`resolves.toBeUndefined()`), ce qui
+  // laissait /reminders afficher un réglage jamais écrit — sur des messages
+  // envoyés au nom du bailleur. L'échec doit remonter à l'appelant.
+  it("erreur DB : journalisée ET renvoyée, pour permettre le rollback optimiste", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
     eq.mockResolvedValue({ error: { code: "42501", message: "denied" } })
     await expect(
       setReminderSettings({ enabled: true, channel: "sms", moment: "retard" }),
-    ).resolves.toBeUndefined()
+    ).resolves.toEqual({ ok: false, error: "Réglage non enregistré. Réessayez." })
     expect(consoleError).toHaveBeenCalled()
     consoleError.mockRestore()
+  })
+
+  it("erreur DB : ne revalide aucune surface (rien n'a changé en base)", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+    vi.mocked(revalidatePath).mockClear()
+    eq.mockResolvedValue({ error: { code: "42501", message: "denied" } })
+    await setReminderSettings({ enabled: true, channel: "sms", moment: "retard" })
+    expect(revalidatePath).not.toHaveBeenCalled()
+    consoleError.mockRestore()
+  })
+
+  it("entrée invalide : renvoie un échec, jamais un faux succès", async () => {
+    await expect(
+      // @ts-expect-error entrée hostile volontaire
+      setReminderSettings({ enabled: true, channel: "pigeon", moment: "echeance" }),
+    ).resolves.toEqual({ ok: false, error: "Réglage invalide." })
   })
 })
 
