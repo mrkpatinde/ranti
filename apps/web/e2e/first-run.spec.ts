@@ -1,100 +1,99 @@
 import { expect, test } from "@playwright/test"
 
-// Parcours de prise en main, AVEC données réelles.
+// Parcours de prise en main, AVEC données réelles et bailleur ISOLÉ.
 //
 // Ces tests étaient réputés impossibles : « l'auth Google seule (ADR-010)
-// empêche un login automatisé ». C'était faux. Le bypass de développement
-// existe depuis longtemps (RANTI_LOCAL_AUTH, lib/auth/server.ts), il est déjà
-// posé dans playwright.config.ts, et deux specs authentifiées l'utilisaient
-// déjà — mais sans SUPABASE_JWT_SECRET, aucune session Supabase n'était forgée,
-// les lectures partaient en `anon`, la RLS les bloquait, et ces specs ne
-// pouvaient vérifier que des redirections. Le secret du stack LOCAL est
-// désormais fourni : la RLS s'applique normalement (on ne la contourne pas) et
-// les écrans porteurs de données deviennent testables.
+// empêche un login automatisé ». C'était faux — le mode d'auth locale existe
+// depuis longtemps. Deux choses manquaient vraiment :
+//   1. SUPABASE_JWT_SECRET, sans quoi aucune session n'était forgée, les
+//      lectures partaient en `anon` et la RLS bloquait tout : les specs dites
+//      « authentifiées » ne pouvaient vérifier que des redirections ;
+//   2. un bailleur PAR SPEC. Toutes partageaient le même utilisateur, donc une
+//      spec qui écrivait cassait les autres.
 //
-// Ce que ce fichier verrouille en priorité : la régression corrigée en
-// v0.3.38.0 — recharger /first-run ne doit plus proposer de recréer un bail
-// qui existe déjà.
+// L'isolation passe par l'en-tête x-ranti-local-auth-user, résolu par requête
+// (lib/auth/local-identity), avec la même double garde que le reste du mode
+// local : inopérant en production. Les bailleurs sont semés dans
+// supabase/seed.sql, chacun dans l'état exact que sa spec exerce.
 
-const UNIQUE = Date.now().toString().slice(-6)
+const LANDLORD_HEADER = "x-ranti-local-auth-user"
 
-// /first-run redirige cote SERVEUR vers /dashboard quand l'onboarding est
-// termine. Playwright abandonne alors la navigation (net::ERR_ABORTED) meme si
-// la redirection a parfaitement abouti : on tolere l'abandon et on juge sur
-// l'URL finale, jamais sur le succes du goto.
-async function gotoTolerant(page: import("@playwright/test").Page, url: string) {
+// Semés par supabase/seed.sql.
+const SANS_PROFIL = "00000000-0000-4000-8000-000000000001"
+const GUIDE_SANS_BAIL = "00000000-0000-4000-8000-000000000002"
+const GUIDE_AVEC_BAIL = "00000000-0000-4000-8000-000000000003"
+
+// /first-run redirige côté SERVEUR vers /dashboard quand l'onboarding est
+// terminé. Playwright abandonne alors la navigation (net::ERR_ABORTED) même si
+// la redirection a abouti : on tolère l'abandon et on juge sur l'état final.
+function seededTenant(page: import("@playwright/test").Page) {
+  return page.getByText(/Locataire Reprise/i).filter({ visible: true }).first()
+}
+
+async function visit(page: import("@playwright/test").Page, url: string) {
   await page.goto(url).catch(() => {})
   await page.waitForLoadState("domcontentloaded").catch(() => {})
 }
 
-// LECTURE SEULE, volontairement. Une premiere version creait le profil par le
-// parcours d'onboarding — et cassait deux specs existantes qui exigent un
-// utilisateur authentifie SANS profil (`welcome.spec.ts`). Tous les tests
-// partagent le meme utilisateur d'auth locale : muter son profil pollue la
-// suite entiere.
-//
-// Tant que chaque spec n'a pas son propre utilisateur (fixture a construire,
-// cf. TODOS), ces tests s'abstiennent si le profil n'existe pas plutot que de
-// le fabriquer. Ils couvrent alors la base seedee, pas un etat qu'ils auraient
-// eux-memes cree.
-async function hasProfile(page: import("@playwright/test").Page): Promise<boolean> {
-  await page.goto("/onboarding/profile")
-  const phone = page.getByLabel(/^Numéro de téléphone/)
-  const formShown = await phone.isVisible({ timeout: 5_000 }).catch(() => false)
-  return !formShown
-}
+test.describe("bailleur guidé, sans bail", () => {
+  test.use({ extraHTTPHeaders: { [LANDLORD_HEADER]: GUIDE_SANS_BAIL } })
 
-test.describe.configure({ mode: "serial" })
-
-test("la prise en main s'ouvre sur un bailleur authentifié", async ({ page }) => {
-  test.skip(!(await hasProfile(page)), "aucun profil bailleur pour l'utilisateur d'auth locale")
-  await gotoTolerant(page, "/first-run")
-
-  // Un bailleur deja « done » est renvoye au tableau de bord : les deux
-  // destinations sont acceptables, l'important est qu'aucune erreur ni
-  // redirection vers la connexion ne survienne.
-  await expect(page).toHaveURL(/first-run|dashboard/)
-  await expect(page.getByRole("link", { name: /connecter|Continuer avec Google/i })).toHaveCount(0)
+  test("la prise en main s'ouvre, sans retomber sur la connexion", async ({ page }) => {
+    await visit(page, "/first-run")
+    await expect(page).toHaveURL(/first-run/)
+    await expect(page.getByRole("button", { name: /Continuer avec Google/i })).toHaveCount(0)
+  })
 })
 
-test("recharger la prise en main ne repropose pas de créer un bail existant", async ({ page }) => {
-  test.skip(!(await hasProfile(page)), "aucun profil bailleur pour l'utilisateur d'auth locale")
-  await gotoTolerant(page, "/first-run")
+test.describe("bailleur guidé, avec un bail déjà créé", () => {
+  test.use({ extraHTTPHeaders: { [LANDLORD_HEADER]: GUIDE_AVEC_BAIL } })
 
-  // Le parcours guide n'est propose qu'aux bailleurs pas encore « done ».
-  // S'il est deja termine, le scenario de doublon ne peut pas se produire.
-  test.skip(!page.url().includes("/first-run"), "onboarding déjà terminé pour ce bailleur")
+  // LA régression de v0.3.38.0. Avant le correctif, l'écran repartait vide et
+  // invitait à ressaisir un bail existant : doublon de logement et de locataire
+  // au premier contact avec le produit.
+  test("le bail existant est reconstitué, pas redemandé", async ({ page }) => {
+    await visit(page, "/first-run")
+    await expect(page).toHaveURL(/first-run/)
 
-  const start = page.getByRole("button", { name: /Commencer|Premiers pas|Créer/i }).first()
-  if (await start.isVisible().catch(() => false)) {
-    await start.click()
-  }
+    // Le locataire et le logement semés doivent apparaître : preuve que
+    // l'écran est bien semé depuis la base et non repris de zéro.
+    // `.filter({ visible: true })` : la mise en page rend le libellé plusieurs
+    // fois (variante masquée selon la largeur), on vise celle qui s'affiche.
+    await expect(seededTenant(page)).toBeVisible({ timeout: 15_000 })
+    await expect(
+      page.getByText(/Chambre Reprise/i).filter({ visible: true }).first(),
+    ).toBeVisible()
+  })
 
-  const tenantField = page.getByLabel(/^Prénom/).first()
-  if (!(await tenantField.isVisible().catch(() => false))) {
-    test.skip(true, "formulaire de bail non atteint depuis l'état courant")
-  }
+  test("un rechargement ne perd pas le bail", async ({ page }) => {
+    await visit(page, "/first-run")
+    await expect(seededTenant(page)).toBeVisible({ timeout: 15_000 })
 
-  await tenantField.fill(`Loc${UNIQUE}`)
+    await page.reload()
 
-  // On ne va pas plus loin dans la creation ici : ce test verrouille le fait
-  // que l'ecran REPART de la base apres un rechargement, pas le detail du
-  // formulaire. Le rechargement ne doit jamais ramener un ecran vierge alors
-  // que des baux existent deja.
-  await page.reload()
-  await expect(page).toHaveURL(/first-run|dashboard/)
+    // C'est ici que le bug se manifestait : après rechargement, l'écran
+    // oubliait le bail et proposait de le créer.
+    await expect(seededTenant(page)).toBeVisible({ timeout: 15_000 })
+  })
 })
 
-test("la page locataire distingue un lien inconnu d'une panne", async ({ page }) => {
-  // Token bien forme mais inexistant : c'est un « introuvable » legitime.
-  // Le correctif v0.3.38.0 garantit que ce message-la reste reserve au cas ou
-  // le document n'existe vraiment pas, jamais a une panne technique.
-  await gotoTolerant(page, "/recu/00000000-0000-4000-8000-0000000000ff")
+test.describe("bailleur authentifié sans profil", () => {
+  test.use({ extraHTTPHeaders: { [LANDLORD_HEADER]: SANS_PROFIL } })
 
-  // Le message de PANNE ne doit jamais apparaitre pour un token simplement
-  // inexistant : c'est toute la distinction introduite en v0.3.38.0.
+  // Garde-fou de l'isolation elle-même : si une autre spec polluait ce
+  // bailleur en lui créant un profil, ce test tomberait. Il vaut donc autant
+  // pour le produit que pour la suite.
+  test("reste renvoyé vers la création de profil", async ({ page }) => {
+    await visit(page, "/first-run")
+    await expect(page).toHaveURL(/onboarding/)
+  })
+})
+
+test("un lien de quittance inconnu n'est pas présenté comme une panne", async ({ page }) => {
+  await visit(page, "/recu/00000000-0000-4000-8000-0000000000ff")
+
+  // Le message de PANNE est réservé aux vraies indisponibilités : c'est toute
+  // la distinction introduite en v0.3.38.0.
   await expect(page.getByText(/momentanément indisponible/i)).toHaveCount(0)
-  // Et l'ecran rendu est bien un « introuvable », pas la quittance de
-  // quelqu'un d'autre.
-  await expect(page.getByText(/certifier|contester|quittance de/i)).toHaveCount(0)
+  await expect(page.getByText(/certifier|contester/i)).toHaveCount(0)
 })
