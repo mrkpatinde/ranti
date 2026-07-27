@@ -61,3 +61,71 @@ jobs:
         run: |
           docker logs "$(docker ps -a --filter 'name=supabase_db_' \
             --format '{{.Names}}' | head -1)" --tail 100
+
+  e2e:
+    name: e2e (parcours authentifiés)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+
+      - run: bun install --frozen-lockfile
+        working-directory: apps/web
+
+      # Chromium seul : les specs ne ciblent qu'un moteur, installer les trois
+      # tripleraient le temps de préparation pour rien.
+      - name: Installer Chromium
+        run: bunx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      # Pile RÉDUITE au strict nécessaire : base, auth, PostgREST, passerelle.
+      # Studio, realtime, storage, imgproxy, analytics, edge-runtime ne sont
+      # jamais sollicités par les specs — les démarrer ne ferait qu'allonger le
+      # job. Validé en local : 20/20 sur ce sous-ensemble.
+      # `supabase start` applique aussi migrations + seed.sql, donc les trois
+      # bailleurs de test existent d'emblée.
+      - name: Démarrer la pile Supabase (réduite)
+        run: |
+          supabase start \
+            -x analytics,edge-runtime,functions,imgproxy,inbucket,meta,realtime,storage,studio,vector
+
+      # Identifiants DÉRIVÉS du stack qui vient de démarrer, jamais figés : les
+      # valeurs par défaut de playwright.config sont pratiques en local mais
+      # peuvent changer d'une version de CLI à l'autre. Ici on lit la vérité.
+      - name: Exporter les identifiants du stack local
+        run: |
+          eval "$(supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY"
+            echo "SUPABASE_JWT_SECRET=$JWT_SECRET"
+          } >> "$GITHUB_ENV"
+
+      - name: Rejouer les parcours
+        run: bun run test:e2e
+        working-directory: apps/web
+
+      - name: Rapport Playwright en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          retention-days: 7
+
+      - name: Journaux des services en cas d'échec
+        if: failure()
+        run: |
+          for c in $(docker ps -a --filter 'name=supabase_' --format '{{.Names}}'); do
+            echo "===== $c"
+            docker logs "$c" --tail 40 2>&1 || true
+          done
