@@ -11,12 +11,24 @@ import { validateBailForm, type BailFormInput, type BailRowInput } from "./valid
 
 // Prise en main guidée : le propriétaire choisit de suivre l'accueil (guided),
 // de passer (exploring), ou termine (done). Colonne non-identité → update direct
-// sous RLS (landlords_update_own), aucun RPC requis (ADR-002). Jamais bloquant :
-// une erreur DB ne casse pas le tableau de bord, elle est seulement journalisée.
+// sous RLS (landlords_update_own), aucun RPC requis (ADR-002).
+//
+// Le résultat est RENVOYÉ (correctif 2026-07-27). L'échec partait auparavant
+// dans un console.error, et tous les appelants faisaient `void ...` : un
+// `done` perdu laissait le rail « Premiers pas » revenir à chaque visite du
+// tableau de bord (dashboard/page.tsx lit onboarding_status), sans que le
+// bailleur puisse rien y faire ni comprendre pourquoi. Comme
+// setReminderSettings, on ne throw pas — le contrat est un résultat lisible.
 const SETTABLE_STATUS: readonly OnboardingStatus[] = ["guided", "exploring", "done"]
 
-export async function setOnboardingStatus(next: OnboardingStatus): Promise<void> {
-  if (!SETTABLE_STATUS.includes(next)) return
+export type OnboardingStatusResult = { ok: true } | { ok: false; error: string }
+
+export async function setOnboardingStatus(
+  next: OnboardingStatus,
+): Promise<OnboardingStatusResult> {
+  if (!SETTABLE_STATUS.includes(next)) {
+    return { ok: false, error: "Statut invalide." }
+  }
 
   const landlord = await requireLandlordProfile()
   const supabase = await createClient()
@@ -28,9 +40,11 @@ export async function setOnboardingStatus(next: OnboardingStatus): Promise<void>
 
   if (error) {
     console.error("setOnboardingStatus: update failed", error.code, error.message)
+    return { ok: false, error: "Statut non enregistré." }
   }
 
   revalidatePath("/dashboard")
+  return { ok: true }
 }
 
 function asString(value: unknown): string {

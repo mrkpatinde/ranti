@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 // revalidatePath explicites sur /units et /tenants ont disparu (la racine les
 // couvre). Ces tests verrouillent la nouvelle forme et l'absence de purge quand
 // la RPC échoue.
-const { RedirectSignal, revalidatePath, requireLandlordProfile, rpc, validateBailForm } =
+const { RedirectSignal, revalidatePath, requireLandlordProfile, rpc, validateBailForm, eq, update, from } =
   vi.hoisted(() => {
     class RedirectSignal extends Error {
       constructor(readonly url: string) {
@@ -18,6 +18,9 @@ const { RedirectSignal, revalidatePath, requireLandlordProfile, rpc, validateBai
       requireLandlordProfile: vi.fn(),
       rpc: vi.fn(),
       validateBailForm: vi.fn(),
+      eq: vi.fn(),
+      update: vi.fn(),
+      from: vi.fn(),
     }
   })
 
@@ -42,10 +45,10 @@ vi.mock("../validation", () => ({
 }))
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn().mockResolvedValue({ rpc }),
+  createClient: vi.fn().mockResolvedValue({ rpc, from }),
 }))
 
-import { createBail } from "../actions"
+import { createBail, setOnboardingStatus } from "../actions"
 
 const PREV = { error: null, errorRow: null, values: null } as never
 
@@ -97,5 +100,49 @@ describe("createBail (contrat de purge argent)", () => {
     const url = await capture(new FormData())
     expect(url).toBe("/leases?notice=bulk_created&units=2&leases=1")
     expect(revalidatePath.mock.calls).toEqual([["/", "layout"]])
+  })
+})
+
+// Statut de prise en main : le contrat a changé le 2026-07-27. L'échec partait
+// dans un console.error et l'appelant (OnboardingComplete) rafraîchissait quoi
+// qu'il arrive — le rail « Premiers pas » revenait à chaque visite sans
+// explication. L'action renvoie désormais son résultat.
+describe("setOnboardingStatus (contrat de résultat)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    requireLandlordProfile.mockResolvedValue({ id: "landlord-1" })
+    update.mockReturnValue({ eq })
+    from.mockReturnValue({ update })
+  })
+
+  it("succès : renvoie ok et purge le tableau de bord", async () => {
+    eq.mockResolvedValue({ error: null })
+    await expect(setOnboardingStatus("done")).resolves.toEqual({ ok: true })
+    expect(update).toHaveBeenCalledWith({ onboarding_status: "done" })
+    expect(eq).toHaveBeenCalledWith("id", "landlord-1")
+    expect(revalidatePath).toHaveBeenCalledWith("/dashboard")
+  })
+
+  it("erreur DB : renvoie l'échec, sans purger (rien n'a changé en base)", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+    eq.mockResolvedValue({ error: { code: "42501", message: "denied" } })
+    await expect(setOnboardingStatus("done")).resolves.toEqual({
+      ok: false,
+      error: "Statut non enregistré.",
+    })
+    expect(revalidatePath).not.toHaveBeenCalled()
+    consoleError.mockRestore()
+  })
+
+  // `pending` est un OnboardingStatus valide au TYPE mais absent de
+  // SETTABLE_STATUS : seul le runtime le refuse. C'est le cas qui compte —
+  // personne ne doit pouvoir remettre un bailleur en attente d'onboarding.
+  it("statut non-settable : aucun toucher DB, pas même l'auth", async () => {
+    await expect(setOnboardingStatus("pending")).resolves.toEqual({
+      ok: false,
+      error: "Statut invalide.",
+    })
+    expect(requireLandlordProfile).not.toHaveBeenCalled()
+    expect(from).not.toHaveBeenCalled()
   })
 })
