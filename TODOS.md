@@ -110,6 +110,15 @@ toujours visibles (draftCount et confirmation en dépendent).
 
 ## Completed
 
+### Faire tourner les E2E en CI
+**Priority:** P2
+Les 20 parcours authentifiés ne protégeaient que celui qui les lançait à la
+main : le job `db` ne démarre que Postgres, alors qu'ils exigent la pile
+complète. Job `e2e` ajouté — pile réduite (db, auth, rest, kong), identifiants
+dérivés de `supabase status` plutôt que figés, rapport Playwright et journaux
+des services conservés en cas d'échec.
+**Completed:** v0.3.40.0 (2026-07-27)
+
 ### E2E authentifiés débloqués + isolation par bailleur
 **Priority:** P2
 Le blocage supposé (auth Google) n'existait pas : `RANTI_LOCAL_AUTH` était déjà

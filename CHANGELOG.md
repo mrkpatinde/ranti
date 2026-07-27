@@ -3,6 +3,23 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.40.0] - 2026-07-27
+
+### Pour les contributeurs
+
+- **Les parcours authentifiés sont rejoués à chaque proposition de
+  modification.** Un job `e2e` démarre une pile Supabase complète, applique les
+  migrations et le jeu de données de test, puis déroule les 20 parcours dans un
+  navigateur. Jusqu'ici ces garde-fous ne protégeaient que le développeur qui
+  pensait à les lancer à la main — dont la non-régression du bail créé en double
+  au rechargement de la prise en main.
+- La pile démarrée est réduite au strict nécessaire (base, authentification,
+  API REST, passerelle) : les services jamais sollicités par les tests ne sont
+  pas lancés. Les identifiants sont lus sur la pile qui vient de démarrer plutôt
+  que figés dans la configuration, pour ne pas dépendre d'une version d'outil.
+- En cas d'échec, le rapport Playwright et les journaux des services sont
+  conservés sept jours.
+
 ## [0.3.39.0] - 2026-07-27
 
 ### Pour les contributeurs
