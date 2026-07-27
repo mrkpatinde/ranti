@@ -123,15 +123,15 @@ export default async function VerifyReceiptPage({ params }: VerifyPageProps) {
 
         {state === "verified" ? (
           <p className="rounded-xl border border-primary/15 bg-secondary px-4 py-3 text-sm text-foreground/80">
-            Empreinte recalculée identique à celle scellée à la certification : ce document n&apos;a pas été modifié depuis. Il correspond au PDF portant le même numéro.
+            Empreinte recalculée identique à celle scellée à l&apos;émission : ce document n&apos;a pas été modifié depuis. Il correspond au PDF portant le même numéro.
           </p>
         ) : state === "unsealed" ? (
           <p className="rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
-            Ce document a bien été émis par Ranti. Il n&apos;a pas encore été certifié par le locataire : aucune empreinte d&apos;intégrité n&apos;y est scellée.
+            Ce document a bien été émis par Ranti, avant la mise en place du scellement automatique : aucune empreinte d&apos;intégrité n&apos;y est attachée. Son contenu ne peut pas être recoupé.
           </p>
         ) : state === "tampered" ? (
           <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            L&apos;empreinte recalculée ne correspond pas à celle scellée à la certification. Ce document a été modifié depuis : il ne vaut pas preuve de paiement.
+            L&apos;empreinte recalculée ne correspond pas à celle scellée à l&apos;émission. Ce document a été modifié depuis : il ne vaut pas preuve de paiement.
           </p>
         ) : (
           <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">

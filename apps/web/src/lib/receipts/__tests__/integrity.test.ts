@@ -45,7 +45,20 @@ describe("receiptIntegrityVerdict", () => {
     ).toBe("tampered")
   })
 
-  it("pas d'empreinte stockée (non certifié) => non scellé", () => {
+  it("scellé à l'émission, locataire jamais passé => vérifié sans certification", () => {
+    // Le cas nominal depuis le scellement à l'émission (migration
+    // 20260727120000) : une quittance neuve, que le locataire n'a jamais
+    // ouverte, sort « Intégrité vérifiée » — plus « non scellé ».
+    expect(
+      receiptIntegrityVerdict({
+        status: "issued",
+        storedFingerprint: FP,
+        computedFingerprint: FP,
+      }),
+    ).toBe("verified")
+  })
+
+  it("pas d'empreinte stockée (document antérieur au scellement) => non scellé", () => {
     expect(
       receiptIntegrityVerdict({
         status: "issued",

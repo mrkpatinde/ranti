@@ -90,7 +90,10 @@ begin
       ('private.recompute_rent_due_status(uuid)'),
       ('private.confirm_collection_core(uuid,uuid)'),
       ('private.generate_receipt_core(uuid,uuid)'),
-      ('private.record_collection_core(uuid,uuid,uuid,integer,text,timestamptz,text,jsonb,text,text,text)')
+      -- 12 args depuis 20260716130000 (ajout de p_request_id, écritures
+      -- idempotentes). La signature à 11 args laissée ici cassait le test au
+      -- premier has_function_privilege depuis le 2026-07-16.
+      ('private.record_collection_core(uuid,uuid,uuid,integer,text,timestamptz,text,jsonb,text,text,text,uuid)')
     ) as t(sig)
   loop
     if not has_function_privilege('authenticated', v_fn.sig, 'execute') then

@@ -26,6 +26,7 @@ begin
   if v_who <> 'authenticated' then
     raise exception 'FAIL: impersonation inopérante, current_user=%', v_who;
   end if;
+  raise notice 'OK bloc 1 : impersonation authenticated effective';
 end $$;
 rollback;
 
@@ -33,6 +34,37 @@ rollback;
 -- Bloc 2 : parcours complet encaisser → confirmer → quittance, en `authenticated`
 -- ---------------------------------------------------------------------------
 begin;
+
+-- Fixtures PROPRES au test (2026-07-27). Ce bloc piochait auparavant « la
+-- dernière échéance de la base » : il dépendait donc des données présentes et
+-- échouait dès qu'elle était soldée (constaté en prod le 2026-07-16), puis sur
+-- toute base fraîche — `supabase db reset` ne sème qu'une échéance déjà payée,
+-- donc restant = 0. Un test de grants ne doit rien supposer du contenu.
+-- Insertions faites en `postgres` AVANT l'impersonation : c'est le parcours
+-- applicatif qu'on veut mesurer, pas la mise en place.
+insert into auth.users (id, instance_id, aud, role, email)
+values ('f1111111-1111-1111-1111-111111111111','00000000-0000-0000-0000-000000000000','authenticated','authenticated','grants-collect@ranti.local');
+
+insert into public.landlords (id, auth_user_id, phone, first_name, last_name)
+values ('f2222222-2222-2222-2222-222222222222','f1111111-1111-1111-1111-111111111111','+22990000077','Grants','Collect');
+
+insert into public.properties (id, landlord_id, name)
+values ('f3333333-3333-3333-3333-333333333333','f2222222-2222-2222-2222-222222222222','Cour Grants');
+
+insert into public.units (id, landlord_id, property_id, name, unit_type)
+values ('fa000000-0000-0000-0000-000000000001','f2222222-2222-2222-2222-222222222222','f3333333-3333-3333-3333-333333333333','UG','room');
+
+insert into public.tenants (id, landlord_id, first_name, last_name, phone)
+values ('fb000000-0000-0000-0000-000000000001','f2222222-2222-2222-2222-222222222222','Loc','Grants','+22991000077');
+
+insert into public.leases (id, landlord_id, unit_id, tenant_id, monthly_rent_amount, due_day, start_date, status)
+values ('fc000000-0000-0000-0000-000000000001','f2222222-2222-2222-2222-222222222222','fa000000-0000-0000-0000-000000000001','fb000000-0000-0000-0000-000000000001',50000,5,date '2023-01-05','active');
+
+-- Échéance NON soldée : le cap d'allocation (record_collection_alloc_cap)
+-- rejette toute allocation au-delà du dû, il faut donc du restant ≥ 1.
+insert into public.rent_dues (id, landlord_id, lease_id, unit_id, tenant_id, period_start, period_end, due_date, amount_due, currency, status)
+values ('fd000000-0000-0000-0000-00000000000a','f2222222-2222-2222-2222-222222222222','fc000000-0000-0000-0000-000000000001','fa000000-0000-0000-0000-000000000001','fb000000-0000-0000-0000-000000000001',date '2023-01-01',date '2023-01-31',date '2023-01-05',50000,'XOF','expected');
+
 do $$
 declare
   v_due public.rent_dues;
@@ -40,17 +72,12 @@ declare
   v_rid uuid;
   v_receipt uuid;
 begin
-  -- Échéance avec du restant à encaisser (≥ 1) : le cap d'allocation
-  -- (record_collection_alloc_cap) rejette toute allocation au-delà du dû.
-  -- Prendre « la dernière » sans regarder le solde rend le test dépendant des
-  -- données (échoue dès qu'elle est soldée — vu en prod le 2026-07-16).
   select rd.* into v_due
   from public.rent_dues rd
   join public.rent_due_balances b on b.id = rd.id
-  where rd.deleted_at is null and rd.status <> 'cancelled'
-    and (b.amount_due - b.amount_paid) >= 1
-  order by rd.period_start desc limit 1;
-  if v_due.id is null then raise exception 'TEST SETUP: aucune échéance avec restant ≥ 1'; end if;
+  where rd.id = 'fd000000-0000-0000-0000-00000000000a'
+    and (b.amount_due - b.amount_paid) >= 1;
+  if v_due.id is null then raise exception 'TEST SETUP: fixture d''échéance absente ou déjà soldée'; end if;
 
   select l.auth_user_id into v_auth from public.landlords l where l.id = v_due.landlord_id;
   if v_auth is null then raise exception 'TEST SETUP: propriétaire sans auth_user_id'; end if;
@@ -70,6 +97,8 @@ begin
 
   v_receipt := public.generate_receipt(v_rid);
   if v_receipt is null then raise exception 'FAIL: generate_receipt a renvoyé null'; end if;
+
+  raise notice 'OK bloc 2 : encaisser -> confirmer -> quittance sous authenticated';
 end $$;
 rollback;
 
@@ -92,5 +121,6 @@ begin
   if v_missing is not null then
     raise exception 'FAIL: `authenticated` ne peut pas exécuter : %', v_missing;
   end if;
+  raise notice 'OK bloc 3 : les 3 cores private sont executables par authenticated';
 end $$;
 rollback;

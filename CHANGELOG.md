@@ -3,6 +3,63 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.37.0] - 2026-07-27
+
+### Changed
+
+- **Une quittance est vérifiable dès son émission.** Jusqu'ici, l'empreinte
+  d'intégrité n'était apposée que si le locataire ouvrait son lien et confirmait
+  le document. Tant qu'il ne l'avait pas fait, une quittance présentée à une
+  banque ou à un consulat s'affichait « aucune empreinte d'intégrité n'y est
+  scellée » — le pire message possible devant un guichet. Le sceau est désormais
+  posé au moment où le document est créé : toute quittance neuve se vérifie
+  immédiatement, sans rien attendre de personne. La confirmation du locataire
+  garde tout son sens — elle atteste que le montant et la période sont exacts —
+  mais elle ne conditionne plus l'existence de la preuve.
+- **L'empreinte est imprimée sur toutes les quittances.** Le PDF et la page
+  partagée au locataire affichent l'empreinte dès qu'elle existe, et non plus
+  seulement après confirmation. C'est la valeur que recoupe le vérificateur en
+  scannant le QR : elle doit être lisible sur le document qu'il tient.
+- **Les pages de vérification disent ce qu'elles vérifient.** Elles parlaient
+  d'une empreinte « scellée à la certification » ; elles parlent maintenant
+  d'une empreinte scellée à l'émission. Un document antérieur au scellement
+  automatique est signalé comme tel, sans laisser croire qu'il a été altéré.
+
+### Fixed
+
+- **Un réglage de relance non enregistré ne peut plus s'afficher comme
+  enregistré.** Si l'écriture en base échouait, l'écran gardait l'affichage
+  demandé : un propriétaire pouvait croire avoir coupé ses relances alors que
+  rien n'avait été enregistré. L'écran revient désormais à l'état réel et
+  affiche l'échec.
+- **L'écran Relances ne promet plus ce qu'il ne fait pas.** Il annonçait
+  « Ranti relance vos locataires » / « Désactivée : vous relancez vous-même »,
+  laissant croire à un interrupteur d'envoi. Ces réglages sont une préférence
+  transmise à l'opérateur, et le texte le dit maintenant.
+
+### Migrations
+
+- `20260727120000_seal_receipt_fingerprint_at_issue.sql` (scellement à
+  l'émission, recette d'empreinte unique) et
+  `20260727120010_backfill_receipt_fingerprint.sql` (documents antérieurs) :
+  **appliquées en production le 2026-07-27**. Vérification avant/après sur les
+  documents existants : aucun verdict d'intégrité modifié.
+
+### Pour les contributeurs
+
+- La suite de tests SQL (`supabase/tests/`) tourne en intégration continue à
+  chaque proposition de modification, sur une base reconstruite depuis la
+  première migration : `supabase/tests/run-all.sh`, job `db`. Elle couvre ce que
+  les tests applicatifs ne voient pas — politiques d'accès, droits d'exécution,
+  déclencheurs d'audit, et le comportement des fonctions sous le rôle d'un
+  utilisateur connecté plutôt que sous un compte administrateur.
+- La recette de l'empreinte SHA-256, jusque-là recopiée dans trois fonctions,
+  vit dans une seule (`private.receipt_computed_fingerprint`) appelée par
+  l'émission, la confirmation et les deux chemins de vérification.
+- Deux tests d'habilitation étaient cassés en silence — l'un depuis le
+  2026-07-16 (signature de fonction périmée), l'autre dépendant des données
+  présentes en base. Réparés, et le second sème désormais ses propres données.
+
 ## [0.3.36.0] - 2026-07-24
 
 ### Added

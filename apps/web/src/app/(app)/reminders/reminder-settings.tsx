@@ -8,9 +8,17 @@ import { buildReminderMessage } from "@/lib/reminders/whatsapp"
 // Réglages de relance du propriétaire (demande du 2026-07-18) : canal, moment
 // et aperçu du message par défaut, directement sur /reminders. Jusqu'ici ces
 // réglages n'avaient d'UI que dans /first-run, inaccessible une fois
-// l'onboarding terminé. Persistance via setReminderSettings (jamais bloquant),
-// état optimiste local : un échec DB est journalisé côté serveur, l'UI reste
-// fluide. Ranti-ops lit ces préférences pour composer et cadencer les envois.
+// l'onboarding terminé.
+//
+// Correctif 2026-07-27 — l'état optimiste ne ment plus. L'écriture partait en
+// « fire-and-forget » et son échec était avalé côté serveur : le bailleur
+// pouvait voir « Désactivée » sur un réglage jamais enregistré. On revient
+// désormais à l'état précédent et on affiche l'échec.
+//
+// Ce que cet écran NE promet pas : couper l'envoi. La file de relance vit dans
+// ranti-ops (ADR-022) et ne lit pas encore ces colonnes — le libellé dit donc
+// ce qui est vrai (une préférence transmise), pas ce qui serait faux (un
+// interrupteur d'envoi). À reformuler le jour où la file les respectera.
 
 const MOMENTS: { id: ReminderMoment; label: string }[] = [
   { id: "avant", label: "3 jours avant l'échéance" },
@@ -42,16 +50,27 @@ export function ReminderSettings({
   const [enabled, setEnabled] = useState(initialEnabled)
   const [channel, setChannel] = useState<ReminderChannel>(initialChannel ?? "whatsapp")
   const [moment, setMoment] = useState<ReminderMoment>(initialMoment ?? "echeance")
+  const [error, setError] = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
+  // L'état d'AVANT le clic est capturé pour pouvoir y revenir : sans ça,
+  // un échec laisserait l'écran afficher un réglage qui n'existe pas en base.
   function persist(next: { enabled?: boolean; channel?: ReminderChannel; moment?: ReminderMoment }) {
+    const previous = { enabled, channel, moment }
     const payload = {
       enabled: next.enabled ?? enabled,
       channel: next.channel ?? channel,
       moment: next.moment ?? moment,
     }
-    startTransition(() => {
-      void setReminderSettings(payload)
+    setError(null)
+    startTransition(async () => {
+      const result = await setReminderSettings(payload)
+      if (!result.ok) {
+        setEnabled(previous.enabled)
+        setChannel(previous.channel)
+        setMoment(previous.moment)
+        setError(result.error)
+      }
     })
   }
 
@@ -64,9 +83,14 @@ export function ReminderSettings({
           <h2 className="text-base font-semibold text-foreground">Relance automatique</h2>
           <p className="mt-0.5 text-sm leading-6 text-foreground/70">
             {enabled
-              ? `Ranti relance vos locataires par ${canalLabel}, en votre nom.`
-              : "Désactivée : vous relancez vous-même depuis la fiche du bail."}
+              ? `Préférence enregistrée : relance par ${canalLabel}, en votre nom.`
+              : "Préférence enregistrée : vous relancez vous-même depuis la fiche du bail."}
           </p>
+          {error ? (
+            <p role="alert" className="mt-1.5 text-sm font-medium text-destructive">
+              {error}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"

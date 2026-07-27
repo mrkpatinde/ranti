@@ -59,6 +59,16 @@ et les cartes des vraies données (`getOnboardingProgress`, baux/échéances),
 comme le fait déjà `/dashboard`. Suivi de la revue adversariale 2026-07-18
 (F4) ; les réglages de relance sont déjà semés depuis la base.
 
+**Blocage identifié le 2026-07-27** (raison pour laquelle ce n'est PAS une
+simple requête) : l'état FirstRun distingue `lease` (le bail « principal » du
+parcours guidé, type `PrimaryLease`) de `addedLeases` (les suivants, type
+`Lease[]`). **Rien en base ne marque lequel était le principal** — ni colonne,
+ni ordre fiable après édition. Hydrater exige donc de trancher d'abord :
+(a) considérer le plus ancien bail comme principal, (b) persister un marqueur
+d'onboarding, ou (c) supprimer la distinction principal/ajouté du reducer.
+C'est une décision de modélisation, pas un branchement de requête — d'où le
+report hors du ship du 2026-07-27.
+
 ### E2E authentifié pour /first-run et /recu
 **Priority:** P2
 Le parcours guidé (welcome → bail → paiement → quittance) et la page locataire
@@ -83,16 +93,6 @@ consommé par PDF, page locataire, page reçu propriétaire et /verifier.)
 
 ## Vérification publique (/verifier)
 
-### Extraire un helper SQL commun pour l'empreinte SHA-256
-**Priority:** P1
-La recette (`receipt_number || issued_at UTC || snapshot::text`) est
-copiée-collée dans 3 fonctions vivantes (`certify_receipt_by_token`,
-`verify_receipt_integrity`, `verify_receipt_by_number`) : toute évolution
-manquée dans une copie ferait diverger les verdicts entre le chemin QR et le
-chemin référence. Migration dédiée : `public.receipt_computed_fingerprint()`
-appelé par les trois. Différé au ship v0.3.36.0 (rayon d'impact = fonctions
-de preuve légale, mérite sa propre revue).
-
 ### Rate limit + retrait de `status` sur verify_receipt_by_number
 **Priority:** P2
 Références séquentielles énumérables, RPC anonyme appelable en direct via
@@ -108,13 +108,18 @@ ship v0.3.36.0, mais aucun E2E ne les rejoue (les specs actuelles s'arrêtent
 au refus de format, sans base). Piste : fixture seedée ou référence
 bien formée inexistante (RNT-1900-0001) pour le chemin « introuvable ».
 
-### Ambiguïté par conception des numéros bas
-**Priority:** P2
-La séquence RNT repart à 0001 par propriétaire et par année : dès deux
-propriétaires actifs, les petits numéros (ceux que tient un locataire type)
-tombent sur « plusieurs documents portent cette référence ». Décision produit
-à trancher : discriminant dans la référence imprimée (initiales, somme de
-contrôle), second champ de recherche, ou assumer le renvoi vers lien/QR.
+### Ambiguïté par conception des numéros bas — DÉJÀ EFFECTIVE EN PROD
+**Priority:** P1
+La séquence RNT repart à 0001 par propriétaire et par année. Ce n'est plus une
+projection : **la prod porte deux `RNT-2026-0001`** (un par bailleur), plus deux
+`R-000001` hérités. La recherche par référence sur `/verifier` renvoie donc
+**déjà** « plusieurs documents portent cette référence » pour le numéro le plus
+susceptible d'être présenté par un locataire (constaté le 2026-07-27, 2 bailleurs
+et 6 quittances en base). Décision produit à trancher : discriminant dans la
+référence imprimée (initiales, somme de contrôle), second champ de recherche
+(nom du bailleur), ou assumer le renvoi vers lien/QR.
+Note : le chemin QR (`/verifier/[id]`, UUID) n'est pas touché — seule la
+recherche par numéro l'est.
 
 ### Trancher le cache hors-ligne de /recu
 **Priority:** P3
@@ -135,6 +140,43 @@ simple `.limit()` : segmenter par mois ou paginer en gardant les brouillons
 toujours visibles (draftCount et confirmation en dépendent).
 
 ## Completed
+
+### Réglage de relance : l'échec d'écriture ne peut plus être avalé
+**Priority:** P1
+`setReminderSettings` renvoyait `void` et journalisait l'échec DB dans un
+`console.error` ; l'appelant (`reminder-settings.tsx`) faisait
+`void setReminderSettings(...)` avec état optimiste. Un bailleur pouvait donc
+voir « Désactivée » sur un réglage **jamais écrit en base** — sur des messages
+envoyés en son nom. L'action renvoie désormais
+`{ ok: true } | { ok: false; error }`, l'écran revient à l'état précédent et
+affiche l'échec (`role="alert"`), et aucune surface n'est revalidée quand rien
+n'a changé en base. Le test qui verrouillait l'ancien comportement
+(`resolves.toBeUndefined()`, « jamais propagée ») est inversé.
+Libellé corrigé au passage : l'écran disait « Ranti relance vos locataires » /
+« Désactivée : vous relancez vous-même », laissant croire que l'interrupteur
+coupe les envois. Il dit maintenant « Préférence enregistrée » — vrai, puisque
+la file d'envoi (ranti-ops, ADR-022) ne lit pas encore ces colonnes.
+**Completed:** v0.3.37.0 (2026-07-27)
+
+### Sceller l'empreinte à l'émission + recette SHA-256 unique
+**Priority:** P1
+`sha256_fingerprint` n'était écrite qu'à la certification locataire : toute
+quittance neuve sortait `unsealed` sur `/verifier` (« aucune empreinte
+d'intégrité n'y est scellée ») — le levier de vérification publique était
+éteint par défaut. Le sceau est désormais posé dans l'INSERT de
+`private.generate_receipt_core` (`issued_at` figé explicitement pour entrer
+dans le calcul ; pas d'UPDATE post-insert, qui doublerait la ligne d'audit).
+`certify_receipt_by_token` ne réécrit plus un sceau existant (`coalesce`) et
+redevient la seule deuxième voix. La recette, jusque-là copiée-collée dans 3
+fonctions vivantes, est extraite en `private.receipt_computed_fingerprint()`
+(schéma `private` : pas d'endpoint PostgREST inutile), appelée par les quatre
+chemins. Rétro-scellement des documents antérieurs isolé dans une migration
+séparée, retirable. Migrations `20260727120000` + `20260727120010`, test
+`supabase/tests/receipt_sealed_at_issue.test.sql`.
+**Completed:** v0.3.37.0 (2026-07-27), appliqué en prod le jour même. Contrôle avant/après
+sur les 6 reçus de production : verdicts inchangés (5 `verified`, 1 `cancelled`,
+0 `tampered`), 0 reçu non scellé restant. Le seul reçu rétro-scellé était
+`cancelled` — statut qui prime sur le sceau, donc aucun verdict affiché modifié.
 
 ### Étendre le streaming Suspense aux pages Relances et Encaissements
 **Priority:** P2
