@@ -2,10 +2,8 @@ import { cache } from "react"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AUTH_PATHS } from "./paths"
+import { isLocalAuthEnabled, localAuthPhone, resolveLocalAuthUserId } from "./local-identity"
 import type { AuthClaims, AuthUser, RequireAuthOptions } from "./types"
-
-const LOCAL_AUTH_USER_ID = "00000000-0000-4000-8000-000000000001"
-const LOCAL_AUTH_PHONE = "+22900000000"
 
 function hasValidSubject(claims: unknown): claims is AuthClaims {
   return (
@@ -17,17 +15,17 @@ function hasValidSubject(claims: unknown): claims is AuthClaims {
   )
 }
 
-// Accepte "true" et "1" (la doc utilise RANTI_LOCAL_AUTH=1).
-// Jamais actif en production, quelle que soit la valeur.
-export function isLocalAuthEnabled() {
-  const flag = process.env.RANTI_LOCAL_AUTH
-  return process.env.NODE_ENV !== "production" && (flag === "true" || flag === "1")
-}
+// Ré-exporté pour ne pas casser les consommateurs existants ; la définition
+// (et la double garde) vit dans lib/auth/local-identity.
+export { isLocalAuthEnabled }
 
-function getLocalAuthClaims(): AuthClaims {
+// Le sujet est résolu PAR REQUÊTE (en-tête d'isolation des tests), pas figé au
+// démarrage : deux specs Playwright peuvent viser deux bailleurs distincts sur
+// le même serveur de dev.
+async function getLocalAuthClaims(): Promise<AuthClaims> {
   return {
-    sub: process.env.RANTI_LOCAL_AUTH_USER_ID ?? LOCAL_AUTH_USER_ID,
-    phone: process.env.RANTI_LOCAL_AUTH_PHONE ?? LOCAL_AUTH_PHONE,
+    sub: await resolveLocalAuthUserId(),
+    phone: localAuthPhone(),
     role: "authenticated",
     aal: "aal1",
   }
@@ -70,7 +68,7 @@ export async function requireAuth(options: RequireAuthOptions = {}): Promise<Aut
   }
 
   if (isLocalAuthEnabled()) {
-    return getLocalAuthClaims()
+    return await getLocalAuthClaims()
   }
 
   redirect(options.redirectTo ?? AUTH_PATHS.signIn)
@@ -92,7 +90,7 @@ export async function getAuthUserId() {
   }
 
   if (isLocalAuthEnabled()) {
-    return getLocalAuthClaims().sub
+    return (await getLocalAuthClaims()).sub
   }
 
   return null

@@ -2,6 +2,7 @@ import { createHmac } from 'node:crypto'
 import { cache } from 'react'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { isLocalAuthEnabled, resolveLocalAuthUserId } from '@/lib/auth/local-identity'
 
 // Bootstrap de session DÉVELOPPEMENT UNIQUEMENT (jamais en production).
 // En mode auth locale (RANTI_LOCAL_AUTH), l'app fabrique des claims factices
@@ -12,18 +13,19 @@ import { cookies } from 'next/headers'
 // → la RLS s'applique NORMALEMENT (on ne la contourne pas, contrairement à
 // service_role : plus sûr, et ça ne dépend pas des grants de service_role).
 // Permet de rendre le dashboard/journal en local, la QA et les e2e authentifiés.
-// Double garde : NODE_ENV ≠ production ET flag RANTI_LOCAL_AUTH. Inline pour
-// éviter l'import circulaire avec lib/auth/server.
-function mintLocalAuthToken(): string | null {
-  const flag = process.env.RANTI_LOCAL_AUTH
-  const enabled =
-    process.env.NODE_ENV !== 'production' && (flag === 'true' || flag === '1')
-  if (!enabled) return null
+// Double garde : NODE_ENV ≠ production ET flag RANTI_LOCAL_AUTH, portées par
+// lib/auth/local-identity (source unique, sans cycle : local-identity n'importe
+// que next/headers).
+//
+// Le sujet vient de la MÊME résolution que les claims applicatives : si les
+// deux divergeaient, l'app croirait être un bailleur pendant que la RLS en
+// servirait un autre — des données d'autrui sur l'écran d'un test.
+async function mintLocalAuthToken(): Promise<string | null> {
+  if (!isLocalAuthEnabled()) return null
   const secret = process.env.SUPABASE_JWT_SECRET
   if (!secret) return null
 
-  const sub =
-    process.env.RANTI_LOCAL_AUTH_USER_ID ?? '00000000-0000-4000-8000-000000000001'
+  const sub = await resolveLocalAuthUserId()
   const now = Math.floor(Date.now() / 1000)
   const b64 = (v: string) => Buffer.from(v).toString('base64url')
   const header = b64(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
@@ -49,7 +51,7 @@ function mintLocalAuthToken(): string | null {
 export const createClient = cache(async () => {
   const cookieStore = await cookies()
 
-  const devToken = mintLocalAuthToken()
+  const devToken = await mintLocalAuthToken()
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
