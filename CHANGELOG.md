@@ -3,6 +3,29 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.39.0] - 2026-07-27
+
+### Pour les contributeurs
+
+- **Les tests de bout en bout ne visent plus la base de production.** La
+  configuration Playwright pointait par défaut sur le projet Supabase réel :
+  combinée au mode d'authentification locale, une suite de tests aurait pu
+  écrire dans les données des propriétaires. Elle cible désormais la pile
+  locale.
+- **Le parcours de prise en main est enfin testé avec de vraies données.** Il
+  était réputé intestable — « l'authentification Google empêche un login
+  automatisé ». C'était inexact : le mode local existait déjà. Manquaient le
+  secret JWT du stack local (sans lui les lectures partaient en anonyme et
+  étaient bloquées) et une ligne `auth.users` pour l'utilisateur local, dont
+  l'absence faisait échouer toute création de profil.
+- **Chaque test dispose de son propre propriétaire.** L'identité d'
+  authentification locale se choisit par requête plutôt qu'au démarrage du
+  serveur, ce qui évite qu'un test qui écrit casse ceux qui attendent un autre
+  état. Inopérant en production, comme le reste du mode local.
+- La suite de bout en bout passe de 15 tests (dont 2 ignorés) à **20, aucun
+  ignoré** — dont la non-régression du bail créé en double au rechargement de
+  la prise en main.
+
 ## [0.3.38.0] - 2026-07-27
 
 ### Fixed

@@ -50,13 +50,14 @@ Vercel Firewall ou middleware si le volume le justifie.
 
 ## FirstRun (prise en main)
 
-### E2E authentifié pour /first-run et /recu
+### Couvrir la création complète d'un bail en E2E
 **Priority:** P2
-Le parcours guidé (welcome → bail → paiement → quittance) et la page locataire
-n'ont pas d'E2E : l'auth Google seule (ADR-010) empêche un login automatisé.
-Piste : session Playwright pré-fabriquée (storageState avec cookies Supabase
-d'un compte de test) ou un bypass d'auth réservé au mode test. Gaps notés
-« intentionally uncovered » au ship v0.3.29.0.
+Les E2E authentifiés existent depuis v0.3.39.0 (auth locale + bailleur par
+spec via l'en-tête `x-ranti-local-auth-user`). Ce qui reste : dérouler la
+CRÉATION d'un bail de bout en bout (formulaire → échéance → paiement →
+quittance) plutôt que de partir d'un bail semé. Attention, l'ancienne note
+« l'auth Google empêche un login automatisé » était FAUSSE — elle a bloqué ce
+chantier plusieurs semaines pour rien.
 
 ### generate_receipt_core : idempotence sous verrou
 **Priority:** P3
@@ -108,6 +109,18 @@ simple `.limit()` : segmenter par mois ou paginer en gardant les brouillons
 toujours visibles (draftCount et confirmation en dépendent).
 
 ## Completed
+
+### E2E authentifiés débloqués + isolation par bailleur
+**Priority:** P2
+Le blocage supposé (auth Google) n'existait pas : `RANTI_LOCAL_AUTH` était déjà
+en place et déjà posé dans `playwright.config.ts`. Manquaient (1)
+`SUPABASE_JWT_SECRET`, sans quoi aucune session n'était forgée et la RLS
+bloquait toute lecture — les specs « authentifiées » ne pouvaient vérifier que
+des redirections ; (2) la ligne `auth.users` de l'utilisateur local, dont
+l'absence faisait échouer toute création de profil sur la clé étrangère ;
+(3) un bailleur par spec. Corrigé au passage : la config visait la base de
+PRODUCTION par défaut. 20 E2E, aucun ignoré.
+**Completed:** v0.3.39.0 (2026-07-27)
 
 ### Ambiguïté des références RNT levée par le nom du propriétaire
 **Priority:** P1
