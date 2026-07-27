@@ -3,6 +3,40 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.38.0] - 2026-07-27
+
+### Fixed
+
+- **Une panne n'est plus annoncée au locataire comme un faux document.** Quand
+  le service ne répondait pas, la page d'une quittance et son téléchargement
+  affichaient « introuvable » — c'est-à-dire, pour le locataire qui vient de
+  recevoir le lien de son propriétaire, « ce document n'existe pas ». Il n'a ni
+  compte, ni bouton pour réessayer, ni personne à qui demander. La page dit
+  maintenant que le lien est valide et que le service répondra bientôt.
+- **Une référence de quittance partagée par deux propriétaires se vérifie
+  enfin.** Les numéros repartent à 0001 chez chaque propriétaire : le même
+  `RNT-2026-0001` peut désigner deux documents, et la vérification par référence
+  refusait alors de répondre. En cas d'ambiguïté, la page demande le nom du
+  propriétaire tel qu'il figure sur la quittance — le nom de famille suffit — et
+  tranche. Ce nom sert uniquement à distinguer les documents, il n'est jamais
+  affiché. Le QR n'a jamais été concerné et ne change pas.
+- **La prise en main ne se rejoue plus en boucle.** Si l'enregistrement de la fin
+  du parcours échouait, le rail « Premiers pas » revenait à chaque visite du
+  tableau de bord sans explication ni moyen d'en sortir. L'enregistrement est
+  réessayé, et l'écran ne se met à jour que s'il a réellement abouti.
+- **Recharger la prise en main ne fait plus créer un bail en double.** Un
+  propriétaire qui revenait sur le parcours guidé retrouvait un écran vide alors
+  que son bail existait déjà, et pouvait le ressaisir — doublon de logement et de
+  locataire dès le premier contact avec le produit. L'écran est désormais
+  reconstitué à partir des données réelles.
+
+### Migrations
+
+- `20260727180000_verify_receipt_by_number_landlord_filter.sql` (second critère
+  de recherche) et `20260727180010_lease_created_during_onboarding.sql`
+  (marqueur du bail de prise en main) : **à appliquer en production au
+  déploiement**.
+
 ## [0.3.37.0] - 2026-07-27
 
 ### Changed

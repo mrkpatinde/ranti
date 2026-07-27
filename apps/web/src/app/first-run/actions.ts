@@ -92,6 +92,22 @@ export async function createBailFirstRun(input: FirstRunBailInput): Promise<Firs
   const leaseId = ((data ?? {}) as { lease_ids?: string[] }).lease_ids?.[0]
   if (!leaseId) return { ok: false, error: "Bail non cree. Reessayez." }
 
+  // Marque le bail principal du parcours guide, pour pouvoir reconstituer
+  // l'ecran apres un rechargement (sans ce marqueur, /first-run repartait d'un
+  // etat vide et le bailleur pouvait ressaisir un bail deja cree).
+  // La RPC bulk_onboard_portfolio est partagee avec la creation normale : on
+  // marque APRES plutot que d'ajouter un parametre a un chemin commun.
+  // Echec non bloquant : le bail est cree, c'est ce qui compte. On perd
+  // seulement la reconstitution d'ecran, jamais de l'argent.
+  const { error: markError } = await supabase
+    .from("leases")
+    .update({ created_during_onboarding: true })
+    .eq("id", leaseId)
+
+  if (markError) {
+    console.error("createBailFirstRun: marquage onboarding echoue", markError.code, markError.message)
+  }
+
   // La 1re echeance generee (ADR-004) sert de cible d'allocation au paiement.
   const { data: due } = await supabase
     .from("rent_dues")

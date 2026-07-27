@@ -36,9 +36,25 @@ type VerifyByNumberRow = {
 // relier le champ au message de résultat (aria-describedby) et annoncer un
 // format refusé (aria-invalid), sinon l'issue de la recherche est invisible
 // hors repérage visuel par couleur de fond.
-function SearchForm({ defaultValue, invalid }: { defaultValue?: string; invalid?: boolean }) {
+// Le champ « nom du propriétaire » n'apparaît QUE lorsqu'une référence s'est
+// révélée ambiguë. Les numéros repartent à 0001 par propriétaire : sans second
+// critère, `RNT-2026-0001` — le numéro qu'un locataire a le plus de chances de
+// tenir — ne peut pas être tranché. Le demander d'emblée ferait payer à tout le
+// monde un cas qui ne concerne que les petits numéros.
+function SearchForm({
+  defaultValue,
+  invalid,
+  askLandlord,
+  landlordValue,
+}: {
+  defaultValue?: string
+  invalid?: boolean
+  askLandlord?: boolean
+  landlordValue?: string
+}) {
   return (
-    <form method="GET" action="/verifier" className="flex flex-col gap-3 sm:flex-row">
+    <form method="GET" action="/verifier" className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
       <label htmlFor="ref" className="sr-only">
         Référence du document
       </label>
@@ -62,6 +78,28 @@ function SearchForm({ defaultValue, invalid }: { defaultValue?: string; invalid?
       >
         Vérifier
       </button>
+      </div>
+      {askLandlord ? (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="proprio" className="text-sm font-medium text-foreground">
+            Nom du propriétaire
+          </label>
+          <input
+            id="proprio"
+            name="proprio"
+            type="text"
+            defaultValue={landlordValue}
+            placeholder="Tel qu'il figure sur la quittance"
+            autoComplete="off"
+            maxLength={80}
+            className="h-[52px] rounded-full border border-border bg-card px-6 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <p className="px-2 text-xs leading-relaxed text-muted-foreground">
+            Le nom de famille suffit. Il sert uniquement à distinguer deux
+            documents portant le même numéro — il n&apos;est jamais affiché.
+          </p>
+        </div>
+      ) : null}
     </form>
   )
 }
@@ -73,6 +111,12 @@ export default async function VerifySearchPage({
 }) {
   const sp = await searchParams
   const raw = typeof sp.ref === "string" ? sp.ref.trim().toUpperCase() : null
+  // Second critère, facultatif : filtre d'ENTRÉE seulement. Le retour de la RPC
+  // ne gagne aucun champ — ni nom, ni logement, ni montant, ni empreinte.
+  const landlordName =
+    typeof sp.proprio === "string" && sp.proprio.trim().length > 0
+      ? sp.proprio.trim().slice(0, 80)
+      : null
 
   let result: VerifyByNumberRow | null | "invalid" | "error" = null
   if (raw) {
@@ -82,10 +126,14 @@ export default async function VerifySearchPage({
       const supabase = await createClient()
       const { data, error } = await supabase.rpc("verify_receipt_by_number", {
         p_number: raw,
+        p_landlord_name: landlordName,
       })
       result = error ? "error" : ((data as VerifyByNumberRow[] | null)?.[0] ?? null)
     }
   }
+
+  const isAmbiguous =
+    result !== null && typeof result === "object" && result.match_count > 1
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-6 py-16">
@@ -106,7 +154,12 @@ export default async function VerifySearchPage({
       </p>
 
       <div className="mt-7">
-        <SearchForm defaultValue={raw ?? undefined} invalid={result === "invalid"} />
+        <SearchForm
+          defaultValue={raw ?? undefined}
+          invalid={result === "invalid"}
+          askLandlord={isAmbiguous || landlordName !== null}
+          landlordValue={landlordName ?? undefined}
+        />
       </div>
 
       {result === "invalid" && (
@@ -123,16 +176,38 @@ export default async function VerifySearchPage({
 
       {raw && result === null && (
         <p id="verify-result" role="status" className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
-          Aucun document ne porte la référence <span className="font-mono">{raw}</span>.
-          Vérifiez la saisie, ou utilisez le lien ou le QR du document.
+          {landlordName ? (
+            <>
+              Aucun document ne porte la référence{" "}
+              <span className="font-mono">{raw}</span> pour ce propriétaire.
+              Vérifiez l&apos;orthographe du nom, ou retirez-le pour chercher sur
+              la seule référence.
+            </>
+          ) : (
+            <>
+              Aucun document ne porte la référence{" "}
+              <span className="font-mono">{raw}</span>. Vérifiez la saisie, ou
+              utilisez le lien ou le QR du document.
+            </>
+          )}
         </p>
       )}
 
-      {result !== null && typeof result === "object" && result.match_count > 1 && (
+      {isAmbiguous && (
         <p id="verify-result" role="status" className="mt-6 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground/80">
-          Plusieurs documents portent cette référence (les numéros sont propres à
-          chaque propriétaire). Par confidentialité, utilisez le lien ou le QR
-          imprimé sur votre document pour obtenir le verdict.
+          {landlordName ? (
+            <>
+              Plusieurs documents portent cette référence pour ce nom. Vérifiez
+              l&apos;orthographe, ou utilisez le lien ou le QR imprimé sur votre
+              document.
+            </>
+          ) : (
+            <>
+              Plusieurs documents portent cette référence : les numéros sont
+              propres à chaque propriétaire. Ajoutez le nom du propriétaire
+              ci-dessus pour trancher.
+            </>
+          )}
         </p>
       )}
 

@@ -50,25 +50,6 @@ Vercel Firewall ou middleware si le volume le justifie.
 
 ## FirstRun (prise en main)
 
-### Hydrater la progression FirstRun depuis les données
-**Priority:** P1
-Un bailleur `guided`/`exploring` qui recharge `/first-run` revoit un état vide
-(le reducer repart de zéro) alors que son bail existe déjà : risque de
-re-création (doublon de lieu si typo) et checklist mensongère. Dériver l'étape
-et les cartes des vraies données (`getOnboardingProgress`, baux/échéances),
-comme le fait déjà `/dashboard`. Suivi de la revue adversariale 2026-07-18
-(F4) ; les réglages de relance sont déjà semés depuis la base.
-
-**Blocage identifié le 2026-07-27** (raison pour laquelle ce n'est PAS une
-simple requête) : l'état FirstRun distingue `lease` (le bail « principal » du
-parcours guidé, type `PrimaryLease`) de `addedLeases` (les suivants, type
-`Lease[]`). **Rien en base ne marque lequel était le principal** — ni colonne,
-ni ordre fiable après édition. Hydrater exige donc de trancher d'abord :
-(a) considérer le plus ancien bail comme principal, (b) persister un marqueur
-d'onboarding, ou (c) supprimer la distinction principal/ajouté du reducer.
-C'est une décision de modélisation, pas un branchement de requête — d'où le
-report hors du ship du 2026-07-27.
-
 ### E2E authentifié pour /first-run et /recu
 **Priority:** P2
 Le parcours guidé (welcome → bail → paiement → quittance) et la page locataire
@@ -108,19 +89,6 @@ ship v0.3.36.0, mais aucun E2E ne les rejoue (les specs actuelles s'arrêtent
 au refus de format, sans base). Piste : fixture seedée ou référence
 bien formée inexistante (RNT-1900-0001) pour le chemin « introuvable ».
 
-### Ambiguïté par conception des numéros bas — DÉJÀ EFFECTIVE EN PROD
-**Priority:** P1
-La séquence RNT repart à 0001 par propriétaire et par année. Ce n'est plus une
-projection : **la prod porte deux `RNT-2026-0001`** (un par bailleur), plus deux
-`R-000001` hérités. La recherche par référence sur `/verifier` renvoie donc
-**déjà** « plusieurs documents portent cette référence » pour le numéro le plus
-susceptible d'être présenté par un locataire (constaté le 2026-07-27, 2 bailleurs
-et 6 quittances en base). Décision produit à trancher : discriminant dans la
-référence imprimée (initiales, somme de contrôle), second champ de recherche
-(nom du bailleur), ou assumer le renvoi vers lien/QR.
-Note : le chemin QR (`/verifier/[id]`, UUID) n'est pas touché — seule la
-recherche par numéro l'est.
-
 ### Trancher le cache hors-ligne de /recu
 **Priority:** P3
 `/verifier` est désormais exclu du cache PWA (fail closed), mais la page
@@ -140,6 +108,44 @@ simple `.limit()` : segmenter par mois ou paginer en gardant les brouillons
 toujours visibles (draftCount et confirmation en dépendent).
 
 ## Completed
+
+### Ambiguïté des références RNT levée par le nom du propriétaire
+**Priority:** P1
+La prod portait deux `RNT-2026-0001` : la recherche par référence renvoyait
+« plusieurs documents portent cette référence » sur le numéro le plus courant.
+Second critère de recherche (nom du bailleur) plutôt qu'un discriminant dans la
+référence imprimée — un changement de format n'aurait soigné que les documents
+futurs. Le nom est un filtre d'ENTRÉE : le retour ne gagne aucun champ, un test
+verrouille qu'il ne fuit jamais. Champ affiché seulement après verdict ambigu.
+Migration `20260727180000`, test `verify_receipt_by_number_landlord.test.sql`
+(7 cas, scénario exact de la prod).
+**Completed:** v0.3.38.0 (2026-07-27)
+
+### Hydrater la progression FirstRun depuis les données
+**Priority:** P1
+Rechargement de `/first-run` = écran vide + risque de doublon. La distinction
+principal/ajouté est désormais persistée (`leases.created_during_onboarding`)
+plutôt que devinée : « le plus ancien est le principal » devient faux dès que ce
+bail est archivé. Écran semé depuis la base (`getFirstRunSeed`) ; si un bail
+principal existe, l'étape `setup` — le formulaire vide, soit l'invitation exacte
+au doublon — est reprise en `lease`. Migration `20260727180010`.
+**Completed:** v0.3.38.0 (2026-07-27)
+
+### Page locataire : panne ≠ document inexistant
+**Priority:** P0
+`/recu/[token]` et son PDF renvoyaient `notFound()` / 404 aussi bien pour un
+token inconnu que pour une panne RPC. Le locataire — sans compte, sans retry,
+sans support — lisait « introuvable » sur la quittance qu'il venait de recevoir.
+Les trois surfaces sœurs faisaient déjà la distinction. PDF : 503 + Retry-After,
+pour qu'aucun cache ne fige un « introuvable » sur un document réel.
+**Completed:** v0.3.38.0 (2026-07-27)
+
+### setOnboardingStatus : échec d'écriture avalé
+**Priority:** P1
+Statut « terminé » perdu en silence = rail « Premiers pas » de retour à chaque
+visite, sans explication ni sortie. L'action renvoie son résultat, le composant
+réessaie une fois et ne rafraîchit que si l'écriture a abouti.
+**Completed:** v0.3.38.0 (2026-07-27)
 
 ### Réglage de relance : l'échec d'écriture ne peut plus être avalé
 **Priority:** P1

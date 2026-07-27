@@ -5,7 +5,7 @@ import "./first-run.css"
 import {
   type Action, type State, type Step, oliveCta, ghostBtn, NAV, navBtnStyle, Wordmark,
 } from "./shared"
-import { makeFresh, reducer, runEffects, type ReminderSeed } from "./state"
+import { makeFresh, reducer, runEffects, type LeaseSeed, type ReminderSeed } from "./state"
 import { MainContent } from "./views"
 import {
   NouveauBailModal, ValiderPaiementModal, RelanceModal, CentreAideModal, QuittanceModal,
@@ -133,17 +133,19 @@ export function FirstRunClient({
   todayIso,
   initialStep,
   initialReminders,
+  initialLeases,
 }: {
   landlord: FirstRunLandlord
   monthLabel: string
   todayIso: string
   initialStep: Step
   initialReminders: ReminderSeed
+  initialLeases: LeaseSeed
 }) {
   const [state, baseDispatch] = useReducer(
     reducer,
     initialStep,
-    (step: Step) => makeFresh(step, initialReminders),
+    (step: Step) => makeFresh(step, initialReminders, initialLeases),
   )
 
   // Le dispatch enveloppe declenche les effets de persistance a partir de

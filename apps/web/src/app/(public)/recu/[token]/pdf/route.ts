@@ -40,8 +40,19 @@ export async function GET(
   }
 
   const { data, error } = await supabase.rpc("get_receipt_by_token", { p_token: token })
+
+  // Panne technique ≠ document inexistant (même correctif que la page).
+  // 503 + Retry-After : le téléchargement est réessayable, et aucun cache
+  // intermédiaire ne fige un « introuvable » sur un document bien réel.
+  if (error) {
+    return new Response(
+      "Service momentanément indisponible. Réessayez dans quelques minutes.",
+      { status: 503, headers: { "Retry-After": "120", "Cache-Control": "no-store" } },
+    )
+  }
+
   const row = (data as ReceiptByToken[] | null)?.[0]
-  if (error || !row) {
+  if (!row) {
     return new Response("Reçu introuvable.", { status: 404 })
   }
 
