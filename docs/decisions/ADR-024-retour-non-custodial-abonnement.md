@@ -66,7 +66,9 @@ Trois constats ont motivé le retour arrière :
   custodial exposée.
 - **PSP** : le sujet se réduit à l'encaissement de l'abonnement (recette propre de
   Ranti, pas de fonds tiers). FedaPay reste le meilleur choix le moment venu
-  (`docs/comparatif-psp`).
+  (`docs/comparatif-psp` — note 2026-07-27 : ce fichier n'a jamais existé dans le
+  dépôt ; le comparatif reste à consigner, la préférence FedaPay n'est pas étayée
+  par un document versionné).
 - **Docs à mettre à jour** : `vision.md` (fait), `docs/roadmap.md`, `personas.md`
   (ajouter le bailleur à distance), Master Blueprint Notion (retirer la section
   rail). GitHub = source de vérité.

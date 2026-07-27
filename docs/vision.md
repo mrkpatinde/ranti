@@ -110,7 +110,9 @@ Cette section **annule** la position d'ADR-018 / ADR-019. La promesse
 **Gate BCEAO — neutralisé pour le MVP.** Sans détention de fonds, Ranti n'entre
 pas dans le champ de l'Instruction BCEAO n° 001-01-2024. Le sujet PSP se réduit à
 l'encaissement de l'**abonnement** (recette propre de Ranti, pas de fonds de
-tiers) — FedaPay est le meilleur choix le moment venu (voir `docs/comparatif-psp`).
+tiers) — FedaPay est le meilleur choix le moment venu. Le comparatif qui fonde ce
+choix n'est PAS consigné dans le dépôt : à reconstituer avant de s'engager, ou à
+traiter comme une préférence non documentée.
 
 ## Non-objectifs du MVP
 
