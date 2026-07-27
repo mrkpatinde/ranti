@@ -358,8 +358,10 @@ export default async function RecuPage({
             </div>
           )}
 
-          {/* Empreinte d'intégrité si certifié */}
-          {isCertified && receipt.sha256_fingerprint && (
+          {/* Empreinte d'intégrité dès qu'elle existe : scellée à l'émission
+              depuis la migration 20260727120000, elle n'attend plus la
+              certification. C'est ce que le locataire recoupe sur /verifier. */}
+          {receipt.sha256_fingerprint && (
             <p className="break-all text-[0.75rem] leading-relaxed text-muted-foreground">
               Intégrité, empreinte SHA-256 :{" "}
               <span className="font-mono text-[0.72rem] text-foreground">

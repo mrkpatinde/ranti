@@ -162,10 +162,19 @@ export function ReceiptPdf({
           </View>
         ) : null}
 
-        {receipt.tenant_ack === "certified" && receipt.sha256_fingerprint ? (
+        {/* Empreinte imprimée dès qu'elle existe : depuis le scellement à
+            l'émission (migration 20260727120000), c'est le cas de tout document
+            neuf — et c'est la valeur que le vérificateur recoupe via le QR.
+            Formulation neutre sur le MOMENT du scellement : un document
+            antérieur a pu être scellé à la certification ou rétro-scellé, le
+            PDF ne peut pas le distinguer et ne doit donc rien affirmer. */}
+        {receipt.sha256_fingerprint ? (
           <Text style={s.fingerprint}>
-            Empreinte d&apos;intégrité (SHA-256), certifiée par le locataire le{" "}
-            {receipt.tenant_certified_at ? formatDate(receipt.tenant_certified_at) : ""} : {receipt.sha256_fingerprint}
+            Empreinte d&apos;intégrité (SHA-256)
+            {receipt.tenant_ack === "certified"
+              ? `, certifiée par le locataire le ${receipt.tenant_certified_at ? formatDate(receipt.tenant_certified_at) : ""}`
+              : ""}{" "}
+            : {receipt.sha256_fingerprint}
           </Text>
         ) : null}
 
