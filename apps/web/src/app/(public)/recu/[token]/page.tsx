@@ -102,8 +102,28 @@ export default async function RecuPage({
     p_token: token,
   });
 
+  // Une panne technique n'est PAS un document inexistant. Les deux menaient au
+  // même notFound() : pendant une indisponibilité, le locataire — qui n'a ni
+  // compte, ni bouton réessayer, ni support — lisait « page introuvable » sur
+  // la quittance que son propriétaire venait de lui envoyer. Dans un marché
+  // méfiant des arnaques, la conclusion naturelle est « ce document est faux ».
+  // Même distinction que /verifier/[id] et /verifier par référence.
+  if (error) {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center px-6 py-16 text-center">
+        <h1 className="font-display text-2xl font-extrabold tracking-tight">
+          Document momentanément indisponible
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-foreground/70">
+          Ce lien est valide, mais le service ne répond pas pour l&apos;instant.
+          Réessayez dans quelques minutes — votre document n&apos;est pas perdu.
+        </p>
+      </main>
+    );
+  }
+
   const receipt = (data as ReceiptByToken[] | null)?.[0];
-  if (error || !receipt) {
+  if (!receipt) {
     notFound();
   }
 
