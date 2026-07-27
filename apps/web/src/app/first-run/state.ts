@@ -1,7 +1,7 @@
 import { setOnboardingStatus } from "@/lib/onboarding/actions"
 import { setReminderSettings } from "@/lib/reminders/actions"
 import { signOut } from "@/lib/auth/actions"
-import type { Action, Canal, Moment, State, Step } from "./shared"
+import type { Action, Canal, Lease, LeaseRefs, Moment, State, Step } from "./shared"
 
 // Machine d'etat du parcours FirstRun (phase 3), extraite du composant client
 // pour etre testable : reducer pur + matrice d'effets de persistance. Le
@@ -14,7 +14,18 @@ import type { Action, Canal, Moment, State, Step } from "./shared"
 // les defauts d'UI (revue adversariale 2026-07-18, F4).
 export type ReminderSeed = { active: boolean; canal: Canal; moment: Moment }
 
-export function makeFresh(step: Step, reminders?: ReminderSeed): State {
+// Bails deja en base, semes au montage (migration 20260727180010 +
+// getFirstRunSeed). Sans ca, un rechargement de /first-run repartait d'un ecran
+// vide et le bailleur pouvait ressaisir un bail deja cree — doublon de
+// logement et de locataire sur son premier contact avec le produit.
+export type LeaseSeed = {
+  primary: (LeaseRefs & { name: string; home: string; amount: string }) | null
+  added: Lease[]
+}
+
+export function makeFresh(step: Step, reminders?: ReminderSeed, leases?: LeaseSeed): State {
+  const primary = leases?.primary ?? null
+
   return {
     step,
     view: "accueil",
@@ -25,8 +36,19 @@ export function makeFresh(step: Step, reminders?: ReminderSeed): State {
     formMode: "first",
     showPaymentForm: false,
     showSupport: false,
-    lease: { name: "", home: "", amount: "" },
-    addedLeases: [],
+    lease: primary
+      ? {
+          name: primary.name,
+          home: primary.home,
+          amount: primary.amount,
+          leaseId: primary.leaseId,
+          unitId: primary.unitId,
+          tenantId: primary.tenantId,
+          dueId: primary.dueId,
+          dueAmount: primary.dueAmount,
+        }
+      : { name: "", home: "", amount: "" },
+    addedLeases: leases?.added ?? [],
     payTarget: null,
     receipt: null,
     relCanal: reminders?.canal ?? "whatsapp",

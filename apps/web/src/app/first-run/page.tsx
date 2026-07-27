@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation"
 import { MONTHS_FR } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getFirstRunSeed } from "@/lib/onboarding/first-run-seed"
 import type { OnboardingStatus } from "@/lib/landlords"
 import type { Step } from "./shared"
+import type { LeaseSeed } from "./state"
 import { FirstRunClient } from "./first-run-client"
 
 // Route de prise en main cablee a la base (phase 3) : composant serveur qui
@@ -36,6 +38,48 @@ export default async function FirstRunPage() {
   const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
   const fullName = `${landlord.first_name} ${landlord.last_name}`.trim()
 
+  // Bails deja en base : sans eux, un rechargement repartait d'un ecran vide et
+  // le bailleur pouvait ressaisir un bail deja cree (doublon de logement et de
+  // locataire sur son premier contact avec le produit).
+  const seed = await getFirstRunSeed(landlord.id)
+
+  const statusStep =
+    STEP_BY_STATUS[landlord.onboarding_status as Exclude<OnboardingStatus, "done">] ?? "welcome"
+
+  // Un bail principal existe deja : l'etape « setup » afficherait le formulaire
+  // de creation vide, c'est-a-dire l'invitation exacte a creer le doublon. On
+  // reprend a « lease ». Les etapes plus avancees (reminder, active) ne sont
+  // jamais regressees, et « welcome » / « explore » restent des choix du
+  // bailleur qu'on ne surcharge pas.
+  const initialStep = seed.primary && statusStep === "setup" ? "lease" : statusStep
+
+  const initialLeases: LeaseSeed = {
+    primary: seed.primary
+      ? {
+          name: seed.primary.name,
+          home: seed.primary.home,
+          amount: seed.primary.amount,
+          leaseId: seed.primary.leaseId,
+          unitId: seed.primary.unitId,
+          tenantId: seed.primary.tenantId,
+          dueId: seed.primary.dueId,
+          dueAmount: seed.primary.dueAmount,
+        }
+      : null,
+    added: seed.added.map((l, i) => ({
+      id: `seeded-${i + 1}`,
+      name: l.name,
+      home: l.home,
+      amount: l.amount,
+      status: l.status,
+      leaseId: l.leaseId,
+      unitId: l.unitId,
+      tenantId: l.tenantId,
+      dueId: l.dueId,
+      dueAmount: l.dueAmount,
+    })),
+  }
+
   return (
     <FirstRunClient
       landlord={{
@@ -45,12 +89,13 @@ export default async function FirstRunPage() {
       }}
       monthLabel={monthLabel}
       todayIso={todayIso}
-      initialStep={STEP_BY_STATUS[landlord.onboarding_status as Exclude<OnboardingStatus, "done">] ?? "welcome"}
+      initialStep={initialStep}
       initialReminders={{
         active: landlord.reminders_enabled,
         canal: landlord.reminder_channel ?? "whatsapp",
         moment: landlord.reminder_moment ?? "echeance",
       }}
+      initialLeases={initialLeases}
     />
   )
 }

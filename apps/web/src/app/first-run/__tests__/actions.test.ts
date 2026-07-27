@@ -31,6 +31,25 @@ function chain(result: unknown) {
   return c
 }
 
+// Marquage du bail d'onboarding : leases.update(...).eq(...) -> { error }.
+// Capture pour verifier qu'il a bien lieu, et qu'un echec ne casse rien.
+const markUpdate = vi.fn()
+const markEq = vi.fn().mockResolvedValue({ error: null })
+
+function markChain() {
+  markUpdate.mockReturnValue({ eq: markEq })
+  return { update: markUpdate }
+}
+
+// fromMock est appele deux fois par createBailFirstRun : leases (marquage)
+// puis rent_dues (1re echeance). Route par nom de table pour ne pas dependre
+// de l'ordre.
+function routeFrom(dueChainResult: unknown) {
+  fromMock.mockImplementation((table: string) =>
+    table === "leases" ? markChain() : chain(dueChainResult),
+  )
+}
+
 const BAIL_INPUT = {
   propertyName: "Résidence Les Cocotiers",
   propertyCity: "Cotonou",
@@ -82,9 +101,13 @@ beforeEach(() => {
 describe("createBailFirstRun", () => {
   it("chemin nominal : RPC + 1re echeance -> refs et libelles reels", async () => {
     rpc.mockResolvedValueOnce({ data: { lease_ids: ["l1"], units: 1, leases: 1 }, error: null })
-    fromMock.mockReturnValueOnce(chain({ data: { id: "d1", unit_id: "u1", tenant_id: "t1", amount_due: 100000 }, error: null }))
+    routeFrom({ data: { id: "d1", unit_id: "u1", tenant_id: "t1", amount_due: 100000 }, error: null })
 
     const res = await createBailFirstRun(BAIL_INPUT)
+    // Le bail cree par le parcours guide est marque : sans ca, un rechargement
+    // de /first-run repart d'un ecran vide et invite au doublon.
+    expect(markUpdate).toHaveBeenCalledWith({ created_during_onboarding: true })
+    expect(markEq).toHaveBeenCalledWith("id", "l1")
     expect(res).toMatchObject({ ok: true, leaseId: "l1", unitId: "u1", tenantId: "t1", dueId: "d1", dueAmount: 100000 })
     if (res.ok) {
       expect(res.tenantName).toBe("Awa Simon")
@@ -110,9 +133,23 @@ describe("createBailFirstRun", () => {
 
   it("echeance introuvable : le bail reste cree, dueId null, montant depuis la saisie", async () => {
     rpc.mockResolvedValueOnce({ data: { lease_ids: ["l1"] }, error: null })
-    fromMock.mockReturnValueOnce(chain({ data: null, error: null }))
+    routeFrom({ data: null, error: null })
     const res = await createBailFirstRun(BAIL_INPUT)
     expect(res).toMatchObject({ ok: true, leaseId: "l1", dueId: null, dueAmount: 100000 })
+  })
+
+  // Le marquage est un confort d'affichage, jamais de l'argent : son echec ne
+  // doit pas faire echouer une creation de bail qui a reussi.
+  it("marquage en echec : le bail reste cree", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+    rpc.mockResolvedValueOnce({ data: { lease_ids: ["l1"] }, error: null })
+    routeFrom({ data: null, error: null })
+    markEq.mockResolvedValueOnce({ error: { code: "42501", message: "denied" } })
+
+    const res = await createBailFirstRun(BAIL_INPUT)
+    expect(res).toMatchObject({ ok: true, leaseId: "l1" })
+    expect(consoleError).toHaveBeenCalled()
+    consoleError.mockRestore()
   })
 })
 
