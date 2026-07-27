@@ -27,6 +27,26 @@ values (
 )
 on conflict (id) do nothing;
 
+-- Utilisateur d'AUTH LOCALE (RANTI_LOCAL_AUTH, lib/auth/server.ts).
+-- L'app fabrique des claims pour ce sub en dev/test, mais la ligne auth.users
+-- manquait : toute creation de profil echouait sur la cle etrangere
+-- landlords.auth_user_id -> auth.users(id) (« Creation du profil impossible »),
+-- ce qui rendait impossible tout E2E authentifie porteur de donnees.
+-- Volontairement SANS profil bailleur : deux specs verifient la redirection
+-- « utilisateur authentifie sans profil -> onboarding ». Les tests qui ont
+-- besoin d'un profil le creent par le vrai parcours.
+insert into auth.users (
+  id, aud, role, email, encrypted_password, email_confirmed_at,
+  created_at, updated_at, raw_app_meta_data, raw_user_meta_data
+)
+values (
+  '00000000-0000-4000-8000-000000000001',
+  'authenticated', 'authenticated', 'local-auth@ranti.local',
+  crypt('password123', gen_salt('bf')), now(), now(), now(),
+  '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb
+)
+on conflict (id) do nothing;
+
 insert into public.landlords (
   id,
   auth_user_id,

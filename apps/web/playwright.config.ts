@@ -16,13 +16,26 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
+      // Cible par DÉFAUT la pile Supabase LOCALE (`supabase start`), jamais la
+      // production. Le défaut precedent pointait sur le projet de prod
+      // (pcxkxeesgusorrpmrkaj) : combiné à RANTI_LOCAL_AUTH ci-dessous et à un
+      // SUPABASE_JWT_SECRET de prod, une suite E2E aurait écrit dans la base
+      // réelle des bailleurs. Les identifiants ci-dessous sont les valeurs
+      // publiques et fixes du stack local Supabase — ce ne sont pas des secrets.
       NEXT_PUBLIC_SUPABASE_URL:
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://pcxkxeesgusorrpmrkaj.supabase.co",
+        process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-        "sb_publishable_1FlNORQV34zaAI_KZ_2tXw_2flKjwWl",
-      // Welcome flow E2E runs without an SMS provider: render protected routes
-      // via local auth. Real OTP/SMS is not exercised here.
+        "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH",
+      // Secret JWT du stack LOCAL : sans lui, mintLocalAuthToken() renvoie null,
+      // les lectures partent en `anon`, la RLS les bloque, et les tests dits
+      // « authentifiés » ne peuvent vérifier que des redirections — jamais des
+      // données. C'est ce qui manquait pour couvrir /first-run et /recu.
+      SUPABASE_JWT_SECRET:
+        process.env.SUPABASE_JWT_SECRET ??
+        "super-secret-jwt-token-with-at-least-32-characters-long",
+      // Rend les routes protégées sans OTP/SMS. Double garde côté app :
+      // inopérant dès que NODE_ENV vaut production (lib/auth/server.ts).
       RANTI_LOCAL_AUTH: "true",
     },
   },
