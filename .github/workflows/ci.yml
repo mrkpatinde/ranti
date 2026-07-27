@@ -26,3 +26,38 @@ jobs:
       - run: bun run lint
       - run: bun run test
       - run: bun run build
+
+  db:
+    name: db (migrations + tests SQL)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          # Version épinglée : la suite a été validée avec celle-ci. `latest`
+          # ferait dépendre le vert de la CI d'une release amont non relue.
+          version: 2.109.1
+
+      # Postgres seul (pas la stack complète) : les tests parlent à la base,
+      # pas à PostgREST ni à GoTrue. Docker est préinstallé sur ubuntu-latest.
+      - name: Démarrer Postgres
+        run: supabase db start
+
+      # `db reset` rejoue la chaîne ENTIÈRE depuis 001 + seed.sql. C'est le
+      # point du job : une migration qui ne s'applique que sur une base déjà
+      # à jour, ou qui casse la chaîne pour un nouveau dev, échoue ici.
+      - name: Appliquer toute la chaîne de migrations
+        run: supabase db reset --local
+
+      # Même script qu'en local : deux copies divergeraient.
+      - name: Rejouer la suite SQL
+        run: ./supabase/tests/run-all.sh
+
+      # Nom du conteneur découvert, jamais codé en dur : il dérive du
+      # project_id de supabase/config.toml et changerait avec lui.
+      - name: Journaux Postgres en cas d'échec
+        if: failure()
+        run: |
+          docker logs "$(docker ps -a --filter 'name=supabase_db_' \
+            --format '{{.Names}}' | head -1)" --tail 100
