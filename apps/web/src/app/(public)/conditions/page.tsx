@@ -79,8 +79,8 @@ export default function TermsPage() {
               validation du Propriétaire.
             </li>
             <li>
-              <strong>Abonnement</strong> : la formule payante du service au-delà de l’offre
-              gratuite.
+              <strong>Service</strong> : le registre de loyer mis à disposition par Ranti,
+              gratuit à ce jour.
             </li>
           </ul>
         </section>
@@ -167,18 +167,17 @@ export default function TermsPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-foreground">
-            8. Abonnement et paiement du service
+            8. Prix du service
           </h2>
           <p className="mt-2">
-            Ranti propose une <strong>offre gratuite pour un logement</strong>, puis un{" "}
-            <strong>abonnement</strong> pour un usage étendu. Le prix, la périodicité et les
-            modalités de l’abonnement sont indiqués au moment de la souscription.
+            Le Service est <strong>gratuit</strong>, sans limite de logements. Aucun moyen de
+            paiement n’est demandé, aucune somme n’est prélevée, et il n’y a rien à résilier.
           </p>
           <p className="mt-2">
-            L’abonnement rémunère <strong>uniquement le service logiciel</strong>. Ranti ne
-            prélève <strong>aucune commission sur vos loyers</strong>. Sauf disposition légale
-            contraire, les sommes versées au titre de l’abonnement ne sont pas remboursables au
-            prorata en cas de résiliation anticipée.
+            Ranti ne prélève <strong>aucune commission sur vos loyers</strong> et ne détient
+            jamais vos fonds. Si un tarif est introduit à l’avenir, les Propriétaires déjà
+            inscrits en sont <strong>informés avant son entrée en vigueur</strong> ; aucune
+            somme ne peut être prélevée sans leur accord explicite.
           </p>
         </section>
 
