@@ -42,14 +42,15 @@ function CtaGoogle() {
 }
 
 function PricingLine({ className = "" }: { className?: string }) {
-  // Tarif ADR-024 : abonnement par paliers, gratuit pour un logement
-  // (DESIGN.md et CGU réalignés, le « 5 % » est abandonné).
+  // Tarif ADR-028 : gratuit pour le moment, aucun palier affiché. La grille B-1
+  // d'ADR-024 reste l'intention de monétisation, pas une promesse datée — on
+  // n'affiche pas un prix qu'aucun système ne peut prélever.
   // Pas de taille de texte ici : Tailwind tranche les conflits par ordre de
   // feuille générée, pas par ordre de className ; chaque appelant passe la
   // sienne (text-sm au héro, text-base aux tarifs).
   return (
     <p className={`flex flex-wrap items-center justify-center gap-2 text-muted-foreground ${className}`}>
-      <span>Gratuit pour un logement</span>
+      <span>Gratuit aujourd'hui</span>
       <span aria-hidden="true" className="opacity-40">·</span>
       <span>Ranti ne touche jamais l'argent</span>
     </p>
@@ -71,7 +72,7 @@ function Header() {
             Comment ça marche
           </a>
           <a href="#tarifs" className="transition hover:text-foreground">
-            Tarifs
+            Tarif
           </a>
           <a href="#faq" className="transition hover:text-foreground">
             Questions fréquentes
@@ -260,124 +261,26 @@ function Steps() {
   );
 }
 
-// Grille B-1 (ADR-024, Master Blueprint 12/07/2026) : Découverte gratuit à vie
-// pour un logement, Starter 4 900 F/mois (1 à 5), Pro 14 900 F/mois (6 à 20),
-// annuel = 2 mois offerts (donc 10 mois payés : 49 000 F et 149 000 F par an).
-// L'annuel est mis en avant (décision CEO 2026-07-24), le mensuel reste
-// lisible en équivalence. Équivalent euro à parité FIXE FCFA/EUR (655,957 F
-// pour 1 €, arrimage BCEAO) pour le bailleur diaspora (ADR-024) : ~75 €/an et
-// ~227 €/an. Aucun autre chiffre : rien d'inventé, tout dérive de B-1.
-const TIERS: Array<{
-  name: string;
-  annual: string | null;
-  monthly: string | null;
-  euro: string | null;
-  scope: string;
-  detail: string;
-  featured: boolean;
-}> = [
-  {
-    name: "Découverte",
-    annual: null,
-    monthly: null,
-    euro: null,
-    scope: "1 logement",
-    detail: "À vie. Tout le registre : échéances, relances, quittances certifiées.",
-    featured: false,
-  },
-  {
-    name: "Starter",
-    annual: formatFcfaNumber(49000),
-    monthly: formatFcfaNumber(4900),
-    euro: "≈ 75 €",
-    scope: "1 à 5 logements",
-    detail: "Le même registre, pour tout votre portefeuille de départ.",
-    featured: true,
-  },
-  {
-    name: "Pro",
-    annual: formatFcfaNumber(149000),
-    monthly: formatFcfaNumber(14900),
-    euro: "≈ 227 €",
-    scope: "6 à 20 logements",
-    detail: "Pour les propriétaires établis, plusieurs biens et immeubles.",
-    featured: false,
-  },
-];
-
-function TierCard({ tier }: { tier: (typeof TIERS)[number] }) {
-  return (
-    <div
-      className={`relative flex flex-col gap-4 rounded-[28px] border bg-card p-8 ${
-        tier.featured
-          ? "border-accent shadow-[0_24px_60px_-24px_hsl(var(--accent)/0.5)] md:-mt-3 md:mb-[-12px] md:pt-10"
-          : "border-line-soft shadow-[0_10px_30px_-22px_rgba(41,41,41,0.35)]"
-      }`}
-    >
-      {tier.featured ? (
-        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground">
-          Recommandé
-        </span>
-      ) : null}
-      <span className="text-sm font-semibold uppercase tracking-[0.06em] text-muted-foreground">{tier.name}</span>
-      {tier.annual ? (
-        <>
-          <p className="flex items-baseline gap-1.5">
-            <span className="font-display text-[2.4rem] font-extrabold leading-none tracking-tight tabular-nums text-ink-title">
-              {tier.annual}
-            </span>
-            <span className="whitespace-nowrap text-sm text-muted-foreground">F / an</span>
-          </p>
-          <p className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-leaf px-3 py-1 text-xs font-semibold text-ink-title">
-              2 mois offerts
-            </span>
-            <span className="text-xs text-muted-foreground">{tier.euro} / an</span>
-          </p>
-          <p className="text-sm text-muted-foreground">
-            soit <span className="font-semibold tabular-nums text-foreground">{tier.monthly} F</span> par mois,
-            sans engagement
-          </p>
-        </>
-      ) : (
-        <>
-          <p className="font-display text-[2.4rem] font-extrabold leading-none tracking-tight text-ink-title">
-            Gratuit
-          </p>
-          <p>
-            <span className="inline-flex items-center rounded-full bg-olive-chip px-3 py-1 text-xs font-semibold text-foreground">
-              Pour toujours
-            </span>
-          </p>
-          <p className="text-sm text-muted-foreground">Sans carte, sans durée limitée</p>
-        </>
-      )}
-      <div className="mt-1 border-t border-line-soft pt-4">
-        <p className="text-sm font-semibold text-foreground">{tier.scope}</p>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{tier.detail}</p>
-      </div>
-    </div>
-  );
-}
-
+// ADR-028 : aucun prix affiché tant que le produit n'est pas utile au
+// propriétaire. Rien n'est prélevable aujourd'hui (aucun prestataire de
+// paiement câblé), donc rien de chiffré ici — seulement l'engagement de préavis.
 function Pricing() {
   return (
     <section id="tarifs" className="scroll-mt-[72px] border-t border-line-soft bg-secondary px-6 py-[clamp(64px,9vw,110px)]">
-      <div className="mx-auto max-w-6xl">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-[clamp(2.1rem,4.5vw,2.9rem)] font-extrabold tracking-[-0.02em] text-ink-title">
-            Tarifs
-          </h2>
-          <PricingLine className="mt-4 text-base" />
-        </div>
-        <div className="mx-auto mt-[clamp(36px,5vw,56px)] grid max-w-4xl items-start gap-5 md:grid-cols-3">
-          {TIERS.map((tier) => (
-            <TierCard key={tier.name} tier={tier} />
-          ))}
-        </div>
-        <p className="mt-7 text-center text-sm text-muted-foreground">
-          Prix en francs CFA. Le paiement mensuel est possible sur chaque palier ;
-          l'année complète offre 2 mois.
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="font-display text-[clamp(2.1rem,4.5vw,2.9rem)] font-extrabold tracking-[-0.02em] text-ink-title">
+          Gratuit aujourd&rsquo;hui
+        </h2>
+        {/* Pas de PricingLine ici : le titre porte déjà « Gratuit aujourd'hui »,
+            la répéter juste dessous ferait doublon. Seul le non-custodial reste. */}
+        <p className="mt-4 text-base text-muted-foreground">Ranti ne touche jamais l&rsquo;argent</p>
+        <p className="mt-[clamp(20px,3vw,28px)] text-base leading-relaxed text-muted-foreground">
+          Ranti est jeune. Le registre est gratuit, sans limite de logements,
+          pendant qu&rsquo;on le construit avec les premiers propriétaires.
+        </p>
+        <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+          Le jour où cela change, vous le saurez avant. Aucune carte
+          enregistrée, aucun prélèvement surprise, rien à résilier.
         </p>
         <div className="mt-8 flex justify-center">
           <CtaGoogle />
@@ -390,7 +293,7 @@ function Pricing() {
 const FAQ_ITEMS: [string, string][] = [
   [
     "Est-ce que Ranti prend une commission sur mes loyers ?",
-    "Non. Ranti ne touche pas vos loyers et ne prend aucune commission. Vous payez un abonnement simple, gratuit pour un seul logement.",
+    "Non. Ranti ne touche pas vos loyers et ne prend aucune commission. Le service est gratuit aujourd'hui, sans limite de logements ; si un tarif arrive un jour, vous serez prévenu avant.",
   ],
   [
     "Où va l'argent du loyer ?",
