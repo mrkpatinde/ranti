@@ -3,6 +3,24 @@
 Toutes les évolutions notables de Ranti sont documentées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; versions en `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.41.0] - 2026-08-06
+
+### Changed
+
+- Ranti est gratuit, sans limite de logements, jusqu'à nouvel ordre. La grille
+  tarifaire (Découverte / Starter 4 900 F / Pro 14 900 F) disparaît de la
+  landing et des CGU : aucun prestataire de paiement n'était câblé et aucun
+  paywall n'existait, donc ces prix n'étaient qu'une promesse qu'aucun système
+  ne pouvait honorer. La section tarif répond désormais « Gratuit aujourd'hui »
+  et porte un engagement clair : le jour où un tarif arrive, les propriétaires
+  déjà inscrits sont prévenus avant — aucune carte enregistrée, aucun
+  prélèvement surprise, rien à résilier.
+- CGU : l'article 8 devient « Prix du service » (service gratuit + préavis) et
+  la définition « Abonnement » laisse place à « Service ».
+- ADR-028 acte la décision et supersède le point 2 d'ADR-024 (grille affichée).
+  Le non-custodial et le rail de paiement gelé restent inchangés : Ranti ne
+  touche toujours jamais l'argent, et le ledger reste en place, inerte.
+
 ## [0.3.40.0] - 2026-07-27
 
 ### Pour les contributeurs
