@@ -1,6 +1,6 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-07-24
+Dernière mise à jour : 2026-08-06
 
 ## Phase 0 - Foundation
 
@@ -133,6 +133,56 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
 - [ ] Corrections
 - [ ] Première beta privée
 
+## Recent (2026-08-06)
+
+- Ranti devient gratuit, sans limite de logements, jusqu'à nouvel ordre
+  (v0.3.41.0, ADR-028, décision CEO). La grille B-1 quitte la landing et les
+  CGU : aucun prestataire de paiement n'était câblé et aucun paywall n'existait,
+  donc ces prix n'étaient qu'une promesse qu'aucun système ne pouvait honorer —
+  et le produit n'est pas encore assez utile au propriétaire pour être facturé.
+  La section tarif répond « Gratuit aujourd'hui » et porte l'engagement de
+  préavis : le jour où un tarif arrive, les inscrits sont prévenus avant, aucune
+  carte enregistrée, rien à résilier. CGU article 8 réécrit en « Prix du
+  service ». ADR-028 supersède le seul point 2 d'ADR-024 : le non-custodial et
+  le rail custodial gelé (ledger, `fees.ts`, webhook) restent inchangés, en
+  place et inertes.
+
+- La spec e2e du tarif change de rôle : au lieu de verrouiller la grille, elle
+  garde l'invariant inverse — elle exige « Gratuit aujourd'hui » et le préavis,
+  et échoue si un palier ou un montant (4 900 / 14 900 / 49 000 / 149 000)
+  réapparaît sur la landing. Le bannissement du « 5 % » est conservé.
+
+- Monétisation : l'abonnement reste le cap (ADR-024 §2), sans grille publique
+  ni date tant que l'utilité n'est pas démontrée auprès des premiers
+  utilisateurs réels. À réaligner hors repo : le Master Blueprint (Notion), où
+  B-1 doit repasser d'« offre courante » à « hypothèse de monétisation ».
+
+## Recent (2026-07-27)
+
+- Une quittance est vérifiable dès son émission (v0.3.37.0) : l'empreinte
+  SHA-256 est scellée à l'émission (migration
+  `20260727120000_seal_receipt_fingerprint_at_issue`) et imprimée sur le PDF
+  comme sur la page locataire. Les pages de vérification disent désormais ce
+  qu'elles vérifient. La recette de l'empreinte, recopiée dans trois fonctions,
+  est centralisée. Deux tests d'habilitation cassés en silence sont réparés, et
+  la suite SQL (`supabase/tests/`) tourne en intégration continue.
+
+- Une panne n'est plus annoncée au locataire comme un faux document (v0.3.38.0).
+  Une référence de quittance partagée par deux propriétaires se vérifie
+  correctement (migration
+  `20260727180000_verify_receipt_by_number_landlord_filter`). La prise en main
+  ne se rejoue plus en boucle et un rechargement ne crée plus de bail en double.
+
+- Les tests de bout en bout ne visent plus la base de production (v0.3.39.0) :
+  ils tournent sur un stack local, chaque test dispose de son propre
+  propriétaire, et le parcours de prise en main est enfin testé avec de vraies
+  données. La suite passe de 15 tests (dont 2 ignorés) à 20, aucun ignoré.
+
+- Les parcours authentifiés sont rejoués à chaque proposition de modification
+  (v0.3.40.0) : la pile démarrée en CI est réduite au strict nécessaire (base,
+  authentification), et en cas d'échec le rapport Playwright et les journaux
+  des services sont conservés.
+
 ## Recent (2026-07-24)
 
 - Landing structurée façon Moneco + tarifs B-1 annuel d'abord (v0.3.36.0,
@@ -144,6 +194,8 @@ Objectif : après validation du paiement par le propriétaire, Ranti génère au
   pilules, footer multi-colonnes (Produit / Ressources / Entreprise) aux liens
   tous réels. Nouvelle page publique `/a-propos` (ce que fait Ranti, posture
   non-custodiale, éditeur WI'SOFT SOLUTIONS), reprise au sitemap.
+  **La partie tarifs de cette entrée est supersédée** par ADR-028 (v0.3.41.0,
+  2026-08-06) : la grille B-1 ne figure plus sur aucune surface publique.
 
 - Vérification publique par référence (v0.3.36.0) : nouvelle page `/verifier`
   — saisie du numéro imprimé `RNT-AAAA-NNNN`, verdict d'authenticité via la
