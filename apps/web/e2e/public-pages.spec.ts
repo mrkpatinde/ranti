@@ -1,26 +1,27 @@
 import { expect, test } from "@playwright/test"
 
-// Surfaces publiques ajoutées le 2026-07-24 : tarifs B-1 sur la landing,
-// page À propos, recherche de quittance par référence. Ces specs ne touchent
-// pas la base : la validation de format de /verifier rend son message avant
-// tout appel RPC, et les autres pages sont statiques.
+// Surfaces publiques : section tarif de la landing, page À propos, recherche
+// de quittance par référence. Ces specs ne touchent pas la base : la validation
+// de format de /verifier rend son message avant tout appel RPC, et les autres
+// pages sont statiques.
 
-test("la landing affiche la grille tarifaire B-1 (ADR-024)", async ({ page }) => {
+test("la landing annonce le gratuit sans aucun prix (ADR-028)", async ({ page }) => {
   await page.goto("/")
-  await expect(page.getByRole("heading", { name: "Tarifs", exact: true })).toBeVisible()
-  await expect(page.getByText("Découverte", { exact: true })).toBeVisible()
-  await expect(page.getByText("Starter", { exact: true })).toBeVisible()
-  await expect(page.getByText("Pro", { exact: true })).toBeVisible()
-  await expect(page.getByText("1 à 5 logements")).toBeVisible()
-  await expect(page.getByText("6 à 20 logements")).toBeVisible()
-  // Annuel mis en avant : « Gratuit » (jamais « 0 F ») et 2 mois offerts.
-  await expect(page.getByText("Gratuit", { exact: true })).toBeVisible()
-  await expect(page.getByText("0 F", { exact: true })).toHaveCount(0)
-  await expect(page.getByText("2 mois offerts").first()).toBeVisible()
-  await expect(page.getByText("49 000", { exact: true })).toBeVisible()
-  await expect(page.getByText("149 000", { exact: true })).toBeVisible()
-  // Le « 5 % » est banni des surfaces publiques (ADR-024) : motif large pour
-  // attraper aussi « 5% » et variantes d'espacement.
+  await expect(page.getByRole("heading", { name: "Gratuit aujourd’hui", exact: true })).toBeVisible()
+  // « sans limite de logements » est dit deux fois (section tarif + FAQ) :
+  // l'assertion vise la première, la duplication est voulue.
+  await expect(page.getByText("sans limite de logements").first()).toBeVisible()
+  // L'engagement de préavis est la contrepartie du gratuit : il doit être lisible.
+  await expect(page.getByText(/vous le saurez avant/).first()).toBeVisible()
+  await expect(page.getByText(/rien à résilier/).first()).toBeVisible()
+  // Aucun palier, aucun montant : la grille B-1 quitte la surface publique.
+  await expect(page.getByText("Découverte", { exact: true })).toHaveCount(0)
+  await expect(page.getByText("Starter", { exact: true })).toHaveCount(0)
+  await expect(page.getByText("1 à 5 logements")).toHaveCount(0)
+  await expect(page.getByText("6 à 20 logements")).toHaveCount(0)
+  await expect(page.getByText("2 mois offerts")).toHaveCount(0)
+  await expect(page.getByText(/4\s*900|14\s*900|49\s*000|149\s*000/)).toHaveCount(0)
+  // Le « 5 % » reste banni des surfaces publiques (ADR-024, maintenu par ADR-028).
   await expect(page.getByText(/5\s*%/)).toHaveCount(0)
 })
 

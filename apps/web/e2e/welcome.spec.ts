@@ -9,8 +9,10 @@ test("landing shows the primary call to action", async ({ page }) => {
   // + entrée connexion (handoff §8).
   await expect(page.getByRole("button", { name: "Commencer avec Google" }).first()).toBeVisible()
   await expect(page.getByRole("link", { name: "Se connecter" }).first()).toBeVisible()
-  // Micro-preuve du tarif ADR-024 (« 3 mois gratuits » banni depuis v0.3.27.0).
-  await expect(page.getByText("Gratuit pour un logement").first()).toBeVisible()
+  // Micro-preuve du tarif ADR-028 : gratuit pour le moment, aucun palier
+  // affiché (« Gratuit pour un logement » retiré, « 3 mois gratuits » banni
+  // depuis v0.3.27.0).
+  await expect(page.getByText("Gratuit aujourd’hui").first()).toBeVisible()
 })
 
 test("the demo verification page is static and honest about being an example", async ({ page }) => {
