@@ -19,16 +19,10 @@ export default async function ImportPage() {
         </Link>
       </header>
 
-      <section className="flex flex-1 flex-col gap-8 py-12">
-        <div className="space-y-3">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-4xl">
-            Chargez votre portefeuille
-          </h1>
-          <p className="max-w-xl text-base leading-7 text-foreground/70">
-            Un fichier ou un collage depuis Excel. Propriétaires, biens, lots, locataires et baux
-            sont créés en une fois.
-          </p>
-        </div>
+      <section className="flex flex-1 flex-col gap-6 py-12">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-4xl">
+          Chargez votre portefeuille
+        </h1>
 
         <ImportWizard />
       </section>
