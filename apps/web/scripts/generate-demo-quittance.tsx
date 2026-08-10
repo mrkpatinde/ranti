@@ -85,6 +85,8 @@ const landlord: Landlord = {
   civility: null,
   // Spécimen historique : gestion en nom propre, pas de raison sociale.
   company_name: null,
+  company_rccm: null,
+  company_ifu: null,
   address: "Lot 42, Aïbatin",
   city: "Cotonou",
   payment_alias: null,

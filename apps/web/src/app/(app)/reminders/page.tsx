@@ -2,12 +2,14 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { Alert } from "@/components/ui/alert"
 import { badgeClasses } from "@/components/ui/badge"
+import { buttonClasses } from "@/components/ui/button"
 import { getLandlordCollections } from "@/lib/collections"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { getLandlordLeaseBalances, overdueByLease } from "@/lib/ledger"
 import { getLandlordDueBalances } from "@/lib/rent-dues/queries"
 import {
   getLandlordReminders,
+  getReminderBatch,
   getScheduledReminders,
   type ReminderWithContext,
 } from "@/lib/reminders/queries"
@@ -75,12 +77,13 @@ export default function RemindersPage({ searchParams }: RemindersPageProps) {
           l&apos;échéance, le jour J, puis en cas de retard. Vous choisissez le
           canal et le moment ; le jour d&apos;échéance vient de chaque bail.
         </p>
-        <Link
-          href="/reminders/batch"
-          className="inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-primary"
-        >
-          Relancer par lot
-        </Link>
+        {/* « Relancer par lot » devient l'action PRINCIPALE dès que la file
+            contient 2 lignes ou plus (retour fondateur 2026-08-10) ; en
+            dessous, le lien secondaire d'origine. Le compte de la file arrive
+            en flux : le lien secondaire sert de repli pendant le chargement. */}
+        <Suspense fallback={<BatchLink primary={false} />}>
+          <BatchCta />
+        </Suspense>
       </header>
 
       <Suspense fallback={<RemindersSkeleton />}>
@@ -88,6 +91,27 @@ export default function RemindersPage({ searchParams }: RemindersPageProps) {
       </Suspense>
     </main>
   )
+}
+
+function BatchLink({ primary }: { primary: boolean }) {
+  return (
+    <Link
+      href="/reminders/batch"
+      className={
+        primary
+          ? buttonClasses("primary")
+          : "inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-primary"
+      }
+    >
+      Relancer par lot
+    </Link>
+  )
+}
+
+async function BatchCta() {
+  const landlord = await requireLandlordProfile()
+  const rows = await getReminderBatch(landlord.id)
+  return <BatchLink primary={rows.length >= 2} />
 }
 
 async function RemindersData({ searchParams }: RemindersPageProps) {
@@ -250,6 +274,14 @@ async function RemindersData({ searchParams }: RemindersPageProps) {
                     introFrom: contactedTenants.has(r.tenantId)
                       ? null
                       : `${landlord.first_name} ${landlord.last_name}`.trim(),
+                    // Alias marchand renseigné : la relance dit où payer
+                    // (retour fondateur 2026-08-10). Sans alias, message
+                    // inchangé.
+                    paymentAlias: landlord.payment_alias,
+                    payeeName:
+                      landlord.company_name?.trim() ||
+                      `${landlord.first_name} ${landlord.last_name}`.trim() ||
+                      null,
                   })
                   if (!wa) return null
                   return (

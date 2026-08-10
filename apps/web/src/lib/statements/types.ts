@@ -34,6 +34,11 @@ export type OwnerStatementAgency = {
   name: string | null
   /** Raison sociale brute ; null pour une gestion en nom propre. */
   company_name: string | null
+  /** RCCM / IFU (migration 20260810130000). Optionnels : absents d'un relevé
+   *  généré avant la migration ; rendus en petite ligne sous le nom quand
+   *  présents. */
+  company_rccm?: string | null
+  company_ifu?: string | null
   phone: string | null
   address: string | null
   city: string | null

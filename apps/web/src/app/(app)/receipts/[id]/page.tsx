@@ -8,8 +8,9 @@ import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
 import { formatFcfa, monthYearLabel } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { receiptClause } from "@/lib/receipts/clause"
-import { cancelReceipt, getReceipt, getReceiptShareToken, receiptIssuerName } from "@/lib/receipts"
+import { cancelReceipt, getReceipt, getReceiptShareToken, receiptIssuerName, receiptIssuerRegistration } from "@/lib/receipts"
 import { kindLabels, methodLabels } from "@/lib/receipts/labels"
+import { buildReceiptShareMessage } from "@/lib/receipts/share"
 import type { ReceiptStatus, TenantAck } from "@/lib/receipts"
 import { RantiLogo } from "@/components/ranti-logo"
 
@@ -70,6 +71,12 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
     snap,
     `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire",
   )
+  // RCCM/IFU figés au snapshot (20260810130000) : petite ligne sous le nom
+  // quand présents ; les anciens snapshots se rendent à l'identique.
+  const issuerRegistration = receiptIssuerRegistration(snap)
+  // Vocabulaire par kind (2026-08-10) : « quittance » pour le loyer soldé,
+  // « reçu » réservé au paiement partiel.
+  const isQuittance = receipt.kind === "quittance"
 
   // Lien public à partager au locataire (ADR-013). Origine résolue depuis les
   // en-têtes, comme l'OAuth callback — marche en dev et en prod.
@@ -97,9 +104,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
     qrDataUrl = null
   }
 
-  const waText = encodeURIComponent(
-    `Voici votre reçu de loyer (${kindLabels[receipt.kind]}). Ouvrez-le et confirmez son exactitude : ${shareUrl ?? ""}`,
-  )
+  const waText = encodeURIComponent(buildReceiptShareMessage(receipt.kind, shareUrl ?? ""))
   // Lien profond vers la conversation du locataire (même mécanique que le
   // journal et les relances) : wa.me attend indicatif + numéro sans « + » ni
   // séparateur. Le wa.me sans numéro (mode « partager à… ») perd souvent le
@@ -149,6 +154,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
             <div>
               <p className="text-xs text-muted-foreground">De</p>
               <p className="mt-1.5 text-sm font-medium text-foreground">{issuerName}</p>
+              {issuerRegistration ? <p className="text-xs text-muted-foreground">{issuerRegistration}</p> : null}
               <p className="text-sm text-foreground/70">Propriétaire</p>
               {landlord.phone ? <p className="text-sm text-foreground/70">{landlord.phone}</p> : null}
             </div>
@@ -203,7 +209,9 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
         {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
           <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
-            <p className="font-medium">Le locataire conteste ce reçu.</p>
+            <p className="font-medium">
+              {isQuittance ? "Le locataire conteste cette quittance." : "Le locataire conteste ce reçu."}
+            </p>
             <p className="mt-1">
               {receipt.contest_nature === "not_paid" && "Il déclare ne pas avoir payé ce loyer."}
               {receipt.contest_nature === "amount" &&
@@ -211,7 +219,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
               {receipt.contest_nature === "date" &&
                 `Il indique une autre période : ${receipt.contested_period || "non précisée"}.`}
             </p>
-            <p className="mt-2 text-xs text-destructive">Votre déclaration reste conservée. Corrigez le reçu (remplacement) si le locataire a raison.</p>
+            <p className="mt-2 text-xs text-destructive">Votre déclaration reste conservée. Corrigez {isQuittance ? "la quittance" : "le reçu"} (remplacement) si le locataire a raison.</p>
           </div>
         ) : null}
 
@@ -219,7 +227,9 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           <section className="space-y-3 rounded-2xl border border-border bg-card p-6">
             <p className="text-sm font-medium text-foreground">Partager au locataire</p>
             <p className="text-sm text-muted-foreground">
-              Envoyez ce lien : le locataire ouvre le reçu et confirme son exactitude (ou signale une erreur). C’est la deuxième voix qui rend le reçu certifié.
+              {isQuittance
+                ? "Envoyez ce lien : le locataire ouvre la quittance et confirme son exactitude (ou signale une erreur). C’est la deuxième voix qui rend la quittance certifiée."
+                : "Envoyez ce lien : le locataire ouvre le reçu et confirme son exactitude (ou signale une erreur). C’est la deuxième voix qui rend le reçu certifié."}
             </p>
             <p className="break-all rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground/80">{shareUrl}</p>
             <a
@@ -238,7 +248,9 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
         {receipt.status === "issued" && shareUrl ? (
           <form action={cancelReceipt} className="space-y-3 rounded-2xl border border-border bg-card p-6">
             <input type="hidden" name="id" value={receipt.id} />
-            <label htmlFor="reason" className="block text-sm font-medium text-foreground">Pourquoi annulez-vous cette quittance ?</label>
+            <label htmlFor="reason" className="block text-sm font-medium text-foreground">
+              {isQuittance ? "Pourquoi annulez-vous cette quittance ?" : "Pourquoi annulez-vous ce reçu ?"}
+            </label>
             <textarea id="reason" name="reason" rows={2} required minLength={3} placeholder="Ex. erreur de montant, paiement non reçu" className="w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary" />
             <SubmitButton className={buttonClasses("destructive-outline")}>Annuler ce document</SubmitButton>
           </form>

@@ -17,6 +17,10 @@ export type ReceiptSnapshot = {
     first_name?: string | null
     last_name?: string | null
     company_name?: string | null
+    // RCCM / IFU (migration 20260810130000). Absents des snapshots
+    // antérieurs : la ligne d'identification n'est alors pas rendue.
+    company_rccm?: string | null
+    company_ifu?: string | null
   }
   tenant?: { first_name: string; last_name: string; phone: string | null }
   unit?: { name: string; type: string }

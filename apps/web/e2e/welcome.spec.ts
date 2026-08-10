@@ -75,6 +75,9 @@ test("frozen phone-auth pages redirect", async ({ page }) => {
 
 test("profile offers the registry dial codes (ADR-011)", async ({ page }) => {
   await page.goto("/onboarding/profile")
+  // Bifurcation d'entrée (2026-08-10) : les champs n'apparaissent qu'après
+  // le choix entreprise / nom propre.
+  await page.getByRole("button", { name: /Je gère en mon nom propre/ }).click()
   const country = page.getByLabel("Pays")
   await expect(country).toBeVisible()
   await expect(country.locator("option")).toHaveText(["🇧🇯 +229", "🇸🇳 +221", "🇨🇮 +225"])
@@ -87,6 +90,7 @@ test("profile offers the registry dial codes (ADR-011)", async ({ page }) => {
 
 test("profile rejects a too-short name", async ({ page }) => {
   await page.goto("/onboarding/profile")
+  await page.getByRole("button", { name: /Je gère en mon nom propre/ }).click()
   await page.getByLabel(/^Numéro de téléphone/).fill("0190000000")
   await page.getByLabel(/^Prénom/).fill("A")
   await page.getByLabel(/^Nom/).fill("B")

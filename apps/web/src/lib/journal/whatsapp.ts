@@ -32,9 +32,9 @@ export function buildTenantPaymentWaLink(input: TenantPaymentNotice): string | n
   const receiptUrl = input.receiptUrl?.trim()
 
   // Le message porte le lien de confirmation : sans lui, le locataire ne peut ni
-  // confirmer le reçu (deuxième voix) ni télécharger sa quittance en PDF.
+  // confirmer la quittance (deuxième voix) ni la télécharger en PDF.
   const proof = receiptUrl
-    ? ` Confirmez votre reçu et téléchargez-le en PDF ici : ${receiptUrl}`
+    ? ` Confirmez votre quittance et téléchargez-la en PDF ici : ${receiptUrl}`
     : ""
 
   const message = `${greeting}nous confirmons la réception de votre paiement de ${formatFcfa(

@@ -23,6 +23,33 @@ export interface ReminderNotice {
    * (décision 2026-07-18). null/absent = locataire déjà contacté.
    */
   introFrom?: string | null
+  /**
+   * Numéro marchand Mobile Money (landlords.payment_alias, réglages →
+   * Paiement). Quand il est renseigné, le message se termine par
+   * l'instruction de paiement : le locataire peut régler sans un clic de
+   * plus (retour fondateur 2026-08-10). null/absent = message inchangé.
+   */
+  paymentAlias?: string | null
+  /** Raison sociale ou nom affiché à côté du numéro marchand. */
+  payeeName?: string | null
+}
+
+/**
+ * Instruction de paiement ajoutée en fin de relance quand l'alias marchand
+ * est renseigné, ou null sinon. Source unique du libellé : réutilisée par le
+ * message individuel (buildReminderMessage) et la file par lot (variable
+ * {paiement} du modèle, lib/reminders/batch.ts).
+ */
+export function buildPaymentInstruction(
+  alias: string | null | undefined,
+  payeeName: string | null | undefined,
+): string | null {
+  const a = alias?.trim()
+  if (!a) return null
+  const name = payeeName?.trim()
+  return name
+    ? `Réglez au ${a} (Mobile Money — ${name}).`
+    : `Réglez au ${a} (Mobile Money).`
 }
 
 // Présentation de Ranti au tout premier contact : qui parle, pour qui, et la
@@ -62,9 +89,14 @@ export function buildReminderMessage(input: Omit<ReminderNotice, "phone">): stri
   const greeting = (name ? `Bonjour ${name}, ` : "Bonjour, ") + intro
   const montant = formatFcfa(input.amount)
 
-  return input.late
+  const body = input.late
     ? `${greeting}votre loyer de ${montant} (${frMonth(input.dueDate)}) est en retard. Merci de régulariser.`
     : `${greeting}petit rappel : votre loyer de ${montant} arrive à échéance le ${frDate(input.dueDate)}. Merci.`
+
+  // Alias marchand renseigné : la relance dit aussi OÙ payer. Sinon, message
+  // strictement identique à avant.
+  const payment = buildPaymentInstruction(input.paymentAlias, input.payeeName)
+  return payment ? `${body} ${payment}` : body
 }
 
 /**

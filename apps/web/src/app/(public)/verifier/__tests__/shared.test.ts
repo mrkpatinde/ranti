@@ -36,7 +36,8 @@ describe("formatVerifyDate", () => {
 describe("constantes partagées /verifier", () => {
   it("couvre les deux types de document", () => {
     expect(kindLabels.quittance).toBe("Quittance de loyer")
-    expect(kindLabels.receipt).toBe("Reçu de paiement")
+    // « reçu » est réservé au paiement partiel (vocabulaire 2026-08-10).
+    expect(kindLabels.receipt).toBe("Reçu de paiement partiel")
   })
 
   it("couvre les quatre états d'intégrité", () => {

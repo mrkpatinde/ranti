@@ -20,11 +20,19 @@ function isConstraintError(message: string, constraint: string) {
   return message.includes(constraint)
 }
 
-// Raison sociale : champ libre optionnel (un gestionnaire en nom propre n'en
-// a pas), simplement borné pour rester imprimable sur les documents.
+// Raison sociale : champ libre (REQUIS sur la branche entreprise de
+// l'onboarding, absent en nom propre), borné pour rester imprimable sur les
+// documents. RCCM / IFU : identifiants légaux libres, mêmes contraintes.
 const COMPANY_NAME_MAX = 160
+const COMPANY_ID_MAX = 64
 
 function normalizeCompanyName(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") return null
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function normalizeCompanyId(value: FormDataEntryValue | null): string | null {
   if (typeof value !== "string") return null
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : null
@@ -33,16 +41,37 @@ function normalizeCompanyName(value: FormDataEntryValue | null): string | null {
 export async function createLandlordProfile(formData: FormData) {
   const claims = await requireAuth()
 
+  // Bifurcation d'entrée (retour fondateur 2026-08-10) : une entreprise de
+  // gestion, ou une gestion en nom propre. La branche entreprise exige la
+  // raison sociale ; en nom propre, aucun champ entreprise n'est enregistré.
+  const isCompany = String(formData.get("account_type") ?? "") === "company"
+
   const firstName = normalizeName(formData.get("first_name"))
   const lastName = normalizeName(formData.get("last_name"))
-  const companyName = normalizeCompanyName(formData.get("company_name"))
+  const companyName = isCompany ? normalizeCompanyName(formData.get("company_name")) : null
+  const companyRccm = isCompany ? normalizeCompanyId(formData.get("company_rccm")) : null
+  const companyIfu = isCompany ? normalizeCompanyId(formData.get("company_ifu")) : null
+  const rawAddress = isCompany ? String(formData.get("address") ?? "").trim() : ""
+  const rawCity = isCompany ? String(formData.get("city") ?? "").trim() : ""
 
   if (!firstName || !lastName) {
     profileError("Indiquez votre prénom et votre nom.")
   }
 
+  if (isCompany && !companyName) {
+    profileError("Indiquez la raison sociale de votre entreprise.")
+  }
+
   if (companyName && companyName.length > COMPANY_NAME_MAX) {
     profileError(`Nom d'entreprise trop long (${COMPANY_NAME_MAX} caractères maximum).`)
+  }
+
+  if ((companyRccm && companyRccm.length > COMPANY_ID_MAX) || (companyIfu && companyIfu.length > COMPANY_ID_MAX)) {
+    profileError(`RCCM ou IFU trop long (${COMPANY_ID_MAX} caractères maximum).`)
+  }
+
+  if (rawAddress.length > 200 || rawCity.length > 120) {
+    profileError("Adresse trop longue.")
   }
 
   const currentUser = await getCurrentUser()
@@ -72,6 +101,10 @@ export async function createLandlordProfile(formData: FormData) {
     last_name: lastName,
     civility: "not_specified",
     company_name: companyName,
+    company_rccm: companyRccm,
+    company_ifu: companyIfu,
+    address: rawAddress.length > 0 ? rawAddress : null,
+    city: rawCity.length > 0 ? rawCity : null,
   })
 
   if (error) {
@@ -84,6 +117,17 @@ export async function createLandlordProfile(formData: FormData) {
       if (isConstraintError(error.message, "landlords_phone_key")) {
         profileError("Ce numéro est déjà lié à un autre compte Ranti.")
       }
+    }
+
+    // Session fantôme : le cookie pointe vers un utilisateur auth supprimé
+    // (FK auth_user_id violée). « Réessayez » serait un mur sans issue — on
+    // déconnecte proprement et on renvoie vers la connexion.
+    if (error.code === "23503" && isConstraintError(error.message, "landlords_auth_user_id_fkey")) {
+      await supabase.auth.signOut()
+      revalidatePath("/", "layout")
+      redirect(
+        `${AUTH_PATHS.signIn}?error=${encodeURIComponent("Votre session a expiré. Reconnectez-vous.")}`,
+      )
     }
 
     console.error("createLandlordProfile failed", error.code, error.message)
@@ -141,24 +185,35 @@ export async function updateLandlordPaymentAlias(formData: FormData) {
 }
 
 /**
- * Met à jour la raison sociale de l'entreprise de gestion. Donnée mutable,
- * distincte de l'identité verrouillée (ADR-002) : les documents émis sont
- * figés au snapshot, un changement de raison sociale ne réécrit pas
- * l'histoire. Champ vide = effacé (retour à la gestion en nom propre).
+ * Met à jour la raison sociale et les identifiants légaux (RCCM, IFU) de
+ * l'entreprise de gestion. Données mutables, distinctes de l'identité
+ * verrouillée (ADR-002) : les documents émis sont figés au snapshot, un
+ * changement de raison sociale ne réécrit pas l'histoire. Champ vide =
+ * effacé (raison sociale vide = retour à la gestion en nom propre).
  */
 export async function updateLandlordCompanyName(formData: FormData) {
   const claims = await requireAuth()
 
   const companyName = normalizeCompanyName(formData.get("company_name"))
+  const companyRccm = normalizeCompanyId(formData.get("company_rccm"))
+  const companyIfu = normalizeCompanyId(formData.get("company_ifu"))
 
   if (companyName && companyName.length > COMPANY_NAME_MAX) {
     settingsError(`Nom d'entreprise trop long (${COMPANY_NAME_MAX} caractères maximum).`)
   }
 
+  if ((companyRccm && companyRccm.length > COMPANY_ID_MAX) || (companyIfu && companyIfu.length > COMPANY_ID_MAX)) {
+    settingsError(`RCCM ou IFU trop long (${COMPANY_ID_MAX} caractères maximum).`)
+  }
+
   const supabase = await createClient()
   const { error } = await supabase
     .from("landlords")
-    .update({ company_name: companyName })
+    .update({
+      company_name: companyName,
+      company_rccm: companyRccm,
+      company_ifu: companyIfu,
+    })
     .eq("auth_user_id", claims.sub)
 
   if (error) {

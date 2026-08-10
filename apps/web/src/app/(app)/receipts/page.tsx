@@ -62,8 +62,8 @@ export default async function ReceiptsPage({ searchParams }: ReceiptsPageProps) 
         {disputedCount > 0 ? (
           <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm text-destructive">
             {disputedCount === 1
-              ? "1 reçu est contesté par un locataire."
-              : `${disputedCount} reçus sont contestés par des locataires.`}{" "}
+              ? "1 quittance est contestée par un locataire."
+              : `${disputedCount} quittances sont contestées par des locataires.`}{" "}
             Ouvrez-les pour voir la version du locataire.
           </div>
         ) : null}

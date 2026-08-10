@@ -10,7 +10,10 @@ export const methodLabels: Record<string, string> = {
   other: "Autre",
 }
 
+// Vocabulaire (retour fondateur 2026-08-10, ADR-027) : au Bénin, le document
+// du loyer intégralement payé est une QUITTANCE ; « reçu » n'est correct que
+// pour un paiement partiel. Jamais « reçu de loyer ».
 export const kindLabels: Record<string, string> = {
   quittance: "Quittance de loyer",
-  receipt: "Reçu de paiement",
+  receipt: "Reçu de paiement partiel",
 }

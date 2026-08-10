@@ -4,18 +4,41 @@ import { formatFcfa, monthYearLabel } from "@/lib/format"
 import type { Landlord } from "@/lib/landlords"
 import { receiptClause } from "./clause"
 import { kindLabels, methodLabels } from "./labels"
-import { receiptIssuerName } from "./issuer"
+import { receiptIssuerName, receiptIssuerRegistration } from "./issuer"
 import type { Receipt } from "./types"
 
 // ADR-013 - bandeau d'acquittement locataire (deux voix). Couleurs sobres,
 // mentions strictement factuelles : Ranti documente, n'arbitre pas.
 // Palette = direction-artistique.html uniquement (décision CEO 2026-07-17) :
 // neutres papier/encre DA, certifié = wash + olive-deep, contesté = warning.
-const ackBanner: Record<string, { bg: string; fg: string; label: string }> = {
-  unilateral: { bg: "#f2f2ec", fg: "#72726e", label: "Déclaration du propriétaire, non confirmée par le locataire." },
-  read: { bg: "#f2f2ec", fg: "#72726e", label: "Reçu ouvert par le locataire, non encore confirmé." },
-  certified: { bg: "#f2f6e1", fg: "#3f4d00", label: "Certifié : le locataire a confirmé l'exactitude de ce reçu." },
-  disputed: { bg: "#ffe7e2", fg: "#bd4a30", label: "Contesté : le locataire déclare une version différente (ci-dessous)." },
+// Libellés par kind (vocabulaire 2026-08-10) : « quittance » pour le loyer
+// intégralement payé, « reçu » réservé au paiement partiel.
+function ackBanner(kind: string): Record<string, { bg: string; fg: string; label: string }> {
+  const q = kind === "quittance"
+  return {
+    unilateral: { bg: "#f2f2ec", fg: "#72726e", label: "Déclaration du propriétaire, non confirmée par le locataire." },
+    read: {
+      bg: "#f2f2ec",
+      fg: "#72726e",
+      label: q
+        ? "Quittance ouverte par le locataire, non encore confirmée."
+        : "Reçu ouvert par le locataire, non encore confirmé.",
+    },
+    certified: {
+      bg: "#f2f6e1",
+      fg: "#3f4d00",
+      label: q
+        ? "Certifiée : le locataire a confirmé l'exactitude de cette quittance."
+        : "Certifié : le locataire a confirmé l'exactitude de ce reçu.",
+    },
+    disputed: {
+      bg: "#ffe7e2",
+      fg: "#bd4a30",
+      label: q
+        ? "Contestée : le locataire déclare une version différente (ci-dessous)."
+        : "Contesté : le locataire déclare une version différente (ci-dessous).",
+    },
+  }
 }
 
 const contestNatureLabels: Record<string, string> = {
@@ -70,13 +93,17 @@ export function ReceiptPdf({
 }) {
   const snap = receipt.snapshot ?? {}
   const kind = kindLabels[receipt.kind] ?? "Document"
-  const ack = ackBanner[receipt.tenant_ack] ?? ackBanner.unilateral
+  const banners = ackBanner(receipt.kind)
+  const ack = banners[receipt.tenant_ack] ?? banners.unilateral
   // Émetteur : raison sociale figée au snapshot quand elle existe (pivot
   // ADR-029) ; les anciens snapshots, sans la clé, se rendent à l'identique.
   const issuerName = receiptIssuerName(
     snap,
     `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire",
   )
+  // RCCM/IFU figés au snapshot (20260810130000) : petite ligne sous le nom
+  // quand présents, rien sinon (snapshots antérieurs inchangés).
+  const issuerRegistration = receiptIssuerRegistration(snap)
 
   return (
     <Document title={`${kind} ${receipt.receipt_number}`}>
@@ -109,6 +136,7 @@ export function ReceiptPdf({
           <View style={{ width: "48%" }}>
             <Text style={s.label}>De</Text>
             <Text style={s.strong}>{issuerName}</Text>
+            {issuerRegistration ? <Text style={s.muted}>{issuerRegistration}</Text> : null}
             <Text style={s.muted}>Propriétaire</Text>
             {landlord.address || landlord.city ? (
               <Text style={s.muted}>{[landlord.address, landlord.city].filter(Boolean).join(", ")}</Text>

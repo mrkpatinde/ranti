@@ -1,5 +1,6 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 import { formatFcfa, formatFcfaNumber } from "@/lib/format"
+import { registrationLine } from "@/lib/receipts/issuer"
 import { monthLabel } from "./month"
 import { feeRateLabel, sumStatementLines } from "./totals"
 import type { OwnerStatement } from "./types"
@@ -115,6 +116,8 @@ export function OwnerStatementPdf({ statement }: { statement: OwnerStatement }) 
   // est exactement leur somme, quoi qu'il arrive.
   const totals = sumStatementLines(lines)
   const agencyName = agency.name?.trim() || "Agence"
+  // RCCM/IFU (20260810130000) : petite ligne sous le nom quand présents.
+  const agencyRegistration = registrationLine(agency.company_rccm, agency.company_ifu)
   const address = [agency.address, agency.city].filter(Boolean).join(", ")
   const rate = feeRateLabel(owner.fee_rate_bp)
   const periodLabel = monthLabel(period.month)
@@ -125,6 +128,7 @@ export function OwnerStatementPdf({ statement }: { statement: OwnerStatement }) 
         <View style={[s.row, s.headerBox]}>
           <View>
             <Text style={s.agency}>{agencyName}</Text>
+            {agencyRegistration ? <Text style={s.muted}>{agencyRegistration}</Text> : null}
             {address ? <Text style={s.muted}>{address}</Text> : null}
             {agency.phone ? <Text style={s.muted}>{agency.phone}</Text> : null}
           </View>

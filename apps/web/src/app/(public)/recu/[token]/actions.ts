@@ -8,48 +8,34 @@ import { createClient } from "@/lib/supabase/server";
 
 // ============================================================
 // Actions publiques du reçu partagé (ADR-013).
-// Le locataire consent (une fois), certifie ou conteste. Toute la logique
-// (validation token, transitions d'état, empreinte, version locataire)
-// vit dans les RPC SECURITY DEFINER : l'anon n'accède à aucune table.
+// Le locataire certifie ou conteste. Toute la logique (validation token,
+// transitions d'état, empreinte, version locataire) vit dans les RPC
+// SECURITY DEFINER : l'anon n'accède à aucune table.
+//
+// Consentement quittance électronique (v2, 2026-08-10) : plus d'écran séparé.
+// L'accord est enregistré au moment de la confirmation — grant PUIS certify.
+// La RPC grant_ereceipt_consent est write-once et idempotente (un rejeu
+// renvoie l'horodatage d'origine) : l'appeler à chaque certification est
+// sûr, la trace tenant_consents reste immuable (trigger).
 // ============================================================
 
-// Consentement à la quittance électronique (conformité) : UNE fois par
-// locataire, write-once côté DB (rejeu = même horodatage), libellé archivé
-// verbatim. Après accord, la page se recharge et affiche le document.
-export async function grantEreceiptConsent(token: string) {
+export async function certifyReceipt(token: string) {
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc("grant_ereceipt_consent", {
+  // 1. L'accord d'abord : la confirmation vaut acceptation de la remise
+  // électronique (libellé affiché sous le bouton, archivé verbatim). Sans
+  // accord enregistré, on ne certifie pas — jamais d'accord fantôme.
+  const { error: consentError } = await supabase.rpc("grant_ereceipt_consent", {
     p_token: token,
     p_wording: ERECEIPT_CONSENT_WORDING,
   });
 
-  if (error) {
-    console.error("grantEreceiptConsent: rpc failed", error.code, error.message);
+  if (consentError) {
+    console.error("certifyReceipt: consent rpc failed", consentError.code, consentError.message);
     redirect(`/recu/${token}?error=action_failed`);
   }
 
-  redirect(`/recu/${token}`);
-}
-
-// Garde partagée : certifier ou contester présuppose une quittance REMISE,
-// donc consentie. Un POST direct sans accord retombe sur l'écran de
-// consentement (redirect vers la page).
-async function requireConsentOrRedirect(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  token: string,
-) {
-  const { data } = await supabase.rpc("ereceipt_consent_status", { p_token: token });
-  const consent = (data as { found: boolean; granted_at: string | null }[] | null)?.[0];
-  if (!consent || !consent.found || !consent.granted_at) {
-    redirect(`/recu/${token}`);
-  }
-}
-
-export async function certifyReceipt(token: string) {
-  const supabase = await createClient();
-  await requireConsentOrRedirect(supabase, token);
-
+  // 2. Puis la certification (deuxième voix, ADR-013).
   const { data: result, error } = await supabase.rpc("certify_receipt_by_token", {
     p_token: token,
   });
@@ -69,8 +55,9 @@ export async function certifyReceipt(token: string) {
 
 export async function contestReceipt(token: string, formData: FormData) {
   const supabase = await createClient();
-  await requireConsentOrRedirect(supabase, token);
 
+  // Pas de consentement requis pour contester : signaler une erreur n'est pas
+  // accepter la remise électronique de ses quittances.
   const parsed = parseContestInput({
     nature: String(formData.get("nature") ?? ""),
     amount: String(formData.get("amount") ?? ""),

@@ -13,15 +13,16 @@ import { formatFcfa } from "@/lib/format"
 import { logReminderBatch } from "@/lib/reminders/actions"
 import { buildWaLink } from "@/lib/reminders/whatsapp"
 import {
-  DEFAULT_BATCH_TEMPLATE,
   TEMPLATE_PLACEHOLDERS,
   buildBatchMessages,
+  defaultBatchTemplate,
   groupReminderRows,
   isFullySelected,
   orderedSelection,
   renderRowMessage,
   toggleAll,
   toggleSelection,
+  type ReminderAccount,
   type ReminderBatchRow,
   type ReminderGroupBy,
 } from "@/lib/reminders/batch"
@@ -40,11 +41,18 @@ function shortDate(iso: string): string {
   return at.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
 }
 
-export function ReminderBatch({ rows }: { rows: ReminderBatchRow[] }) {
+export function ReminderBatch({
+  rows,
+  account,
+}: {
+  rows: ReminderBatchRow[]
+  /** Alias marchand + raison sociale du compte, pour la variable {paiement}. */
+  account?: ReminderAccount | null
+}) {
   const allIds = rows.map((r) => r.rent_due_id)
   const [groupBy, setGroupBy] = useState<ReminderGroupBy>("owner")
   const [selected, setSelected] = useState<string[]>(allIds)
-  const [template, setTemplate] = useState(DEFAULT_BATCH_TEMPLATE)
+  const [template, setTemplate] = useState(defaultBatchTemplate(account))
 
   // File gelée au démarrage : changer le modèle ou la sélection en cours
   // d'envoi ferait diverger le message tracé de celui qui est parti.
@@ -66,7 +74,7 @@ export function ReminderBatch({ rows }: { rows: ReminderBatchRow[] }) {
     setResult(null)
     setError(null)
     setQueue(picked)
-    setMessages(buildBatchMessages(picked, template))
+    setMessages(buildBatchMessages(picked, template, account))
     setIndex(0)
     setOpened([])
   }
@@ -174,7 +182,9 @@ export function ReminderBatch({ rows }: { rows: ReminderBatchRow[] }) {
             className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
           />
           <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            Champs remplacés par ligne : {TEMPLATE_PLACEHOLDERS.map((p) => `{${p}}`).join(" · ")}
+            Champs remplacés par ligne : {TEMPLATE_PLACEHOLDERS.map((p) => `{${p}}`).join(" · ")}.
+            {" "}{"{paiement}"} devient « Réglez au … (Mobile Money — …). » quand
+            votre numéro marchand est renseigné (réglages → Paiement), vide sinon.
           </p>
         </div>
 
@@ -242,7 +252,7 @@ export function ReminderBatch({ rows }: { rows: ReminderBatchRow[] }) {
                         : "Jamais relancé"}
                     </p>
                     <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                      {renderRowMessage(row, template)}
+                      {renderRowMessage(row, template, account)}
                     </p>
                   </div>
                 </label>

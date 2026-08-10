@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import { Alert } from "@/components/ui/alert"
 import { formatFcfa, formatFcfaNumber } from "@/lib/format"
+import { registrationLine } from "@/lib/receipts/issuer"
 import {
   buildStatementWaLink,
   feeRateLabel,
@@ -48,6 +49,8 @@ export default async function OwnerStatementPage({ params, searchParams }: State
   // s'additionne à la main, sur l'écran comme sur le PDF.
   const totals = sumStatementLines(lines)
   const agencyName = agency.name?.trim() || "Agence"
+  // RCCM/IFU (20260810130000) : même petite ligne que le PDF, quand présents.
+  const agencyRegistration = registrationLine(agency.company_rccm, agency.company_ifu)
   const agencyAddress = [agency.address, agency.city].filter(Boolean).join(", ")
   const rate = feeRateLabel(owner.fee_rate_bp)
   const wa = buildStatementWaLink({
@@ -75,6 +78,9 @@ export default async function OwnerStatementPage({ params, searchParams }: State
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="font-display text-lg font-bold text-foreground">{agencyName}</p>
+            {agencyRegistration ? (
+              <p className="text-sm text-muted-foreground">{agencyRegistration}</p>
+            ) : null}
             {agencyAddress ? (
               <p className="text-sm text-muted-foreground">{agencyAddress}</p>
             ) : null}

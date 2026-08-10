@@ -116,7 +116,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
         <form action={updateLandlordCompanyName} className="space-y-3 rounded-2xl border border-border bg-card p-4">
           {params?.success === "entreprise" ? (
             <p className="rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-accent">
-              Nom d&apos;entreprise enregistré.
+              Informations d&apos;entreprise enregistrées.
             </p>
           ) : null}
           <div className="space-y-1.5">
@@ -131,8 +131,33 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
               className="w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
             />
           </div>
+          <div className="space-y-1.5">
+            <label htmlFor="company_rccm" className="text-sm font-medium text-foreground">RCCM</label>
+            <input
+              id="company_rccm"
+              name="company_rccm"
+              type="text"
+              maxLength={64}
+              defaultValue={landlord.company_rccm ?? ""}
+              placeholder="Ex : RB/COT/24 B 12345"
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="company_ifu" className="text-sm font-medium text-foreground">IFU</label>
+            <input
+              id="company_ifu"
+              name="company_ifu"
+              type="text"
+              maxLength={64}
+              inputMode="numeric"
+              defaultValue={landlord.company_ifu ?? ""}
+              placeholder="13 chiffres"
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
+            />
+          </div>
           <p className="text-xs leading-6 text-muted-foreground">
-            La raison sociale apparaît sur les quittances et relevés émis à partir de maintenant.
+            La raison sociale, le RCCM et l&apos;IFU apparaissent sur les quittances et relevés émis à partir de maintenant.
             Laissez vide si vous gérez en votre nom propre.
           </p>
           <SubmitButton className="w-full rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60 sm:w-fit">

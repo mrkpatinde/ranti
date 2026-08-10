@@ -1,13 +1,17 @@
 import { redirect } from "next/navigation"
-import { CountryPhoneInput } from "@/components/country-phone-input"
-import { SubmitButton } from "@/components/submit-button"
 import { AUTH_PATHS, getCurrentUser } from "@/lib/auth"
 import {
   DEFAULT_COUNTRY_CODE,
   countryForPhone,
   toCountryLocalPhone,
 } from "@/lib/auth/countries"
-import { createLandlordProfile, getCurrentLandlord } from "@/lib/landlords"
+import { getCurrentLandlord } from "@/lib/landlords"
+import { ProfileForm } from "./profile-form"
+
+// Profil d'onboarding : bifurcation explicite « entreprise de gestion » /
+// « nom propre » (retour fondateur 2026-08-10), formulaire dans ProfileForm.
+// Le shell est masqué sur cet écran : le lien de déconnexion en bas est la
+// seule issue d'une session qui n'est pas la bonne.
 
 type ProfilePageProps = {
   searchParams?: Promise<{
@@ -15,13 +19,6 @@ type ProfilePageProps = {
     missing?: string
   }>
 }
-
-const fullInputClass =
-  "w-full rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
-const phoneInputClass =
-  "w-full rounded-r-xl border border-l-0 border-border bg-card px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
-const countrySelectClass =
-  "rounded-l-xl border border-border bg-background px-3 py-3 text-base text-foreground/70 outline-none transition focus:border-primary"
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const existing = await getCurrentLandlord()
@@ -42,8 +39,6 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const errorMessage = params?.error
   const missingPhone = params?.missing === "phone"
 
-  const labelClass = "block text-sm font-medium text-foreground"
-
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
       <section className="space-y-8">
@@ -56,7 +51,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               Votre profil
             </h1>
             <p className="text-base leading-7 text-foreground/70">
-              Ce numéro vous identifie et apparaîtra dans votre espace propriétaire.
+              Une question pour commencer : Ranti adapte vos documents.
             </p>
           </div>
         </div>
@@ -67,85 +62,22 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </p>
         ) : null}
 
-        <form action={createLandlordProfile} className="space-y-5">
-          <div className="space-y-2">
-            <label htmlFor="company_name" className={labelClass}>
-              Nom de l&apos;entreprise
-            </label>
-            <input
-              id="company_name"
-              name="company_name"
-              type="text"
-              maxLength={160}
-              autoComplete="organization"
-              placeholder="Ex : Horizon Gestion"
-              className={fullInputClass}
-            />
-            <p className="text-sm leading-6 text-muted-foreground">
-              Optionnel — laissez vide si vous gérez en votre nom propre.
-            </p>
-          </div>
+        <ProfileForm
+          defaultCountryCode={knownCountry?.code ?? DEFAULT_COUNTRY_CODE}
+          defaultPhone={defaultPhone}
+          errorMessage={errorMessage}
+        />
 
-          <div className="space-y-2">
-            <label htmlFor="phone" className={labelClass}>
-              Numéro de téléphone <span className="text-destructive">*</span>
-            </label>
-            <CountryPhoneInput
-              id="phone"
-              name="phone"
-              defaultCountryCode={knownCountry?.code ?? DEFAULT_COUNTRY_CODE}
-              defaultValue={defaultPhone}
-              required
-              selectClassName={countrySelectClass}
-              inputClassName={phoneInputClass}
-            />
-            <p className="text-sm leading-6 text-muted-foreground">
-              Choisissez votre indicatif, puis tapez votre numéro mobile local : Ranti ajoute les espaces automatiquement.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="first_name" className={labelClass}>
-              Prénom <span className="text-destructive">*</span>
-            </label>
-            <input
-              id="first_name"
-              name="first_name"
-              type="text"
-              required
-              autoComplete="given-name"
-              className={fullInputClass}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="last_name" className={labelClass}>
-              Nom <span className="text-destructive">*</span>
-            </label>
-            <input
-              id="last_name"
-              name="last_name"
-              type="text"
-              required
-              autoComplete="family-name"
-              className={fullInputClass}
-            />
-            <p className="text-sm leading-6 text-muted-foreground">
-              Prénom et nom sont imprimés sur vos quittances — non modifiables ensuite.
-            </p>
-          </div>
-
-          {errorMessage ? (
-            <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {errorMessage}
-            </p>
-          ) : null}
-
-          <SubmitButton
-            className="w-full rounded-full bg-accent px-4 py-3 text-base font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60"
+        {/* Session fantôme : le shell (et son bouton de déconnexion) est
+            masqué sur cet écran — ce lien discret est la seule porte de
+            sortie. Même POST que le bouton du shell. */}
+        <form action="/auth/signout" method="post" className="text-center">
+          <button
+            type="submit"
+            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
           >
-            Accéder à mon espace
-          </SubmitButton>
+            Ce n&apos;est pas vous ? Se déconnecter
+          </button>
         </form>
       </section>
     </main>

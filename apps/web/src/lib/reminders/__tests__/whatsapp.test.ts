@@ -42,3 +42,48 @@ describe("buildReminderWaLink", () => {
     expect(buildReminderWaLink({ ...BASE, phone: "+++" })).toBeNull()
   })
 })
+
+// Numéro marchand dans la relance (retour fondateur 2026-08-10) : quand
+// l'alias est renseigné, le message se termine par l'instruction de paiement ;
+// sinon, message strictement identique à avant.
+describe("instruction de paiement", () => {
+  it("avec alias : le message se termine par « Réglez au … (Mobile Money — …). »", () => {
+    const msg = decoded(
+      buildReminderWaLink({
+        ...BASE,
+        paymentAlias: "0197000001",
+        payeeName: "Horizon Gestion",
+      })!,
+    )
+    expect(msg.endsWith("Réglez au 0197000001 (Mobile Money — Horizon Gestion).")).toBe(true)
+  })
+
+  it("alias sans nom : mention Mobile Money seule, jamais de tiret orphelin", () => {
+    const msg = decoded(
+      buildReminderWaLink({ ...BASE, paymentAlias: "0197000001", payeeName: null })!,
+    )
+    expect(msg.endsWith("Réglez au 0197000001 (Mobile Money).")).toBe(true)
+  })
+
+  it("sans alias (ou vide) : message inchangé", () => {
+    const before = decoded(buildReminderWaLink(BASE)!)
+    expect(decoded(buildReminderWaLink({ ...BASE, paymentAlias: null })!)).toBe(before)
+    expect(
+      decoded(buildReminderWaLink({ ...BASE, paymentAlias: "  ", payeeName: "X" })!),
+    ).toBe(before)
+    expect(before).not.toContain("Réglez au")
+  })
+
+  it("s'ajoute aussi à la relance de retard", () => {
+    const msg = decoded(
+      buildReminderWaLink({
+        ...BASE,
+        late: true,
+        paymentAlias: "0197000001",
+        payeeName: "Horizon Gestion",
+      })!,
+    )
+    expect(msg).toContain("est en retard")
+    expect(msg.endsWith("Réglez au 0197000001 (Mobile Money — Horizon Gestion).")).toBe(true)
+  })
+})

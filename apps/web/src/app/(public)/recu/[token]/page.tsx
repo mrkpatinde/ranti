@@ -6,16 +6,25 @@ import { createClient } from "@/lib/supabase/server";
 import { kindLabels, methodLabels } from "@/lib/receipts/labels";
 import type { ReceiptByToken } from "@/lib/receipts/types";
 import { receiptClause } from "@/lib/receipts/clause";
-import type { EreceiptConsentStatus } from "@/lib/receipts/consent";
+import {
+  ERECEIPT_CONSENT_WORDING,
+  type EreceiptConsentStatus,
+} from "@/lib/receipts/consent";
 import { certifyReceipt } from "./actions";
-import { ConsentScreen } from "./consent-screen";
 import { ContestForm } from "./contest-form";
 
 // ============================================================
-// Reçu partagé - page publique, zéro auth (ADR-013).
+// Quittance partagée - page publique, zéro auth (ADR-013).
 // Les données viennent de la RPC SECURITY DEFINER get_receipt_by_token,
 // qui pose aussi l'état `read` à la première ouverture. L'anon ne lit
 // aucune table directement.
+//
+// Consentement quittance électronique (v2, 2026-08-10) : plus d'écran
+// séparé — le locataire voit directement son document. Tant qu'il n'a pas
+// consenti, une ligne sous le bouton de confirmation l'informe que
+// confirmer vaut acceptation de la remise électronique ; l'accord est
+// enregistré au moment de la confirmation (certifyReceipt). Après accord,
+// rien de plus ne s'affiche — même écran qu'avant.
 // ============================================================
 
 const UUID_RE =
@@ -34,11 +43,11 @@ function formatDate(iso: string): string {
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  not_found: "Reçu introuvable.",
-  cancelled: "Ce reçu a été annulé par le propriétaire.",
-  already_certified: "Vous avez déjà confirmé ce reçu.",
-  disputed: "Ce reçu est déjà en contestation.",
-  already_disputed: "Ce reçu est déjà en contestation. Votre première version est conservée.",
+  not_found: "Quittance introuvable.",
+  cancelled: "Cette quittance a été annulée par le propriétaire.",
+  already_certified: "Vous avez déjà confirmé cette quittance.",
+  disputed: "Cette quittance est déjà en contestation.",
+  already_disputed: "Cette quittance est déjà en contestation. Votre première version est conservée.",
   invalid_nature: "Indiquez ce qui ne va pas.",
   amount_invalid: "Montant invalide.",
   period_invalid: "Période trop longue.",
@@ -76,28 +85,6 @@ export default async function RecuPage({
   const errorMsg =
     typeof sp.error === "string" ? (ERROR_MESSAGES[sp.error] ?? null) : null;
 
-  // Conformité quittance électronique : au PREMIER accès, écran de
-  // consentement AVANT tout affichage (le document n'est pas même marqué
-  // « lu » : get_receipt_by_token, qui pose read, n'est appelée qu'après
-  // l'accord). Une seule fois par locataire, write-once côté DB.
-  const { data: consentData, error: consentError } = await supabase.rpc(
-    "ereceipt_consent_status",
-    { p_token: token },
-  );
-  const consent = (consentData as EreceiptConsentStatus[] | null)?.[0];
-  if (consentError || !consent || !consent.found) {
-    notFound();
-  }
-  if (!consent.granted_at) {
-    return (
-      <ConsentScreen
-        token={token}
-        tenantFirstName={consent.tenant_first_name}
-        errorMsg={errorMsg}
-      />
-    );
-  }
-
   const { data, error } = await supabase.rpc("get_receipt_by_token", {
     p_token: token,
   });
@@ -128,7 +115,8 @@ export default async function RecuPage({
   }
 
   const kind = KIND_LABEL[receipt.kind] ?? "Document";
-  const docNoun = receipt.kind === "quittance" ? "quittance" : "reçu";
+  const isQuittance = receipt.kind === "quittance";
+  const docNoun = isQuittance ? "quittance" : "reçu";
   const tenantName =
     [receipt.tenant_first_name, receipt.tenant_last_name]
       .filter(Boolean)
@@ -147,6 +135,21 @@ export default async function RecuPage({
 
   const isCertified = receipt.tenant_ack === "certified";
   const isDisputed = receipt.tenant_ack === "disputed";
+
+  // Consentement quittance électronique : tant qu'il n'est pas enregistré,
+  // la ligne d'acceptation s'affiche sous le bouton de confirmation (l'accord
+  // se prend au moment de la confirmation, cf. certifyReceipt). Après accord,
+  // rien de plus — visite identique à aujourd'hui. Statut indéterminable
+  // (panne RPC) = ligne affichée : certifier enregistre l'accord de toute
+  // façon, l'inverse créerait un accord jamais annoncé.
+  let needsEreceiptConsent = false;
+  if (canAct) {
+    const { data: consentData } = await supabase.rpc("ereceipt_consent_status", {
+      p_token: token,
+    });
+    const consent = (consentData as EreceiptConsentStatus[] | null)?.[0];
+    needsEreceiptConsent = !consent?.granted_at;
+  }
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col items-stretch bg-background px-4 py-10 [font-variant-numeric:tabular-nums] sm:py-14">
@@ -198,7 +201,7 @@ export default async function RecuPage({
           </span>
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-semibold text-foreground">
-              {kind} confirmée, merci.
+              {isQuittance ? "Quittance confirmée" : "Reçu confirmé"}, merci.
             </span>
             <span className="text-[0.82rem] leading-snug text-muted-foreground">
               Votre confirmation est enregistrée dans le registre. Gardez ce lien :
@@ -215,8 +218,8 @@ export default async function RecuPage({
       )}
       {isDisputed && (
         <div className="mb-4 rounded-[19px] border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">
-          {kind} contestée : votre version est enregistrée à côté de celle du
-          propriétaire.
+          {isQuittance ? "Quittance contestée" : "Reçu contesté"} : votre version
+          est enregistrée à côté de celle du propriétaire.
         </div>
       )}
 
@@ -401,14 +404,19 @@ export default async function RecuPage({
                     className="inline-flex w-full items-center justify-center rounded-full bg-accent px-6 py-3.5 text-base font-semibold text-accent-foreground shadow-[0_1px_2px_rgba(91,111,0,0.22),0_8px_20px_-8px_rgba(91,111,0,0.38)] transition hover:brightness-105 disabled:opacity-60"
                     pendingLabel="Envoi…"
                   >
-                    Confirmer le paiement
+                    Confirmer l&apos;exactitude
                   </SubmitButton>
                 </form>
                 <p className="text-center text-xs leading-relaxed text-muted-foreground">
                   En confirmant, vous attestez que ce loyer a bien été réglé. Votre
                   confirmation est ajoutée au registre.
                 </p>
-                <ContestForm token={token} />
+                {needsEreceiptConsent ? (
+                  <p className="text-center text-xs leading-relaxed text-muted-foreground">
+                    {ERECEIPT_CONSENT_WORDING}
+                  </p>
+                ) : null}
+                <ContestForm token={token} docNoun={docNoun} />
               </>
             )}
             {receipt.status !== "cancelled" && (

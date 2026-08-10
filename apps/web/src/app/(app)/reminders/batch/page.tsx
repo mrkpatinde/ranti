@@ -52,7 +52,17 @@ async function BatchData() {
     )
   }
 
-  return <ReminderBatch rows={rows} />
+  // Données du compte pour la variable {paiement} du modèle : alias marchand
+  // (réglages → Paiement) et raison sociale, à défaut le nom de la personne.
+  const account = {
+    paymentAlias: landlord.payment_alias,
+    payeeName:
+      landlord.company_name?.trim() ||
+      `${landlord.first_name} ${landlord.last_name}`.trim() ||
+      null,
+  }
+
+  return <ReminderBatch rows={rows} account={account} />
 }
 
 function BatchSkeleton() {

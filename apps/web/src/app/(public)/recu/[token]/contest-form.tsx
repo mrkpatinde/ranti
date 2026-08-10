@@ -8,7 +8,14 @@ import { contestReceipt } from "./actions";
 // Formulaire de contestation locataire (ADR-013). La nature choisie révèle
 // le champ pertinent : montant réel, ou période réelle. « Pas payé » n'a
 // besoin d'aucun détail. Ranti documente le désaccord, ne l'arbitre pas.
-export function ContestForm({ token }: { token: string }) {
+// docNoun : « quittance » (loyer soldé) ou « reçu » (paiement partiel).
+export function ContestForm({
+  token,
+  docNoun = "quittance",
+}: {
+  token: string;
+  docNoun?: "quittance" | "reçu";
+}) {
   const [open, setOpen] = useState(false);
   const [nature, setNature] = useState<"amount" | "date" | "not_paid" | null>(null);
 
@@ -19,7 +26,9 @@ export function ContestForm({ token }: { token: string }) {
         onClick={() => setOpen(true)}
         className="w-full rounded-full border border-border px-5 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted"
       >
-        Ce reçu comporte une erreur
+        {docNoun === "quittance"
+          ? "Cette quittance comporte une erreur"
+          : "Ce reçu comporte une erreur"}
       </button>
     );
   }

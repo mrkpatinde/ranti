@@ -10,34 +10,24 @@ export const dynamic = "force-dynamic"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-// PDF public du reçu partagé, par token (ADR-013). Même frontière de confiance
-// que la page /recu/[token] : les données viennent de la RPC SECURITY DEFINER
-// get_receipt_by_token (l'anon ne lit aucune table), le token UUID EST la
-// capacité d'accès. Aucun service-role ici.
+// PDF public de la quittance partagée, par token (ADR-013). Même frontière de
+// confiance que la page /recu/[token] : les données viennent de la RPC
+// SECURITY DEFINER get_receipt_by_token (l'anon ne lit aucune table), le
+// token UUID EST la capacité d'accès. Aucun service-role ici.
+//
+// Plus de porte de consentement (v2, 2026-08-10) : l'écran séparé a disparu,
+// le locataire voit son document directement — l'accord à la remise
+// électronique s'enregistre au moment de la confirmation, sur la page.
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params
   if (!UUID_RE.test(token)) {
-    return new Response("Reçu introuvable.", { status: 404 })
+    return new Response("Quittance introuvable.", { status: 404 })
   }
 
   const supabase = await createClient()
-
-  // Même porte de consentement que la page : un lien PDF direct ne doit pas
-  // contourner l'accord à la quittance électronique. Sans accord, retour à la
-  // page qui affiche l'écran de consentement.
-  const { data: consentData } = await supabase.rpc("ereceipt_consent_status", {
-    p_token: token,
-  })
-  const consent = (consentData as { found: boolean; granted_at: string | null }[] | null)?.[0]
-  if (!consent || !consent.found) {
-    return new Response("Reçu introuvable.", { status: 404 })
-  }
-  if (!consent.granted_at) {
-    return Response.redirect(new URL(`/recu/${token}`, request.url), 302)
-  }
 
   const { data, error } = await supabase.rpc("get_receipt_by_token", { p_token: token })
 
@@ -53,7 +43,7 @@ export async function GET(
 
   const row = (data as ReceiptByToken[] | null)?.[0]
   if (!row) {
-    return new Response("Reçu introuvable.", { status: 404 })
+    return new Response("Quittance introuvable.", { status: 404 })
   }
 
   // Reconstruit les formes attendues par ReceiptPdf à partir de la vue token.
@@ -114,9 +104,12 @@ export async function GET(
     first_name: row.landlord_first_name ?? "",
     last_name: row.landlord_last_name ?? "",
     civility: null,
-    // La vue token n'expose pas la raison sociale : le PDF public rend le nom
-    // de la personne, comme la page /recu/[token] (rétrocompatible).
+    // La vue token n'expose ni la raison sociale ni les identifiants légaux :
+    // le PDF public rend le nom de la personne, comme la page /recu/[token]
+    // (rétrocompatible).
     company_name: null,
+    company_rccm: null,
+    company_ifu: null,
     address: row.landlord_address ?? null,
     city: row.landlord_city ?? null,
     payment_alias: null,

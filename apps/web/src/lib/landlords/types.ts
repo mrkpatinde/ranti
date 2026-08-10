@@ -22,6 +22,11 @@ export type Landlord = {
   // documents émis sont figés au snapshot, un changement de raison sociale ne
   // réécrit pas l'histoire.
   company_name: string | null
+  // Identifiants légaux de l'entreprise (migration 20260810130000) : RCCM et
+  // IFU. Null = non renseigné ou gestion en nom propre. Mutables, mêmes
+  // raisons que company_name.
+  company_rccm: string | null
+  company_ifu: string | null
   // Adresse postale du bailleur (mutable, contact). Figure sur la quittance
   // pour identifier complètement le bailleur (Loi 2022-30, art. 67).
   address: string | null

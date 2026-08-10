@@ -7,6 +7,7 @@
 // via un lien wa.me (ADR-006, art. 6 des CGU).
 
 import { formatFcfa, monthYearLabel } from "@/lib/format"
+import { buildPaymentInstruction } from "./whatsapp"
 
 /** Une ligne de la vue `reminder_batch` (migration 20260809120800). */
 export type ReminderBatchRow = {
@@ -43,6 +44,29 @@ export const reminderTypeLabels: Record<ReminderBatchRow["reminder_type"], strin
 export const DEFAULT_BATCH_TEMPLATE =
   "Bonjour {locataire}, le loyer de {lot} pour {période} reste dû : {montant}."
 
+/**
+ * Données du COMPTE (pas de la ligne) injectées dans le modèle : l'alias
+ * marchand Mobile Money (landlords.payment_alias, réglages → Paiement) et la
+ * raison sociale ou le nom du gestionnaire. La page batch les passe au
+ * client ; null = pas d'alias, la variable {paiement} se substitue à vide.
+ */
+export type ReminderAccount = {
+  paymentAlias: string | null
+  payeeName: string | null
+}
+
+/**
+ * Modèle par défaut du compte : quand l'alias marchand est renseigné, le
+ * message se termine par l'instruction de paiement ({paiement} → « Réglez au
+ * … (Mobile Money — …). », retour fondateur 2026-08-10). Sans alias, modèle
+ * historique inchangé.
+ */
+export function defaultBatchTemplate(account?: ReminderAccount | null): string {
+  return account?.paymentAlias?.trim()
+    ? `${DEFAULT_BATCH_TEMPLATE} {paiement}`
+    : DEFAULT_BATCH_TEMPLATE
+}
+
 /** Champs substituables, affichés sous le modèle. */
 export const TEMPLATE_PLACEHOLDERS = [
   "locataire",
@@ -52,6 +76,7 @@ export const TEMPLATE_PLACEHOLDERS = [
   "montant",
   "échéance",
   "retard",
+  "paiement",
 ] as const
 
 function frDate(dateStr: string): string {
@@ -63,8 +88,12 @@ function frDate(dateStr: string): string {
   })
 }
 
-/** Valeurs de substitution d'une ligne de la file. */
-export function buildTemplateVars(row: ReminderBatchRow): Record<string, string> {
+/** Valeurs de substitution d'une ligne de la file. `account` porte les
+ *  données du compte ({paiement}) ; absent = variable substituée à vide. */
+export function buildTemplateVars(
+  row: ReminderBatchRow,
+  account?: ReminderAccount | null,
+): Record<string, string> {
   const late = Math.max(0, row.days_from_due)
 
   return {
@@ -75,25 +104,34 @@ export function buildTemplateVars(row: ReminderBatchRow): Record<string, string>
     montant: formatFcfa(row.amount_remaining),
     échéance: frDate(row.due_date),
     retard: late === 1 ? "1 jour" : `${late} jours`,
+    paiement: buildPaymentInstruction(account?.paymentAlias, account?.payeeName) ?? "",
   }
 }
 
 /**
  * Substitue les `{champs}` du modèle. Un champ inconnu est laissé tel quel :
  * le gestionnaire voit sa faute de frappe plutôt qu'un trou dans le message.
+ * Le résultat est ébarbé : une variable vide en fin de modèle (ex. {paiement}
+ * sans alias) ne laisse pas d'espace orphelin.
  */
 export function renderReminderTemplate(
   template: string,
   vars: Record<string, string>,
 ): string {
-  return template.replace(/\{([^{}]*)\}/g, (match, name: string) => {
-    const key = name.trim()
-    return Object.prototype.hasOwnProperty.call(vars, key) ? vars[key] : match
-  })
+  return template
+    .replace(/\{([^{}]*)\}/g, (match, name: string) => {
+      const key = name.trim()
+      return Object.prototype.hasOwnProperty.call(vars, key) ? vars[key] : match
+    })
+    .trim()
 }
 
-export function renderRowMessage(row: ReminderBatchRow, template: string): string {
-  return renderReminderTemplate(template, buildTemplateVars(row))
+export function renderRowMessage(
+  row: ReminderBatchRow,
+  template: string,
+  account?: ReminderAccount | null,
+): string {
+  return renderReminderTemplate(template, buildTemplateVars(row, account))
 }
 
 /** Les messages du lot, indexés par échéance — forme attendue par la RPC
@@ -101,10 +139,11 @@ export function renderRowMessage(row: ReminderBatchRow, template: string): strin
 export function buildBatchMessages(
   rows: ReminderBatchRow[],
   template: string,
+  account?: ReminderAccount | null,
 ): Record<string, string> {
   const messages: Record<string, string> = {}
   for (const row of rows) {
-    messages[row.rent_due_id] = renderRowMessage(row, template)
+    messages[row.rent_due_id] = renderRowMessage(row, template, account)
   }
   return messages
 }

@@ -4,6 +4,7 @@ import {
   DEFAULT_BATCH_TEMPLATE,
   buildBatchMessages,
   buildTemplateVars,
+  defaultBatchTemplate,
   groupReminderRows,
   isFullySelected,
   orderedSelection,
@@ -85,6 +86,41 @@ describe("substitution du modèle", () => {
     const messages = buildBatchMessages(rows, "Bonjour {locataire}.")
 
     expect(messages).toEqual({ d1: "Bonjour Awa Diop.", d2: "Bonjour Koffi." })
+  })
+})
+
+// Numéro marchand dans le lot (retour fondateur 2026-08-10) : le modèle par
+// défaut gagne {paiement} quand l'alias du compte existe ; la variable se
+// substitue en instruction de paiement complète, vide sans alias.
+describe("instruction de paiement du lot", () => {
+  const account = { paymentAlias: "0197000001", payeeName: "Horizon Gestion" }
+
+  it("modèle par défaut : {paiement} ajouté seulement quand l'alias existe", () => {
+    expect(defaultBatchTemplate(account)).toBe(`${DEFAULT_BATCH_TEMPLATE} {paiement}`)
+    expect(defaultBatchTemplate(null)).toBe(DEFAULT_BATCH_TEMPLATE)
+    expect(defaultBatchTemplate({ paymentAlias: "  ", payeeName: "X" })).toBe(
+      DEFAULT_BATCH_TEMPLATE,
+    )
+  })
+
+  it("{paiement} devient l'instruction complète avec l'alias et la raison sociale", () => {
+    const message = renderRowMessage(row(), defaultBatchTemplate(account), account)
+
+    expect(message.endsWith("Réglez au 0197000001 (Mobile Money — Horizon Gestion).")).toBe(
+      true,
+    )
+  })
+
+  it("sans alias : {paiement} se substitue à vide, sans espace orphelin", () => {
+    const message = renderRowMessage(row(), `${DEFAULT_BATCH_TEMPLATE} {paiement}`, null)
+
+    expect(message).toBe(renderRowMessage(row(), DEFAULT_BATCH_TEMPLATE))
+    expect(message.endsWith(" ")).toBe(false)
+  })
+
+  it("sans compte : message du lot identique à avant", () => {
+    const message = renderRowMessage(row(), DEFAULT_BATCH_TEMPLATE)
+    expect(message).not.toContain("Réglez au")
   })
 })
 
