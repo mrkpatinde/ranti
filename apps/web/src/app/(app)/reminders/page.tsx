@@ -75,6 +75,12 @@ export default function RemindersPage({ searchParams }: RemindersPageProps) {
           l&apos;échéance, le jour J, puis en cas de retard. Vous choisissez le
           canal et le moment ; le jour d&apos;échéance vient de chaque bail.
         </p>
+        <Link
+          href="/reminders/batch"
+          className="inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-primary"
+        >
+          Relancer par lot
+        </Link>
       </header>
 
       <Suspense fallback={<RemindersSkeleton />}>

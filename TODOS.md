@@ -1,77 +1,99 @@
 # TODOS
 
-## Paiements (ADR-018)
+État au 2026-08-10, après le rebase du pivot entreprises de gestion
+(ADR-029) et du retrait du rail de paiement (ADR-030) sur les évolutions
+v0.3.37.0 → v0.3.41.0.
 
-### Valider juridiquement le montage PSP (BCEAO)
-**Priority:** P0
-Détention transitoire de fonds via wallet marchand PSP = potentiellement
-établissement de paiement (Instruction BCEAO 001-01-2024, art. 4/9/11/30).
-Piste privilégiée : partenariat/externalisation art. 7 avec le PSP agréé.
-**Bloquant avant toute activation production** — voir caveat ADR-018.
-Trancher aussi le **montage wallet** (unique Ranti vs sous-comptes par
-propriétaire) : ADR-021 montre qu'il porte à la fois la conformité BCEAO et le
-nom marchand affiché au locataire sur le reçu PSP — prérequis de la copie
-`/confirmer` (reco : sous-comptes).
+## Grand livre
 
-### Ouvrir le compte sandbox FeexPay et rejouer un webhook signé réel
+### Terminer la bascule : phase « contract » d'ADR-023
 **Priority:** P1
-PSP retenu = **FeexPay** (ADR-019, cash-in unique). Le squelette client est en
-place (`src/lib/feexpay/` : `config`, `signature`, `checkout`, `payout` +
-polling V2, `normalize`, `http`) et le webhook `POST /api/payments/notification`
-est câblé sur le rail FeexPay. Action CEO : créer le compte test sur feexpay.me.
-Ensuite, contre le vrai sandbox (chacun isolé, « fix une ligne ») :
-- confirmer la base URL et les chemins checkout/payout/status
-  (`src/lib/feexpay/checkout.ts`, `payout.ts`) ;
-- confirmer les noms de champs du body et de la charge webhook
-  (`src/lib/feexpay/normalize.ts`) ;
-- confirmer le nom d'en-tête de signature (`FEEXPAY_SIGNATURE_HEADER` dans
-  `src/lib/feexpay/signature.ts`, défaut `x-feexpay-signature`) ;
-- rejouer idempotence + mauvaise signature contre le sandbox.
-Env : `FEEXPAY_ENV=sandbox`, `FEEXPAY_API_KEY`, `FEEXPAY_SHOP_ID`,
-`FEEXPAY_WEBHOOK_SECRET`, `FEEXPAY_CALLBACK_URL`.
+La migration `20260716150000` a introduit `public.transactions` en phase
+« expand », alimenté par trois triggers miroirs depuis le modèle historique
+(`rent_dues` / `rent_receptions` / `rent_reception_allocations`). La phase
+« contract » n'a jamais eu lieu : les deux modèles coexistent, et le tableau de
+bord interroge les deux sur la même page. Chaque écriture d'argent est écrite
+deux fois, et un écart entre les deux modèles produit un solde affiché faux.
 
-### Surface produit : carte de validation + vue transactions
+La migration `20260809120400` a rendu cet écart observable, pas résolu :
+`private.check_ledger_health()` tourne chaque nuit à 03h10 UTC et archive son
+verdict dans `private.ledger_health` (vue `public.ops_ledger_health`).
+
+Séquence : (1) laisser tourner le contrôle un mois complet et vérifier que
+`diverging_leases` reste à 0 ; (2) basculer les lectures du tableau de bord et
+de la fiche bail sur `transactions` et `lease_balances` ; (3) retirer les
+triggers miroirs, le backfill et la colonne `legacy_ref`.
+
+## Compte et accès
+
+### Partage d'un compte entre les employés d'une agence
+**Priority:** P1
+Un compte égale un portefeuille (ADR-029). Deux personnes d'une même agence
+partagent aujourd'hui un identifiant Google ou travaillent sur deux
+portefeuilles disjoints. C'est le premier point de friction attendu chez une
+agence structurée.
+
+Chantier : table de membres, résolution de `private.current_landlord_id()` à
+plusieurs comptes auth, matrice de droits (qui encaisse, qui clôture, qui
+exporte), et audit qui distingue l'auteur du compte. Volontairement remis à
+plus tard : aucun des 35 jeux de policies RLS actuels ne le prévoit.
+
+Déclencheur : première agence à plus de deux personnes sur le même
+portefeuille.
+
+## Quittance
+
+### Certification locataire : l'identité du cliqueur n'est pas prouvée
 **Priority:** P2
-Le server action `verifyPaymentTransaction` et `listPaymentTransactions()`
-sont prêts (src/lib/payments/) ; il manque la carte de validation dans
-`/collections` et une vue ledger propriétaire.
+Limite documentée en tête de la migration `20260809120300` et dans ADR-013 §4.
+Le locataire n'a pas de compte : il reçoit un lien que le gestionnaire lui
+transmet. Un gestionnaire déterminé peut donc récupérer ce lien et cliquer à la
+place de son locataire.
 
-### Modéliser la fiscalité dans le ledger (TVA/TPS)
-**Priority:** P2
-Après avis de l'expert-comptable (TVA 18 % si CA > 50 M FCFA, régime TPS
-probable au démarrage) : ajouter un taux `tax_bp` par ligne, même pattern que
-les autres taux — petite migration. Décision fiscale = prérequis, pas le code.
+Ce que le sceau prouve aujourd'hui : qu'un document n'a pas été altéré après
+certification, et que la certification est passée par le parcours à jeton. Ce
+qu'il ne prouve pas : qui a cliqué.
 
-### Rate-limiting du webhook
-**Priority:** P3
-`POST /api/payments/notification` n'a pas de rate-limiting applicatif
-(chaque requête coûte un HMAC). Gated par la signature ; à traiter au niveau
-Vercel Firewall ou middleware si le volume le justifie.
-
-## FirstRun (prise en main)
-
-### Couvrir la création complète d'un bail en E2E
-**Priority:** P2
-Les E2E authentifiés existent depuis v0.3.39.0 (auth locale + bailleur par
-spec via l'en-tête `x-ranti-local-auth-user`). Ce qui reste : dérouler la
-CRÉATION d'un bail de bout en bout (formulaire → échéance → paiement →
-quittance) plutôt que de partir d'un bail semé. Attention, l'ancienne note
-« l'auth Google empêche un login automatisé » était FAUSSE — elle a bloqué ce
-chantier plusieurs semaines pour rien.
+Rendre l'usurpation impossible suppose un code à usage unique envoyé au numéro
+du locataire. C'est un arbitrage produit entre friction et valeur probante, à
+trancher, pas un correctif technique. La journalisation de la délivrance du
+lien (`receipt.share_link_issued` dans `audit_logs`) rend au moins la manœuvre
+traçable : un sceau apposé sans qu'aucun lien n'ait été demandé pour cette
+quittance est une anomalie repérable.
 
 ### generate_receipt_core : idempotence sous verrou
 **Priority:** P3
-Le check « receipt déjà émis » précède `pg_advisory_xact_lock` : deux appels
+Le check « quittance déjà émise » précède `pg_advisory_xact_lock` : deux appels
 concurrents pour la même réception font échouer le second sur la contrainte
-unique (erreur transitoire inoffensive, « Réessayez »). Déplacer le check
-après le verrou dans une future migration de la fonction.
+unique (erreur transitoire inoffensive, « Réessayez »). Déplacer le check après
+le verrou dans une future migration de la fonction.
 
-### Centraliser les libellés logement
+## Base de données
+
+### Retirer les vestiges d'énumération du rail supprimé
 **Priority:** P3
-`UNIT_TYPE_OPTIONS` existe en 4 copies (bail-form, units/edit, first-run
-modals…). Exporter depuis `lib/units` et consommer partout. (La moitié
-paiement/type de document est faite en v0.3.36.0 : `lib/receipts/labels.ts`
-consommé par PDF, page locataire, page reçu propriétaire et /verifier.)
+`rent_receptions.recorded_by` accepte encore `'psp'` (contrainte posée par
+`20260714120000`) et `transactions.source` accepte encore `'feexpay'`
+(contrainte posée par `20260716150000`). Ces valeurs n'ont plus aucun écrivain
+depuis ADR-029. Retrait par migration de contrainte, après vérification qu'aucune
+ligne existante ne les porte.
+
+### Objets dormants du grand livre
+**Priority:** P3
+Restent en base sans écrivain depuis ADR-026 puis `20260809120100` : la colonne
+`transactions.tenant_token`, les types `reparation` / `frais` de la contrainte
+`type`, et les colonnes `pending_debits` / `disputed_debits` de la vue
+`lease_balances` (valeur 0). À traiter avec la phase « contract ».
+
+### Surveiller la dérive base ↔ migrations
+**Priority:** P2
+La migration `20260809120200` a réparé deux dérives introduites par de la DDL
+appliquée hors migration : RLS jamais activée sur `reminders` et
+`reminder_events`, privilèges `DELETE`/`TRUNCATE`/`REFERENCES`/`TRIGGER`
+accordés à `authenticated` sur `receipts` en production.
+
+`public.ops_grant_drift` doit rester vide. Reste à faire : intégrer sa lecture
+à un contrôle périodique plutôt qu'à une vérification manuelle.
 
 ## Vérification publique (/verifier)
 
@@ -97,18 +119,89 @@ locataire `/recu/[token]` (nominative, montants) reste cachable sur appareil
 partagé. Si c'est une fonctionnalité (relire sa quittance hors réseau), le
 documenter ; sinon l'exclure aussi.
 
+## Portefeuille et clôture
+
+### Modèle d'honoraires plus fin
+**Priority:** P2
+`owners.fee_rate_bp` porte un taux unique par mandant. Le terrain dira si un
+taux par lot, un forfait mensuel ou un minimum de facturation sont nécessaires.
+À ne pas anticiper avant d'avoir la réponse de trois agences.
+
+### Reprise d'un portefeuille depuis un logiciel existant
+**Priority:** P3
+L'import accepte un fichier converti en JSON par l'application
+(`src/lib/import/`). Une agence qui vient d'un logiciel de gestion aura un export
+d'une autre forme, et parfois un historique d'encaissements à reprendre. Non
+couvert : l'import crée des baux et leurs échéances, pas des encaissements
+passés.
+
+## Tests
+
+### E2E authentifié pour les parcours agence
+**Priority:** P2
+`/import`, `/cloture` et `/reminders/batch` n'ont pas d'E2E. L'auth locale des
+specs existe depuis v0.3.39.0 (bailleur par spec via l'en-tête
+`x-ranti-local-auth-user`) : le chantier est d'écrire les parcours, pas de
+débloquer l'authentification.
+
+### Couvrir la création complète d'un bail en E2E
+**Priority:** P2
+Les E2E authentifiés existent depuis v0.3.39.0 (auth locale + bailleur par
+spec via l'en-tête `x-ranti-local-auth-user`). Ce qui reste : dérouler la
+CRÉATION d'un bail de bout en bout (formulaire → échéance → paiement →
+quittance) plutôt que de partir d'un bail semé. Attention, l'ancienne note
+« l'auth Google empêche un login automatisé » était FAUSSE — elle a bloqué ce
+chantier plusieurs semaines pour rien.
+
 ## Performance
 
 ### Paginer ou segmenter la liste des encaissements
-**Priority:** P3
+**Priority:** P2
 `getLandlordCollections` et `getLandlordReceipts` sont sans borne et
-`/collections` rend une carte par ligne : le coût croît avec l'historique
-(~12 réceptions/an/bail) et le rendu complet est retenu 30 s dans le cache
-client. La promesse produit (« chaque encaissement reste ici ») interdit un
-simple `.limit()` : segmenter par mois ou paginer en gardant les brouillons
-toujours visibles (draftCount et confirmation en dépendent).
+`/collections` rend une carte par ligne. Sur un portefeuille de deux logements
+le coût était théorique ; sur soixante lots (≈ 720 encaissements par an) il ne
+l'est plus. La promesse produit interdit un simple `.limit()` : segmenter par
+mois ou paginer en gardant les brouillons toujours visibles (`draftCount` et la
+confirmation en dépendent).
+
+### Borner la génération des relevés
+**Priority:** P3
+`src/lib/statements/queries.ts` lance les relevés par vagues plutôt qu'en une
+fois. Vérifier le comportement au-delà de vingt mandants avant d'ouvrir un
+export de masse.
+
+## Divers
+
+### Centraliser les libellés lot/paiement
+**Priority:** P3
+`UNIT_TYPE_OPTIONS` existe en plusieurs copies (bail-form, units/edit, import…)
+et les libellés de méthode de paiement en deux. Exporter depuis `lib/units` /
+`lib/receipts` et consommer partout.
+
+### Collision de numéro ADR-006
+**Priority:** P3
+Deux ADR portent le numéro 006 (relances automatiques, audit des mutations
+sensibles). Des commentaires `.sql` référencent les deux. Non renumérotée.
 
 ## Completed
+
+### Retrait du rail de paiement
+**Priority:** P0
+Tables `payment_transactions` et `payment_proofs`, RPC du rail,
+`src/lib/feexpay/`, `src/lib/payments/`, `src/app/api/payments/`. La validation
+juridique du montage PSP (BCEAO), le compte sandbox FeexPay, la surface de
+validation, la fiscalité du ledger et le rate-limiting du webhook n'ont plus
+d'objet.
+**Completed:** 2026-08-09 (ADR-030, migration `20260809120000`)
+
+### Suppression du parcours dupliqué /first-run
+**Priority:** P1
+`src/app/first-run/` dupliquait le rail « Premiers pas » du tableau de bord et
+repartait d'un état vide au rechargement. Le rail du tableau de bord, dérivé
+des données réelles, reste le seul chemin de prise en main. Les deux entrées de
+suivi qui s'y rapportaient (hydratation de la progression, E2E `/first-run`)
+tombent avec lui.
+**Completed:** 2026-08-09 (ADR-029)
 
 ### Faire tourner les E2E en CI
 **Priority:** P2

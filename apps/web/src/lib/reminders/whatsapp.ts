@@ -67,11 +67,20 @@ export function buildReminderMessage(input: Omit<ReminderNotice, "phone">): stri
     : `${greeting}petit rappel : votre loyer de ${montant} arrive à échéance le ${frDate(input.dueDate)}. Merci.`
 }
 
-// Construit le lien wa.me pré-rempli, ou null si le numéro est inexploitable.
-export function buildReminderWaLink(input: ReminderNotice): string | null {
-  // wa.me attend l'indicatif pays + numéro, sans « + » ni séparateur.
-  const digits = input.phone.replace(/\D/g, "")
+/**
+ * Lien wa.me pré-rempli pour un numéro et un message quelconques, ou null si
+ * le numéro est inexploitable. Seule source de la règle de format du lien :
+ * wa.me attend l'indicatif pays + numéro, sans « + » ni séparateur. Réutilisé
+ * par les relances par lot et par le relevé du mandant.
+ */
+export function buildWaLink(phone: string | null | undefined, message: string): string | null {
+  const digits = (phone ?? "").replace(/\D/g, "")
   if (!digits) return null
 
-  return `https://wa.me/${digits}?text=${encodeURIComponent(buildReminderMessage(input))}`
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
+}
+
+// Construit le lien wa.me pré-rempli, ou null si le numéro est inexploitable.
+export function buildReminderWaLink(input: ReminderNotice): string | null {
+  return buildWaLink(input.phone, buildReminderMessage(input))
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { revalidateMoneySurfaces } from "@/lib/cache/money"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getOwner } from "@/lib/owners/queries"
 import { createClient } from "@/lib/supabase/server"
 import { getProperty } from "./queries"
 import { normalizeOptionalPropertyText, normalizePropertyName } from "./validation"
@@ -11,6 +12,13 @@ import { normalizeOptionalPropertyText, normalizePropertyName } from "./validati
 function readPropertyId(formData: FormData): string | null {
   const id = formData.get("id")
   return typeof id === "string" && id ? id : null
+}
+
+// Rattachement au mandant : vide = bien détenu en propre. L'identifiant reçu
+// est vérifié contre les mandants du compte avant d'être écrit.
+function readOwnerId(formData: FormData): string | null {
+  const value = formData.get("owner_id")
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null
 }
 
 export async function updateProperty(formData: FormData) {
@@ -35,11 +43,16 @@ export async function updateProperty(formData: FormData) {
     redirect(`/properties/${id}/edit?error=${encodeURIComponent("Donnez un nom simple à ce lieu.")}`)
   }
 
+  const ownerId = readOwnerId(formData)
+  if (ownerId && !(await getOwner(landlord.id, ownerId))) {
+    redirect(`/properties/${id}/edit?error=${encodeURIComponent("Propriétaire introuvable.")}`)
+  }
+
   const supabase = await createClient()
 
   const { error } = await supabase
     .from("properties")
-    .update({ name, city, address, notes })
+    .update({ name, city, address, notes, owner_id: ownerId })
     .eq("id", id)
     .eq("landlord_id", landlord.id)
     .is("deleted_at", null)

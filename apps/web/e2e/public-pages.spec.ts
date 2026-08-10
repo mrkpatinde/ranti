@@ -7,12 +7,11 @@ import { expect, test } from "@playwright/test"
 
 test("la landing annonce le gratuit sans aucun prix (ADR-028)", async ({ page }) => {
   await page.goto("/")
-  await expect(page.getByRole("heading", { name: "Gratuit aujourd’hui", exact: true })).toBeVisible()
-  // « sans limite de logements » est dit deux fois (section tarif + FAQ) :
-  // l'assertion vise la première, la duplication est voulue.
-  await expect(page.getByText("sans limite de logements").first()).toBeVisible()
-  // L'engagement de préavis est la contrepartie du gratuit : il doit être lisible.
-  await expect(page.getByText(/vous le saurez avant/).first()).toBeVisible()
+  // La landing agences (ADR-029) porte l'engagement en une ligne sobre :
+  // gratuit aujourd'hui, préavis avant tout tarif, rien à résilier.
+  await expect(page.getByText(/gratuit aujourd'hui/i).first()).toBeVisible()
+  await expect(page.getByText("sans limite de lots").first()).toBeVisible()
+  await expect(page.getByText(/prévenue avant/).first()).toBeVisible()
   await expect(page.getByText(/rien à résilier/).first()).toBeVisible()
   // Aucun palier, aucun montant : la grille B-1 quitte la surface publique.
   await expect(page.getByText("Découverte", { exact: true })).toHaveCount(0)
@@ -21,21 +20,25 @@ test("la landing annonce le gratuit sans aucun prix (ADR-028)", async ({ page })
   await expect(page.getByText("6 à 20 logements")).toHaveCount(0)
   await expect(page.getByText("2 mois offerts")).toHaveCount(0)
   await expect(page.getByText(/4\s*900|14\s*900|49\s*000|149\s*000/)).toHaveCount(0)
-  // Le « 5 % » reste banni des surfaces publiques (ADR-024, maintenu par ADR-028).
+  // Le « 5 % » reste banni des surfaces publiques (ADR-024, maintenu par
+  // ADR-028). Le « 8 % » du relevé spécimen est un taux d'honoraires d'agence,
+  // pas une commission Ranti.
   await expect(page.getByText(/5\s*%/)).toHaveCount(0)
 })
 
-test("le footer annonce Blog et Carrières sans lien mort", async ({ page }) => {
+test("le footer porte les mentions légales et les pages publiques", async ({ page }) => {
   await page.goto("/")
   const footer = page.locator("footer")
-  await expect(footer.getByText("Blog")).toBeVisible()
-  await expect(footer.getByText("Carrières")).toBeVisible()
-  await expect(footer.getByText("Bientôt").first()).toBeVisible()
-  // Annoncés, pas liés : aucun <a> Blog/Carrières tant que les pages n'existent pas.
-  await expect(footer.getByRole("link", { name: "Blog" })).toHaveCount(0)
-  await expect(footer.getByRole("link", { name: "Carrières" })).toHaveCount(0)
-  // La raison sociale vit sur /a-propos, plus dans le footer.
-  await expect(footer.getByText("WI'SOFT")).toHaveCount(0)
+  // Landing agences : le footer lie les trois pages publiques et porte la
+  // raison sociale complète (RCCM, IFU, contact).
+  await expect(footer.getByRole("link", { name: "À propos" })).toBeVisible()
+  await expect(footer.getByRole("link", { name: "Conditions d'utilisation" })).toBeVisible()
+  await expect(footer.getByRole("link", { name: "Confidentialité" })).toBeVisible()
+  await expect(footer.getByText("WI'SOFT SOLUTIONS")).toBeVisible()
+  await expect(footer.getByText("RCCM RB/COT/20 A 62590")).toBeVisible()
+  // Rien d'annoncé qui n'existe pas : pas de Blog ni Carrières fantômes.
+  await expect(footer.getByText("Blog")).toHaveCount(0)
+  await expect(footer.getByText("Carrières")).toHaveCount(0)
 })
 
 test("la page À propos porte l'éditeur et la posture non-custodiale", async ({ page }) => {

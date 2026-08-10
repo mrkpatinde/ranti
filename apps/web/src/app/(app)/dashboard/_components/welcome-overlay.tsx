@@ -10,7 +10,7 @@ import { setOnboardingStatus } from "@/lib/onboarding/actions"
 // ouvre le tableau de bord vide honnête. On masque en optimiste puis on persiste
 // le choix ; le rafraîchissement révèle l'état suivant.
 const WELCOME_STEPS = [
-  "Enregistrez votre premier bail — logement, occupant, loyer.",
+  "Importez votre portefeuille — mandants, lots et locataires en une fois (ou un premier bail à la main).",
   "Validez un paiement dès que vous l'avez encaissé.",
   "Ranti édite la quittance ; votre locataire la confirme.",
   "Programmez une relance WhatsApp le jour de l'échéance.",

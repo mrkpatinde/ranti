@@ -2,6 +2,12 @@
 
 ## Statut
 
+> **Remplacée (2026-08-09) par ADR-030.** Le rail de paiement est supprimé du
+> dépôt et de la base : tables `payment_transactions` / `payment_proofs`, RPC du
+> rail, `src/lib/feexpay/`, `src/lib/payments/` et `src/app/api/payments/`.
+> L'encaissement reste non-custodial. Ce document est conservé comme trace de la
+> décision d'origine ; son contenu ci-dessous n'est plus appliqué.
+
 Accepté (2026-07-14). Décision CEO en session : Ranti entre dans le flux
 d'argent via Kkiapay. **Activation en production conditionnée à la validation
 juridique BCEAO (voir « Caveat juridique »).**

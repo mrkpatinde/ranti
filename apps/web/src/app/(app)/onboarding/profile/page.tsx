@@ -69,6 +69,24 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
         <form action={createLandlordProfile} className="space-y-5">
           <div className="space-y-2">
+            <label htmlFor="company_name" className={labelClass}>
+              Nom de l&apos;entreprise
+            </label>
+            <input
+              id="company_name"
+              name="company_name"
+              type="text"
+              maxLength={160}
+              autoComplete="organization"
+              placeholder="Ex : Horizon Gestion"
+              className={fullInputClass}
+            />
+            <p className="text-sm leading-6 text-muted-foreground">
+              Optionnel — laissez vide si vous gérez en votre nom propre.
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <label htmlFor="phone" className={labelClass}>
               Numéro de téléphone <span className="text-destructive">*</span>
             </label>
@@ -112,6 +130,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               autoComplete="family-name"
               className={fullInputClass}
             />
+            <p className="text-sm leading-6 text-muted-foreground">
+              Prénom et nom sont imprimés sur vos quittances — non modifiables ensuite.
+            </p>
           </div>
 
           {errorMessage ? (

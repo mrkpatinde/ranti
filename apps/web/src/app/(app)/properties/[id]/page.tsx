@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ConfirmArchiveButton } from "@/components/confirm-archive-button"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getOwner } from "@/lib/owners"
 import { archiveProperty, getProperty } from "@/lib/properties"
 import { getLandlordUnits } from "@/lib/units"
 
@@ -38,7 +39,10 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
 
   if (!property) notFound()
 
-  const allUnits = await getLandlordUnits(landlord.id)
+  const [allUnits, owner] = await Promise.all([
+    getLandlordUnits(landlord.id),
+    property.owner_id ? getOwner(landlord.id, property.owner_id) : Promise.resolve(null),
+  ])
   const units = allUnits.filter((u) => u.property_id === property.id)
 
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
@@ -72,6 +76,20 @@ export default async function PropertyDetailPage({ params, searchParams }: Prope
             <p className="text-sm font-medium text-muted-foreground">Repère</p>
             <p className="mt-3 text-lg font-medium text-foreground">{property.address ?? "Non renseigné"}</p>
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <p className="text-sm font-medium text-muted-foreground">Géré pour le compte de</p>
+          {owner ? (
+            <Link
+              href={`/owners/${owner.id}`}
+              className="mt-3 block text-lg font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              {owner.display_name}
+            </Link>
+          ) : (
+            <p className="mt-3 text-lg font-medium text-foreground">Bien détenu en propre</p>
+          )}
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6">

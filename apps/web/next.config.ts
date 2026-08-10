@@ -1,7 +1,31 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
+// Hôte canonique, aligné sur src/lib/site.ts : apex, sans www.
+const CANONICAL_HOST = "monranti.com";
+
 const nextConfig: NextConfig = {
+  // Un seul hôte, pour une raison de session et non de référencement.
+  //
+  // Le parcours OAuth PKCE dépose un cookie « code verifier » sur l'hôte où il
+  // démarre, et le relit sur l'hôte où il revient. Un aller depuis
+  // www.monranti.com et un retour sur monranti.com laissent ce cookie
+  // inaccessible : l'échange du code ne peut pas aboutir, aucune session n'est
+  // créée, et l'utilisateur retombe sur la page d'accueil sans message. Il
+  // recommence, et rien ne change — le symptôme observé le 9 août 2026.
+  //
+  // La redirection est posée avant tout le reste : le parcours ne peut plus
+  // commencer sur un hôte et finir sur l'autre.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: `www.${CANONICAL_HOST}` }],
+        destination: `https://${CANONICAL_HOST}/:path*`,
+        permanent: true,
+      },
+    ];
+  },
   // Plusieurs lockfiles présents sur la machine : fixer la racine du
   // monorepo pour éviter que Turbopack surveille tout le home.
   turbopack: {

@@ -114,6 +114,9 @@ export async function GET(
     first_name: row.landlord_first_name ?? "",
     last_name: row.landlord_last_name ?? "",
     civility: null,
+    // La vue token n'expose pas la raison sociale : le PDF public rend le nom
+    // de la personne, comme la page /recu/[token] (rétrocompatible).
+    company_name: null,
     address: row.landlord_address ?? null,
     city: row.landlord_city ?? null,
     payment_alias: null,

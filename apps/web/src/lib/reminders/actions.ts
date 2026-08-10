@@ -6,14 +6,11 @@ import { requireLandlordProfile } from "@/lib/landlords"
 import type { ReminderChannel, ReminderMoment } from "@/lib/landlords"
 import { createClient } from "@/lib/supabase/server"
 
-// Réglages de relance (FirstRun : modale Relance + vues Relances / Paramètres).
+// Réglages de relance (vues Relances / Paramètres).
 // Colonnes non-identité sur landlords → update direct sous RLS
 // (landlords_update_own), aucun RPC requis (même patron que setOnboardingStatus,
 // ADR-002). Persistance seule ; le respect côté file de relance
 // (ops_reminder_queue, ADR-023 gelé) est un suivi séparé.
-//
-// Appelée par le parcours /first-run (phase 3) et ses vues Relances /
-// Paramètres.
 //
 // Le résultat est RENVOYÉ, jamais avalé (correctif 2026-07-27). Avant, une
 // erreur DB partait dans un console.error et l'appelant gardait son état
@@ -140,4 +137,44 @@ export async function cancelScheduledReminder(
 
   revalidatePath("/reminders")
   return { error: null }
+}
+
+// ── Relances par lot (brique 4) ─────────────────────────────────────────────
+// Un seul appel pour tout le lot : soixante allers-retours réseau sur une
+// connexion de terrain, c'est une file abandonnée à la dixième ligne. On
+// n'enregistre QUE les échéances dont le lien WhatsApp a réellement été
+// ouvert — s'arrêter au milieu ne doit jamais tracer une relance fictive.
+
+export type LogReminderBatchInput = {
+  rentDueIds: string[]
+  /** Message effectivement ouvert, par échéance. */
+  messages: Record<string, string>
+}
+
+export async function logReminderBatch(
+  input: LogReminderBatchInput,
+): Promise<{ logged: number; error: string | null }> {
+  await requireLandlordProfile()
+
+  const ids = [...new Set(input.rentDueIds.filter(Boolean))]
+  if (ids.length === 0) return { logged: 0, error: null }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("log_reminder_batch", {
+    p_rent_due_ids: ids,
+    p_messages: input.messages,
+  })
+
+  if (error) {
+    if (error.message.includes("batch_too_large")) {
+      return { logged: 0, error: "Lot trop grand : relancez par tranches de 500 au plus." }
+    }
+    return { logged: 0, error: "Enregistrement impossible. Réessayez." }
+  }
+
+  revalidatePath("/reminders/batch")
+  revalidatePath("/reminders")
+
+  const logged = (data as { logged?: number } | null)?.logged ?? 0
+  return { logged, error: null }
 }

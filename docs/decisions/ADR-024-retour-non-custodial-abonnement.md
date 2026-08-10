@@ -2,6 +2,13 @@
 
 ## Statut
 
+> **Remplacée en partie (2026-08-09).** La **disposition 3** (« le rail
+> custodial est gelé, pas supprimé, derrière un flag désactivé ») est remplacée
+> par **ADR-030** : le rail est supprimé du dépôt et de la base. La
+> **disposition 4** (tête de pont bailleur diaspora) est remplacée par
+> **ADR-029** : le client est l'entreprise de gestion immobilière. Les
+> dispositions 1 (non-custodial) et 2 (abonnement) restent en vigueur.
+
 Accepté — 2026-07-17 (décision CEO + co-founder, en session). Supersède **ADR-018**
 et **ADR-019** comme cible produit. Restaure **ADR-009** (non-custodial) comme
 chemin principal.

@@ -59,23 +59,6 @@ values ('a6666666-6666-6666-6666-666666666666',
         'a5555555-5555-5555-5555-555555555555',
         50000, 'XOF', 5, '2026-06-01', 'active');
 
--- Ledger v4 (All-Inclusive 5 %) : status 'pending' (aucune réception requise).
--- Colonnes dérivées imposées par les CHECKs (bp par défaut 500/170/100) :
---   service_fee = floor(50000*500/10000) = 2500 ; net_amount = 50000-2500 = 47500 ;
---   payin_cost  = floor(50000*170/10000) = 850  ; payout_cost = floor(47500*100/10000) = 475 ;
---   net_margin  = 2500 - 850 - 475 = 1175.
---   TVA split (tva_rate_bp 1800, migration 20260715120000_tva_split_ledger) :
---   commission_ht = floor(2500*10000/11800) = 2118 ; tva_amount = 2500 - 2118 = 382.
-insert into public.payment_transactions (id, landlord_id, lease_id, provider,
-                                         provider_reference, amount_received,
-                                         service_fee, net_amount, payin_cost,
-                                         payout_cost, net_margin, commission_ht,
-                                         tva_amount, status)
-values ('a8888888-8888-8888-8888-888888888888',
-        'a2222222-2222-2222-2222-222222222222',
-        'a6666666-6666-6666-6666-666666666666',
-        'fedapay', 'A-REF-1', 50000, 2500, 47500, 850, 475, 1175, 2118, 382, 'pending');
-
 -- Propriétaire B (miroir) ---------------------------------------------------
 insert into auth.users (id, instance_id, aud, role, email)
 values ('b1111111-1111-1111-1111-111111111111',
@@ -108,18 +91,6 @@ values ('b6666666-6666-6666-6666-666666666666',
         'b5555555-5555-5555-5555-555555555555',
         75000, 'XOF', 5, '2026-06-01', 'active');
 
---   B : service_fee 3750 ; net_amount 71250 ; payin 1275 ; payout 712 ; net_margin 1763 ;
---   commission_ht = floor(3750*10000/11800) = 3177 ; tva_amount = 3750 - 3177 = 573.
-insert into public.payment_transactions (id, landlord_id, lease_id, provider,
-                                         provider_reference, amount_received,
-                                         service_fee, net_amount, payin_cost,
-                                         payout_cost, net_margin, commission_ht,
-                                         tva_amount, status)
-values ('b8888888-8888-8888-8888-888888888888',
-        'b2222222-2222-2222-2222-222222222222',
-        'b6666666-6666-6666-6666-666666666666',
-        'fedapay', 'B-REF-1', 75000, 3750, 71250, 1275, 712, 1763, 3177, 573, 'pending');
-
 -- ---------------------------------------------------------------------------
 -- BLOC A → contre B : sous le rôle authenticated, JWT = propriétaire A.
 --   A ne doit NI voir, NI insérer POUR, NI modifier les lignes de B.
@@ -140,7 +111,7 @@ begin
     raise exception 'FAIL setup: current_landlord_id() ne résout pas vers A';
   end if;
 
-  -- 1) LECTURE : B invisible, A visible — sur les 4 tables du brief.
+  -- 1) LECTURE : B invisible, A visible — sur les tables du portefeuille.
   select count(*) into v_count from public.properties
     where landlord_id = 'b2222222-2222-2222-2222-222222222222';
   if v_count <> 0 then raise exception 'FAIL read: A voit % properties de B', v_count; end if;
@@ -158,13 +129,6 @@ begin
   if v_count <> 0 then raise exception 'FAIL read: A voit % leases de B', v_count; end if;
   select count(*) into v_count from public.leases;
   if v_count <> 1 then raise exception 'FAIL read: A voit % leases (attendu 1)', v_count; end if;
-
-  -- payment_transactions : SELECT par colonne (v4), donc count(id) — jamais count(*).
-  select count(id) into v_count from public.payment_transactions
-    where landlord_id = 'b2222222-2222-2222-2222-222222222222';
-  if v_count <> 0 then raise exception 'FAIL read: A voit % payment_transactions de B', v_count; end if;
-  select count(id) into v_count from public.payment_transactions;
-  if v_count <> 1 then raise exception 'FAIL read: A voit % payment_transactions (attendu 1)', v_count; end if;
 
   -- 2) INSERT : with check refuse landlord_id = B (RLS ⇒ 42501, ou 23514).
   --    Tables à voie d'écriture directe authenticated : properties/tenants/leases.
@@ -248,21 +212,6 @@ begin
   end if;
 
   reset role;
-end $$;
-
--- ---------------------------------------------------------------------------
--- Garde colonne payment_transactions (v4 All-Inclusive) : le propriétaire lit
--- la vision reçu, jamais la vision comptabilité (marge Ranti). Miroir de
--- authenticated_grants.test.sql — reste vrai quels que soient les défauts prod.
--- ---------------------------------------------------------------------------
-do $$
-begin
-  if not has_column_privilege('authenticated', 'public.payment_transactions', 'net_amount', 'SELECT') then
-    raise exception 'FAIL colonne: authenticated sans SELECT sur net_amount (vision reçu)';
-  end if;
-  if has_column_privilege('authenticated', 'public.payment_transactions', 'net_margin', 'SELECT') then
-    raise exception 'FAIL colonne: net_margin (marge Ranti) visible du propriétaire';
-  end if;
 end $$;
 
 rollback;

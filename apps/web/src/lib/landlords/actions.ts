@@ -20,14 +20,29 @@ function isConstraintError(message: string, constraint: string) {
   return message.includes(constraint)
 }
 
+// Raison sociale : champ libre optionnel (un gestionnaire en nom propre n'en
+// a pas), simplement borné pour rester imprimable sur les documents.
+const COMPANY_NAME_MAX = 160
+
+function normalizeCompanyName(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") return null
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
 export async function createLandlordProfile(formData: FormData) {
   const claims = await requireAuth()
 
   const firstName = normalizeName(formData.get("first_name"))
   const lastName = normalizeName(formData.get("last_name"))
+  const companyName = normalizeCompanyName(formData.get("company_name"))
 
   if (!firstName || !lastName) {
     profileError("Indiquez votre prénom et votre nom.")
+  }
+
+  if (companyName && companyName.length > COMPANY_NAME_MAX) {
+    profileError(`Nom d'entreprise trop long (${COMPANY_NAME_MAX} caractères maximum).`)
   }
 
   const currentUser = await getCurrentUser()
@@ -56,6 +71,7 @@ export async function createLandlordProfile(formData: FormData) {
     first_name: firstName,
     last_name: lastName,
     civility: "not_specified",
+    company_name: companyName,
   })
 
   if (error) {
@@ -122,6 +138,36 @@ export async function updateLandlordPaymentAlias(formData: FormData) {
   revalidatePath("/settings/payment")
   revalidatePath("/collections/new")
   redirect("/settings/payment?success=1")
+}
+
+/**
+ * Met à jour la raison sociale de l'entreprise de gestion. Donnée mutable,
+ * distincte de l'identité verrouillée (ADR-002) : les documents émis sont
+ * figés au snapshot, un changement de raison sociale ne réécrit pas
+ * l'histoire. Champ vide = effacé (retour à la gestion en nom propre).
+ */
+export async function updateLandlordCompanyName(formData: FormData) {
+  const claims = await requireAuth()
+
+  const companyName = normalizeCompanyName(formData.get("company_name"))
+
+  if (companyName && companyName.length > COMPANY_NAME_MAX) {
+    settingsError(`Nom d'entreprise trop long (${COMPANY_NAME_MAX} caractères maximum).`)
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("landlords")
+    .update({ company_name: companyName })
+    .eq("auth_user_id", claims.sub)
+
+  if (error) {
+    console.error("updateLandlordCompanyName failed", error.code, error.message)
+    settingsError("Enregistrement impossible. Réessayez.")
+  }
+
+  revalidatePath("/settings/profile")
+  redirect("/settings/profile?success=entreprise")
 }
 
 /**

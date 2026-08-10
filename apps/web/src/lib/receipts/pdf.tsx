@@ -4,6 +4,7 @@ import { formatFcfa, monthYearLabel } from "@/lib/format"
 import type { Landlord } from "@/lib/landlords"
 import { receiptClause } from "./clause"
 import { kindLabels, methodLabels } from "./labels"
+import { receiptIssuerName } from "./issuer"
 import type { Receipt } from "./types"
 
 // ADR-013 - bandeau d'acquittement locataire (deux voix). Couleurs sobres,
@@ -70,6 +71,12 @@ export function ReceiptPdf({
   const snap = receipt.snapshot ?? {}
   const kind = kindLabels[receipt.kind] ?? "Document"
   const ack = ackBanner[receipt.tenant_ack] ?? ackBanner.unilateral
+  // Émetteur : raison sociale figée au snapshot quand elle existe (pivot
+  // ADR-029) ; les anciens snapshots, sans la clé, se rendent à l'identique.
+  const issuerName = receiptIssuerName(
+    snap,
+    `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire",
+  )
 
   return (
     <Document title={`${kind} ${receipt.receipt_number}`}>
@@ -101,7 +108,7 @@ export function ReceiptPdf({
         <View style={[s.row, s.block]}>
           <View style={{ width: "48%" }}>
             <Text style={s.label}>De</Text>
-            <Text style={s.strong}>{landlord.first_name} {landlord.last_name}</Text>
+            <Text style={s.strong}>{issuerName}</Text>
             <Text style={s.muted}>Propriétaire</Text>
             {landlord.address || landlord.city ? (
               <Text style={s.muted}>{[landlord.address, landlord.city].filter(Boolean).join(", ")}</Text>
@@ -142,7 +149,7 @@ export function ReceiptPdf({
           <Text style={s.total}>{formatFcfa(receipt.total_amount)}</Text>
         </View>
 
-        <Text style={s.mention}>{receiptClause({ landlordName: `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire", tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind, period: snap.allocations?.length === 1 ? monthYearLabel(snap.allocations[0].period_start) : null })}</Text>
+        <Text style={s.mention}>{receiptClause({ landlordName: issuerName, tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind, period: snap.allocations?.length === 1 ? monthYearLabel(snap.allocations[0].period_start) : null })}</Text>
 
         {receipt.tenant_ack === "disputed" && receipt.contest_nature ? (
           <View style={s.contestBox}>

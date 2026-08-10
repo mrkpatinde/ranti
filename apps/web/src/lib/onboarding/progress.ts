@@ -26,12 +26,18 @@ export type OnboardingProgress = {
 // d'une quittance pour un loyer déjà payé, en guise de test. C'est la vraie
 // valeur de Ranti, ressentie en un geste (le flux /collections/new confirme un
 // paiement reçu hors Ranti et édite la quittance vérifiable aussitôt).
+//
+// Pivot agences (ADR-029) : le premier pas suggéré est l'import du
+// portefeuille — le geste d'activation d'une entreprise de gestion. Le bail
+// manuel reste l'alternative (mentionnée dans la description, et proposée sur
+// le tableau de bord vide). La clé reste « lease » : l'étape est faite dès
+// qu'un bail existe, que l'import l'ait créé ou qu'il ait été saisi à la main.
 const STEP_META: Omit<OnboardingStep, "done">[] = [
   {
     key: "lease",
-    label: "Créer votre premier bail",
-    desc: "Le logement, l'occupant, le loyer mensuel.",
-    href: "/leases/new",
+    label: "Importer votre portefeuille",
+    desc: "Fichier Excel ou CSV — mandants, lots et locataires en une fois. Ou créez un premier bail à la main.",
+    href: "/import",
   },
   {
     key: "payment",

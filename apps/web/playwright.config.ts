@@ -30,7 +30,7 @@ export default defineConfig({
       // Secret JWT du stack LOCAL : sans lui, mintLocalAuthToken() renvoie null,
       // les lectures partent en `anon`, la RLS les bloque, et les tests dits
       // « authentifiés » ne peuvent vérifier que des redirections — jamais des
-      // données. C'est ce qui manquait pour couvrir /first-run et /recu.
+      // données. C'est ce qui manquait pour couvrir /recu et le dashboard.
       SUPABASE_JWT_SECRET:
         process.env.SUPABASE_JWT_SECRET ??
         "super-secret-jwt-token-with-at-least-32-characters-long",

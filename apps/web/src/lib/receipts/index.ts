@@ -1,4 +1,5 @@
 export * from "./actions"
 export * from "./contest"
+export * from "./issuer"
 export * from "./queries"
 export * from "./types"

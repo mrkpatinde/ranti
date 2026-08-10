@@ -2,6 +2,11 @@
 
 ## Statut
 
+> **Remplacée (2026-08-09) par ADR-030.** Le rail supprimé, la question du
+> montage wallet et du nom marchand affiché au locataire n'a plus d'objet : le
+> locataire paie directement l'agence. Ce document est conservé comme trace de
+> l'analyse ; son contenu ci-dessous n'est plus appliqué.
+
 **Proposée** — analyse consignée le 2026-07-16, **décision CEO + juridique en
 attente** sur le montage wallet (voir « Décision requise »). Sans rapport avec
 le code déjà livré (rail branché, sandbox) ; conditionne l'écriture de la copie

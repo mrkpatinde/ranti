@@ -24,9 +24,9 @@ const hankenGrotesk = Hanken_Grotesk({
 export const metadata: Metadata = {
   // Base des URLs absolues (canonique, OG). Apex sans www, figé (voir lib/site).
   metadataBase: new URL(SITE_URL),
-  title: "Ranti — Le registre de loyer des propriétaires africains",
+  title: "Ranti — La clôture mensuelle des entreprises de gestion immobilière",
   description:
-    "Suivez vos loyers sans effort : relances prêtes au bon moment, quittances numérotées que votre locataire confirme et que tout le monde peut vérifier d'un lien.",
+    "Suivi des encaissements, relances par lot et relevé mensuel par propriétaire mandant : encaissé, honoraires, net à reverser. Les loyers restent sur le compte de votre agence.",
 };
 
 export default function RootLayout({

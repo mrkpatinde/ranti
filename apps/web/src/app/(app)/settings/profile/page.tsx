@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ChevronRight, Landmark, LogOut, Mail, MessageCircle, Phone, type LucideIcon } from "lucide-react"
 import { formatPhoneForDisplay } from "@/lib/auth/countries"
 import { requireLandlordProfile } from "@/lib/landlords"
-import { updateLandlordAddress } from "@/lib/landlords/actions"
+import { updateLandlordAddress, updateLandlordCompanyName } from "@/lib/landlords/actions"
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_URL, SUPPORT_WHATSAPP_URL } from "@/lib/support"
 import { HelpCenter } from "@/components/help-center"
 import { ResumeOnboarding } from "@/components/resume-onboarding"
@@ -71,6 +71,7 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
   const landlord = await requireLandlordProfile()
   const params = await searchParams
   const ownerName = `${landlord.first_name} ${landlord.last_name}`
+  const companyName = landlord.company_name?.trim() || null
   const resumable = landlord.onboarding_status === "exploring"
 
   return (
@@ -80,8 +81,10 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
           {initialsOf(landlord.first_name, landlord.last_name)}
         </span>
         <div>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink-title">{ownerName}</h1>
-          <p className="text-sm text-muted-foreground">Propriétaire</p>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink-title">
+            {companyName ?? ownerName}
+          </h1>
+          <p className="text-sm text-muted-foreground">{companyName ? ownerName : "Propriétaire"}</p>
         </div>
       </header>
 
@@ -107,6 +110,36 @@ export default async function ProfileSettingsPage({ searchParams }: ProfileSetti
         Votre nom et votre numéro apparaissent sur le registre et les quittances. Ils sont verrouillés :
         pour les corriger, Ranti passe par une vérification et garde une trace du changement.
       </p>
+
+      <section className="space-y-2">
+        <h2 className="px-1 text-xs font-medium text-muted-foreground">Entreprise</h2>
+        <form action={updateLandlordCompanyName} className="space-y-3 rounded-2xl border border-border bg-card p-4">
+          {params?.success === "entreprise" ? (
+            <p className="rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-accent">
+              Nom d&apos;entreprise enregistré.
+            </p>
+          ) : null}
+          <div className="space-y-1.5">
+            <label htmlFor="company_name" className="text-sm font-medium text-foreground">Nom de l&apos;entreprise</label>
+            <input
+              id="company_name"
+              name="company_name"
+              type="text"
+              maxLength={160}
+              defaultValue={landlord.company_name ?? ""}
+              placeholder="Ex : Horizon Gestion"
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground outline-none transition focus:border-primary"
+            />
+          </div>
+          <p className="text-xs leading-6 text-muted-foreground">
+            La raison sociale apparaît sur les quittances et relevés émis à partir de maintenant.
+            Laissez vide si vous gérez en votre nom propre.
+          </p>
+          <SubmitButton className="w-full rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 disabled:opacity-60 sm:w-fit">
+            Enregistrer l&apos;entreprise
+          </SubmitButton>
+        </form>
+      </section>
 
       <section className="space-y-2">
         <h2 className="px-1 text-xs font-medium text-muted-foreground">Adresse du bailleur</h2>

@@ -3,7 +3,7 @@ import { failQuery } from "@/lib/supabase/query-error"
 import type { JournalEvent } from "./types"
 
 const JOURNAL_SELECT =
-  "event_type, occurred_at, label, amount, currency, ref_table, ref_id, counterparty, counterparty_phone, unit_label, reference, allocated, receipt_token"
+  "event_type, occurred_at, label, amount, currency, ref_table, ref_id, counterparty, counterparty_phone, unit_label, reference, allocated, receipt_id"
 
 // Flux chronologique du propriétaire connecté. La vue journal_feed est en
 // security_invoker : la RLS des tables sources s'applique automatiquement, donc

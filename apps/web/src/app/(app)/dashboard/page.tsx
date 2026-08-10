@@ -63,7 +63,8 @@ const ROW_ICON = {
 
 // Dashboard propriétaire = lecture seule (ADR-020, dashboard-owner v2) : qui a
 // payé / qui doit, rien de plus. Pas de saisie ici (le rail FeexPay encaisse,
-// ADR-019). Onboarding vierge → une seule action : créer un bail.
+// ADR-019). Portefeuille vide → deux chemins : importer le portefeuille
+// (geste d'activation d'une agence, ADR-029) ou créer un premier bail.
 //
 // Nouvelle lecture (ADR-023) : la vue des impayés et des soldes vient du grand
 // livre (vue lease_balances) — une ligne par BAIL, dette consolidée en compte
@@ -122,14 +123,20 @@ export default async function DashboardPage() {
               Votre registre est prêt quand vous l&apos;êtes.
             </h2>
             <p className="mt-2 text-base leading-7 text-foreground/70">
-              Regardez tranquillement. Le jour où vous ajoutez un bail, Ranti génère
-              les échéances et prépare les quittances, rien n&apos;est obligatoire
-              pour l&apos;instant.
+              Regardez tranquillement. Le jour où vous importez votre portefeuille
+              ou ajoutez un bail, Ranti génère les échéances et prépare les
+              quittances, rien n&apos;est obligatoire pour l&apos;instant.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-4 lg:mt-6">
               <Link
-                href="/leases/new"
+                href="/import"
                 className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95"
+              >
+                Importer votre portefeuille
+              </Link>
+              <Link
+                href="/leases/new"
+                className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary"
               >
                 Créer un bail
               </Link>
@@ -139,17 +146,30 @@ export default async function DashboardPage() {
         ) : (
           <div className="rounded-2xl border border-border bg-card p-6 lg:p-8">
             <h2 className="font-display text-xl font-bold tracking-tight text-foreground lg:text-2xl">
-              Créer votre premier bail
+              Chargez votre portefeuille
             </h2>
             <p className="mt-2 text-base leading-7 text-foreground/70">
-              Lieu, logement, occupant et loyer en un geste. Les échéances se génèrent aussitôt.
+              Reprenez le suivi que vous tenez déjà, ou commencez par un seul bail.
             </p>
-            <Link
-              href="/leases/new"
-              className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 lg:mt-6"
-            >
-              Créer un bail
-            </Link>
+            <div className="mt-5 space-y-4 lg:mt-6">
+              <div>
+                <Link
+                  href="/import"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:brightness-95 sm:w-auto"
+                >
+                  Importer votre portefeuille
+                </Link>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Fichier Excel ou CSV — vos mandants, lots et locataires en une fois.
+                </p>
+              </div>
+              <Link
+                href="/leases/new"
+                className="inline-flex w-full items-center justify-center rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary sm:w-auto"
+              >
+                Ajouter un premier bail
+              </Link>
+            </div>
           </div>
         )}
       </main>

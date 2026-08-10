@@ -3,16 +3,21 @@ import { expect, test } from "@playwright/test"
 test("landing shows the primary call to action", async ({ page }) => {
   await page.goto("/")
   await expect(
-    page.getByRole("heading", { name: /Le registre de loyer des propriétaires africains/ }),
+    page.getByRole("heading", { name: /La clôture de votre mois, en une heure/ }),
   ).toBeVisible()
-  // CTA au-dessus de la ligne de flottaison (bouton du form signInWithGoogle)
-  // + entrée connexion (handoff §8).
-  await expect(page.getByRole("button", { name: "Commencer avec Google" }).first()).toBeVisible()
+  // CTA unique du hero (lien vers /signup, ADR-029) + entrée connexion.
+  await expect(
+    page.getByRole("link", { name: "Créer l'espace de votre agence" }).first(),
+  ).toBeVisible()
   await expect(page.getByRole("link", { name: "Se connecter" }).first()).toBeVisible()
   // Micro-preuve du tarif ADR-028 : gratuit pour le moment, aucun palier
   // affiché (« Gratuit pour un logement » retiré, « 3 mois gratuits » banni
-  // depuis v0.3.27.0).
-  await expect(page.getByText("Gratuit aujourd’hui").first()).toBeVisible()
+  // depuis v0.3.27.0). La landing agences porte l'engagement de préavis.
+  await expect(page.getByText(/gratuit aujourd'hui/i).first()).toBeVisible()
+  // Engagement non-custodial (ADR-030, CGU art. 3) affiché en clair.
+  await expect(
+    page.getByRole("heading", { name: "Les loyers ne passent jamais par Ranti" }),
+  ).toBeVisible()
 })
 
 test("the demo verification page is static and honest about being an example", async ({ page }) => {
@@ -23,19 +28,20 @@ test("the demo verification page is static and honest about being an example", a
   await expect(page.getByText("Document authentique", { exact: true })).toHaveCount(0)
 })
 
-test("the landing shows the real product, not a generic mockup", async ({ page }) => {
-  // Handoff §8 : l'aperçu produit reflète le VRAI dashboard (« Bonjour
-  // Florentine », bandeau Payé/Attendu, CTA « Confirmer un paiement »),
-  // dans la section « Comment ça marche ».
+test("the landing shows the real statement, not a generic mockup", async ({ page }) => {
+  // ADR-029 : la pièce maîtresse est le relevé propriétaire, avec la même
+  // structure que le PDF réel (lib/statements/pdf.tsx) et des chiffres qui
+  // s'additionnent : encaissé 385 000, honoraires 30 800, net 354 200.
   await page.goto("/")
-  await expect(page.getByRole("heading", { name: "Comment ça marche" })).toBeVisible()
-  await expect(page.getByText("Bonjour Florentine")).toBeVisible()
-  await expect(page.getByText("Confirmer un paiement")).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Le relevé propriétaire" })).toBeVisible()
+  await expect(page.getByText("Net à reverser au propriétaire")).toBeVisible()
+  // formatFcfa sépare les milliers par une espace insécable (U+00A0).
+  await expect(page.getByText(/354 200 FCFA/)).toBeVisible()
 })
 
 test("signup offers Google only", async ({ page }) => {
   await page.goto("/signup")
-  await expect(page.getByRole("heading", { name: "Créer votre espace" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Créer l'espace de votre agence" })).toBeVisible()
   await expect(page.getByRole("button", { name: "Continuer avec Google" })).toBeVisible()
   await expect(page.getByLabel("Numéro de téléphone")).toHaveCount(0)
   await expect(page.getByLabel("Mot de passe")).toHaveCount(0)

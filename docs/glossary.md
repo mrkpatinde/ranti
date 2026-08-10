@@ -2,31 +2,89 @@
 
 ## Statut
 
-Version 0.2 — document de travail.
+Version 0.3 (2026-08-09) — document de travail. Vocabulaire du pivot ADR-029
+(mandant, clôture, honoraires de gestion, relevé propriétaire) et retrait du
+vocabulaire du rail de paiement (ADR-030).
 
 Ce glossaire définit les mots importants du domaine Ranti afin que le produit, le design, le code et la documentation utilisent le même langage.
 
+## Entreprise de gestion
+
+Agence immobilière, administrateur de biens ou gestionnaire indépendant qui
+administre des biens pour le compte de tiers, sous mandat.
+
+L'entreprise de gestion est le client commercial de Ranti (ADR-029). C'est elle
+qui détient le compte.
+
+Dans le code et la base, le compte reste porté par la table `landlords` et la
+colonne `landlord_id`. Ce nom est conservé pour ne pas réécrire les 35 policies
+RLS et le helper `private.current_landlord_id()`.
+
+## Mandant
+
+Propriétaire pour le compte duquel l'entreprise de gestion administre un ou
+plusieurs biens, en vertu d'un mandat de gestion.
+
+Le mandant n'est pas un utilisateur : il ne crée pas de compte, ne se connecte
+pas, ne consulte aucun écran. Il reçoit chaque mois un relevé propriétaire.
+
+Table `public.owners`. Un bien lui est rattaché par `properties.owner_id` ;
+`NULL` désigne un bien détenu en propre par le titulaire du compte.
+
+## Honoraires de gestion
+
+Part du loyer **encaissé** que l'entreprise de gestion conserve en rémunération
+de son mandat.
+
+Exprimés en points de base attachés au mandant (`owners.fee_rate_bp` ; 800 =
+8 %). Calculés lot par lot, à l'arrondi inférieur :
+`honoraires = floor(encaissé × taux / 10000)`. Le total d'un relevé est la somme
+des lignes.
+
+Les honoraires ne se calculent jamais sur le loyer attendu. Un mois sans
+encaissement produit zéro honoraire.
+
+## Clôture
+
+Opération mensuelle par laquelle l'entreprise de gestion arrête, pour chaque
+mandant, ce qui a été encaissé sur ses lots, ce qui a été retenu en honoraires
+et ce qui lui reste dû.
+
+C'est le moment de vérité du produit (ADR-029). Écran `/cloture`, vue
+`owner_month_summary`.
+
+## Relevé propriétaire
+
+Document remis au mandant à l'issue de la clôture : une ligne par lot (attendu,
+encaissé, honoraires, net), les totaux du mois, et l'identité de l'agence
+émettrice.
+
+Il doit s'additionner à la main : un mandant qui recompte tombe sur le même
+chiffre. RPC `owner_statement` et `owner_statement_lines`.
+
 ## Propriétaire
 
-Personne qui possède ou gère une ou plusieurs propriétés et qui suit les relations locatives.
-
-Le propriétaire est le client commercial principal de Ranti.
+Terme ambigu depuis ADR-029, à éviter seul. Selon le contexte, il désigne le
+titulaire du compte (l'entreprise de gestion) ou le mandant. Employer
+« gestionnaire » ou « agence » d'un côté, « mandant » de l'autre.
 
 ## Propriété
 
-Lieu physique appartenant au propriétaire.
+Lieu physique administré par le compte, pour son propre compte ou pour celui d'un mandant.
 
 Une propriété peut contenir un ou plusieurs logements.
 
 Exemples : maison à Agla, immeuble à Calavi, villa à Porto-Novo.
 
-## Logement
+## Lot (logement)
 
 Espace louable situé dans une propriété.
 
-Un logement peut être une maison entière, un appartement, une chambre, une boutique, un magasin, un bureau ou un entrepôt.
+Un lot peut être une maison entière, un appartement, une chambre, une boutique, un magasin, un bureau ou un entrepôt.
 
-Le logement est ce qui est effectivement loué au locataire.
+Le lot est ce qui est effectivement loué au locataire. « Lot » est le terme du
+métier de la gestion ; « logement » reste employé dans les surfaces destinées à
+un bailleur qui gère lui-même. Table `public.units`.
 
 ## Locataire
 
@@ -36,7 +94,7 @@ Dans le MVP, un locataire ne pilote pas le produit. Il peut cependant transmettr
 
 ## Bail
 
-Accord locatif entre un propriétaire et un locataire pour un logement donné.
+Accord locatif entre un propriétaire et un locataire pour un lot donné. Quand le bien est géré sous mandat, l'agence agit au nom du propriétaire, sans être partie au bail.
 
 Le bail définit les règles de la relation locative : montant, périodicité, date d'échéance, date de début et éventuellement date de fin.
 
@@ -52,7 +110,7 @@ Le contrat est une preuve documentaire. Il ne génère pas les échéances.
 
 ## Relation locative
 
-Relation entre un propriétaire et un locataire autour d'un logement donné.
+Relation entre un propriétaire et un locataire autour d'un lot donné, administrée le cas échéant par une entreprise de gestion.
 
 Elle est matérialisée par un bail ou accord locatif.
 
@@ -68,29 +126,37 @@ Exemple : le loyer de juillet 2026 attendu avant le 5 juillet 2026.
 
 ## Encaissement
 
-Événement financier enregistré du point de vue du propriétaire lorsqu'il reçoit tout ou partie d'un loyer.
+Événement financier enregistré du point de vue du gestionnaire lorsqu'il reçoit tout ou partie d'un loyer.
 
 Un encaissement peut régler une ou plusieurs échéances.
 
 Une échéance peut recevoir plusieurs encaissements.
 
-Dans l'interface propriétaire, Ranti privilégie le terme "encaissement" plutôt que "paiement", car le propriétaire pense d'abord à ce qu'il a encaissé.
+Dans l'interface du gestionnaire, Ranti privilégie le terme "encaissement" plutôt que "paiement" : le gestionnaire pense d'abord à ce qu'il a encaissé. C'est aussi la base de calcul des honoraires.
 
 ## Paiement
 
 Terme secondaire décrivant l'action du locataire qui paie.
 
-Dans le domaine Ranti côté propriétaire, le concept principal est l'encaissement.
+Dans le domaine Ranti côté gestionnaire, le concept principal est l'encaissement.
 
-## Alias PI-SPI
+## Alias de paiement (PI-SPI)
 
-Identifiant de paiement du propriétaire dans le système de paiement instantané interopérable de la BCEAO (PI-SPI). Il peut être un numéro de téléphone ou une adresse de paiement générée par PI-SPI.
+Coordonnée de paiement de l'entreprise de gestion : numéro marchand Mobile
+Money, ou alias dans le système de paiement instantané interopérable de la BCEAO
+(PI-SPI, numéro de téléphone ou adresse de paiement).
 
-Le propriétaire renseigne son alias ; Ranti l'affiche au locataire pour qu'il paie le loyer directement, instantanément et gratuitement, depuis n'importe quelle banque ou wallet connecté à PI-SPI.
+L'agence renseigne son alias (`landlords.payment_alias`) ; Ranti l'affiche au
+locataire pour qu'il paie directement, depuis n'importe quelle banque ou wallet
+connecté.
 
-Sur ce chemin, le paiement reste hors Ranti (de compte à compte), puis est déclaré et encaissé comme tout autre paiement. L'alias n'est pas un canal d'agrégation ; c'est une coordonnée affichée.
+Le paiement reste hors Ranti, de compte à compte, puis est enregistré et validé
+comme tout autre encaissement. L'alias est une coordonnée affichée, jamais un
+canal d'agrégation.
 
-Depuis ADR-019, l'alias est le **filet de repli** : le chemin d'encaissement cible est le **rail FeexPay** (cash-in unique ; le propriétaire reçoit alors 95 % du net, Ranti entre dans le flux d'argent), dont l'activation est gatée BCEAO. La promesse « Ranti ne détient jamais les fonds » n'est donc plus la cible produit — elle ne vaut que pour le filet alias.
+Depuis ADR-030, l'alias est le seul chemin d'encaissement documenté : le rail
+custodial est supprimé et « Ranti ne détient jamais les fonds » redevient la
+règle du produit.
 
 ## Preuve de paiement
 
@@ -100,13 +166,28 @@ Exemples : capture Mobile Money, reçu bancaire, photo d'un reçu papier.
 
 ## Quittance ou reçu
 
-Document généré après validation d'un encaissement par le propriétaire.
+Document généré après validation d'un encaissement par le gestionnaire.
 
 La quittance confirme qu'une ou plusieurs échéances sont réglées.
 
 ## Relance
 
 Action visant à rappeler au locataire qu'une échéance reste impayée ou en retard.
+
+Ranti prépare le message et conserve la trace ; l'envoi part du WhatsApp du
+gestionnaire par lien `wa.me` (ADR-022).
+
+## Relance par lot
+
+Passe unique sur toutes les échéances à relancer d'un portefeuille : la file se
+lit dans la vue `reminder_batch`, l'enregistrement de la trace se fait en un
+appel (`log_reminder_batch`). Écran `/reminders/batch`.
+
+## Import de portefeuille
+
+Entrée d'une agence dans le produit par fichier : mandants, biens, lots,
+locataires et baux en une opération. Deux temps, une validation ligne par ligne
+sans écriture, puis un import tout-ou-rien idempotent. Écran `/import`.
 
 ## Grand livre (compte courant locatif)
 
@@ -120,8 +201,7 @@ append-only : rien ne s'y efface, tout s'y corrige par une nouvelle ligne.
 Somme due ou reçue sur un bail, avec un statut de reconnaissance : `pending`
 (affirmée par une partie), `validated` (certaine — indélébile), `disputed`
 (contestée, désaccord documenté), `withdrawn` (retirée par son auteur avant
-validation). Ne pas confondre avec `payment_transactions`, le ledger du rail
-PSP (ADR-018).
+validation).
 
 ## Contre-passation
 
@@ -132,7 +212,7 @@ toutes deux lisibles — on ne supprime pas l'histoire (ADR-005, ADR-023).
 ## Solde certain
 
 Somme des crédits validés moins les débits validés d'un bail : ce que les
-deux parties (ou le rail de paiement) reconnaissent. Les montants « en
+deux parties reconnaissent. Les montants « en
 attente » (pending) et « en litige » (disputed) sont affichés à part, jamais
 fusionnés dans le solde certain.
 

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { failQuery } from "@/lib/supabase/query-error"
+import type { ReminderBatchRow } from "./batch"
 
 // Une relance envoyée, avec le contexte de son échéance pour l'affichage.
 // Deux sources fusionnées :
@@ -153,4 +154,28 @@ export async function getScheduledReminders(landlordId: string): Promise<Schedul
 
   if (error) failQuery("getScheduledReminders", error)
   return (data ?? []) as ScheduledReminder[]
+}
+
+// ── File de relance du portefeuille (brique 4) ──────────────────────────────
+
+const REMINDER_BATCH_SELECT =
+  "rent_due_id, lease_id, tenant_id, owner_id, owner_name, property_name, unit_name, " +
+  "tenant_name, tenant_phone, period_start, period_end, due_date, currency, " +
+  "amount_remaining, days_from_due, reminder_type, last_reminder_at, reminder_count"
+
+/**
+ * Toutes les échéances non soldées dont la date approche (J-5) ou est
+ * dépassée. Les plus en retard d'abord : c'est l'ordre dans lequel on relance.
+ */
+export async function getReminderBatch(landlordId: string): Promise<ReminderBatchRow[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("reminder_batch")
+    .select(REMINDER_BATCH_SELECT)
+    .eq("landlord_id", landlordId)
+    .order("days_from_due", { ascending: false })
+    .order("due_date", { ascending: true })
+
+  if (error) failQuery("reminder_batch", error)
+  return (data ?? []) as unknown as ReminderBatchRow[]
 }

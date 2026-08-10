@@ -17,6 +17,11 @@ export type Landlord = {
   first_name: string
   last_name: string
   civility: Civility | null
+  // Raison sociale de l'entreprise de gestion (pivot ADR-029). Null = gestion
+  // en nom propre. Mutable, contrairement à l'identité (ADR-002) : les
+  // documents émis sont figés au snapshot, un changement de raison sociale ne
+  // réécrit pas l'histoire.
+  company_name: string | null
   // Adresse postale du bailleur (mutable, contact). Figure sur la quittance
   // pour identifier complètement le bailleur (Loi 2022-30, art. 67).
   address: string | null

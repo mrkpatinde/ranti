@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               Se connecter
             </h1>
             <p className="text-base leading-7 text-foreground/70">
-              Accédez au suivi de vos loyers.
+              Accédez au portefeuille de votre agence.
             </p>
           </div>
         </div>
@@ -56,7 +56,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           href={AUTH_PATHS.signUp}
           className="block text-center text-sm font-medium text-foreground/70 underline-offset-4 hover:underline"
         >
-          Créer un espace
+          Créer l&apos;espace de votre agence
         </Link>
       </section>
     </main>

@@ -2,6 +2,11 @@
 
 ## Statut
 
+> **Remplacée (2026-08-09) par ADR-030.** Le rail FeexPay est supprimé du dépôt
+> et de la base. Le gate BCEAO disparaît avec son objet. Ce document est
+> conservé comme trace de la décision d'origine ; son contenu ci-dessous n'est
+> plus appliqué.
+
 Acceptée — décision CEO 2026-07-15 (rédigée 2026-07-16).
 **Activation en production conditionnée à la levée du gate juridique BCEAO**
 (voir « Conséquences → Gate BCEAO »). Tant que le gate n'est pas levé, le rail

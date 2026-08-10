@@ -50,7 +50,8 @@ begin
       ('public.rent_receptions',            'UPDATE'),
       ('public.rent_reception_allocations', 'SELECT'),
       ('public.rent_reception_allocations', 'INSERT'),
-      ('public.receipts',                   'SELECT'),
+      -- receipts : le SELECT est PAR COLONNE (tout sauf tenant_token,
+      -- migration 20260809120300) — vérifié séparément plus bas.
       ('public.receipts',                   'INSERT'),
       ('public.receipts',                   'UPDATE'),
       ('public.reminders',                  'SELECT'),
@@ -65,14 +66,16 @@ begin
     end if;
   end loop;
 
-  -- payment_transactions : SELECT par COLONNE depuis v4 (All-Inclusive 5 %) —
-  -- la vision reçu est lisible, la vision comptabilité (marge Ranti) jamais.
-  -- Les assertions détaillées vivent dans payment_transactions.test.sql bloc 8.
-  if not has_column_privilege('authenticated', 'public.payment_transactions', 'net_amount', 'SELECT') then
-    raise exception 'FAIL grants: authenticated sans SELECT colonne sur payment_transactions';
+  -- receipts : SELECT par colonne — la liste RECEIPT_COLUMNS du front doit
+  -- rester lisible, et tenant_token doit rester hors de portée (le lien
+  -- locataire passe par la RPC journalisée receipt_share_token).
+  if not has_column_privilege('authenticated', 'public.receipts', 'id', 'SELECT')
+     or not has_column_privilege('authenticated', 'public.receipts', 'snapshot', 'SELECT')
+     or not has_column_privilege('authenticated', 'public.receipts', 'sha256_fingerprint', 'SELECT') then
+    raise exception 'FAIL grants: authenticated a perdu le SELECT par colonne sur public.receipts';
   end if;
-  if has_column_privilege('authenticated', 'public.payment_transactions', 'net_margin', 'SELECT') then
-    raise exception 'FAIL grants: net_margin (marge Ranti) visible du propriétaire';
+  if has_column_privilege('authenticated', 'public.receipts', 'tenant_token', 'SELECT') then
+    raise exception 'FAIL grants: authenticated lit encore receipts.tenant_token';
   end if;
 end $$;
 
@@ -90,9 +93,8 @@ begin
       ('private.recompute_rent_due_status(uuid)'),
       ('private.confirm_collection_core(uuid,uuid)'),
       ('private.generate_receipt_core(uuid,uuid)'),
-      -- 12 args depuis 20260716130000 (ajout de p_request_id, écritures
-      -- idempotentes). La signature à 11 args laissée ici cassait le test au
-      -- premier has_function_privilege depuis le 2026-07-16.
+      -- Signature à 12 args depuis 20260716130000 (p_request_id) ; la
+      -- signature à 11 args a été supprimée par cette même migration.
       ('private.record_collection_core(uuid,uuid,uuid,integer,text,timestamptz,text,jsonb,text,text,text,uuid)')
     ) as t(sig)
   loop
@@ -227,7 +229,6 @@ begin
   select count(*) into v_count from public.receipts;
   select count(*) into v_count from public.reminders;
   select count(*) into v_count from public.reminder_events;
-  select count(id) into v_count from public.payment_transactions; -- count(id) : SELECT par colonne (v4)
   select count(*) into v_count from public.journal_feed;
   select count(*) into v_count from public.rent_due_balances;
 

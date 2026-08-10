@@ -95,3 +95,18 @@ export async function replaceReceipt(formData: FormData) {
   revalidateMoneySurfaces()
   redirect(`/receipts/${newId}?notice=receipt_replaced`)
 }
+
+// Jeton de partage demandé À L'ENVOI (journal → WhatsApp). Chaque appel passe
+// par la RPC receipt_share_token : la remise du lien locataire est journalisée
+// dans audit_logs (migration 20260809120300) — la lecture directe de la
+// colonne tenant_token est révoquée.
+export async function requestReceiptShareToken(receiptId: string): Promise<string | null> {
+  await requireLandlordProfile()
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("receipt_share_token", {
+    p_receipt_id: receiptId,
+  })
+  if (error) return null
+  return (data as string | null) ?? null
+}

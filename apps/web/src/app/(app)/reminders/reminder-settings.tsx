@@ -6,9 +6,9 @@ import { setReminderSettings } from "@/lib/reminders/actions"
 import { buildReminderMessage } from "@/lib/reminders/whatsapp"
 
 // Réglages de relance du propriétaire (demande du 2026-07-18) : canal, moment
-// et aperçu du message par défaut, directement sur /reminders. Jusqu'ici ces
-// réglages n'avaient d'UI que dans /first-run, inaccessible une fois
-// l'onboarding terminé.
+// et aperçu du message par défaut, directement sur /reminders — la seule UI de
+// ces réglages depuis le retrait du parcours first-run (pivot agences,
+// ADR-029 : l'activation passe par l'import du portefeuille).
 //
 // Correctif 2026-07-27 — l'état optimiste ne ment plus. L'écriture partait en
 // « fire-and-forget » et son échec était avalé côté serveur : le bailleur

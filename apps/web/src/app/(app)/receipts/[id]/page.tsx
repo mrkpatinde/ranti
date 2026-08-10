@@ -8,7 +8,7 @@ import { badgeClasses, type BadgeVariant } from "@/components/ui/badge"
 import { formatFcfa, monthYearLabel } from "@/lib/format"
 import { requireLandlordProfile } from "@/lib/landlords"
 import { receiptClause } from "@/lib/receipts/clause"
-import { cancelReceipt, getReceipt } from "@/lib/receipts"
+import { cancelReceipt, getReceipt, getReceiptShareToken, receiptIssuerName } from "@/lib/receipts"
 import { kindLabels, methodLabels } from "@/lib/receipts/labels"
 import type { ReceiptStatus, TenantAck } from "@/lib/receipts"
 import { RantiLogo } from "@/components/ranti-logo"
@@ -63,12 +63,28 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
   const snap = receipt.snapshot ?? {}
   const notice = sp?.notice ? noticeLabels[sp.notice] : null
 
+  // Émetteur : raison sociale figée au snapshot quand elle existe (pivot
+  // ADR-029), sinon le nom de la personne — les anciens snapshots, sans la
+  // clé, se rendent à l'identique.
+  const issuerName = receiptIssuerName(
+    snap,
+    `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire",
+  )
+
   // Lien public à partager au locataire (ADR-013). Origine résolue depuis les
   // en-têtes, comme l'OAuth callback — marche en dev et en prod.
   const h = await headers()
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? ""
   const proto = h.get("x-forwarded-proto") ?? "https"
-  const shareUrl = host ? `${proto}://${host}/recu/${receipt.tenant_token}` : `/recu/${receipt.tenant_token}`
+  // Le jeton n'est plus lu depuis la table : il se demande, et la demande est
+  // journalisée (migration 20260809120300). Un sceau apposé sur une quittance
+  // dont aucun lien n'a jamais été demandé devient une anomalie repérable.
+  const shareToken = await getReceiptShareToken(receipt.id)
+  const shareUrl = shareToken
+    ? host
+      ? `${proto}://${host}/recu/${shareToken}`
+      : `/recu/${shareToken}`
+    : null
   const ack = ackBadge[receipt.tenant_ack]
 
   // Même QR que le PDF : l'URL publique de vérification du document. À
@@ -82,7 +98,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
   }
 
   const waText = encodeURIComponent(
-    `Voici votre reçu de loyer (${kindLabels[receipt.kind]}). Ouvrez-le et confirmez son exactitude : ${shareUrl}`,
+    `Voici votre reçu de loyer (${kindLabels[receipt.kind]}). Ouvrez-le et confirmez son exactitude : ${shareUrl ?? ""}`,
   )
   // Lien profond vers la conversation du locataire (même mécanique que le
   // journal et les relances) : wa.me attend indicatif + numéro sans « + » ni
@@ -132,7 +148,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           <div className="grid grid-cols-2 gap-4 border-b border-border py-5">
             <div>
               <p className="text-xs text-muted-foreground">De</p>
-              <p className="mt-1.5 text-sm font-medium text-foreground">{landlord.first_name} {landlord.last_name}</p>
+              <p className="mt-1.5 text-sm font-medium text-foreground">{issuerName}</p>
               <p className="text-sm text-foreground/70">Propriétaire</p>
               {landlord.phone ? <p className="text-sm text-foreground/70">{landlord.phone}</p> : null}
             </div>
@@ -169,7 +185,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
           {/* Formule de quittance partagée : même formulation que la page locataire,
               le PDF et la modale FirstRun (revue 2026-07-18). */}
-          <p className="py-4 text-sm leading-6 text-foreground/70">{receiptClause({ landlordName: `${landlord.first_name} ${landlord.last_name}`.trim() || "Propriétaire", tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind, period: snap.allocations?.length === 1 ? monthYearLabel(snap.allocations[0].period_start) : null })}</p>
+          <p className="py-4 text-sm leading-6 text-foreground/70">{receiptClause({ landlordName: issuerName, tenantName: snap.tenant ? `${snap.tenant.first_name} ${snap.tenant.last_name}`.trim() : "Locataire", amount: receipt.total_amount, kind: receipt.kind, period: snap.allocations?.length === 1 ? monthYearLabel(snap.allocations[0].period_start) : null })}</p>
 
           <div className="flex items-end justify-between gap-4 pt-2">
             <div className="flex items-center gap-3">
@@ -199,7 +215,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
           </div>
         ) : null}
 
-        {receipt.status === "issued" ? (
+        {receipt.status === "issued" && shareUrl ? (
           <section className="space-y-3 rounded-2xl border border-border bg-card p-6">
             <p className="text-sm font-medium text-foreground">Partager au locataire</p>
             <p className="text-sm text-muted-foreground">
@@ -219,7 +235,7 @@ export default async function ReceiptDetailPage({ params, searchParams }: Receip
 
         {receipt.status === "cancelled" ? <p className="text-sm text-muted-foreground">Motif d&apos;annulation : {receipt.cancellation_reason ?? "Motif non renseigné avant correction."}</p> : null}
 
-        {receipt.status === "issued" ? (
+        {receipt.status === "issued" && shareUrl ? (
           <form action={cancelReceipt} className="space-y-3 rounded-2xl border border-border bg-card p-6">
             <input type="hidden" name="id" value={receipt.id} />
             <label htmlFor="reason" className="block text-sm font-medium text-foreground">Pourquoi annulez-vous cette quittance ?</label>

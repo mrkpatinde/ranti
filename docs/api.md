@@ -2,7 +2,15 @@
 
 ## Statut
 
-Version 3.0 — document de conventions, pas une spécification OpenAPI.
+Version 3.1 (2026-08-09) — document de conventions, pas une spécification
+OpenAPI. Mise à jour pour le pivot entreprises de gestion (ADR-029) et le
+retrait du rail de paiement (ADR-030) : le webhook PSP et tout ce qui dépendait
+de `payment_transactions` sont supprimés ; les RPC de portefeuille, de clôture
+et de relance par lot sont documentées ci-dessous.
+
+Le titulaire du compte est l'entreprise de gestion. Le terme « propriétaire »
+employé dans ce document désigne le compte connecté (`landlords`) ; le
+propriétaire mandant, qui n'a pas de compte, est nommé « mandant ».
 
 ## Rôle du document
 
@@ -163,7 +171,12 @@ POST /api/rent-receptions
 
 ### Création groupée (onboarding portefeuille)
 
-Un propriétaire qui gère plusieurs logements doit pouvoir en enregistrer plusieurs
+Depuis ADR-029, l'entrée d'une agence dans le produit se fait par fichier
+(`validate_portfolio_import` puis `import_portfolio`, voir « RPC Postgres
+exposées »). La création groupée décrite ci-dessous reste en place pour le
+portefeuille saisi à la main, propriété par propriété.
+
+Un compte qui gère plusieurs logements doit pouvoir en enregistrer plusieurs
 d'un seul geste, chacun optionnellement avec son locataire et son bail activé —
 sans repasser par le wizard unitaire logement par logement.
 
@@ -240,6 +253,117 @@ Règle produit : le flux principal est `confirm payment -> generate document aut
 
 `/documents/generate` est un fallback technique, pas le parcours utilisateur principal.
 
+## RPC Postgres exposées
+
+Une partie des actions sensibles est implémentée en RPC Postgres appelées par
+l'application via PostgREST (`supabase.rpc(...)`), sans route HTTP propre. Ces
+fonctions sont soumises aux mêmes règles que les routes : appartenance vérifiée
+côté serveur, transitions métier contrôlées, audit.
+
+Convention de sécurité : `SECURITY INVOKER` quand la RLS suffit à borner
+l'appelant, `SECURITY DEFINER` quand la fonction doit lire ou écrire au-delà de
+ce que la RLS accorde au client. Toutes commencent par
+`private.current_landlord_id()` et lèvent `landlord_not_found` (`P0002`) si le
+compte n'est pas résolu. Aucune n'est exécutable par `anon`, sauf mention
+contraire.
+
+### Import de portefeuille (ADR-029)
+
+```txt
+validate_portfolio_import(p_rows jsonb)
+  -> table (line integer, unit_label text, errors text[])
+
+import_portfolio(p_rows jsonb, p_request_id uuid default null)
+  -> jsonb
+```
+
+Parcours en deux temps. `validate_portfolio_import` n'écrit rien : elle rend un
+verdict ligne par ligne (champs manquants, type de lot inconnu, taux
+d'honoraires hors bornes, date hors format `AAAA-MM-JJ`, doublon interne au
+fichier, lot déjà présent au portefeuille). Un lot vacant sans locataire est une
+ligne valide. L'agence corrige son fichier et rejoue.
+
+`import_portfolio` refuse de commencer si la validation renvoie une seule
+erreur, puis exécute en tout-ou-rien : mandants et biens rapprochés par nom
+(insensible à la casse et aux espaces), lots créés, locataires et baux créés
+puis activés par `activate_lease` (génération des échéances, ADR-004).
+
+- Idempotence : `p_request_id`, scope `import_portfolio` d'`idempotency_keys`.
+  Un rejeu renvoie le résultat du premier appel ; un appel concurrent encore en
+  cours lève `import_in_progress`.
+- Erreurs : `no_rows`, `validation_failed: <détail par ligne>`,
+  `ligne <n>: <message>` pour une erreur d'insertion.
+- Retour : `{ owners_created, properties_created, units_created,
+  tenants_created, leases_activated, rent_dues_generated }`.
+- Surface : `/import`, couche `src/lib/import/`.
+
+### Relevé du mandant et clôture (ADR-029)
+
+```txt
+owner_statement_lines(p_owner_id uuid, p_month date)
+  -> table (unit_id, property_name, unit_name, tenant_name, lease_id,
+            expected, collected, fee, net, fee_rate_bp)
+
+owner_statement(p_owner_id uuid, p_month date)
+  -> jsonb
+```
+
+`owner_statement_lines` rend une ligne par lot du mandant, y compris les lots
+sans encaissement du mois (valeurs à zéro). `encaissé` compte les allocations
+d'encaissements confirmés dont la date de réception tombe dans le mois ;
+`honoraires = floor(encaissé × fee_rate_bp / 10000)` est calculé ligne par
+ligne ; `net = encaissé − honoraires`. Un lot archivé n'est retiré qu'à partir
+du mois de son archivage, pour qu'un relevé déjà remis se reproduise à
+l'identique.
+
+`owner_statement` compose le document complet : bloc mandant, bloc agence,
+période, lignes, et totaux (`expected`, `collected`, `fee`, `net_due_to_owner`,
+`outstanding`). Les totaux sont la somme des lignes.
+
+- Erreurs : `owner_not_found` (`P0002`) — mandant inconnu ou hors portefeuille ;
+  l'application répond 404.
+- Surface : `/cloture`, `/cloture/[ownerId]`, `/cloture/[ownerId]/pdf`, couche
+  `src/lib/statements/`.
+
+### Relance par lot (ADR-029)
+
+```txt
+log_reminder_batch(p_rent_due_ids uuid[], p_messages jsonb default '{}')
+  -> jsonb
+```
+
+Enregistre en un appel la trace d'un lot de relances : une ligne
+`reminder_events` par échéance (`channel = 'whatsapp_manual'`, `status =
+'sent'`, `sent_by = 'landlord'`), et mise à jour de `last_reminder_at` /
+`reminder_count` sur `rent_dues`. `p_messages` associe le texte envoyé à
+l'identifiant d'échéance ; une entrée absente enregistre une trace vide plutôt
+qu'un échec.
+
+Ranti n'envoie rien : le message part du WhatsApp du gestionnaire par lien
+`wa.me`. La file à relancer se lit dans la vue `reminder_batch`.
+
+- Garde : lot borné à 500 échéances (`batch_too_large`) ; seules les échéances
+  du portefeuille de l'appelant sont journalisées, les autres sont ignorées
+  silencieusement.
+- Retour : `{ logged: n }`.
+- Surface : `/reminders/batch`, `src/lib/reminders/batch.ts`.
+
+### Lien de partage d'une quittance (ADR-030, durcissement du sceau)
+
+```txt
+receipt_share_token(p_receipt_id uuid) -> uuid
+```
+
+Le jeton locataire d'une quittance n'est plus lisible en colonne : le privilège
+`SELECT (tenant_token)` est retiré à `authenticated`. Le gestionnaire l'obtient
+par cette RPC, qui vérifie l'appartenance et écrit
+`receipt.share_link_issued` dans `audit_logs`. Une certification apposée sans
+qu'aucun lien n'ait été demandé pour la quittance devient une anomalie
+repérable.
+
+- Erreurs : `receipt_not_found` (`P0002`).
+- Surface : `src/lib/receipts/queries.ts`.
+
 ## Idempotence
 
 Les actions suivantes doivent être idempotentes ou protégées contre le double clic, les retries et les webhooks répétés :
@@ -251,19 +375,17 @@ Les actions suivantes doivent être idempotentes ou protégées contre le double
 - confirmation de réception de loyer ;
 - génération automatique de reçu/quittance ;
 - remplacement de reçu/quittance ;
-- webhook de paiement PSP (`POST /api/payments/notification`, live ADR-018).
+- import de portefeuille (`import_portfolio`).
 
-Convention : utiliser `Idempotency-Key` quand l'action peut être rejouée par le client ou un prestataire. Exception webhook PSP : l'idempotence est portée par la paire `(provider, provider_reference)` (contrainte unique du ledger `payment_transactions`), pas par un header — un replay renvoie `outcome: "duplicate"`.
+Convention : utiliser `Idempotency-Key` quand l'action peut être rejouée par le
+client. Côté base, l'idempotence des écritures groupées passe par la table
+`idempotency_keys` (`scope` ∈ `record_collection`, `bulk_onboard`,
+`import_portfolio`) : un rejeu avec la même clé renvoie le résultat archivé du
+premier appel au lieu de réécrire.
 
-### Webhook PSP — `POST /api/payments/notification`
-
-Endpoint appelé par le PSP (rail ADR-018), hors convention d'enveloppe `data`/`error` (contrat dicté par l'appelant externe) :
-
-- authentification : HMAC-SHA256 du corps brut, header `x-kkiapay-signature` → 401 si invalide ;
-- forme invalide (JSON ou champs requis) → 400 ;
-- échec PSP explicite (`FAILED`, `DECLINED`…) → 200 `{ ok, outcome: "ignored" }`, aucune écriture ;
-- tout autre statut (succès, inconnu, absent) → ingestion `pending` dans le ledger ; la validation propriétaire (ADR-017) reste la porte ;
-- 500 réservé aux pannes techniques (le PSP rejoue).
+Aucun prestataire de paiement n'appelle Ranti. Le webhook PSP
+`POST /api/payments/notification` est supprimé (ADR-030), ainsi que le ledger
+`payment_transactions` qui portait son idempotence.
 
 ## Transactions
 
@@ -283,8 +405,11 @@ Les actions suivantes doivent être transactionnelles ou garantir une cohérence
 
 Les actions suivantes doivent produire un audit log :
 
-- onboarding propriétaire ;
+- onboarding du compte ;
 - création, modification ou archivage propriété/logement/locataire ;
+- création, modification ou archivage d'un mandant ;
+- import de portefeuille ;
+- délivrance d'un lien de partage de quittance (`receipt.share_link_issued`) ;
 - création, activation ou fin de bail ;
 - création, modification, activation ou désactivation règle de rappel ;
 - génération d'échéance ;
@@ -313,7 +438,9 @@ Les fichiers sensibles ne sont jamais publics sans lien contrôlé.
 
 ## Prestataires externes
 
-WhatsApp, SMS, PDF, stockage et paiements sont des adaptateurs.
+WhatsApp, SMS, PDF et stockage sont des adaptateurs. Aucun prestataire de
+paiement n'intervient : le loyer circule directement du locataire à l'agence
+(ADR-030).
 
 Ils ne décident jamais :
 

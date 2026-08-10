@@ -60,11 +60,17 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">Aucun lieu pour le moment</h2>
             <p className="mt-2 text-base leading-7 text-foreground/70">
-              Ajoutez d&apos;abord le premier endroit où vous encaissez un loyer.
+              Importez votre portefeuille — vos lieux, lots et locataires arrivent
+              en une fois — ou commencez par un bail.
             </p>
-            <Link href="/leases/new" className="mt-5 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition hover:brightness-95 lg:w-fit">
-              Créer un bail
-            </Link>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <Link href="/import" className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition hover:brightness-95">
+                Importer votre portefeuille
+              </Link>
+              <Link href="/leases/new" className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary">
+                Créer un bail
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">

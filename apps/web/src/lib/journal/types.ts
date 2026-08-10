@@ -30,6 +30,10 @@ export interface JournalEvent {
   reference: string | null
   /** Encaissement : true = affecté à une échéance, false = Fast-Log non alloué. */
   allocated: boolean | null
-  /** Token du reçu émis, pour le lien public /recu/[token] (ADR-013), ou null. */
-  receipt_token: string | null
+  /**
+   * Id du reçu émis, ou null. Le lien public /recu/[token] ne se construit
+   * plus depuis le journal : le jeton s'obtient à l'envoi via la RPC
+   * journalisée receipt_share_token (migration 20260809120300).
+   */
+  receipt_id: string | null
 }

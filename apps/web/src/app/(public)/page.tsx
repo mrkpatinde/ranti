@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   // Google (Search Console). metadataBase (layout racine) la résout en absolu.
   alternates: { canonical: "/" },
   description:
-    "Ranti, le registre de loyer des propriétaires africains : suivez qui a payé, relancez vos locataires à votre place et éditez vos quittances. Vous validez, c'est tout.",
+    "Ranti clôture le mois des entreprises de gestion immobilière au Bénin : importez votre portefeuille, suivez les encaissements, relancez par lot et remettez à chaque mandant son relevé PDF.",
 };
 
 export default function Home() {

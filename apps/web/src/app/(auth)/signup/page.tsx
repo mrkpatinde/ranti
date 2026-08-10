@@ -15,10 +15,10 @@ export default async function SignupPage() {
           </p>
           <div className="space-y-2">
             <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
-              Créer votre espace
+              Créer l&apos;espace de votre agence
             </h1>
             <p className="text-base leading-7 text-foreground/70">
-              Un compte Google suffit pour commencer.
+              Un compte Google suffit. L&apos;import du portefeuille vient ensuite.
             </p>
           </div>
         </div>

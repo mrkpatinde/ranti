@@ -1,146 +1,168 @@
 # Ranti — Vision Produit
 
-Dernière mise à jour : 2026-07-17 (réalignement sur ADR-024 — retour au non-custodial + abonnement).
+Dernière mise à jour : 2026-08-09 (ADR-029, pivot entreprises de gestion ;
+ADR-030, retrait du rail de paiement).
 
 ## Positionnement
 
-Ranti est le registre de loyer actif des propriétaires africains.
+Ranti est le système opérationnel des entreprises de gestion immobilière au
+Bénin, puis en zone UEMOA.
 
-Il aide les propriétaires à suivre les loyers, identifier les retards, garder les preuves de paiement, automatiser les rappels et relances à partir du bail, puis générer automatiquement les reçus ou quittances après validation du paiement.
+Il tient le registre locatif d'un portefeuille de lots, suit les échéances et
+les encaissements, prépare les relances, édite les quittances, et produit la
+clôture mensuelle que l'agence doit à chacun de ses propriétaires mandants.
+
+Le compte connecté est l'agence. Le mandant n'a pas de compte : il reçoit un
+relevé.
 
 ## Problème principal
 
-Aujourd'hui, beaucoup de propriétaires suivent les loyers avec :
+Une agence de gestion administre des dizaines de lots pour le compte de
+plusieurs propriétaires. Elle suit tout cela sur Excel, WhatsApp et un carnet.
 
-- un registre papier ;
-- WhatsApp ;
-- des appels ;
-- des captures Mobile Money ;
-- des reçus manuels ;
-- ou leur mémoire.
-
-Cela crée des oublis, des conflits, des paiements difficiles à vérifier, des relances tardives et un manque de visibilité.
+Chaque fin de mois, elle doit établir pour chaque mandant ce qui a été encaissé
+sur ses lots, ce qui a été retenu en honoraires et ce qui lui est reversé, puis
+le justifier. Cette clôture occupe trois à cinq jours par mois. Elle produit
+des erreurs, des retards de reversement et des discussions.
 
 ## Promesse
 
-Ranti permet au propriétaire de répondre rapidement à cinq questions :
+Ranti permet à l'agence de répondre rapidement à six questions :
 
 1. Qui a payé ?
-2. Qui n'a pas encore payé ?
-3. Quelle preuve existe pour chaque paiement ?
-4. Quelle relance est prévue ou déjà envoyée ?
-5. Quel reçu ou quelle quittance a été généré après validation ?
+2. Qui est en retard, sur l'ensemble du portefeuille ?
+3. Quelle relance est prévue ou déjà envoyée ?
+4. Quelle quittance a été générée après validation ?
+5. Pour chaque mandant, qu'a-t-on encaissé ce mois-ci sur ses lots ?
+6. Combien lui doit-on, honoraires déduits ?
 
 ## Boucle produit
 
-Ranti suit une boucle simple :
+1. L'agence importe son portefeuille : mandants, biens, lots, locataires, baux.
+2. Ranti génère les échéances à partir des baux.
+3. L'agence relance ses retards en une passe ; Ranti prépare les messages et
+   garde la trace.
+4. L'agence enregistre et valide les encaissements reçus.
+5. Ranti génère la quittance ou le reçu adapté.
+6. En fin de mois, Ranti produit le relevé de chaque mandant : encaissé,
+   honoraires, net à reverser.
+7. Ranti conserve l'historique des encaissements, relances, documents et
+   actions.
 
-1. le propriétaire renseigne le bail ou l'accord locatif ;
-2. Ranti génère les échéances de loyer ;
-3. Ranti prépare ou automatise les rappels et relances ;
-4. le propriétaire valide les paiements reçus ;
-5. Ranti génère automatiquement le reçu partiel ou la quittance adaptée ;
-6. Ranti conserve l'historique des paiements, relances et preuves.
+## Le wedge : la clôture mensuelle
 
-## Deux moteurs produit
+L'agence sait encaisser. Ce que Ranti prend en charge, c'est la fin du mois.
+
+Règle de calcul unique, appliquée partout dans le produit :
+
+- `encaissé` = allocations sur des encaissements confirmés dont la date de
+  réception tombe dans le mois ;
+- `honoraires` = `floor(encaissé × taux / 10000)`, calculé lot par lot ;
+- `net` = `encaissé − honoraires`.
+
+Les totaux sont la somme des lignes. Un mandant qui recompte à la main tombe sur
+le même chiffre. C'est la propriété qui compte sur ce document.
+
+## Trois moteurs produit
 
 ### Reminder Engine
 
-Le bail crée les échéances. Les échéances créent les rappels et relances.
-
-Ranti ne dépend pas de la mémoire du propriétaire pour savoir quand rappeler ou relancer.
+Le bail crée les échéances. Les échéances créent les rappels et relances. Sur un
+portefeuille de soixante lots, le geste est « je relance tous mes retards », en
+une passe. Ranti prépare le message et conserve la trace ; l'envoi part du
+WhatsApp du gestionnaire.
 
 ### Proof Engine
 
-Le paiement validé crée la preuve.
+L'encaissement validé crée la preuve. Ranti génère le document adapté : reçu de
+paiement partiel, reçu complet, ou quittance quand l'échéance est soldée. Le
+sceau de certification est un HMAC sous secret serveur ; les colonnes de
+certification ne s'écrivent que par le parcours locataire à jeton.
 
-Après validation propriétaire, Ranti génère automatiquement le document adapté : reçu de paiement partiel ou quittance/reçu complet quand l'échéance est soldée.
+### Closing Engine
 
-## Pivot « Grand Livre de Confiance » (ADR-023, 2026-07-16)
+Le mois crée le relevé. Pour chaque mandant, Ranti compose un document lot par
+lot et le total qui en découle.
 
-Ranti n'est plus un générateur de documents : c'est le **compte courant
-locatif partagé** entre propriétaire et locataire — l'arbitre digital de la
-relation. Le reçu et la quittance deviennent des sorties du grand livre, pas
-son cœur.
+## Grand livre de confiance (ADR-023)
 
-Les cinq questions de la promesse deviennent :
+Toute somme due ou reçue sur un bail est une ligne d'un même grand livre. Une
+ligne validée est indélébile ; toute correction est une contre-passation
+visible. Ranti reste rent-only : les charges variables sont retirées (ADR-026).
 
-1. Quel est le solde de chaque bail ?
-2. Qu'est-ce qui est reconnu par les deux parties (solde certain) ?
-3. Qu'est-ce qui est affirmé mais pas encore reconnu (en attente) ?
-4. Qu'est-ce qui est contesté (en litige, documenté sans arbitrage) ?
-5. Qui est en retard, et de combien ?
+La transition reste inachevée. Le modèle historique (`rent_dues`) et le grand
+livre (`transactions`) coexistent depuis la phase « expand » ; la phase
+« contract » n'a pas eu lieu. L'égalité entre les deux est contrôlée chaque jour
+(`ops_ledger_health`).
 
-Au MVP, Ranti reste rent-only : les charges variables sont retirées (ADR-026).
-La valeur de preuve tient à la quittance vérifiable et au solde de loyer
-partagé : une ligne validée est indélébile, toute correction est une
-contre-passation visible des deux parties.
+## Cible
 
-La transition est en cours (phases dans l'ADR-023) : la boucle produit
-ci-dessus reste la mécanique opérante jusqu'à la bascule des lectures.
+Entreprises de gestion immobilière : agences, administrateurs de biens,
+gestionnaires indépendants. Bénin d'abord, puis zone UEMOA.
 
-## Cible initiale
+Le bailleur particulier qui gère ses propres biens reste servi — ses biens n'ont
+pas de mandant — mais il ne dicte plus les arbitrages produit (ADR-029).
 
-Propriétaires particuliers africains qui gèrent entre 1 et 20 logements.
+## Rapport à l'argent (ADR-030)
 
-**Tête de pont (ADR-024)** : le bailleur **diaspora / à distance** francophone — celui qui possède un bien au pays géré par un proche ou un démarcheur, sans visibilité ni preuve. Douleur de confiance la plus aiguë, capacité de paiement en euros, atteignable via les communautés diaspora. L'auto-gérant local reste utilisateur, mais n'est pas la pointe de lance de l'acquisition.
+Ranti ne détient jamais les fonds. Le loyer circule directement du locataire à
+l'agence : espèces, Mobile Money, virement, ou alias de paiement de l'agence
+(ADR-009). Aucun compte, aucun wallet et aucun sous-compte au nom de Ranti
+n'entre dans la chaîne de paiement.
 
-## Rapport à l'argent (ADR-024 — retour au non-custodial)
+Le rail de paiement custodial décidé par ADR-018 et ADR-019, gelé par ADR-024,
+est supprimé du dépôt et de la base le 2026-08-09.
 
-Cette section **annule** la position d'ADR-018 / ADR-019. La promesse
-« **Ranti ne touche jamais l'argent** » est **restaurée** comme cible produit.
+Conséquences de ce choix :
 
-État décidé (ADR-024, 2026-07-17) :
+- Sans détention, Ranti sort du champ de l'Instruction BCEAO n° 001-01-2024 :
+  pas d'agrément à chercher, pas de montage d'externalisation à négocier.
+- Aucune trésorerie tierce à porter, aucun reversement à exécuter, aucun risque
+  de rupture de règlement.
+- L'agence garde sa relation bancaire et son compte marchand. Adopter Ranti ne
+  lui demande pas de changer sa plomberie financière.
 
-- **Ranti ne détient jamais les fonds.** Le loyer circule directement du
-  locataire au propriétaire (cash, Mobile Money, virement, ou alias PI-SPI du
-  propriétaire — ADR-009 restauré comme chemin principal). Aucun wallet ni compte
-  au nom de Ranti dans le flux.
-- **Monétisation = abonnement par paliers** (0 / 4 900 / 14 900 F, grille Master
-  Blueprint B-1 ; gratuit mono-logement = nœud de la boucle de recommandation).
-  La commission transactionnelle de 5 % est **abandonnée**.
-- La validation du paiement reste **humaine** : le propriétaire valide la
-  réception, Ranti génère la preuve.
-- Le **rail custodial (ADR-018 / ADR-019) est gelé, pas supprimé** : le code
-  (ledger, webhook, calcul de frais) reste derrière un flag désactivé, comme
-  **option future** conditionnée à (a) une traction abonnement prouvée et (b) un
-  montage d'externalisation art. 7 sous l'agrément d'un PSP. **Jamais d'agrément
-  propre, jamais devenir la banque.**
+Monétisation : abonnement (ADR-024, disposition 2), gratuit pour le moment
+(ADR-028 : aucun prix affiché tant que l'utilité n'est pas démontrée,
+engagement de préavis). La commission transactionnelle est abandonnée. Le
+sujet PSP se réduit à l'encaissement futur de l'abonnement (recette propre de
+Ranti, pas de fonds de tiers) — FedaPay est pressenti, mais le comparatif qui
+fonde ce choix n'est PAS consigné dans le dépôt : à reconstituer avant de
+s'engager, ou à traiter comme une préférence non documentée.
 
-**Gate BCEAO — neutralisé pour le MVP.** Sans détention de fonds, Ranti n'entre
-pas dans le champ de l'Instruction BCEAO n° 001-01-2024. Le sujet PSP se réduit à
-l'encaissement de l'**abonnement** (recette propre de Ranti, pas de fonds de
-tiers) — FedaPay est le meilleur choix le moment venu. Le comparatif qui fonde ce
-choix n'est PAS consigné dans le dépôt : à reconstituer avant de s'engager, ou à
-traiter comme une préférence non documentée.
-
-## Non-objectifs du MVP
+## Non-objectifs
 
 Ranti n'est pas :
 
 - un CRM immobilier ;
-- une marketplace immobilière ;
+- une marketplace ou un site d'annonces ;
 - un logiciel comptable ;
-- **une banque** — pas d'agrément, pas de dépôt, pas de compte Ranti dans le
-  flux, pas de crédit. **Ranti ne touche jamais l'argent** : le loyer va
-  directement du locataire au propriétaire (ADR-024) ;
+- une banque : pas d'agrément, pas de dépôt, pas de compte Ranti dans le flux,
+  pas de crédit ;
 - une agence de recouvrement ;
-- une application de gestion complexe ;
-- un produit qui confirme des paiements sans validation humaine.
+- un portail pour les mandants ou pour les locataires ;
+- un produit qui confirme des encaissements sans validation humaine.
 
-## Critère de réussite du MVP
+## Remis à plus tard (ADR-029)
 
-Un propriétaire peut, chaque mois, suivre ses loyers sans registre papier et sans confusion.
+- Partage d'un compte entre les employés d'une agence, avec rôles.
+- Paiement du locataire par PSP au nom de l'agence, sans que Ranti touche les
+  fonds.
+- Services financiers adossés à l'historique locatif.
 
-Il voit les échéances, les retards, les relances prévues, les paiements validés et les reçus ou quittances générés automatiquement.
+## Critère de réussite
+
+Une agence tient sa clôture mensuelle entièrement dans Ranti, deux mois de
+suite, et remet à chacun de ses mandants un relevé produit par le produit.
 
 ## Règle produit
 
-Aucune fonctionnalité n'entre dans le MVP si elle ne simplifie pas l'une de ces actions :
+Aucune fonctionnalité n'entre dans Ranti si elle ne simplifie pas l'une de ces
+actions :
 
-- savoir qui a payé ;
-- savoir qui est en retard ;
-- savoir quelle relance doit partir ;
-- valider un paiement reçu ;
-- prouver qu'un paiement a été effectué ;
-- générer automatiquement un reçu ou une quittance après validation.
+- faire entrer ou tenir à jour un portefeuille ;
+- savoir qui a payé et qui est en retard ;
+- relancer un portefeuille en une passe ;
+- valider un encaissement reçu ;
+- produire une quittance vérifiable ;
+- clôturer le mois et justifier ce qui revient à chaque mandant.

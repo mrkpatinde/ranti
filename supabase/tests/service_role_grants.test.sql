@@ -27,10 +27,7 @@ begin
       ('public.reminders', 'INSERT'),
       ('public.tenants',   'SELECT'),
       ('public.units',     'SELECT'),
-      ('public.receipts',  'SELECT'),
-      -- Vision comptabilité du ledger (20260715070000) : la compta interne
-      -- lit net_margin/payin_cost/payout_cost en service_role uniquement.
-      ('public.payment_transactions', 'SELECT')
+      ('public.receipts',  'SELECT')
     ) as t(tbl, priv)
   loop
     if not has_table_privilege('service_role', v_priv.tbl, v_priv.priv) then
@@ -64,27 +61,28 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
--- 3. Fonctions RPC du cockpit ops — EXECUTE explicite pour service_role
---    (20260705170139 pour ops_confirm_collection, 20260714190000 pour
---    ops_record_collection). Garde least-privilege : ces RPC SECURITY DEFINER
---    contournent RLS, jamais exécutables par anon/authenticated.
+-- 3. Vues du cockpit ops — SELECT explicite pour service_role. Garde
+--    least-privilege : elles agrègent tous les portefeuilles sans filtre RLS,
+--    donc jamais lisibles par anon/authenticated.
+--    (Les RPC ops_record_collection / ops_confirm_collection ont été retirées
+--     par 20260809120100 : le chemin d'écriture opérateur n'existe plus.)
 -- ---------------------------------------------------------------------------
 do $$
 declare
-  v_fn record;
+  v_view record;
 begin
-  for v_fn in
+  for v_view in
     select * from (values
-      ('public.ops_record_collection(uuid, uuid, uuid, integer, text, timestamptz, text, jsonb, text)'),
-      ('public.ops_confirm_collection(uuid, uuid, text)')
-    ) as t(fn)
+      ('public.ops_scheduled_reminders'),  -- 20260809120100
+      ('public.ops_grant_drift')           -- 20260809120200
+    ) as t(v)
   loop
-    if not has_function_privilege('service_role', v_fn.fn, 'EXECUTE') then
-      raise exception 'FAIL grants: service_role sans EXECUTE sur %', v_fn.fn;
+    if not has_table_privilege('service_role', v_view.v, 'SELECT') then
+      raise exception 'FAIL grants: service_role sans SELECT sur %', v_view.v;
     end if;
-    if has_function_privilege('anon', v_fn.fn, 'EXECUTE')
-       or has_function_privilege('authenticated', v_fn.fn, 'EXECUTE') then
-      raise exception 'FAIL grants: % exécutable par anon/authenticated', v_fn.fn;
+    if has_table_privilege('anon', v_view.v, 'SELECT')
+       or has_table_privilege('authenticated', v_view.v, 'SELECT') then
+      raise exception 'FAIL grants: % lisible par anon/authenticated', v_view.v;
     end if;
   end loop;
 end $$;

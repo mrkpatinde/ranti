@@ -1,6 +1,8 @@
 # Ranti
 
-Registre de loyer pour propriétaires africains. Lire `docs/` avant tout code — le code doit rester 100% conforme aux docs.
+Système opérationnel des entreprises de gestion immobilière au Bénin puis en zone UEMOA : le compte connecté est l'agence, qui gère des lots pour des propriétaires mandants sans compte et clôture son mois pour chacun d'eux. Lire `docs/` avant tout code — le code doit rester 100% conforme aux docs.
+
+Décisions structurantes en vigueur : `docs/decisions/ADR-029` (pivot entreprises de gestion) et `ADR-030` (retrait du rail de paiement — Ranti ne touche jamais les fonds, aucun prestataire de paiement n'intervient).
 
 ## Design System
 Toujours lire `DESIGN.md` avant toute décision visuelle ou UI. Polices, couleurs, espacement et direction esthétique y sont définis. Ne pas dévier sans validation explicite. En QA, signaler tout code non conforme à `DESIGN.md`.

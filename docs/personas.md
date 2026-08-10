@@ -2,150 +2,175 @@
 
 ## Statut
 
-Version 0.2 — document de travail.
+Version 0.3 (2026-08-09, ADR-029). Le persona primaire passe du bailleur
+particulier à l'entreprise de gestion immobilière.
 
-Ce document distingue ce qui est confirmé, ce qui est une hypothèse, et ce qui doit être validé sur le terrain.
+Ce document distingue ce qui est confirmé, ce qui est une hypothèse, et ce qui
+doit être validé sur le terrain.
 
-## Persona primaire — Le propriétaire particulier
+## Persona primaire — L'entreprise de gestion immobilière
 
 ### Statut
 
-Hypothèse prioritaire à valider terrain.
+Hypothèse prioritaire à valider terrain (ADR-029). Le segment précédent, le
+bailleur particulier, a été mis en ligne le 20 juillet 2026 et n'a produit
+aucune adoption.
 
 ### Profil
 
-Le propriétaire particulier possède ou gère entre 1 et 20 logements.
+Agence immobilière, administrateur de biens ou gestionnaire indépendant, au
+Bénin puis en zone UEMOA. Il administre des dizaines de lots pour le compte de
+plusieurs propriétaires mandants, sous mandat de gestion.
 
-Il n'est pas une agence immobilière structurée. Il gère ses loyers avec des outils simples : registre papier, WhatsApp, appels, mémoire, captures Mobile Money, reçus manuels ou Excel basique.
+Il travaille aujourd'hui sur Excel, WhatsApp et un carnet. Il a un compte
+marchand, une banque et un comptable.
 
 ### Problème principal
 
-Il veut savoir rapidement :
+La clôture du mois. Pour chaque mandant, établir ce qui a été encaissé sur ses
+lots, ce qui a été retenu en honoraires, ce qui lui est reversé, et le
+justifier par un document que le mandant peut recompter.
 
-1. qui a payé ;
-2. qui est en retard ;
-3. quelle preuve existe pour chaque paiement ;
-4. quelle relance doit partir ;
-5. quel reçu ou quelle quittance existe après paiement.
+Cette opération occupe trois à cinq jours par mois.
+
+### Autres besoins
+
+1. Faire entrer un portefeuille existant sans le ressaisir lot par lot.
+2. Savoir, à tout moment, qui est en retard sur l'ensemble du portefeuille.
+3. Relancer tous ses retards en une passe, pas lot par lot.
+4. Produire des quittances numérotées et vérifiables.
+5. Retrouver l'historique d'un lot quand un mandant conteste.
 
 ### Comportements actuels probables
 
-- Il note les paiements dans un registre.
-- Il reçoit des preuves par WhatsApp.
-- Il appelle ou écrit aux locataires en retard.
-- Il peut oublier de relancer certains locataires.
-- Il peut générer ou écrire des reçus manuellement.
-- Il peut avoir des disputes si un paiement n'est pas clairement tracé.
+- Il tient un classeur Excel par immeuble ou par propriétaire.
+- Il relance au téléphone et sur WhatsApp, quand il y pense.
+- Il recopie ses chiffres en fin de mois pour produire un décompte par
+  propriétaire.
+- Il perd du temps à retrouver quel versement couvrait quel mois.
 
-### Besoins
+### Ce qui le fait changer d'outil
 
-- Voir la situation des loyers sans réfléchir longtemps.
-- Ne pas oublier les rappels et relances.
-- Enregistrer ou valider un paiement facilement.
-- Garder une preuve de paiement.
-- Obtenir automatiquement un reçu ou une quittance après validation.
-- Garder un historique clair des paiements, relances et documents.
+- Il remplace un travail existant, pas un outil existant.
+- Le gain se mesure en jours de fin de mois.
+- Le relevé qu'il remet à ses mandants engage sa réputation professionnelle.
 
 ### Risques
 
-- Il peut trouver l'application trop compliquée.
-- Il peut préférer WhatsApp si Ranti ajoute trop de friction.
-- Il peut ne pas vouloir saisir beaucoup d'informations.
-- Il peut ne pas faire confiance à une application nouvelle pour des sujets d'argent.
-- Il peut vouloir garder le contrôle sur les relances avant tout envoi externe.
+- L'entrée dans le produit se fait par la reprise du portefeuille : un import
+  qui échoue coûte le prospect.
+- Il peut avoir plusieurs employés sur le même portefeuille, ce que le produit
+  ne gère pas encore (ADR-029, remis à plus tard).
+- Il peut demander une comptabilité complète, un rapprochement bancaire, un
+  encaissement intégré. Ces demandes sortent du périmètre.
+- Il peut refuser un outil qui prétend entrer dans son flux d'argent.
 
 ### Critère de réussite
 
-Il peut remplacer son registre de loyer pour le suivi mensuel sans perdre en simplicité, tout en gagnant des rappels, relances et preuves automatiques.
+Sa clôture mensuelle passe intégralement par Ranti, deux mois de suite, et il
+remet à ses mandants un relevé produit par le produit.
 
-## Persona secondaire — Le locataire
+## Persona secondaire — Le propriétaire mandant
 
 ### Statut
 
-Hypothèse secondaire.
+Hypothèse. Le mandant n'est pas un utilisateur du produit (ADR-029).
 
 ### Profil
 
-Le locataire paie son loyer en cash, Mobile Money, virement ou autre moyen local.
-
-Il n'est pas l'utilisateur principal du MVP, mais il peut interagir avec Ranti pour transmettre une preuve, recevoir un rappel, recevoir une relance ou recevoir un reçu/quittance.
+Personne physique ou société qui possède un ou plusieurs biens et en confie la
+gestion à une agence. Il ne se connecte pas, ne crée pas de compte, ne consulte
+aucun écran.
 
 ### Problème principal
 
-Il veut éviter les malentendus après paiement.
+Il ne sait pas ce qui a été encaissé sur ses biens, ni comment se calcule ce
+qu'on lui reverse. Il reçoit un chiffre, rarement un décompte.
+
+### Besoins
+
+- Recevoir un relevé mensuel lisible, lot par lot.
+- Comprendre le calcul des honoraires.
+- Voir ce qui reste dû sur ses lots.
+
+### Rôle produit
+
+Il reçoit un document. Ce document porte la marque et circule dans un milieu où
+chaque destinataire est lui-même client potentiel d'une agence.
+
+### Critère de réussite
+
+Il recompte le relevé à la main et tombe sur le même chiffre.
+
+## Persona tertiaire — Le locataire
+
+### Statut
+
+Hypothèse secondaire, inchangée.
+
+### Profil
+
+Il paie son loyer en espèces, Mobile Money, virement ou autre moyen local. Il
+n'a pas de compte Ranti. Il reçoit une relance, une quittance, et peut certifier
+ou contester cette quittance par un lien à jeton (ADR-013).
 
 ### Besoins
 
 - Prouver qu'il a payé.
-- Recevoir un reçu clair.
-- Être informé de ce qu'il doit payer.
-- Recevoir des rappels ou relances compréhensibles et respectueux.
-- Éviter les conflits avec le propriétaire.
-
-### Risques
-
-- Il peut ne pas vouloir créer un compte.
-- Il peut ignorer les liens ou messages envoyés.
-- Il peut préférer envoyer une capture WhatsApp directement.
-- Il peut ne pas reconnaître immédiatement le numéro ou le canal utilisé par Ranti.
+- Recevoir un document clair.
+- Recevoir des messages compréhensibles et respectueux.
 
 ### Critère de réussite
 
-Il peut comprendre ce qu'il doit payer, prouver ce qu'il a payé et recevoir un document clair sans friction supplémentaire.
+Il obtient une quittance sans friction supplémentaire et peut la faire vérifier.
 
-## Persona tertiaire — Le petit gestionnaire local
+## Persona observé — Le bailleur particulier
 
 ### Statut
 
-À valider plus tard.
+Servi, non ciblé (ADR-029).
 
 ### Profil
 
-Le petit gestionnaire local suit les loyers pour plusieurs propriétaires ou plusieurs biens.
+Propriétaire de 1 à 20 logements qui gère lui-même, sans mandant. Le produit
+fonctionne pour lui : ses biens ont simplement `owner_id` à `NULL`.
 
-Il peut gérer plus de logements qu'un propriétaire particulier, mais sans système professionnel avancé.
+### Pourquoi il ne pilote plus le produit
 
-### Problème principal
+Fréquence d'usage faible, pas de ligne budgétaire de gestion, acquisition un par
+un. Mesuré : adoption nulle après la mise en ligne du 20 juillet 2026.
 
-Il doit suivre plusieurs paiements, retards, relances et reçus avec un niveau de rigueur plus élevé.
+## Non-personas
 
-### Risque produit
+Ranti ne cible pas :
 
-Ce persona peut pousser Ranti vers un produit plus complexe : multi-propriétaires, permissions, reporting, commissions, contrats, comptabilité.
-
-Pour le MVP, il ne doit pas définir le produit.
-
-## Non-personas du MVP
-
-Ranti ne cible pas au départ :
-
-- les grandes agences immobilières ;
 - les promoteurs immobiliers ;
-- les plateformes de location ;
-- les banques ;
+- les plateformes d'annonces et marketplaces ;
+- les banques et établissements de paiement ;
 - les sociétés de recouvrement ;
-- les entreprises avec besoins comptables complexes ;
+- les cabinets comptables ;
 - les propriétaires qui veulent uniquement vendre ou publier des annonces.
 
 ## Décision
 
-Le MVP est conçu d'abord pour le propriétaire particulier africain qui gère entre 1 et 20 logements.
-
-Le locataire est important, mais il n'est pas le centre du produit au départ.
-
-Le petit gestionnaire local est observé, mais il ne pilote pas le MVP.
+Le produit est conçu pour l'entreprise de gestion immobilière qui administre des
+lots sous mandat. Le mandant est un destinataire de document, pas un
+utilisateur. Le locataire est important, il n'est pas le centre du produit.
 
 ## Questions terrain à valider
 
-1. Combien de logements le propriétaire gère-t-il ?
-2. Comment suit-il les loyers aujourd'hui ?
-3. Comment sait-il qui est en retard ?
-4. Comment reçoit-il les preuves de paiement ?
-5. Comment produit-il un reçu ?
-6. À quel moment oublie-t-il de rappeler ou relancer ?
-7. Qu'est-ce qui crée le plus de conflits ?
-8. Quel outil utilise-t-il le plus : registre, WhatsApp, Excel, appels ?
-9. Accepterait-il de saisir ou confirmer chaque paiement dans Ranti ?
-10. Accepterait-il que Ranti prépare ou envoie les rappels/relances à partir du bail ?
-11. Le locataire devrait-il interagir avec Ranti ou seulement recevoir des messages/documents ?
-12. Quel serait le moment exact où Ranti lui ferait gagner du temps ?
+1. Combien de lots l'agence gère-t-elle, pour combien de mandants ?
+2. Sous quelle forme le portefeuille existe-t-il aujourd'hui (Excel, papier,
+   logiciel) ?
+3. Combien de temps prend la clôture mensuelle, et qui la fait ?
+4. Quelle forme prend le relevé remis au mandant aujourd'hui ?
+5. Comment sont calculés les honoraires : taux unique, taux par mandant, taux
+   par lot, forfait ?
+6. Que se passe-t-il quand un mandant conteste un chiffre ?
+7. Combien de personnes travaillent sur le même portefeuille, et se
+   partagent-elles un identifiant ?
+8. Comment relance-t-elle aujourd'hui, et à quel rythme ?
+9. Que fait-elle des quittances : les édite-t-elle, les réclame-t-on ?
+10. Combien paie-t-elle aujourd'hui pour ses outils, et sur quelle ligne ?
+11. Qu'est-ce qui la ferait renoncer à Ranti après un mois d'essai ?
+12. Accepterait-elle de saisir ou de confirmer chaque encaissement ?

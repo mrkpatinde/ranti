@@ -47,13 +47,15 @@ beforeEach(() => {
 })
 
 describe("getGuidedRail", () => {
-  it("espace vierge, guidé : étape courante = bail, position 1/4, cible = /leases/new", async () => {
+  it("espace vierge, guidé : étape courante = portefeuille, position 1/4, cible = /import", async () => {
     seed({})
     const rail = await getGuidedRail(LID, "guided")
     expect(rail.active).toBe(true)
     expect(rail.current?.key).toBe("lease")
     expect(rail.position).toEqual({ index: 1, total: 4 })
-    expect(rail.next).toEqual({ key: "lease", label: "Créer votre premier bail", href: "/leases/new" })
+    // Pivot agences (ADR-029) : le premier pas suggéré est l'import du
+    // portefeuille ; le bail manuel reste l'alternative.
+    expect(rail.next).toEqual({ key: "lease", label: "Importer votre portefeuille", href: "/import" })
     expect(rail.isLastStep).toBe(false)
     expect(rail.steps.map((s) => s.state)).toEqual(["active", "locked", "locked", "locked"])
   })

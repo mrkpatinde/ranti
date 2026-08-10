@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SubmitButton } from "@/components/submit-button"
 import { requireLandlordProfile } from "@/lib/landlords"
+import { getLandlordOwners } from "@/lib/owners"
 import { getProperty, updateProperty } from "@/lib/properties"
 
 type EditPropertyPageProps = {
@@ -20,6 +21,8 @@ export default async function EditPropertyPage({ params, searchParams }: EditPro
   const property = await getProperty(landlord.id, id)
 
   if (!property) notFound()
+
+  const owners = await getLandlordOwners(landlord.id)
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-8 lg:py-14">
@@ -55,6 +58,15 @@ export default async function EditPropertyPage({ params, searchParams }: EditPro
           <div className="space-y-2">
             <label htmlFor="address" className={labelClass}>Adresse ou repère <span className="text-muted-foreground">(optionnel)</span></label>
             <input id="address" name="address" type="text" defaultValue={property.address ?? ""} className={inputClass} />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="owner_id" className={labelClass}>Géré pour le compte de</label>
+            <select id="owner_id" name="owner_id" defaultValue={property.owner_id ?? ""} className={inputClass}>
+              <option value="">Bien détenu en propre</option>
+              {owners.map((owner) => (
+                <option key={owner.id} value={owner.id}>{owner.display_name}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
             <label htmlFor="notes" className={labelClass}>Note <span className="text-muted-foreground">(optionnel)</span></label>

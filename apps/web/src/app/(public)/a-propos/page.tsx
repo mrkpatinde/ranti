@@ -10,7 +10,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "À propos de Ranti",
   description:
-    "Ranti est le registre de loyer des propriétaires africains, édité au Bénin par WI'SOFT SOLUTIONS. Ranti ne détient et ne transfère aucun fonds.",
+    "Ranti est le registre locatif des entreprises de gestion immobilière, édité au Bénin par WI'SOFT SOLUTIONS. Ranti ne détient et ne transfère aucun fonds.",
 };
 
 export default function AboutPage() {
@@ -31,10 +31,12 @@ export default function AboutPage() {
         <section>
           <h2 className="text-lg font-semibold text-foreground">Ce que fait Ranti</h2>
           <p className="mt-2">
-            Ranti est un registre de loyer pensé pour les propriétaires africains. Vous
-            encaissez le loyer comme d'habitude : cash, Mobile Money ou virement. Ranti
-            tient le registre, relance vos locataires avant l'échéance et édite la
-            quittance, confirmée par le locataire et vérifiable en ligne.
+            Ranti est le registre locatif des entreprises de gestion immobilière — agences
+            et administrateurs de biens qui gèrent des lots pour des propriétaires mandants.
+            Vous encaissez le loyer comme d'habitude : cash, Mobile Money ou virement. Ranti
+            tient le registre, relance les locataires en retard, édite la quittance —
+            confirmée par le locataire et vérifiable en ligne — et clôture le mois de chaque
+            mandant : encaissé, honoraires, net à reverser.
           </p>
         </section>
 

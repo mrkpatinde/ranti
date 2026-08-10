@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Bell, Building2, ChevronLeft, HandCoins, Home, MessageCircle, type LucideIcon } from "lucide-react"
+import { Bell, Building2, ChevronLeft, HandCoins, Home, MessageCircle, Scale, Upload, Users, type LucideIcon } from "lucide-react"
 import type { Landlord } from "@/lib/landlords"
 import { RantiLogo } from "@/components/ranti-logo"
 import { ResumeOnboarding } from "@/components/resume-onboarding"
@@ -11,11 +11,25 @@ import { HelpCenter } from "@/components/help-center"
 // Nav aplatie autour du bail (clé de voûte). « Baux » ouvre l'arbre
 // Lieu → Logement → Locataire/bail (hub = /properties). Les quittances sont
 // accessibles depuis chaque bail dans l'arbre, plus en entrée globale.
+//
+// « Clôture » entre au même niveau que les quatre autres : pour une entreprise
+// de gestion, la clôture mensuelle du portefeuille est le geste qui justifie
+// l'abonnement, pas une fonction secondaire.
 const MAIN_NAV = [
   { href: "/dashboard", label: "Accueil", Icon: Home },
   { href: "/collections", label: "Encaissements", Icon: HandCoins },
   { href: "/reminders", label: "Relances", Icon: MessageCircle },
   { href: "/properties", label: "Baux", Icon: Building2 },
+  { href: "/cloture", label: "Clôture", Icon: Scale },
+]
+
+// Entrées de gestion du portefeuille. Volontairement hors de la barre du bas :
+// à cinq onglets elle est déjà pleine, et ces deux écrans se visitent par
+// épisodes (un import à l'arrivée, un mandant qu'on ajoute) plutôt que tous
+// les jours. Sur mobile, on y accède depuis l'arbre Baux et depuis Clôture.
+const PORTFOLIO_NAV = [
+  { href: "/owners", label: "Mandants", Icon: Users },
+  { href: "/import", label: "Importer un portefeuille", Icon: Upload },
 ]
 
 // Routes de l'arbre « Baux » : la tuile Baux reste active sur tout le drill-down.
@@ -94,8 +108,14 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
 
   if (hideShell) return <>{children}</>
 
-  const ownerName = `${landlord.first_name} ${landlord.last_name}`
-  const initials = initialsOf(landlord.first_name, landlord.last_name)
+  // La raison sociale prime quand elle existe : le compte EST l'entreprise.
+  // Le nom de la personne reste le repli des gestionnaires en nom propre.
+  const companyName = landlord.company_name?.trim() || null
+  const personName = `${landlord.first_name} ${landlord.last_name}`
+  const ownerName = companyName ?? personName
+  const initials = companyName
+    ? companyName.split(/\s+/).slice(0, 2).map((w) => w.charAt(0)).join("").toUpperCase() || "R"
+    : initialsOf(landlord.first_name, landlord.last_name)
   const resumable = landlord.onboarding_status === "exploring"
 
   return (
@@ -105,12 +125,19 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
           <RantiLogo size={36} />
           <div>
             <p className="font-display text-lg font-extrabold tracking-tight">Ranti</p>
-            <p className="text-xs text-muted-foreground">Registre de loyer</p>
+            <p className="text-xs text-muted-foreground">Gestion locative</p>
           </div>
         </Link>
 
         <nav className="space-y-1 border-t border-border pt-5">
           {MAIN_NAV.map((item) => (
+            <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
+          ))}
+        </nav>
+
+        <nav className="mt-5 space-y-1 border-t border-border pt-5">
+          <p className="px-3.5 pb-1 text-[11px] font-medium text-muted-foreground">Portefeuille</p>
+          {PORTFOLIO_NAV.map((item) => (
             <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
           ))}
         </nav>
@@ -124,7 +151,7 @@ export function AppShell({ children, landlord }: { children: React.ReactNode; la
           <NavLink href="/settings/profile" label="Paramètres" pathname={pathname} />
           <div className="px-3.5 py-2">
             <p className="truncate text-sm font-medium">{ownerName}</p>
-            <p className="text-xs text-muted-foreground">Propriétaire</p>
+            <p className="text-xs text-muted-foreground">Gestionnaire</p>
           </div>
           <form action="/auth/signout" method="post">
             <button type="submit" className="w-full rounded-lg px-3.5 py-3 text-left text-sm font-medium text-foreground/70 transition hover:bg-secondary hover:text-foreground">

@@ -10,6 +10,14 @@ export type TenantAck = "unilateral" | "read" | "certified" | "disputed"
 export type ContestNature = "amount" | "date" | "not_paid"
 
 export type ReceiptSnapshot = {
+  // Émetteur figé à l'émission (migration 20260810120000, pivot ADR-029).
+  // Absent des snapshots antérieurs : le rendu retombe alors sur le nom de la
+  // personne, à l'identique d'avant (cf. receiptIssuerName).
+  landlord?: {
+    first_name?: string | null
+    last_name?: string | null
+    company_name?: string | null
+  }
   tenant?: { first_name: string; last_name: string; phone: string | null }
   unit?: { name: string; type: string }
   property?: { name?: string; city: string | null; address: string | null }
@@ -41,7 +49,9 @@ export type Receipt = {
   cancellation_reason: string | null
   snapshot: ReceiptSnapshot
   tenant_ack: TenantAck
-  tenant_token: string
+  // Absent des lectures du gestionnaire (colonne révoquée) ; présent sur le
+  // parcours locataire, où il vient du lien.
+  tenant_token?: string
   tenant_read_at: string | null
   tenant_certified_at: string | null
   contested_at: string | null

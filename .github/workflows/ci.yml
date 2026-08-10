@@ -129,3 +129,139 @@ jobs:
             echo "===== $c"
             docker logs "$c" --tail 40 2>&1 || true
           done
+
+  sql:
+    name: sql (migrations + tests)
+    runs-on: ubuntu-latest
+
+    # Postgres 16 : même version majeure que Supabase.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Client psql
+        run: |
+          set -euo pipefail
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+
+      # pg_cron n'existe pas dans l'image postgres officielle, et la migration
+      # 011 en dépend en dur (create extension + cron.schedule). On installe un
+      # substitut minimal : une table cron.job et les deux fonctions appelées.
+      # Il est écrit DANS le conteneur de service, seul endroit où PostgreSQL
+      # lit les fichiers d'extension ; un volume ne conviendrait pas, les
+      # services démarrent avant le checkout.
+      - name: Substitut pg_cron
+        run: |
+          set -euo pipefail
+          CID=$(docker ps --filter "ancestor=postgres:16" --format '{{.ID}}' | head -1)
+          if [ -z "$CID" ]; then echo "conteneur postgres introuvable"; exit 1; fi
+
+          docker exec -u root -i "$CID" bash -c 'cat > /usr/share/postgresql/16/extension/pg_cron.control' <<'CONTROL'
+          comment = 'pg_cron shim'
+          default_version = '1.6'
+          relocatable = false
+          schema = pg_catalog
+          CONTROL
+
+          docker exec -u root -i "$CID" bash -c 'cat > /usr/share/postgresql/16/extension/pg_cron--1.6.sql' <<'EXT'
+          create schema if not exists cron;
+          create sequence cron.jobid_seq;
+          create table cron.job (
+            jobid bigint primary key default nextval('cron.jobid_seq'),
+            jobname text unique,
+            schedule text not null,
+            command text not null
+          );
+          create function cron.schedule(job_name text, schedule text, command text)
+          returns bigint language plpgsql as $fn$
+          declare v_id bigint;
+          begin
+            insert into cron.job (jobname, schedule, command)
+            values (job_name, schedule, command)
+            on conflict (jobname) do update
+              set schedule = excluded.schedule, command = excluded.command
+            returning jobid into v_id;
+            return v_id;
+          end $fn$;
+          create function cron.unschedule(job_name text)
+          returns boolean language sql as $fn$
+            delete from cron.job where jobname = job_name returning true;
+          $fn$;
+          EXT
+
+      # Rôles Supabase et schéma auth : les migrations les supposent présents
+      # (grants, policies, auth.uid()). Ils sont fournis par la plateforme en
+      # production, jamais par une migration du dépôt.
+      - name: Substituts Supabase (rôles, schéma auth)
+        run: |
+          set -euo pipefail
+          psql -d postgres -v ON_ERROR_STOP=1 -q <<'SQL'
+          create role anon nologin;
+          create role authenticated nologin;
+          create role service_role nologin bypassrls;
+          create role supabase_admin nologin superuser;
+          create database ranti_test;
+          SQL
+
+          psql -d ranti_test -v ON_ERROR_STOP=1 -q <<'SQL'
+          create schema auth;
+          create table auth.users (
+            id uuid primary key,
+            instance_id uuid,
+            aud text,
+            role text,
+            email text,
+            created_at timestamptz not null default now()
+          );
+          -- Définition Supabase : le sub du JWT, quelle que soit la forme sous
+          -- laquelle PostgREST l'a posé.
+          create function auth.uid() returns uuid language sql stable as $$
+            select coalesce(
+              nullif(current_setting('request.jwt.claim.sub', true), ''),
+              nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'
+            )::uuid
+          $$;
+          grant usage on schema auth to anon, authenticated, service_role;
+          grant select on auth.users to anon, authenticated, service_role;
+          SQL
+
+      - name: Migrations
+        run: |
+          set -euo pipefail
+          for f in $(ls supabase/migrations | sort); do
+            echo "--- $f"
+            psql -d ranti_test -v ON_ERROR_STOP=1 -q -f "supabase/migrations/$f"
+          done
+
+      # Chaque test est un script `begin; ... rollback;` qui lève une exception
+      # sur la moindre assertion fausse : ON_ERROR_STOP=1 suffit à faire
+      # échouer l'étape, donc le job.
+      - name: Tests SQL
+        run: |
+          set -euo pipefail
+          for f in $(ls supabase/tests/*.sql | sort); do
+            echo "--- $f"
+            psql -d ranti_test -v ON_ERROR_STOP=1 -q -f "$f"
+          done

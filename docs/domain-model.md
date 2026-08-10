@@ -2,7 +2,8 @@
 
 ## Statut
 
-Version 0.4 — document de travail.
+Version 0.5 (2026-08-09) — document de travail. Ajout de la décision de domaine
+007 (le mandat de gestion) après ADR-029.
 
 Ce document définit les concepts métier centraux de Ranti avant toute conception d'écran, de base de données ou d'API.
 
@@ -13,6 +14,10 @@ Que protège Ranti ?
 Ranti protège la mémoire fiable des loyers.
 
 Plus précisément, Ranti protège la mémoire des obligations de loyer, des paiements associés, des relances nécessaires et des preuves générées.
+
+Depuis ADR-029, cette mémoire est tenue par une entreprise de gestion pour le
+compte de tiers. Ranti protège donc aussi le décompte que le gestionnaire doit
+à chacun de ses mandants.
 
 ## Décision de domaine 001 — L'échéance de loyer est l'objet central du MVP
 
@@ -141,11 +146,15 @@ Quand la relation locative est claire, chaque partie est tranquille :
 
 ### Conséquence métier
 
-Le propriétaire est le client commercial principal de Ranti.
+L'entreprise de gestion est le client commercial de Ranti (ADR-029).
 
-Mais dans le modèle de domaine, l'objet à sécuriser est la relation locative.
+Dans le modèle de domaine, l'objet à sécuriser reste la relation locative.
 
 Sans relation locative, il n'y a pas d'échéance, pas de paiement de loyer, pas de preuve utile, pas de quittance et pas de relance contextualisée.
+
+Le gestionnaire intervient dans cette relation au titre d'un mandat : il agit
+pour le compte du propriétaire, sans être partie au bail. Voir la décision de
+domaine 007.
 
 ## Décision de domaine 004 — Les rappels et relances naissent du bail et des échéances
 
@@ -221,13 +230,74 @@ certain (reconnu par les deux parties ou par le rail de paiement), l'en
 attente (affirmé, pas reconnu), l'en litige (désaccord documenté). L'impayé
 se calcule sur les seules lignes certaines exigibles.
 
+## Décision de domaine 007 — Le mandat de gestion regroupe les biens, il ne cloisonne pas les données
+
+### Statut
+
+Approuvé (ADR-029, 2026-08-09).
+
+### Décision
+
+Le titulaire du compte est une entreprise de gestion. Elle administre des biens
+pour le compte de **propriétaires mandants**, en vertu d'un mandat de gestion.
+
+Le mandant est un concept métier de premier plan et un destinataire de
+documents. Il n'est pas un utilisateur : il ne se connecte pas, ne consulte
+aucun écran, ne dispose d'aucun accès.
+
+Le mandat se modélise comme une **dimension de regroupement au-dessus des
+biens** : chaque bien peut être rattaché à un mandant, et le mandant appartient
+au portefeuille du gestionnaire. Le mandat ne devient jamais une frontière
+d'isolation des données.
+
+### Pourquoi
+
+Le mandant a besoin d'un décompte justifié, pas d'un écran. Faire de lui une
+frontière d'isolation supposerait de réécrire tout le cloisonnement existant
+pour un usage qui n'existe pas.
+
+Un bien sans mandant reste valide : c'est le cas du gestionnaire qui possède
+lui-même une partie de ce qu'il administre.
+
+### Concepts introduits
+
+- **Mandant** : le propriétaire pour le compte duquel un bien est géré.
+- **Honoraires de gestion** : la part du loyer encaissé que le gestionnaire
+  conserve, exprimée en points de base et attachée au mandant.
+- **Clôture** : l'opération mensuelle qui arrête, pour chaque mandant, ce qui a
+  été encaissé, retenu et reste à reverser.
+- **Relevé propriétaire** : le document remis au mandant à l'issue de la
+  clôture.
+
+### Règles
+
+1. Les honoraires se calculent sur le loyer **encaissé**, jamais sur le loyer
+   attendu. Un mois sans encaissement produit zéro honoraire.
+2. Les honoraires se calculent **lot par lot**, à l'arrondi inférieur ; le total
+   est la somme des lignes.
+3. Un mois sans encaissement produit une ligne à zéro plutôt qu'une absence : le
+   mandant doit voir que son lot n'a rien rapporté.
+4. Un relevé déjà remis doit se reproduire à l'identique. L'archivage d'un lot
+   ne rétroagit pas sur les mois clôturés.
+5. Un encaissement se rattache au **lot**, pas au bail affiché. Un lot qui change
+   de locataire en cours de mois porte deux baux ; ce qu'a versé le locataire
+   sortant appartient au mandant.
+
+### Conséquence métier
+
+L'agence répond de son mandat par un document qui s'additionne à la main. Ranti
+produit ce document ; il n'exécute ni l'encaissement, ni le reversement.
+
 ## Concepts candidats du MVP
 
 Les concepts suivants sont candidats pour le MVP :
 
-- Propriétaire
+- Entreprise de gestion (le compte)
+- Propriétaire mandant
+- Mandat de gestion
+- Honoraires de gestion
 - Propriété
-- Logement
+- Lot (logement)
 - Locataire
 - Bail ou accord locatif
 - Règle de rappel ou relance
@@ -237,6 +307,8 @@ Les concepts suivants sont candidats pour le MVP :
 - Preuve de paiement
 - Quittance ou reçu
 - Relance
+- Clôture mensuelle
+- Relevé propriétaire
 - Historique d'audit
 
 Ces concepts ne sont pas encore tous validés comme objets techniques ou tables de base de données.
@@ -253,13 +325,16 @@ Nous cherchons d'abord à comprendre les règles du métier.
 
 ## Questions terrain à valider
 
-1. Les propriétaires pensent-ils naturellement en termes de mois de loyer à payer ?
-2. Suivent-ils les paiements par locataire, par logement, par mois ou par reçu ?
+1. Les gestionnaires pensent-ils naturellement en termes de mois de loyer à payer ?
+2. Suivent-ils les paiements par locataire, par lot, par mandant, par mois ou par reçu ?
 3. Comment définissent-ils qu'un mois est soldé ?
 4. Que se passe-t-il quand un locataire paie partiellement ?
 5. Que se passe-t-il quand un paiement arrive en retard ?
 6. Que se passe-t-il quand un paiement couvre plusieurs mois ?
 7. Quelles preuves sont considérées comme suffisantes ?
 8. Quand un reçu ou une quittance est-il donné ?
-9. Le propriétaire accepte-t-il que Ranti prépare ou envoie les relances automatiquement ?
+9. Le gestionnaire accepte-t-il que Ranti prépare ou envoie les relances automatiquement ?
 10. Quel est le moment exact où la confusion apparaît ?
+11. Les honoraires sont-ils un taux par mandant, un taux par lot, un forfait, ou un mélange des trois ?
+12. Que fait le gestionnaire des honoraires d'un mois où rien n'a été encaissé ?
+13. Quand le reversement au mandant a-t-il lieu par rapport à la remise du relevé ?

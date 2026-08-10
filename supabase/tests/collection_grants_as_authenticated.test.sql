@@ -32,6 +32,10 @@ rollback;
 
 -- ---------------------------------------------------------------------------
 -- Bloc 2 : parcours complet encaisser → confirmer → quittance, en `authenticated`
+--
+-- Fixtures JETABLES créées ici même (ROLLBACK final) : le test ne dépend
+-- d'aucune donnée préexistante — il tourne sur une base fraîchement migrée
+-- comme sur un environnement peuplé.
 -- ---------------------------------------------------------------------------
 begin;
 
@@ -82,9 +86,27 @@ begin
   select l.auth_user_id into v_auth from public.landlords l where l.id = v_due.landlord_id;
   if v_auth is null then raise exception 'TEST SETUP: propriétaire sans auth_user_id'; end if;
 
-  -- Exactement ce que fait PostgREST pour une requête authentifiée
+  -- Régression (héritée de recorded_by_ops_entry_path.test.sql, supprimé avec
+  -- le chemin opérateur) : sans session, le wrapper landlord lève no_landlord
+  -- au lieu d'écrire pour le compte de personne.
+  begin
+    perform public.record_collection(
+      v_due.tenant_id, v_due.unit_id, 1000, 'cash', null, null,
+      jsonb_build_array(jsonb_build_object('rent_due_id', v_due.id, 'amount_allocated', 1000)),
+      null::text);
+    raise exception 'FAIL: record_collection sans session aurait dû lever no_landlord';
+  exception when others then
+    if sqlerrm not like '%no_landlord%' then
+      raise exception 'FAIL: erreur inattendue %', sqlerrm;
+    end if;
+  end;
+
+  -- Exactement ce que fait PostgREST pour une requête authentifiée. Les deux
+  -- réglages sont posés : auth.uid() lit `request.jwt.claim.sub` et retombe
+  -- sur le sous-champ `sub` de `request.jwt.claims` selon la version de GoTrue.
   perform set_config('request.jwt.claims',
     json_build_object('sub', v_auth, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', v_auth::text, true);
   perform set_config('role', 'authenticated', true);
 
   v_rid := public.record_collection(

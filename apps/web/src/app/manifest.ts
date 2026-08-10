@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Ranti — Registre de loyer",
     short_name: "Ranti",
     description:
-      "Le registre de loyer des propriétaires africains : loyers suivis, relances au bon moment, quittances vérifiables.",
+      "Ranti suit les encaissements du portefeuille, relance les retards et établit le relevé mensuel de chaque propriétaire mandant.",
     start_url: "/dashboard",
     display: "standalone",
     background_color: "#f7f7f2",

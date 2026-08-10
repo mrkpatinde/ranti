@@ -1,6 +1,57 @@
 # Ranti Roadmap
 
-Dernière mise à jour : 2026-08-06
+Dernière mise à jour : 2026-08-09 (ADR-029, pivot entreprises de gestion ;
+ADR-030, retrait du rail de paiement).
+
+> Les sprints 0 à 9 décrivent la construction du produit pour le bailleur
+> particulier. Ils restent valides comme historique et comme description de la
+> mécanique locative, qui n'a pas changé. Le sprint 10 porte le pivot. Les
+> sections « Recent » en fin de document sont un journal daté, conservé tel
+> quel.
+
+## Sprint 10 - Entreprises de gestion (2026-08-09)
+
+Objectif : une agence fait entrer son portefeuille, suit ses lots, relance en
+une passe et clôture son mois pour chacun de ses mandants.
+
+Livré :
+
+- [x] Import de portefeuille par fichier (`/import`) — validation ligne par
+      ligne sans écriture (`validate_portfolio_import`), puis import
+      tout-ou-rien idempotent (`import_portfolio`). Mandants et biens
+      rapprochés par nom ; baux activés par `activate_lease` (ADR-004)
+- [x] Propriétaires mandants (`/owners`) — table `owners`,
+      `properties.owner_id` nullable, honoraires en points de base
+- [x] Clôture mensuelle (`/cloture`) — vue `owner_month_summary`, relevé
+      détaillé (`owner_statement`, `owner_statement_lines`), PDF et partage
+- [x] Relances par lot (`/reminders/batch`) — vue `reminder_batch`, trace
+      enregistrée en un appel (`log_reminder_batch`)
+- [x] Retrait du rail de paiement (ADR-030) — tables, RPC, `src/lib/feexpay/`,
+      `src/lib/payments/`, `src/app/api/payments/`
+- [x] Retrait des charges variables restées en SQL après ADR-026 et des 14
+      fonctions sans appelant
+- [x] Réparation RLS et privilèges, vue de contrôle `ops_grant_drift`
+- [x] Durcissement du sceau de quittance (HMAC sous secret serveur, trigger de
+      certification, `receipt_share_token` journalisée)
+- [x] Contrôle quotidien de l'égalité `rent_dues` / `transactions`
+      (`ops_ledger_health`)
+- [x] Suppression du parcours dupliqué `/first-run`
+- [x] Suite de tests SQL exécutée en CI (`.github/workflows/ci.yml`)
+
+Ouvert :
+
+- [ ] Phase « contract » du grand livre : bascule des lectures sur
+      `transactions`, retrait des triggers miroir et de `legacy_ref`
+- [ ] Partage d'un compte entre plusieurs employés d'une agence, avec rôles
+      (ADR-029, remis à plus tard)
+- [ ] Retrait des vestiges d'énumération du rail supprimé
+      (`rent_receptions.recorded_by = 'psp'`, `transactions.source = 'feexpay'`)
+- [ ] Modèle d'honoraires plus fin si le terrain l'exige : taux par lot,
+      forfait, minimum mensuel
+- [ ] Reprise d'un portefeuille depuis un logiciel existant (au-delà du
+      fichier)
+- [ ] Validation terrain documentée : trois agences dont la clôture passe
+      intégralement par Ranti sur deux mois consécutifs
 
 ## Phase 0 - Foundation
 
@@ -117,19 +168,25 @@ dormant (/api/cron/reminders + lib/reminders/sms.ts) est supprimé.
 
 ## Sprint 8 - Proof Engine
 
-Objectif : après validation du paiement par le propriétaire, Ranti génère automatiquement le document adapté.
+Objectif : après validation de l'encaissement, Ranti génère automatiquement le document adapté.
 
-- [ ] Transformer l'action produit principale en "valider le paiement"
-- [ ] Annoncer le document généré avant validation
-- [ ] Générer automatiquement un reçu partiel si paiement partiel
-- [ ] Générer automatiquement une quittance/reçu complet quand l'échéance est soldée
-- [ ] Conserver le snapshot du document généré
-- [ ] Vérifier la numérotation unique par propriétaire
-- [ ] Auditer génération, annulation et remplacement
+- [x] Transformer l'action produit principale en "valider l'encaissement"
+- [x] Annoncer le document généré avant validation
+- [x] Générer automatiquement un reçu partiel si paiement partiel
+- [x] Générer automatiquement une quittance/reçu complet quand l'échéance est soldée
+- [x] Conserver le snapshot du document généré (`receipts.snapshot`)
+- [x] Vérifier la numérotation unique par compte (`RNT-AAAA-NNNN`, ADR-027)
+- [x] Auditer génération, annulation et remplacement
+- [x] Sceau de certification infalsifiable par l'émetteur (HMAC sous secret
+      serveur, trigger de certification, migration `20260809120300`)
+
+Limite connue : le locataire n'ayant pas de compte, le sceau prouve l'intégrité
+du document et le passage par le parcours à jeton, pas l'identité du cliqueur
+(ADR-013 §4). La délivrance du lien de partage est journalisée.
 
 ## Sprint 9 - Beta
 
-- [ ] Tests terrain
+- [ ] Tests terrain auprès d'entreprises de gestion
 - [ ] Corrections
 - [ ] Première beta privée
 

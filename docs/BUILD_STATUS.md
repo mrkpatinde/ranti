@@ -1,11 +1,82 @@
 # Ranti — Build Status
 
-Dernière mise à jour : 2026-07-24 (table des versions complétée jusqu'à v0.3.36.0 ; les mesures de la section 0 datent du 2026-07-17)
+Dernière mise à jour : 2026-08-09 (pivot entreprises de gestion, ADR-029 ;
+retrait du rail de paiement, ADR-030).
 
-> Les sections 1 à 3 bis décrivent l'état au **2026-07-03** et sont conservées
-> comme trace historique. L'état courant est en **section 0**.
+> L'état courant est en **section 0**. La section **0 bis** (état au
+> 2026-07-17) et les sections **1 à 3 bis** (état au 2026-07-03) sont
+> conservées comme trace historique : leurs constats sur le rail de paiement,
+> le cron SMS et le parcours `/first-run` ne valent plus. Les sections 5 à 10
+> décrivent la procédure et l'état courants.
 
-## 0. État courant (2026-07-17, v0.3.5.2)
+## 0. État courant (2026-08-09)
+
+### Le pivot (ADR-029)
+
+Le client de Ranti est l'entreprise de gestion immobilière. Le compte connecté
+est l'agence ; elle gère des lots pour des propriétaires mandants qui ne sont
+pas des utilisateurs et reçoivent un relevé mensuel. Le wedge est la clôture
+mensuelle du portefeuille.
+
+Quatre briques livrées :
+
+| Brique | Migration | Base | Application |
+| :-- | :-- | :-- | :-- |
+| Import de portefeuille par fichier | `20260809120600` | `validate_portfolio_import`, `import_portfolio`, index d'unicité sur `properties(landlord_id, name)` | `/import`, `src/lib/import/` |
+| Propriétaires mandants | `20260809120500` | `owners`, `properties.owner_id`, RLS et triggers conventionnels | `/owners`, `src/lib/owners/` |
+| Relevé mensuel et clôture | `20260809120700` | `owner_statement`, `owner_statement_lines`, vue `owner_month_summary` | `/cloture`, `/cloture/[ownerId]`, PDF, `src/lib/statements/` |
+| Relances par lot | `20260809120800` | vue `reminder_batch`, `log_reminder_batch`, policy d'insert sur `reminder_events` | `/reminders/batch`, `src/lib/reminders/batch.ts` |
+
+Navigation étendue dans `src/components/app-shell.tsx` : `/cloture` rejoint la
+barre principale, `/owners` et `/import` la navigation secondaire.
+
+### Les cinq corrections de socle
+
+| Migration | Objet |
+| :-- | :-- |
+| `20260809120000` | Retrait du rail de paiement (ADR-030) : tables `payment_transactions` et `payment_proofs`, quatre RPC du rail, avec balayage des surcharges résiduelles. Côté application : `src/lib/feexpay/`, `src/lib/payments/`, `src/app/api/payments/` supprimés. |
+| `20260809120100` | Retrait des charges variables restées en SQL après ADR-026, de `ledger_notification_events` et de 14 fonctions sans appelant applicatif. |
+| `20260809120200` | Réparation d'une dérive base ↔ migrations : RLS jamais activée par migration sur `reminders` et `reminder_events` (policies inertes sur une base reconstruite depuis le dépôt) ; `receipts` accordant `DELETE`, `TRUNCATE`, `REFERENCES` et `TRIGGER` à `authenticated` en production. Vue de contrôle `public.ops_grant_drift`. |
+| `20260809120300` | Durcissement du sceau de quittance : HMAC sous secret serveur (`private.app_secrets`), trigger interdisant l'écriture cliente des colonnes de certification, jeton locataire délivré par la RPC journalisée `receipt_share_token`. |
+| `20260809120400` | Contrôle quotidien de l'égalité entre `rent_dues` et `transactions` (`private.ledger_health`, vue `public.ops_ledger_health`, tâche pg_cron `ranti-ledger-health` à 03h10 UTC). |
+
+### Le parcours dupliqué supprimé
+
+`src/app/first-run/` est retiré. Le rail « Premiers pas » du tableau de bord
+reste le seul chemin de prise en main.
+
+### Intégration continue
+
+`.github/workflows/ci.yml` exécute deux jobs : `web` (lint, tests unitaires,
+build) et `sql` (rejeu de toutes les migrations puis de la suite de tests
+`supabase/tests/` sur un Postgres 16). La suite SQL n'était jusqu'ici jouée
+qu'à la main.
+
+### Écarts ouverts
+
+1. **Phase « contract » du grand livre jamais faite.** `rent_dues` et
+   `transactions` coexistent depuis la migration `20260716150000` ; le tableau
+   de bord interroge les deux sur la même page. La divergence est désormais
+   mesurée chaque jour, elle n'est pas résolue.
+2. **Un compte reste un portefeuille.** Le partage entre plusieurs employés
+   d'une agence n'existe pas (ADR-029, remis à plus tard).
+3. **Limite connue du sceau de quittance.** Un gestionnaire déterminé peut
+   récupérer le lien de certification et cliquer à la place de son locataire.
+   Le sceau prouve l'intégrité du document et le passage par le parcours à
+   jeton, pas l'identité du cliqueur (ADR-013 §4). La délivrance du lien est
+   journalisée.
+4. **Vestiges d'énumération du rail supprimé** : `rent_receptions.recorded_by`
+   accepte encore `'psp'`, `transactions.source` encore `'feexpay'`. Aucun
+   écrivain.
+5. **Collision de numéro ADR-006** (relances / audit) — non renumérotée, des
+   commentaires `.sql` référencent les deux.
+6. **Relances : Ranti n'envoie rien.** Le message part du WhatsApp du
+   gestionnaire par lien `wa.me`. Le produit fournit la file, le message
+   pré-rédigé et la trace.
+
+---
+
+## 0 bis. État au 2026-07-17 (v0.3.5.2) — trace historique
 
 Mesuré, pas supposé :
 
@@ -36,20 +107,20 @@ Livré depuis le 2026-07-03 (non couvert par les sections ci-dessous) :
 | v0.3.35.0 | **Adresse canonique du site déclarée** : apex `monranti.com` (`metadataBase` + `alternates.canonical`), `sitemap.xml` et `robots.txt` ; quittances (`/recu/`) et vérifications réelles (`/verifier/<id>`) hors indexation, `/verifier/demo` conservée. **Contrat de purge corrigé** : `revalidateMoneySurfaces` applique un `revalidatePath("/", "layout")` unique (seul levier qui purge le cache CLIENT), `updateLease` rattaché au contrat, appels par chemin redondants retirés. Aucune migration |
 | v0.3.36.0 | **Landing Moneco + tarifs B-1 annuel d'abord** (équivalent euro diaspora, footer colonnes, page `/a-propos`) ; **vérification publique par référence** (`/verifier`, RPC `verify_receipt_by_number` durcie : verdict côté SQL, ni nom ni montant ni empreinte sur ce chemin énumérable) ; **moyen de paiement sur la quittance partagée** (page `/recu/[token]` + PDF, Loi 2022-30) ; `/verifier` exclu du cache PWA (fail closed), dates de preuve stables tous fuseaux. Migrations `20260724100000`/`101000`/`140000` **appliquées en prod** |
 
-Écarts ouverts au 2026-07-17 :
+Écarts ouverts au 2026-07-17, et leur sort :
 
-1. **Rail de paiement : décision ≠ code.** ADR-019 décide FeexPay comme cash-in
-   unique. Le webhook implémenté est **Kkiapay** (`api/payments/notification`,
-   `x-kkiapay-signature`, `provider: "kkiapay"` en dur). FeexPay n'existe qu'en
-   type et en taux par défaut. Le gate BCEAO masque l'écart : rien n'est activé.
-2. **Gate BCEAO non levé** — bloquant avant production du rail. Cap visé
-   ADR-019 : semaine du 2026-07-22, sous réserve.
-3. **Relances toujours dormantes** (voir §4, inchangé) — canal de fait WhatsApp
-   via `ranti-ops`.
+1. **Rail de paiement : décision ≠ code.** ADR-019 décidait FeexPay comme
+   cash-in unique ; le webhook implémenté était Kkiapay. *Clos le 2026-08-09
+   par suppression du rail (ADR-030).*
+2. **Gate BCEAO non levé.** *Clos le 2026-08-09 : sans détention de fonds,
+   Ranti sort du champ de l'Instruction 001-01-2024.*
+3. **Relances toujours dormantes** — canal de fait WhatsApp. *Toujours vrai :
+   Ranti n'envoie rien lui-même. Le geste est passé de « bail par bail » à
+   « le portefeuille en une passe » (`/reminders/batch`).*
 4. **Vestige ADR-014** : `collections/allocate/[id]/page.tsx` cite « Fast-Log
-   (collage SMS) » alors que la capture SMS n'existe plus.
+   (collage SMS) » alors que la capture SMS n'existe plus. *À vérifier.*
 5. **Collision de numéro ADR-006** (relances / audit) — non renumérotée, des
-   commentaires `.sql` référencent les deux.
+   commentaires `.sql` référencent les deux. *Toujours vrai.*
 
 ---
 
@@ -126,7 +197,10 @@ quittance PDF → relance SMS → confirmation locataire.
   reçues dans le mois (plus de somme historique globale).
 - Mode local : `RANTI_LOCAL_AUTH=1` et `=true` acceptés, jamais en prod.
 
-## 4. Ce qui reste incomplet (honnête)
+## 4. Ce qui reste incomplet — état au 2026-07-05, trace historique
+
+> Les trois premières puces décrivent le cron SMS `/api/cron/reminders`,
+> supprimé depuis (ADR-022). Le reste de la section vaut toujours.
 
 - **Canal de relance de fait = WhatsApp (cockpit ranti-ops).** Le cron SMS
   `/api/cron/reminders` est **dormant par défaut** : il ne fait rien tant que
@@ -163,22 +237,27 @@ quittance PDF → relance SMS → confirmation locataire.
 
 ```bash
 cd apps/web
-npm install
-npm run dev        # http://localhost:3000
+bun install
+bun run dev        # http://localhost:3000
 ```
 
-`.env.local` requis :
+`.env.local` requis (état au 2026-08-09) :
 
 ```txt
 NEXT_PUBLIC_SUPABASE_URL=…
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=…
-RANTI_LOCAL_AUTH=1              # bypass auth SMS en dev
-RANTI_LOCAL_AUTH_USER_ID=…      # id auth.users du landlord seed
+RANTI_LOCAL_AUTH=1              # bypass auth en dev
+RANTI_LOCAL_AUTH_USER_ID=…      # id auth.users du compte seed
 RANTI_LOCAL_AUTH_PHONE=…
-# Pour tester le cron localement :
-CRON_SECRET=dev-secret
-SUPABASE_SECRET_KEY=…           # jamais côté client
+SUPABASE_SECRET_KEY=…           # serveur uniquement, jamais côté client
 ```
+
+Optionnelles : `SUPABASE_JWT_SECRET`, `NEXT_PUBLIC_AXEPTIO_CLIENT_ID`,
+`NEXT_PUBLIC_NOTION_HELP_URL`, `NEXT_PUBLIC_SUPPORT_EMAIL`,
+`NEXT_PUBLIC_SUPPORT_WHATSAPP`.
+
+`CRON_SECRET` n'a plus d'usage : le cron SMS a été supprimé (ADR-022). Les
+variables `FEEXPAY_*` non plus : le rail de paiement est supprimé (ADR-030).
 
 ## 6. Migrations Supabase
 
@@ -188,12 +267,17 @@ supabase link --project-ref pcxkxeesgusorrpmrkaj
 supabase db reset   # rejoue toutes les migrations + seed.sql
 ```
 
-Le projet live (`pcxkxeesgusorrpmrkaj`) est à jour jusqu'à
-`landlords_rls_initplan` (vérifié le 2026-07-03).
+Les migrations `20260809*` et `20260810*` (pivot ADR-029, corrections de socle,
+raison sociale, correctif du parcours jeton) sont à appliquer au déploiement. Contrôles après application : `public.ops_grant_drift`
+doit être vide, et la dernière ligne de `public.ops_ledger_health` doit porter
+`healthy = true`.
 
 Règle : toute migration appliquée en live — y compris depuis ranti-ops —
 doit avoir son fichier versionné ici, avec le même timestamp que la version
-live. Les migrations ops (`create_ops_reminders`, `ops_dashboard_views`)
+live. La migration `20260809120200` a été écrite après le constat inverse :
+deux modifications appliquées hors migration avaient laissé la production et le
+dépôt dans des états différents, dont l'un ouvrait les relances de tous les
+portefeuilles à tout compte authentifié sur une base reconstruite. Les migrations ops (`create_ops_reminders`, `ops_dashboard_views`)
 sont rapatriées ; leurs objets sont réservés service_role (aucun grant
 anon/authenticated).
 
@@ -201,61 +285,64 @@ anon/authenticated).
 
 ```bash
 cd apps/web
-npm run test:unit    # 239 passés, 25 skippés (264) au 2026-07-17
-npm run lint
-npm run build
-npm run test:e2e     # Playwright (nécessite RANTI_LOCAL_AUTH)
+bun run test         # vitest
+bun run lint
+bun run build
+bun run test:e2e     # Playwright (nécessite RANTI_LOCAL_AUTH)
 ```
 
-Test manuel de la relance :
+Tests SQL (rejeu des migrations puis de `supabase/tests/` sur un Postgres 16) :
+exécutés par le job `sql` de `.github/workflows/ci.yml`, qui est la référence
+de la procédure locale.
 
-```bash
-curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/reminders
-# → {"ok":true,"sent":N} ; les SMS sandbox apparaissent dans les logs serveur
-```
+Parcours à vérifier à la main après une migration :
 
-Confirmation locataire : récupérer `confirmation_token` d'une échéance et
-ouvrir `/confirmer/<token>`.
+- `/import` — validation d'un fichier fautif, puis import complet ;
+- `/cloture` puis `/cloture/<ownerId>` et son PDF — les totaux doivent être la
+  somme des lignes ;
+- `/reminders/batch` — sélection, message pré-rédigé, trace enregistrée ;
+- `/recu/<token>` — certification locataire, puis `/verifier/<id>`.
 
-## 8. Script de démo (appel propriétaire)
+## 8. Script de démo (rendez-vous agence)
 
-Préparation : se connecter au dashboard avec le compte seed (ou son compte),
-avoir au moins un bail actif avec une échéance impayée.
+Préparation : un compte avec au moins deux mandants, une dizaine de lots, des
+encaissements du mois en cours et au moins une échéance en retard.
 
-1. **Ouvrir le tableau de bord.** « Voici Ranti : votre registre de loyer.
-   En un coup d'œil : en retard (rouge), attendu (orange), payé (vert). »
-2. **Montrer « À encaisser ».** Chaque ligne = locataire, logement, reste dû,
-   date. « Vous savez immédiatement qui doit quoi. »
-3. **Cliquer Encaisser.** Enregistrer le paiement (montant alloué à
-   l'échéance). Statut passe à payé.
-4. **Générer/ouvrir la quittance.** Montrer le PDF : numéro unique, périodes
-   réglées. « La preuve, propre, sans papier perdu. »
-5. **La relance.** Montrer un SMS type : « Ranti — Votre loyer de 80 000 FCFA
-   arrive à échéance le 5 juillet. Confirmez : lien ». « Vous configurez le
-   bail une fois ; Ranti relance automatiquement à J-5, J-1, puis en retard. »
-6. **La confirmation locataire.** Ouvrir `/confirmer/<token>` sur le
-   téléphone : le locataire déclare « J'ai payé », vous validez ensuite.
-7. Conclure : « Qui a payé, qui doit, la preuve — c'est tout Ranti. »
+1. **L'import.** Ouvrir `/import` avec le fichier Excel de l'agence.
+   Montrer l'aperçu ligne par ligne, corriger une erreur, relancer, importer.
+   « Votre portefeuille entre en une fois. »
+2. **Le tableau de bord.** En retard, attendu, encaissé.
+3. **La relance par lot.** `/reminders/batch` : tous les retards du mois,
+   message pré-rédigé, envoi depuis le WhatsApp du gestionnaire, trace
+   enregistrée. « Soixante lots, une passe. »
+4. **L'encaissement et la quittance.** Enregistrer un versement, l'allouer,
+   ouvrir le PDF : numéro unique, périodes réglées, montant en toutes lettres.
+5. **La clôture.** `/cloture` : par mandant, encaissé, honoraires, net à
+   reverser. Ouvrir un relevé, montrer le détail lot par lot et le PDF.
+   « Ce que vous mettez trois jours à faire. »
+6. **La vérification.** Ouvrir `/verifier/<id>` : le document se vérifie hors
+   de l'application.
 
 Plan B si réseau instable : captures d'écran du parcours prises à l'avance.
 
 ## 9. Risques connus
 
-- Relance réelle non testée avec un vrai provider SMS (sandbox seulement).
 - `generate_rent_dues` génère jusqu'au mois courant : une démo un 1er du mois
   montre peu d'échéances — préparer les données la veille.
+- Un import de démonstration écrit dans le portefeuille : utiliser un compte
+  dédié, l'opération est idempotente mais pas annulable.
 - Mode local auth (`RANTI_LOCAL_AUTH`) ne doit jamais être activé en prod.
 
-## 10. Prochaines actions recommandées
+## 10. Prochaines actions recommandées (2026-08-09)
 
-1. Configurer `CRON_SECRET` + `SUPABASE_SECRET_KEY` dans Vercel et vérifier
-   une exécution réelle du cron (logs Vercel).
-2. Canal de relance : WhatsApp (ranti-ops) fait foi. Le SMS reste dormant
-   (`REMINDERS_SMS_ENABLED` off). Avant d'activer un provider SMS : coder le
-   cross-dedup cron ↔ `reminder_events` pour ne pas doubler WhatsApp.
-3. Merger `stabilize/p0-invariants` dans `main` (le live est déjà aligné).
-4. Écran « Relances » côté propriétaire : historique des SMS envoyés
-   (table `reminders`, déjà en place) + validation des déclarations locataires
-   (réceptions `draft`).
-5. UI modifier/archiver (logements, propriétés, locataires) — logique déjà
-   prête côté serveur.
+1. Appliquer les migrations `20260809*` et `20260810*` en production, puis vérifier que
+   `public.ops_grant_drift` et la dernière ligne de `public.ops_ledger_health`
+   sont saines.
+2. Faire entrer une première agence par `/import`, avec son fichier réel.
+   L'import est le point de rupture de l'acquisition.
+3. Suivre `ops_ledger_health` sur un mois avant d'engager la phase « contract »
+   du grand livre.
+4. Trancher le partage de compte entre employés au premier signal terrain
+   (ADR-029, remis à plus tard).
+5. Retirer les vestiges d'énumération du rail supprimé (`recorded_by = 'psp'`,
+   `transactions.source = 'feexpay'`).

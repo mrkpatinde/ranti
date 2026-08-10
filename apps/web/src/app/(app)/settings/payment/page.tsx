@@ -32,9 +32,9 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
         <div className="space-y-3">
           <h1 className="font-display text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground">Votre alias PI-SPI</h1>
           <p className="text-base leading-7 text-foreground/70">
-            Renseignez l&apos;alias sur lequel vos locataires paient le loyer. Ils envoient
-            depuis leur appli (MTN, Moov, banque), en un instant et sans frais pour eux.
-            Vous confirmez ensuite l&apos;encaissement.
+            Renseignez le numéro marchand ou l&apos;alias de paiement de votre entreprise,
+            communiqué aux locataires. Ils envoient depuis leur appli (MTN, Moov, banque),
+            en un instant et sans frais pour eux. Vous confirmez ensuite l&apos;encaissement.
           </p>
         </div>
 

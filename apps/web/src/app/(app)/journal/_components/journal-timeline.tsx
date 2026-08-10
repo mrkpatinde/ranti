@@ -1,12 +1,13 @@
 import Link from "next/link"
 import type { JournalEvent } from "@/lib/journal"
-import { buildTenantPaymentWaLink } from "@/lib/journal/whatsapp"
 import { formatFcfa } from "@/lib/format"
+import { NotifyWhatsApp } from "./notify-whatsapp"
 
 // Timeline chronologique (ADR-014), esthétique « Granola » : colonne date à
 // chiffre serif, filet vertical coloré par nature d'évènement, séparation
-// pointillée entre les jours. Rendu serveur intégral : « Affecter » mène à
-// /collections/allocate/[id], « Notifier » ouvre un lien profond wa.me.
+// pointillée entre les jours. Rendu serveur, à une exception : « Notifier »
+// est un îlot client — le lien /recu/[token] s'obtient AU CLIC par la RPC
+// journalisée receipt_share_token, il n'est plus servi par journal_feed.
 
 // Détail derrière chaque ligne (les écrans de gestion sont le détail du journal).
 const DETAIL_HREF: Record<JournalEvent["ref_table"], (id: string) => string> = {
@@ -134,22 +135,10 @@ function EventRow({
   const isPayment = event.event_type === "rent_reception"
   const unallocated = isPayment && event.allocated === false
 
-  // Lien public du reçu (ADR-013) : le locataire confirme l'exactitude et
-  // télécharge le PDF. Absolu, sinon il n'est pas cliquable depuis WhatsApp.
-  const receiptUrl =
-    origin && event.receipt_token ? `${origin}/recu/${event.receipt_token}` : null
-
-  // Notification WhatsApp sortante (étape 6) : lien wa.me pré-rempli vers le
-  // locataire, uniquement sur un encaissement doté d'un montant et d'un numéro.
-  const waLink =
-    isPayment && event.counterparty_phone && event.amount != null
-      ? buildTenantPaymentWaLink({
-          phone: event.counterparty_phone,
-          tenantName: event.counterparty,
-          amount: event.amount,
-          receiptUrl,
-        })
-      : null
+  // Notification WhatsApp sortante (étape 6) : uniquement sur un encaissement
+  // doté d'un montant et d'un numéro. Le lien wa.me (et le jeton du reçu qu'il
+  // embarque) se construit au clic, côté client — voir NotifyWhatsApp.
+  const canNotify = isPayment && !!event.counterparty_phone && event.amount != null
 
   // Fast-Log non alloué : titre dédié « Encaissement à affecter — [Montant] FCFA ».
   const title = unallocated
@@ -198,18 +187,16 @@ function EventRow({
       </Link>
 
       {/* Affordances : notifier le locataire (WhatsApp) et affecter un Fast-Log. */}
-      {waLink || unallocated ? (
+      {canNotify || unallocated ? (
         <div className="flex items-center gap-4 pb-1">
-          {waLink ? (
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-              aria-label="Notifier le locataire du paiement reçu sur WhatsApp"
-            >
-              Notifier sur WhatsApp
-            </a>
+          {canNotify ? (
+            <NotifyWhatsApp
+              phone={event.counterparty_phone as string}
+              tenantName={event.counterparty}
+              amount={event.amount as number}
+              receiptId={event.receipt_id}
+              origin={origin}
+            />
           ) : null}
           {unallocated ? (
             <Link
