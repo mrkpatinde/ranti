@@ -24,7 +24,7 @@ const hankenGrotesk = Hanken_Grotesk({
 export const metadata: Metadata = {
   // Base des URLs absolues (canonique, OG). Apex sans www, figé (voir lib/site).
   metadataBase: new URL(SITE_URL),
-  title: "Ranti — La clôture mensuelle des entreprises de gestion immobilière",
+  title: "Ranti — Gestion locative pour agences immobilières au Bénin",
   description:
     "Suivi des encaissements, relances par lot et relevé mensuel par propriétaire mandant : encaissé, honoraires, net à reverser. Les loyers restent sur le compte de votre agence.",
 };

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test"
 test("landing shows the primary call to action", async ({ page }) => {
   await page.goto("/")
   await expect(
-    page.getByRole("heading", { name: /La clôture de votre mois, en une heure/ }),
+    page.getByRole("heading", { name: /Le logiciel de gestion locative des agences immobilières/ }),
   ).toBeVisible()
   // CTA unique du hero (lien vers /signup, ADR-029) + entrée connexion.
   await expect(

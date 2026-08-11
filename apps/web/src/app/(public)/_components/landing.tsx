@@ -44,12 +44,13 @@ function Hero() {
     <section className="px-6 py-[clamp(72px,13vw,150px)]">
       <div className="lp-rise mx-auto max-w-3xl text-center">
         <h1 className="font-display text-[clamp(2.6rem,6.6vw,4.6rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink-title [text-wrap:balance]">
-          La clôture de votre mois, en une heure.
+          Le logiciel de gestion locative des agences immobilières.
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-[clamp(1.1rem,1.8vw,1.3rem)] leading-relaxed text-muted-foreground">
-          Ranti suit les encaissements de votre portefeuille, relance les retards par lot et
-          établit pour chaque propriétaire mandant le relevé du mois : encaissé, honoraires,
-          net à reverser. Les loyers restent sur le compte de votre agence.
+          Ranti suit les loyers de votre portefeuille, relance les retards et établit pour
+          chaque propriétaire son relevé du mois : encaissé, honoraires, net à reverser.
+          Votre clôture passe de plusieurs jours à une heure — et les loyers restent sur le
+          compte de votre agence.
         </p>
         <div className="mt-9 flex justify-center">
           <Link href={AUTH_PATHS.signUp} className={CTA_PILL}>
@@ -57,9 +58,7 @@ function Hero() {
           </Link>
         </div>
         <p className="mt-[18px] flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground">
-          <span>Inscription avec Google</span>
-          <span aria-hidden="true" className="opacity-40">·</span>
-          <span>Portefeuille importé par fichier Excel ou CSV</span>
+          <span>Un compte Google et votre fichier Excel suffisent.</span>
         </p>
       </div>
     </section>
